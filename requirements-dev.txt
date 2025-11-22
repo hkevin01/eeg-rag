@@ -1,0 +1,25 @@
+# Development dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.0.0,<8.0.0
+pytest-cov>=3.0.0,<5.0.0
+pytest-mock>=3.6.0,<4.0.0
+pytest-asyncio>=0.18.0,<1.0.0
+
+# Code quality
+black>=22.0.0,<24.0.0
+pylint>=2.12.0,<4.0.0
+mypy>=0.950,<2.0.0
+isort>=5.10.0,<6.0.0
+flake8>=4.0.0,<7.0.0
+
+# Development tools
+ipython>=8.0.0,<9.0.0
+jupyter>=1.0.0,<2.0.0
+jupyterlab>=3.0.0,<5.0.0
+memory-profiler>=0.60.0,<1.0.0
+
+# Optional - Knowledge Graph
+neo4j>=5.0.0,<6.0.0
+redis>=4.0.0,<5.0.0

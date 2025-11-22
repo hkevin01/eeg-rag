@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  eeg-rag:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: eeg-rag-app
+    volumes:
+      - ../src:/app/src
+      - ../data:/app/data
+      - ../tests:/app/tests
+      - ../scripts:/app/scripts
+      - ../.env:/app/.env
+    environment:
+      - PYTHONPATH=/app/src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - neo4j
+      - redis
+    networks:
+      - eeg-rag-network
+    restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5.13
+    container_name: eeg-rag-neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/eeg-rag-password
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - eeg-rag-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: eeg-rag-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - eeg-rag-network
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  eeg-rag-network:
+    driver: bridge

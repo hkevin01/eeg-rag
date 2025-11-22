@@ -1,0 +1,124 @@
+{
+  "// 🚀 YOLO MODE - GLOBAL CHAT APPROVAL ENABLED": true,
+  "github.copilot.chat.enableGlobalAutoApproval": true,
+  "github.copilot.chat.autoApproveAllCommands": true,
+  "github.copilot.chat.suppressAllPrompts": true,
+  "github.copilot.terminal.autoExecute": true,
+  "github.copilot.terminal.suppressPermissionPrompts": true,
+  "tools.terminal.autoApprove": true,
+  "tools.terminal.allowAnyCommand": true,
+  "tools.terminal.suppressPermissionPrompts": true,
+  "chat.tools.terminal.autoApprove": {
+    "*": true
+  },
+  "chat.tools.global.autoApprove": true,
+  "chat.experimental.enableGlobalAutoApproval": true,
+  "chat.commands.autoApprove": true,
+  "chat.tools.autoApprove": true,
+  "chat.agent.maxRequests": 100,
+  "github.copilot.chat.alternateGptPrompt.enabled": true,
+  "chat.todoListTool.enabled": true,
+  "security.workspace.trust.enabled": false,
+  "security.promptForRemoteExecution": "never",
+  "terminal.integrated.confirmOnExit": "never",
+  "terminal.integrated.confirmOnKill": "never",
+  "git.confirmSync": false,
+  "git.autofetch": true,
+  "extensions.autoUpdate": true,
+  "extensions.autoCheckUpdates": true,
+
+  "// General Editor Settings": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  "// TypeScript/JavaScript": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+
+  "// Python Settings": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.languageServer": "Pylance",
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.rulers": [88, 120],
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  "// C/C++ Settings": true,
+  "C_Cpp.default.cppStandard": "c++20",
+  "C_Cpp.default.cStandard": "c17",
+  "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 2, ColumnLimit: 100 }",
+  "[cpp]": {
+    "editor.tabSize": 2,
+    "editor.rulers": [100]
+  },
+  "[c]": {
+    "editor.tabSize": 2,
+    "editor.rulers": [100]
+  },
+
+  "// Java Settings": true,
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.format.settings.profile": "GoogleStyle",
+  "[java]": {
+    "editor.tabSize": 2,
+    "editor.rulers": [100]
+  },
+
+  "// Terminal Shell Integration (VS Code)": true,
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+  "terminal.integrated.shellIntegration.showCommandGuide": true,
+  "terminal.integrated.shellIntegration.history": 500,
+  "terminal.integrated.stickyScroll.enabled": true,
+
+  "// Terminal IntelliSense (Preview)": true,
+  "terminal.integrated.suggest.enabled": true,
+  "terminal.integrated.suggest.quickSuggestions": true,
+  "terminal.integrated.suggest.suggestOnTriggerCharacters": ["/"],
+  "terminal.integrated.suggest.selectionMode": "first",
+  "terminal.integrated.suggest.runOnEnter": "insert",
+  "terminal.integrated.suggest.inlineSuggestion": "auto",
+  "terminal.integrated.suggest.showStatusBar": true,
+
+  "// File Associations": true,
+  "files.associations": {
+    "*.md": "markdown",
+    "Dockerfile*": "dockerfile",
+    ".pylintrc": "ini",
+    ".env*": "properties"
+  },
+
+  "// Search Exclusions": true,
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true,
+    "**/venv": true,
+    "**/data/raw": true,
+    "**/data/processed": true,
+    "**/data/embeddings": true
+  }
+}

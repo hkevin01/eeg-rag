@@ -1,0 +1,140 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environments (DO NOT CREATE VENV IN ROOT - Use Docker instead)
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmyp.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Data files (large datasets should not be committed)
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/sample_pubmed_eeg/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/embeddings/*
+!data/embeddings/.gitkeep
+*.csv
+*.parquet
+*.hdf5
+*.h5
+*.pkl
+*.pickle
+
+# Models and indexes
+models/
+*.bin
+*.index
+*.faiss
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Neo4j
+neo4j/
+
+# Redis
+dump.rdb
+
+# Docker
+docker/*.env
+docker/data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE
+*.sublime-project
+*.sublime-workspace
+
+# C/C++ compiled files
+*.o
+*.out
+*.exe
+
+# Java compiled files
+*.class
+*.jar
+!gradle-wrapper.jar
+target/
+
+# Node modules (if any JS tooling)
+node_modules/
+
+# Secrets and keys
+*.pem
+*.key
+*.crt
+secrets/

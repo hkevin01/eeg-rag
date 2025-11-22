@@ -1,0 +1,77 @@
+[MASTER]
+jobs=0
+load-plugins=
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-instance-attributes,
+    too-many-locals,
+    fixme,
+    duplicate-code
+
+[REPORTS]
+output-format=text
+reports=no
+score=yes
+
+[BASIC]
+# Naming conventions
+class-naming-style=PascalCase
+class-rgx=[A-Z][a-zA-Z0-9]*$
+
+function-naming-style=snake_case
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+
+method-naming-style=snake_case
+method-rgx=[a-z_][a-z0-9_]{2,50}$
+
+variable-naming-style=snake_case
+variable-rgx=[a-z_][a-z0-9_]{0,50}$
+
+const-naming-style=UPPER_CASE
+const-rgx=[A-Z_][A-Z0-9_]{2,50}$
+
+module-naming-style=snake_case
+module-rgx=[a-z_][a-z0-9_]{2,50}$
+
+attr-naming-style=snake_case
+attr-rgx=[a-z_][a-z0-9_]{2,50}$
+
+argument-naming-style=snake_case
+argument-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Good variable names
+good-names=i,j,k,x,y,z,id,df,ax,fig,db,_
+
+[FORMAT]
+max-line-length=88
+max-module-lines=1000
+indent-string='    '
+
+[DESIGN]
+max-args=10
+max-locals=20
+max-returns=6
+max-branches=15
+max-statements=60
+max-parents=7
+max-attributes=15
+min-public-methods=1
+max-public-methods=25
+max-bool-expr=5
+
+[TYPECHECK]
+ignored-classes=SQLAlchemy,scoped_session
+
+[IMPORTS]
+allow-wildcard-with-all=no
+
+[SIMILARITIES]
+min-similarity-lines=5
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes

@@ -1,0 +1,55 @@
+{
+  "recommendations": [
+    // Python Development
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter",
+    "ms-python.pylint",
+    "ms-python.debugpy",
+
+    // GitHub Copilot
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+
+    // C/C++ Development
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    "ms-vscode.cmake-tools",
+
+    // Java Development
+    "vscjava.vscode-java-pack",
+    "redhat.java",
+    "vscjava.vscode-java-debug",
+    "vscjava.vscode-maven",
+
+    // Docker & Containers
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+
+    // Git & Version Control
+    "eamodio.gitlens",
+    "GitHub.vscode-pull-request-github",
+    "github.vscode-github-actions",
+
+    // Code Quality & Linting
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "EditorConfig.EditorConfig",
+
+    // Markdown & Documentation
+    "yzhang.markdown-all-in-one",
+    "DavidAnson.vscode-markdownlint",
+
+    // Data & Visualization
+    "ms-toolsai.jupyter",
+    "ms-toolsai.jupyter-keymap",
+    "ms-toolsai.jupyter-renderers",
+
+    // Utilities
+    "shardulm94.trailing-spaces",
+    "oderwat.indent-rainbow",
+    "mechatroner.rainbow-csv",
+    "visualstudioexptteam.vscodeintellicode",
+    "gruntfuggly.todo-tree"
+  ]
+}
