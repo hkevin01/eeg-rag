@@ -8,6 +8,16 @@
 
 EEG-RAG is a Retrieval-Augmented Generation (RAG) system specifically designed for electroencephalography (EEG) research. It enables researchers, clinicians, and data scientists to ask natural language questions about EEG literature and receive evidence-based answers with proper citations.
 
+### In plain language: benefits for EEG professionals
+
+- ⏱️ **Spend less time digging through charts and papers.** The RAG pipeline keeps a rolling index of peer-reviewed EEG studies and guidelines so you can pull the relevant paragraph (with PMID) in seconds instead of skimming dozens of PDFs.[^mdpi-healthcare]
+- 🧩 **See patient-matched precedents before finalizing a read.** By linking EEG waveforms, clinical context, and prior cases (the same recipe that let EEG-MedRAG beat other retrieval methods by 5–20 F1 points across seven disorders), you can quickly sanity-check seizure patterns, sleep transitions, or cognitive task responses against similar cohorts.[^eeg-medrag]
+- 📑 **Trust the answer because the evidence is attached.** Every summary cites the originating study or guideline, reducing the hallucinations that plague general-purpose LLMs and making it easy to document your decision trail for tumor boards, EMU reports, or regulatory audits.[^mdpi-healthcare]
+- 🔄 **Stay aligned across the care team.** The system refreshes its knowledge graph with new trials, society position statements, and longitudinal EEG repositories so neurologists, EEG techs, and researchers operate from the same up-to-date playbook.[^mdpi-healthcare][^eeg-medrag]
+
+[^mdpi-healthcare]: F. Neha et al., “Retrieval-Augmented Generation (RAG) in Healthcare: A Comprehensive Review,” *AI*, 2025. <https://www.mdpi.com/2673-2688/6/9/226>
+[^eeg-medrag]: Y. Wang et al., “EEG-MedRAG: Enhancing EEG-based Clinical Decision-Making via Hierarchical Hypergraph Retrieval-Augmented Generation,” arXiv:2508.13735, 2025. <https://arxiv.org/abs/2508.13735>
+
 ## 📋 Table of Contents
 
 - [Why EEG-RAG?](#-why-eeg-rag)
