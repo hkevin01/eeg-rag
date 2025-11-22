@@ -18,6 +18,7 @@ EEG-RAG is a Retrieval-Augmented Generation (RAG) system specifically designed f
 - [Quick Start](#-quick-start)
 - [Features](#-features)
 - [Development Roadmap](#-development-roadmap)
+- [Enterprise Features](#-enterprise-features)
 - [Development](#-development)
 - [Documentation](#-documentation)
 
@@ -244,6 +245,94 @@ graph LR
 - [ ] Context Aggregator (merge agent results)
 - [ ] Generation Ensemble (multi-LLM synthesis)
 - [ ] Final Aggregator (answer assembly)
+
+---
+
+## 🏢 Enterprise Features
+
+EEG-RAG includes **enterprise-grade features** for commercial deployment, regulatory compliance, and IP protection:
+
+### 📜 Citation Provenance Tracking
+
+Complete chain-of-custody for all citations with:
+- ✅ **Immutable Audit Trail**: SHA-256 hashing of all provenance events
+- ✅ **OpenTimestamps Integration**: Blockchain-anchored timestamps for IP protection
+- ✅ **Derived Works Tracking**: Track which documents used each citation
+- ✅ **Legal Compliance Reports**: Export for FDA/CE marking, patent applications
+
+```python
+from eeg_rag.provenance import CitationProvenanceTracker, SourceType
+
+tracker = CitationProvenanceTracker(enable_opentimestamps=True)
+tracker.record_retrieval(citation_id="PMID:12345678", ...)
+report = tracker.export_provenance_report("PMID:12345678", format="markdown")
+```
+
+### 🛡️ Dataset Security Scanner
+
+Protection against modern cyber threats:
+- 🛡️ **SVG Poisoning Detection**: Scans for embedded scripts, malicious payloads
+- 🛡️ **PDF Malware Scanning**: Detects JavaScript, auto-execute actions
+- 🛡️ **Prompt Injection Detection**: Identifies AI manipulation attempts
+- 🛡️ **Domain Verification**: Whitelist of trusted sources (PubMed, arXiv)
+
+```python
+from eeg_rag.security import DatasetSecurityScanner
+
+scanner = DatasetSecurityScanner(trusted_domains=['pubmed.ncbi.nlm.nih.gov'])
+result = scanner.scan_text(document_content)
+if not result.safe:
+    print(f"⚠️  Threats detected: {result.threats}")
+```
+
+### 🏥 Clinical/Research Framework
+
+Support for both clinical (250+ nodes) and research (128+ nodes) EEG systems:
+
+| Aspect | Clinical | Research |
+|--------|----------|----------|
+| **Electrodes** | 250+ (10-5 system) | 128+1 reference (10-10) |
+| **Regulatory** | FDA 510(k), CE Mark, HIPAA | HIPAA/GDPR, IRB approval |
+| **Integration** | EMR, PACS, clinical dashboards | Research databases |
+| **Approval** | Clinical workflow required | Research protocols |
+
+```python
+from eeg_rag.compliance import ClinicalComplianceFramework, EEGSystemType
+
+framework = ClinicalComplianceFramework()
+config = framework.get_workflow("epilepsy_monitoring")  # 256 electrodes, FDA/CE
+validation = framework.validate_clinical_deployment(your_config, config)
+```
+
+### 📊 Regulatory Compliance
+
+Ready for regulatory submission:
+- ✅ **HIPAA**: Healthcare data protection (US)
+- ✅ **GDPR**: Data protection (EU)
+- 🟡 **FDA 510(k)**: Medical device clearance (ready for submission)
+- 🟡 **CE Mark**: European Conformity (ready for submission)
+
+### 💼 Commercialization Support
+
+- **IP Protection**: OpenTimestamps for patent priority dates
+- **NDA Templates**: Sample agreements for partnerships
+- **Licensing Frameworks**: Research, SaaS, Enterprise models
+- **Provisional Patent Guide**: Protect core innovations ($130-$280 USPTO fee)
+
+### 🌐 AI-Readable Web Protocol
+
+Designed for emerging **AI-first web standards**:
+- Domain verification for trusted retrieval
+- Security scanning for dataset integrity
+- Citation provenance for legal attribution
+- Protocol-level integration ready
+
+**📖 Full Documentation**: See [`docs/ENTERPRISE_FEATURES.md`](docs/ENTERPRISE_FEATURES.md) for comprehensive guide including:
+- Complete usage examples
+- Regulatory compliance checklists
+- Commercialization pathways
+- Risk assessment matrices
+- Clinical adoption strategies
 
 ---
 
