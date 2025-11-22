@@ -167,7 +167,7 @@ mindmap
 
 ```mermaid
 gantt
-    title EEG-RAG Agentic System Timeline (Updated Nov 21, 2025)
+    title EEG-RAG Agentic System Timeline (Updated Nov 22, 2025)
     dateFormat YYYY-MM-DD
 
     section Phase 1: Foundation (Complete)
@@ -179,8 +179,8 @@ gantt
 
     section Phase 2: Agents (In Progress)
     Agent 1: Local Data     :done, p2a, 2025-11-21, 1d
-    Agent 2: Web Search     :active, p2b, 2025-11-22, 1d
-    Agent 3: Knowledge Graph:p2c, 2025-11-23, 1d
+    Agent 2: Web Search     :done, p2b, 2025-11-22, 1d
+    Agent 3: Knowledge Graph :active, p2c, 2025-11-23, 1d
     Agent 4: Citation Check :p2d, 2025-11-24, 1d
 
     section Phase 3: Aggregation
@@ -190,13 +190,13 @@ gantt
 
     section Phase 4: Integration
     End-to-End Testing      :p4a, 2025-11-28, 2d
-    Performance Tuning      :p4b, after p4a, 2d
-    MVP Release             :milestone, m1, after p4b, 0d
+    Performance Tuning      :p4b, 2025-11-30, 2d
+    MVP Release             :milestone, m1, 2025-12-01, 0d
 
     section Phase 5: Advanced Features
-    FAISS Optimization      :p5a, after p4b, 3d
-    Neo4j Integration       :p5b, after p5a, 3d
-    Multi-LLM Ensemble      :p5c, after p5b, 3d
+    FAISS Optimization      :p5a, 2025-12-02, 3d
+    Neo4j Integration       :p5b, 2025-12-05, 3d
+    Multi-LLM Ensemble      :p5c, 2025-12-08, 3d
 ```
 
 ### Milestone Breakdown
@@ -1685,27 +1685,27 @@ See [`.env.example`](.env.example) for complete list.
 ```mermaid
 graph TB
     subgraph "Query Performance"
-        P1[Cache Hit: 0.05s<br/>36x faster]
-        P2[Cache Miss: 1.8s<br/>Baseline]
-        P3[With Reranker: 2.1s<br/>+15% accuracy]
+        P1["Cache Hit: 0.05s<br/>36x faster"]
+        P2["Cache Miss: 1.8s<br/>Baseline"]
+        P3["With Reranker: 2.1s<br/>+15% accuracy"]
         style P1 fill:#15803d,stroke:#4a90e2,color:#fff
         style P2 fill:#2c5282,stroke:#4a90e2,color:#fff
         style P3 fill:#1e4d7b,stroke:#4a90e2,color:#fff
     end
 
     subgraph "Retrieval Quality"
-        R1[Recall@5: 85%<br/>Target]
-        R2[Recall@10: 92%<br/>Target]
-        R3[MRR: 0.78<br/>Target]
+        R1["Recall@5: 85%<br/>Target"]
+        R2["Recall@10: 92%<br/>Target"]
+        R3["MRR: 0.78<br/>Target"]
         style R1 fill:#1a365d,stroke:#4a90e2,color:#fff
         style R2 fill:#1a365d,stroke:#4a90e2,color:#fff
         style R3 fill:#1a365d,stroke:#4a90e2,color:#fff
     end
 
     subgraph "System Reliability"
-        S1[Uptime: 99.5%<br/>Target]
-        S2[Test Coverage: 80%<br/>In Progress]
-        S3[Error Rate: <1%<br/>Target]
+        S1["Uptime: 99.5%<br/>Target"]
+        S2["Test Coverage: 80%<br/>In Progress"]
+        S3["Error Rate: less than 1%<br/>Target"]
         style S1 fill:#2d3748,stroke:#4a90e2,color:#fff
         style S2 fill:#2d3748,stroke:#4a90e2,color:#fff
         style S3 fill:#2d3748,stroke:#4a90e2,color:#fff
@@ -1728,9 +1728,9 @@ graph TB
 ```mermaid
 graph LR
     subgraph "Traditional Keyword Search"
-        TK1[User Query:<br/>'seizure prediction']
-        TK2[Keyword Match:<br/>Exact terms only]
-        TK3[Results:<br/>Many false positives<br/>Miss synonyms]
+        TK1["User Query:<br/>'seizure prediction'"]
+        TK2["Keyword Match:<br/>Exact terms only"]
+        TK3["Results:<br/>Many false positives<br/>Miss synonyms"]
         TK1 --> TK2 --> TK3
         style TK1 fill:#7f1d1d,stroke:#ef4444,color:#fff
         style TK2 fill:#7f1d1d,stroke:#ef4444,color:#fff
@@ -1738,9 +1738,9 @@ graph LR
     end
 
     subgraph "EEG-RAG Semantic Search"
-        RAG1[User Query:<br/>'seizure prediction']
-        RAG2[Semantic Embedding:<br/>Understands context<br/>+ synonyms + concepts]
-        RAG3[Results:<br/>High precision<br/>Ranked by relevance<br/>+ Generated answer]
+        RAG1["User Query:<br/>'seizure prediction'"]
+        RAG2["Semantic Embedding:<br/>Understands context<br/>plus synonyms plus concepts"]
+        RAG3["Results:<br/>High precision<br/>Ranked by relevance<br/>plus Generated answer"]
         RAG1 --> RAG2 --> RAG3
         style RAG1 fill:#15803d,stroke:#22c55e,color:#fff
         style RAG2 fill:#15803d,stroke:#22c55e,color:#fff
@@ -1763,17 +1763,17 @@ graph LR
 ```mermaid
 graph TB
     subgraph "Minimal Setup"
-        MIN[4GB RAM<br/>2 CPU cores<br/>10GB disk<br/>Basic queries only]
+        MIN["4GB RAM<br/>2 CPU cores<br/>10GB disk<br/>Basic queries only"]
         style MIN fill:#1a365d,stroke:#4a90e2,color:#fff
     end
 
     subgraph "Recommended Setup"
-        REC[8GB RAM<br/>4 CPU cores<br/>50GB disk<br/>10K paper corpus<br/>Fast queries]
+        REC["8GB RAM<br/>4 CPU cores<br/>50GB disk<br/>10K paper corpus<br/>Fast queries"]
         style REC fill:#15803d,stroke:#4a90e2,color:#fff
     end
 
     subgraph "Large-Scale Setup"
-        LARGE[16GB+ RAM<br/>8+ CPU cores<br/>200GB+ disk<br/>100K+ papers<br/>Production-ready<br/>+ Knowledge Graph<br/>+ Redis Cache]
+        LARGE["16GB+ RAM<br/>8+ CPU cores<br/>200GB+ disk<br/>100K+ papers<br/>Production-ready<br/>plus Knowledge Graph<br/>plus Redis Cache"]
         style LARGE fill:#2c5282,stroke:#4a90e2,color:#fff
     end
 
