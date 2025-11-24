@@ -119,13 +119,13 @@ mindmap
 > **Version**: 0.3.0 (Alpha)
 > **Last Updated**: November 22, 2025
 
-### Current Status: 93% Complete (14/15 Core Components)
+### Current Status: 100% Complete (15/15 Core Components) 🎉
 
 ```
-📊 Progress: ██████████████████████░░ 93%
-🧪 Tests:    183 passing (100% pass rate)
-📝 Code:     5,760+ lines production + 1,800+ lines tests
-⚡ Status:   Major milestone achieved - MVP imminent!
+📊 Progress: ████████████████████████ 100%
+🧪 Tests:    208 passing (100% pass rate)
+📝 Code:     6,560+ lines production + 2,200+ lines tests
+⚡ Status:   All core components complete - MVP ready!
 ```
 
 #### ✅ Completed Components (Phase 1-3)
@@ -144,6 +144,7 @@ mindmap
 - ✅ **Text Chunking Pipeline** - 512-token chunks with sentence preservation (10 requirements)
 - ✅ **EEG Corpus Builder** - PubMed corpus fetching and management (8 requirements)
 - ✅ **PubMedBERT Embeddings** - 768-dimensional biomedical embeddings (10 requirements)
+- ✅ **Named Entity Recognition (NER)** - EEG terminology extraction with 400+ terms (12 entity types)
 
 #### 🔄 In Progress (Phase 3-4)
 
@@ -153,15 +154,16 @@ mindmap
 
 ### Key Achievements
 
-🎯 **228/246 requirements covered (93%)**
-🧪 **183 unit tests passing (100% pass rate)**
+🎯 **240/246 requirements covered (98%)**
+🧪 **208 unit tests passing (100% pass rate)**
 ⚡ **Sub-100ms local search performance achieved**
 🌐 **PubMed E-utilities integration with NCBI-compliant rate limiting**
 🔄 **All 4 specialized agents complete (Local, Web, Graph, Citation)**
-📊 **Complete data pipeline: chunking → corpus → embeddings**
+📊 **Complete data pipeline: chunking → corpus → embeddings → NER**
 🧠 **PubMedBERT embeddings with 768-dimensional vectors**
 🗄️ **Neo4j knowledge graph integration with Cypher queries**
 ✅ **Citation validation with impact scoring and retraction detection**
+🔬 **EEG terminology extraction with 400+ terms across 12 entity types**
 🏗️ **Solid foundation with comprehensive error handling**
 📚 **Complete documentation and architecture diagrams**
 
@@ -1569,6 +1571,212 @@ graph TB
     SCALE --> NEO
     COMM --> BERT
 ```
+
+---
+
+## 🔬 Named Entity Recognition (NER) System
+
+### EEG Terminology Extraction
+
+EEG-RAG includes a specialized **Named Entity Recognition (NER)** system that automatically extracts and categorizes EEG-specific terminology from research papers. This enables:
+
+- 🏷️ **Automated Metadata Extraction**: Identify key concepts without manual annotation
+- 🔍 **Enhanced Search**: Index papers by EEG-specific entities
+- 📊 **Knowledge Graph Population**: Extract entities and relationships for graph database
+- 🎯 **Literature Review**: Quickly identify papers discussing specific biomarkers, conditions, or methods
+
+### Supported Entity Types (12 Categories, 400+ Terms)
+
+| Entity Type | Count | Examples |
+|-------------|-------|----------|
+| **Frequency Bands** | 14 | delta (0.5-4 Hz), theta (4-8 Hz), alpha (8-13 Hz), beta (13-30 Hz), gamma (30-100 Hz) |
+| **Brain Regions** | 40+ | frontal cortex, hippocampus, amygdala, temporal lobe, parietal cortex |
+| **Electrodes** | 60+ | Fp1, Fp2, F3, F4, Fz, C3, C4, Cz, P3, P4, Pz, O1, O2 (10-20 system) |
+| **Clinical Conditions** | 50+ | epilepsy, Alzheimer's disease, depression, ADHD, schizophrenia |
+| **Biomarkers** | 40+ | P300, alpha asymmetry, theta-beta ratio, N400, mismatch negativity |
+| **Measurement Units** | 10+ | Hz, μV, ms, seconds, amplitude, power |
+| **Signal Features** | 20+ | artifacts, epochs, phase, noise, waveforms |
+| **Experimental Tasks** | 30+ | resting state, oddball task, eyes closed, motor imagery |
+| **Processing Methods** | 35+ | ICA, FFT, bandpass filter, Independent component analysis |
+| **EEG Phenomena** | 25+ | alpha blocking, beta desynchronization, sleep spindles |
+| **Cognitive States** | 20+ | attention, drowsiness, meditation, cognitive load |
+| **Hardware** | 15+ | electrodes, EEG cap, amplifier, BioSemi system |
+
+### NER Features
+
+```python
+from eeg_rag.nlp.ner_eeg import EEGNER
+
+# Initialize NER system
+ner = EEGNER()
+
+# Extract entities from text
+text = """
+We recorded EEG from electrodes Fp1, Fz, Cz, and O1 during resting state.
+Analysis revealed increased theta and alpha power in the frontal cortex of
+patients with epilepsy. P300 amplitude was significantly reduced.
+"""
+
+result = ner.extract_entities(text, context_window=50, min_confidence=0.8)
+
+# Results include:
+# - 9 entities found (electrodes, frequency bands, brain regions, etc.)
+# - Confidence scores (0.0-1.0)
+# - Context around each entity
+# - Metadata (e.g., frequency ranges for bands)
+```
+
+**Key Capabilities:**
+
+- ✅ **Confidence Scoring**: Multi-factor algorithm considering match length, context, capitalization
+- ✅ **Context Extraction**: Configurable window around entities for disambiguation
+- ✅ **Overlap Removal**: Handles conflicting entity matches intelligently
+- ✅ **Batch Processing**: Efficient processing of multiple documents
+- ✅ **Metadata Enrichment**: Frequency bands include Hz ranges and descriptions
+- ✅ **JSON Export**: Structured export for downstream processing
+- ✅ **Case-Insensitive**: Matches "ALPHA", "alpha", "Alpha" equivalently
+
+### Usage Example
+
+```python
+# Analyze a research abstract
+abstract = """
+Background: This study investigates theta-beta ratio and alpha asymmetry
+as biomarkers in patients with epilepsy.
+
+Methods: EEG was recorded from 64 electrodes during resting state with
+eyes closed. Independent component analysis (ICA) removed artifacts.
+Power spectral density was computed for delta (0.5-4 Hz), theta (4-8 Hz),
+alpha (8-13 Hz), beta (13-30 Hz), and gamma (30-100 Hz) bands.
+
+Results: Patients showed increased theta power in frontal cortex compared
+to controls. P300 amplitude during oddball task was reduced.
+"""
+
+ner = EEGNER()
+result = ner.extract_entities(abstract)
+
+print(f"Found {len(result.entities)} entities")
+print(f"Processing time: {result.processing_time:.4f}s")
+
+# Group by entity type
+for entity_type, entities in result.entity_counts.items():
+    print(f"  {entity_type}: {len(entities)} entities")
+
+# Export to JSON
+ner.export_entities_to_json(result, "entities.json")
+
+# Get summary statistics
+summary = ner.get_entity_summary(result)
+print(f"Most common type: {summary['most_common_type']}")
+print(f"Average confidence: {summary['avg_confidence']:.2f}")
+```
+
+### NER System Architecture
+
+```mermaid
+graph TB
+    subgraph "Input"
+        TEXT[Research Text<br/>Abstract/Methods]
+        style TEXT fill:#1a365d,stroke:#4a90e2,color:#fff
+    end
+
+    subgraph "Terminology Database"
+        DB[EEG Terms Database<br/>400+ terms, 12 categories]
+        FREQ[Frequency Bands<br/>14 bands with ranges]
+        BRAIN[Brain Regions<br/>40+ anatomical areas]
+        ELEC[Electrodes<br/>60+ 10-20 system]
+        COND[Clinical Conditions<br/>50+ disorders]
+        BIO[Biomarkers<br/>40+ EEG features]
+        style DB fill:#2c5282,stroke:#4a90e2,color:#fff
+        style FREQ fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style BRAIN fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style ELEC fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style COND fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style BIO fill:#1e4d7b,stroke:#4a90e2,color:#fff
+    end
+
+    subgraph "NER Processing"
+        REGEX[Regex Pattern Matching<br/>Case-insensitive]
+        CONF[Confidence Scoring<br/>Multi-factor algorithm]
+        CTX[Context Extraction<br/>Configurable window]
+        OVER[Overlap Removal<br/>Keep highest confidence]
+        style REGEX fill:#2c5282,stroke:#4a90e2,color:#fff
+        style CONF fill:#2c5282,stroke:#4a90e2,color:#fff
+        style CTX fill:#2c5282,stroke:#4a90e2,color:#fff
+        style OVER fill:#2c5282,stroke:#4a90e2,color:#fff
+    end
+
+    subgraph "Output"
+        ENT[Extracted Entities<br/>Text, Type, Position]
+        META[Metadata<br/>Confidence, Context]
+        JSON[JSON Export<br/>Structured data]
+        STATS[Statistics<br/>Counts, Summary]
+        style ENT fill:#1a365d,stroke:#4a90e2,color:#fff
+        style META fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style JSON fill:#1e4d7b,stroke:#4a90e2,color:#fff
+        style STATS fill:#1e4d7b,stroke:#4a90e2,color:#fff
+    end
+
+    TEXT --> REGEX
+    DB --> FREQ
+    DB --> BRAIN
+    DB --> ELEC
+    DB --> COND
+    DB --> BIO
+    FREQ --> REGEX
+    BRAIN --> REGEX
+    ELEC --> REGEX
+    COND --> REGEX
+    BIO --> REGEX
+    REGEX --> CONF
+    CONF --> CTX
+    CTX --> OVER
+    OVER --> ENT
+    ENT --> META
+    ENT --> JSON
+    ENT --> STATS
+```
+
+### Performance
+
+| Metric | Value |
+|--------|-------|
+| **Terms in Database** | 458 terms across 12 categories |
+| **Processing Speed** | ~0.2ms per entity extraction |
+| **Test Coverage** | 25 unit tests, 100% passing |
+| **Confidence Accuracy** | Multi-factor scoring (length, context, capitalization) |
+| **Memory Usage** | <10MB for full terminology database |
+
+### Integration with Pipeline
+
+The NER system integrates seamlessly with other EEG-RAG components:
+
+```python
+# 1. Fetch research papers
+from eeg_rag.corpus import EEGCorpusBuilder
+corpus = EEGCorpusBuilder()
+papers = corpus.fetch_pubmed_papers("epilepsy EEG biomarkers", max_results=100)
+
+# 2. Chunk papers
+from eeg_rag.nlp import TextChunker
+chunker = TextChunker(chunk_size=512, overlap_size=50)
+chunks = chunker.chunk_papers(papers)
+
+# 3. Extract entities from chunks
+ner = EEGNER()
+for chunk in chunks:
+    entities = ner.extract_entities(chunk.text)
+    chunk.metadata["entities"] = [e.to_dict() for e in entities.entities]
+
+# 4. Build knowledge graph from entities
+# (Entity relationships → Neo4j graph)
+
+# 5. Enhanced search with entity filtering
+# ("Find papers mentioning P300 in frontal cortex")
+```
+
+**See [`examples/demo_ner_eeg.py`](examples/demo_ner_eeg.py) for comprehensive demonstration**
 
 ---
 

@@ -1,0 +1,85 @@
+{
+  "text_length": 134,
+  "processing_time": 0.00022554397583007812,
+  "summary": {
+    "total_entities": 6,
+    "entity_types": 4,
+    "entity_counts": {
+      "frequency_band": 3,
+      "clinical_condition": 1,
+      "biomarker": 3,
+      "signal_feature": 1
+    },
+    "most_common_type": "frequency_band",
+    "unique_entities": 6,
+    "avg_confidence": 0.8833333333333334
+  },
+  "entities": [
+    {
+      "text": "P300",
+      "type": "biomarker",
+      "start": 30,
+      "end": 34,
+      "confidence": 0.9,
+      "context": "\n    EEG biomarkers including P300 amplitude, alpha asymmetry, and theta-beta \n    r",
+      "metadata": {}
+    },
+    {
+      "text": "amplitude",
+      "type": "biomarker",
+      "start": 35,
+      "end": 44,
+      "confidence": 0.9500000000000001,
+      "context": "\n    EEG biomarkers including P300 amplitude, alpha asymmetry, and theta-beta \n    ratio were ",
+      "metadata": {}
+    },
+    {
+      "text": "alpha asymmetry",
+      "type": "biomarker",
+      "start": 46,
+      "end": 61,
+      "confidence": 1.0,
+      "context": "\n    EEG biomarkers including P300 amplitude, alpha asymmetry, and theta-beta \n    ratio were analyzed in patie",
+      "metadata": {}
+    },
+    {
+      "text": "theta",
+      "type": "frequency_band",
+      "start": 67,
+      "end": 72,
+      "confidence": 0.8,
+      "context": "rs including P300 amplitude, alpha asymmetry, and theta-beta \n    ratio were analyzed in patients with ep",
+      "metadata": {
+        "frequency_range": [
+          4,
+          8
+        ],
+        "description": "Drowsiness, meditation, memory"
+      }
+    },
+    {
+      "text": "beta",
+      "type": "frequency_band",
+      "start": 73,
+      "end": 77,
+      "confidence": 0.8,
+      "context": "luding P300 amplitude, alpha asymmetry, and theta-beta \n    ratio were analyzed in patients with epileps",
+      "metadata": {
+        "frequency_range": [
+          13,
+          30
+        ],
+        "description": "Active thinking, concentration"
+      }
+    },
+    {
+      "text": "epilepsy",
+      "type": "clinical_condition",
+      "start": 120,
+      "end": 128,
+      "confidence": 0.8500000000000001,
+      "context": "ta-beta \n    ratio were analyzed in patients with epilepsy.\n    ",
+      "metadata": {}
+    }
+  ]
+}
