@@ -17,6 +17,14 @@ from .generation_ensemble import (
     MockLLMClient
 )
 
+from .final_aggregator import (
+    FinalAggregator,
+    FinalAnswer,
+    HallucinationDetector,
+    ResponseValidator,
+    CitationFormatter
+)
+
 __all__ = [
     'ContextAggregator',
     'Citation',
@@ -26,5 +34,10 @@ __all__ = [
     'GenerationResult',
     'EnsembleResponse',
     'LLMProvider',
-    'MockLLMClient'
+    'MockLLMClient',
+    'FinalAggregator',
+    'FinalAnswer',
+    'HallucinationDetector',
+    'ResponseValidator',
+    'CitationFormatter'
 ]
