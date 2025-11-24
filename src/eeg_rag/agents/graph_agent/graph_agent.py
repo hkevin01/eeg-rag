@@ -47,7 +47,7 @@ class GraphNode:
     node_type: NodeType
     properties: Dict[str, Any]
     labels: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -66,7 +66,7 @@ class GraphRelationship:
     relationship_type: RelationType
     properties: Dict[str, Any] = field(default_factory=dict)
     strength: float = 1.0  # 0.0 - 1.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -85,7 +85,7 @@ class GraphPath:
     relationships: List[GraphRelationship]
     path_length: int
     total_strength: float
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -106,7 +106,7 @@ class GraphQueryResult:
     query_text: str
     cypher_query: str
     execution_time: float
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -122,7 +122,7 @@ class GraphQueryResult:
 
 class CypherQueryBuilder:
     """Builds Cypher queries from natural language"""
-    
+
     # EEG-specific query patterns
     PATTERNS = {
         'find_biomarkers': """
@@ -159,17 +159,17 @@ class CypherQueryBuilder:
             LIMIT $limit
         """
     }
-    
+
     @staticmethod
     def detect_query_intent(query_text: str) -> Tuple[str, Dict[str, Any]]:
         """
         Detect the intent of a natural language query and extract parameters
-        
+
         Returns:
             Tuple of (pattern_name, parameters)
         """
         query_lower = query_text.lower()
-        
+
         # Pattern: Find biomarkers for condition
         if any(word in query_lower for word in ['biomarker', 'marker', 'indicator']) and \
            any(word in query_lower for word in ['predict', 'indicate', 'correlate']):
@@ -178,7 +178,7 @@ class CypherQueryBuilder:
                 if condition in query_lower:
                     return 'find_biomarkers', {'condition': condition, 'limit': 10}
             return 'find_biomarkers', {'condition': query_text.split()[-1], 'limit': 10}
-        
+
         # Pattern: Relationships of specific biomarker
         if 'relationship' in query_lower or 'related to' in query_lower or 'connected' in query_lower:
             # Extract biomarker name
@@ -187,7 +187,7 @@ class CypherQueryBuilder:
                 if word.lower() in ['p300', 'alpha', 'beta', 'gamma', 'theta', 'delta']:
                     return 'biomarker_relationships', {'biomarker': word, 'limit': 10}
             return 'biomarker_relationships', {'biomarker': words[-1], 'limit': 10}
-        
+
         # Pattern: Multi-hop path query
         if 'between' in query_lower or 'connect' in query_lower or 'link' in query_lower:
             words = query_text.split()
@@ -196,31 +196,31 @@ class CypherQueryBuilder:
                 start = ' '.join(words[1:idx])
                 end = ' '.join(words[idx+1:])
                 return 'multi_hop_path', {'start_entity': start, 'end_entity': end, 'hops': 3, 'limit': 5}
-        
+
         # Pattern: Studies about biomarker
         if 'stud' in query_lower or 'research' in query_lower or 'paper' in query_lower:
             words = query_text.split()
             biomarker = words[-1].rstrip('?')
             return 'related_studies', {'biomarker': biomarker, 'limit': 10}
-        
+
         # Pattern: Condition outcomes
         if 'outcome' in query_lower or 'prognosis' in query_lower or 'result' in query_lower:
             for condition in ['epilepsy', 'seizure', 'alzheimer', 'parkinson', 'depression']:
                 if condition in query_lower:
                     return 'condition_outcomes', {'condition': condition, 'limit': 10}
-        
+
         # Default: find biomarkers
         return 'find_biomarkers', {'condition': 'epilepsy', 'limit': 10}
-    
+
     @staticmethod
     def build_cypher(pattern_name: str, parameters: Dict[str, Any]) -> str:
         """Build Cypher query from pattern and parameters"""
         if pattern_name not in CypherQueryBuilder.PATTERNS:
             pattern_name = 'find_biomarkers'
-        
+
         # Get template
         template = CypherQueryBuilder.PATTERNS[pattern_name]
-        
+
         # Simple parameter substitution (in production, use proper parameterized queries)
         query = template
         for key, value in parameters.items():
@@ -228,16 +228,16 @@ class CypherQueryBuilder:
                 query = query.replace(f'${key}', f'"{value}"')
             else:
                 query = query.replace(f'${key}', str(value))
-        
+
         return query.strip()
 
 
 class MockNeo4jConnection:
     """Mock Neo4j connection for testing (replace with real neo4j.Driver in production)"""
-    
+
     def __init__(self):
         self.mock_data = self._create_mock_data()
-    
+
     def _create_mock_data(self) -> Dict[str, Any]:
         """Create mock EEG knowledge graph data"""
         return {
@@ -258,41 +258,52 @@ class MockNeo4jConnection:
                 {'source': 'study1', 'target': 'bio1', 'type': 'REPORTS', 'strength': 1.0},
             ]
         }
-    
+
     async def run_query(self, cypher: str, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Execute mock Cypher query"""
         await asyncio.sleep(0.05)  # Simulate network latency
-        
+
         # Return mock results based on query pattern
         if 'Biomarker' in cypher and 'PREDICTS' in cypher:
             return [
                 {
-                    'b': {'id': 'bio1', 'name': 'P300 amplitude', 'unit': 'μV'},
+                    'b': {'id': 'bio1', 'type': 'BIOMARKER', 'name': 'P300 amplitude', 'unit': 'μV'},
                     'r': {'strength': 0.85},
-                    'c': {'id': 'cond1', 'name': 'epilepsy'}
+                    'c': {'id': 'cond1', 'type': 'CONDITION', 'name': 'epilepsy'}
                 },
                 {
-                    'b': {'id': 'bio3', 'name': 'Theta power', 'unit': 'μV²/Hz'},
+                    'b': {'id': 'bio3', 'type': 'BIOMARKER', 'name': 'Theta power', 'unit': 'μV²/Hz'},
                     'r': {'strength': 0.68},
-                    'c': {'id': 'cond1', 'name': 'epilepsy'}
+                    'c': {'id': 'cond1', 'type': 'CONDITION', 'name': 'epilepsy'}
                 }
             ]
         elif 'Study' in cypher:
             return [
                 {
-                    's': {'id': 'study1', 'name': 'P300 in Epilepsy', 'year': 2023},
-                    'b': {'id': 'bio1', 'name': 'P300 amplitude'}
+                    's': {'id': 'study1', 'type': 'STUDY', 'name': 'P300 in Epilepsy', 'year': 2023},
+                    'b': {'id': 'bio1', 'type': 'BIOMARKER', 'name': 'P300 amplitude'}
                 }
             ]
         else:
-            return self.mock_data['nodes'][:3]
+            # Return generic nodes with proper structure
+            return [
+                {
+                    'node': {'id': 'bio1', 'type': 'BIOMARKER', 'name': 'P300 amplitude', 'unit': 'μV'}
+                },
+                {
+                    'node': {'id': 'bio2', 'type': 'BIOMARKER', 'name': 'Alpha asymmetry', 'unit': 'dB'}
+                },
+                {
+                    'node': {'id': 'cond1', 'type': 'CONDITION', 'name': 'epilepsy'}
+                }
+            ]
 
 
 class GraphAgent:
     """
     Agent 3: Knowledge Graph Agent
     Queries Neo4j knowledge graph for EEG biomarker relationships
-    
+
     REQ-AGT3-001: Initialize graph connection with Neo4j URI
     REQ-AGT3-002: Execute Cypher queries with parameter binding
     REQ-AGT3-003: Parse and structure query results
@@ -309,7 +320,7 @@ class GraphAgent:
     REQ-AGT3-014: Provide graph visualization data (nodes, edges, layout)
     REQ-AGT3-015: Collect statistics (queries executed, nodes retrieved, avg latency)
     """
-    
+
     def __init__(
         self,
         name: str = "GraphAgent",
@@ -323,7 +334,7 @@ class GraphAgent:
     ):
         """
         Initialize Knowledge Graph Agent
-        
+
         Args:
             name: Agent name
             agent_type: Agent type identifier
@@ -343,7 +354,7 @@ class GraphAgent:
             "entity_extraction",
             "cypher_generation"
         ]
-        
+
         # Neo4j connection (mock or real)
         if use_mock:
             self.db = MockNeo4jConnection()
@@ -351,10 +362,10 @@ class GraphAgent:
             # In production, use: from neo4j import GraphDatabase
             # self.driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
             raise NotImplementedError("Real Neo4j connection not yet implemented. Set use_mock=True.")
-        
+
         # Query builder
         self.query_builder = CypherQueryBuilder()
-        
+
         # Statistics
         self.stats = {
             'total_queries': 0,
@@ -365,58 +376,58 @@ class GraphAgent:
             'total_execution_time': 0.0,
             'average_latency': 0.0
         }
-        
+
         # Cache for frequent queries
         self.query_cache: Dict[str, GraphQueryResult] = {}
         self.cache_hits = 0
         self.cache_misses = 0
-    
+
     def _cache_key(self, query_text: str) -> str:
         """Generate cache key from query text"""
         return hashlib.md5(query_text.encode()).hexdigest()
-    
+
     async def execute(self, query_text: str, use_cache: bool = True) -> GraphQueryResult:
         """
         Execute a knowledge graph query
-        
+
         Args:
             query_text: Natural language query
             use_cache: Whether to use cached results
-            
+
         Returns:
             GraphQueryResult with nodes, relationships, and paths
         """
         start_time = time.time()
-        
+
         # Check cache
         cache_key = self._cache_key(query_text)
         if use_cache and cache_key in self.query_cache:
             self.cache_hits += 1
             return self.query_cache[cache_key]
-        
+
         self.cache_misses += 1
         self.stats['total_queries'] += 1
-        
+
         try:
             # Step 1: Detect query intent and build Cypher query
             pattern_name, parameters = self.query_builder.detect_query_intent(query_text)
             cypher_query = self.query_builder.build_cypher(pattern_name, parameters)
-            
+
             # Step 2: Execute Cypher query
             raw_results = await self.db.run_query(cypher_query, parameters)
-            
+
             # Step 3: Parse results into structured format
             nodes, relationships = self._parse_results(raw_results)
-            
+
             # Step 4: Find paths if applicable
             paths = self._extract_paths(nodes, relationships)
-            
+
             # Step 5: Build subgraph representation
             subgraph = self._build_subgraph(nodes, relationships)
-            
+
             # Step 6: Calculate execution time
             execution_time = time.time() - start_time
-            
+
             # Create result
             result = GraphQueryResult(
                 nodes=nodes,
@@ -427,7 +438,7 @@ class GraphAgent:
                 cypher_query=cypher_query,
                 execution_time=execution_time
             )
-            
+
             # Update statistics
             self.stats['successful_queries'] += 1
             self.stats['total_nodes_retrieved'] += len(nodes)
@@ -436,17 +447,17 @@ class GraphAgent:
             self.stats['average_latency'] = (
                 self.stats['total_execution_time'] / self.stats['total_queries']
             )
-            
+
             # Cache result
             if use_cache:
                 self.query_cache[cache_key] = result
-            
+
             return result
-            
+
         except Exception as e:
             self.stats['failed_queries'] += 1
             execution_time = time.time() - start_time
-            
+
             # Return empty result with error info
             return GraphQueryResult(
                 nodes=[],
@@ -457,13 +468,13 @@ class GraphAgent:
                 cypher_query="",
                 execution_time=execution_time
             )
-    
+
     def _parse_results(self, raw_results: List[Dict[str, Any]]) -> Tuple[List[GraphNode], List[GraphRelationship]]:
         """Parse raw Cypher results into GraphNode and GraphRelationship objects"""
         nodes = []
         relationships = []
         node_ids_seen = set()
-        
+
         for record in raw_results:
             # Extract nodes
             for key, value in record.items():
@@ -472,7 +483,7 @@ class GraphAgent:
                     if node_id not in node_ids_seen:
                         node_type = NodeType[value.get('type', 'BIOMARKER').upper()]
                         properties = {k: v for k, v in value.items() if k not in ['id', 'type']}
-                        
+
                         node = GraphNode(
                             node_id=node_id,
                             node_type=node_type,
@@ -481,13 +492,13 @@ class GraphAgent:
                         )
                         nodes.append(node)
                         node_ids_seen.add(node_id)
-            
+
             # Extract relationships (if present)
             if 'r' in record and isinstance(record['r'], dict):
                 source_id = record.get('b', {}).get('id', 'unknown')
                 target_id = record.get('c', {}).get('id', 'unknown')
                 rel_props = record['r']
-                
+
                 relationship = GraphRelationship(
                     source_id=source_id,
                     target_id=target_id,
@@ -496,21 +507,21 @@ class GraphAgent:
                     strength=rel_props.get('strength', 1.0)
                 )
                 relationships.append(relationship)
-        
+
         return nodes, relationships
-    
+
     def _extract_paths(self, nodes: List[GraphNode], relationships: List[GraphRelationship]) -> List[GraphPath]:
         """Extract paths from nodes and relationships"""
         paths = []
-        
+
         if not relationships:
             return paths
-        
+
         # Simple path extraction: each relationship forms a 2-node path
         for rel in relationships:
             source_node = next((n for n in nodes if n.node_id == rel.source_id), None)
             target_node = next((n for n in nodes if n.node_id == rel.target_id), None)
-            
+
             if source_node and target_node:
                 path = GraphPath(
                     nodes=[source_node, target_node],
@@ -519,9 +530,9 @@ class GraphAgent:
                     total_strength=rel.strength
                 )
                 paths.append(path)
-        
+
         return paths
-    
+
     def _build_subgraph(self, nodes: List[GraphNode], relationships: List[GraphRelationship]) -> Dict[str, Any]:
         """Build subgraph representation for visualization"""
         return {
@@ -550,7 +561,7 @@ class GraphAgent:
                 'relationship_types': list(set(r.relationship_type.value for r in relationships))
             }
         }
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -573,7 +584,7 @@ class GraphAgent:
                 if (self.cache_hits + self.cache_misses) > 0 else 0.0
             )
         }
-    
+
     def clear_cache(self):
         """Clear query cache"""
         self.query_cache.clear()
