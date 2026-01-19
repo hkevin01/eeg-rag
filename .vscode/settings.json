@@ -12,5 +12,23 @@
   "material-icon-theme.folders.color": "#42a5f5",
   "material-icon-theme.files.associations": {},
   "material-icon-theme.activeIconPack": "angular",
-  "material-icon-theme.hidesExplorerArrows": false
+  "material-icon-theme.hidesExplorerArrows": false,
+  // GitHub Copilot Configuration for EEG-RAG
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": false,
+    "plaintext": false,
+    "markdown": true,
+    "python": true
+  },
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": "Python Code Generation for EEG-RAG",
+      "text": "You are an expert Python developer specializing in EEG research systems. Follow these guidelines:\n\n1. **Medical Grade Quality**: Write production-ready code with comprehensive error handling, type hints, and documentation suitable for healthcare applications.\n\n2. **EEG Domain Knowledge**: Understand EEG terminology:\n   - Frequency bands: Delta (0.5-4Hz), Theta (4-8Hz), Alpha (8-13Hz), Beta (13-30Hz), Gamma (30-100Hz)\n   - Electrode systems: 10-20, 10-10 placement systems\n   - ERP components: P300, N400, P600, MMN with typical latencies\n   - Clinical applications: epilepsy detection, sleep staging, BCI systems\n\n3. **Code Standards**:\n   - Use Python 3.9+ with type hints for all functions\n   - Follow Google-style docstrings with Args, Returns, Raises\n   - Maximum 88 character line length (Black formatter)\n   - Prefer dataclasses/Pydantic models over plain dicts\n   - All I/O operations must be async\n\n4. **Citation Handling**:\n   - Extract PMIDs using pattern: PMID[:\\s]*(\\d{7,8})\n   - Validate all PMIDs against PubMed\n   - Track source chunks for citations\n   - Use format [PMID:XXXXXXXX] in responses\n\n5. **Performance Requirements**:\n   - Local retrieval: < 100ms for 10K documents\n   - End-to-end query: < 2 seconds (p95)\n   - Cache embeddings indefinitely, responses for 1 hour\n\n6. **Testing**:\n   - Include EEG-specific test cases\n   - Mock external APIs in unit tests\n   - Minimum 85% coverage for core components\n\n7. **Architecture**: Multi-agent RAG system with:\n   - Hybrid retrieval (BM25 + dense vectors)\n   - Intelligent query routing\n   - Medical-grade semantic chunking\n   - Comprehensive citation verification\n   - Built-in evaluation framework\n\nAlways prioritize accuracy, citation traceability, and production readiness."
+    }
+  ],
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "gpt-4o",
+    "debug.useNodeRuntime": false
+  }
 }

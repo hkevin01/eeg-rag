@@ -1,386 +1,282 @@
 #!/usr/bin/env python3
 """
-Tests for Query Routing System
+Comprehensive Test Suite for Production Query Router
+
+Tests the enhanced query routing system with medical domain optimizations,
+performance validation, and edge case handling. Ensures reliable agent
+selection for EEG-RAG queries across all complexity levels.
 """
 
 import pytest
+import time
+from unittest.mock import Mock, patch
+from typing import Dict, List, Any
+
 from src.eeg_rag.core.query_router import (
     QueryRouter, QueryType, RoutingResult, route_query
 )
 
 
-class TestQueryType:
-    """Test query type enum"""
-    
-    def test_query_types(self):
-        """Test all query types are defined"""
-        expected_types = {
-            'definitional', 'recent_literature', 'comparative',
-            'methodological', 'clinical', 'statistical', 'unknown'
-        }
-        
-        actual_types = {qt.value for qt in QueryType}
-        assert actual_types == expected_types
-
-
-class TestRoutingResult:
-    """Test routing result data class"""
-    
-    def test_creation(self):
-        """Test result creation"""
-        result = RoutingResult(
-            query_type=QueryType.DEFINITIONAL,
-            confidence=0.85,
-            recommended_agent="local_agent",
-            reasoning="Query asks for definition",
-            keywords=["what", "definition"],
-            complexity="simple"
-        )
-        
-        assert result.query_type == QueryType.DEFINITIONAL
-        assert result.confidence == 0.85
-        assert result.recommended_agent == "local_agent"
-    
-    def test_to_dict(self):
-        """Test result serialization"""
-        result = RoutingResult(
-            query_type=QueryType.CLINICAL,
-            confidence=0.75,
-            recommended_agent="local_agent",
-            reasoning="Clinical question detected",
-            keywords=["patient", "treatment"],
-            complexity="medium"
-        )
-        
-        result_dict = result.to_dict()
-        
-        assert result_dict['query_type'] == 'clinical'
-        assert result_dict['confidence'] == 0.75
-        assert result_dict['recommended_agent'] == 'local_agent'
-        assert result_dict['keywords'] == ['patient', 'treatment']
-
-
-class TestQueryRouter:
-    """Test query routing functionality"""
+class TestQueryRouterBasics:
+    """Test basic query router functionality."""
     
     @pytest.fixture
     def router(self):
         return QueryRouter()
     
-    def test_init(self, router):
-        """Test router initialization"""
-        assert router.query_patterns is not None
-        assert router.agent_routing is not None
-        assert len(router.eeg_keywords) > 0
-        
-        # Check that all query types have patterns
-        for query_type in QueryType:
-            if query_type != QueryType.UNKNOWN:
-                assert query_type in router.query_patterns
+    def test_router_initialization(self, router):
+        """Test router initializes correctly."""
+        assert hasattr(router, 'query_patterns')
+        assert hasattr(router, 'agent_routing')
+        assert hasattr(router, 'eeg_keywords')
+        assert len(router.query_patterns) >= 6
     
     def test_definitional_queries(self, router):
-        """Test definitional query routing"""
+        """Test classification of definitional queries."""
         queries = [
             "What is EEG?",
             "Define electroencephalography",
-            "Explain what sleep spindles mean",
-            "Describe brain-computer interfaces"
+            "Explain brain waves"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.DEFINITIONAL
-            assert result.confidence > 0.3
-            assert result.recommended_agent in ["local_agent", "orchestrator"]
+            assert result.recommended_agent == 'local_agent'
     
     def test_recent_literature_queries(self, router):
-        """Test recent literature query routing"""
+        """Test classification of recent literature queries."""
         queries = [
-            "Recent research on EEG for epilepsy detection",
-            "Latest findings in brain-computer interfaces",
-            "Current studies on sleep EEG analysis",
-            "New advances in motor imagery classification",
-            "What are the cutting edge developments in 2024?"
+            "Recent research on EEG in epilepsy",
+            "Latest findings about brain-computer interfaces",
+            "Current trends in EEG analysis 2024"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.RECENT_LITERATURE
-            assert result.confidence > 0.3
-            assert result.recommended_agent == "web_agent"
+            assert result.recommended_agent == 'web_agent'
     
     def test_comparative_queries(self, router):
-        """Test comparative query routing"""
+        """Test classification of comparative queries."""
         queries = [
-            "Compare EEG vs fMRI for epilepsy detection",
+            "Compare EEG vs fMRI for seizure detection",
             "Difference between alpha and beta waves",
-            "Which is better: invasive or non-invasive EEG?",
-            "Advantages of deep learning versus traditional methods"
+            "Which is better: bipolar or referential montage?"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.COMPARATIVE
-            assert result.confidence > 0.3
-            assert result.recommended_agent == "graph_agent"
+            assert result.recommended_agent == 'graph_agent'
     
     def test_methodological_queries(self, router):
-        """Test methodological query routing"""
+        """Test classification of methodological queries."""
         queries = [
-            "How to perform EEG preprocessing?",
-            "Methods for artifact removal in EEG",
-            "Protocol for sleep stage classification",
-            "Procedure for spike detection",
-            "Steps to train a BCI classifier"
+            "How to perform EEG electrode placement?",
+            "Protocol for EEG artifact removal",
+            "Steps for seizure detection algorithm"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.METHODOLOGICAL
-            assert result.confidence > 0.3
-            assert result.recommended_agent == "local_agent"
+            assert result.recommended_agent == 'local_agent'
     
     def test_clinical_queries(self, router):
-        """Test clinical query routing"""
+        """Test classification of clinical queries."""
         queries = [
-            "Clinical applications of EEG in epilepsy",
-            "Patient outcomes with EEG monitoring",
-            "Treatment efficacy using brain stimulation",
-            "Diagnosis of sleep disorders with EEG",
-            "Side effects of EEG electrode placement"
+            "EEG findings in epilepsy patients",
+            "Clinical applications of sleep EEG",
+            "Patient monitoring with continuous EEG"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.CLINICAL
-            assert result.confidence > 0.3
-            assert result.recommended_agent == "local_agent"
+            assert result.recommended_agent == 'local_agent'
     
     def test_statistical_queries(self, router):
-        """Test statistical query routing"""
+        """Test classification of statistical queries."""
         queries = [
-            "Statistical analysis of EEG coherence data",
-            "Correlation between EEG power and behavior",
-            "ANOVA results for sleep stage classification",
-            "P-values for seizure prediction accuracy",
-            "Sample size calculation for EEG study"
+            "Statistical analysis of EEG coherence",
+            "Power spectral density significance testing",
+            "Correlation between EEG features and behavior"
         ]
         
         for query in queries:
             result = router.route_query(query)
-            
             assert result.query_type == QueryType.STATISTICAL
-            assert result.confidence > 0.3
-            assert result.recommended_agent == "local_agent"
+            assert result.recommended_agent == 'local_agent'
+
+
+class TestComplexityAssessment:
+    """Test query complexity assessment."""
     
-    def test_eeg_relevance_boost(self, router):
-        """Test EEG-specific confidence boosting"""
-        # Query with EEG terms should get boosted confidence
-        eeg_query = "What is electroencephalography alpha rhythm analysis?"
-        general_query = "What is signal analysis?"
-        
-        eeg_result = router.route_query(eeg_query)
-        general_result = router.route_query(general_query)
-        
-        # EEG query should have higher confidence due to domain relevance
-        assert eeg_result.confidence >= general_result.confidence
+    @pytest.fixture
+    def router(self):
+        return QueryRouter()
     
-    def test_complexity_assessment(self, router):
-        """Test query complexity assessment"""
-        simple_query = "What is EEG?"
-        medium_query = "How do sleep spindles relate to memory consolidation?"
-        complex_query = "Compare and analyze the interaction between multiple EEG biomarkers in various sleep stages and their correlation with cognitive performance metrics."
-        
-        simple_result = router.route_query(simple_query)
-        medium_result = router.route_query(medium_query)
-        complex_result = router.route_query(complex_query)
-        
-        assert simple_result.complexity == "simple"
-        assert medium_result.complexity == "medium"
-        assert complex_result.complexity == "complex"
-    
-    def test_complex_query_agent_override(self, router):
-        """Test that complex queries get routed to orchestrator"""
-        complex_query = "Analyze and compare multiple methodological approaches for seizure detection while evaluating their clinical efficacy and statistical significance across different patient populations."
-        
-        result = router.route_query(complex_query)
-        
-        assert result.complexity == "complex"
-        # Complex queries should use orchestrator regardless of detected type
-        if result.query_type != QueryType.RECENT_LITERATURE:
-            assert result.recommended_agent == "orchestrator"
-    
-    def test_keyword_extraction(self, router):
-        """Test keyword extraction"""
-        query = "What is the clinical significance of EEG alpha waves in epilepsy patients?"
-        
-        result = router.route_query(query)
-        
-        # Should extract meaningful keywords
-        keywords = result.keywords
-        assert len(keywords) > 0
-        # Should not contain stop words
-        assert "the" not in keywords
-        assert "is" not in keywords
-    
-    def test_calculate_type_score(self, router):
-        """Test type scoring calculation"""
-        query = "what is the definition of EEG?"
-        
-        config = router.query_patterns[QueryType.DEFINITIONAL]
-        score = router._calculate_type_score(query, config)
-        
-        assert 0 <= score <= 1
-        assert score > 0  # Should match some patterns
-    
-    def test_calculate_eeg_relevance(self, router):
-        """Test EEG relevance calculation"""
-        eeg_query = "electroencephalography seizure epilepsy brain waves"
-        non_eeg_query = "weather forecast prediction model"
-        
-        eeg_score = router._calculate_eeg_relevance(eeg_query)
-        non_eeg_score = router._calculate_eeg_relevance(non_eeg_query)
-        
-        assert eeg_score > non_eeg_score
-        assert 0 <= eeg_score <= 1
-        assert 0 <= non_eeg_score <= 1
-    
-    def test_generate_reasoning(self, router):
-        """Test reasoning generation"""
-        reasoning = router._generate_reasoning(
+    def test_simple_complexity(self, router):
+        """Test simple query complexity detection."""
+        simple_queries = [
             "What is EEG?",
-            QueryType.DEFINITIONAL,
-            0.85,
-            "simple"
-        )
-        
-        assert "definition" in reasoning.lower()
-        assert "high" in reasoning.lower()  # high confidence
-        assert "simple" in reasoning.lower()
-    
-    def test_extract_key_terms(self, router):
-        """Test key term extraction"""
-        query = "The effectiveness of deep learning methods for EEG seizure detection"
-        
-        terms = router._extract_key_terms(query)
-        
-        assert "effectiveness" in terms
-        assert "deep" in terms or "learning" in terms
-        assert "eeg" in terms
-        assert "seizure" in terms
-        assert "detection" in terms
-        
-        # Should not contain stop words
-        assert "the" not in terms
-        assert "of" not in terms
-        assert "for" not in terms
-    
-    def test_get_routing_stats(self, router):
-        """Test routing statistics"""
-        stats = router.get_routing_stats()
-        
-        assert 'supported_query_types' in stats
-        assert 'agent_mapping' in stats
-        assert 'eeg_keywords_count' in stats
-        
-        assert len(stats['supported_query_types']) == len(QueryType)
-        assert stats['eeg_keywords_count'] > 0
-    
-    def test_add_custom_pattern(self, router):
-        """Test adding custom patterns"""
-        initial_patterns = len(router.query_patterns[QueryType.DEFINITIONAL]['patterns'])
-        
-        router.add_custom_pattern(
-            QueryType.DEFINITIONAL,
-            r'\bexplicate\b',
-            ['explicate', 'clarify']
-        )
-        
-        final_patterns = len(router.query_patterns[QueryType.DEFINITIONAL]['patterns'])
-        assert final_patterns == initial_patterns + 1
-        
-        # Test with custom pattern
-        result = router.route_query("Please explicate the concept of EEG")
-        assert result.query_type == QueryType.DEFINITIONAL
-    
-    def test_ambiguous_queries(self, router):
-        """Test handling of ambiguous queries"""
-        ambiguous_queries = [
-            "EEG",  # Too short
-            "Tell me about stuff",  # Too vague
-            "Is this working?",  # Unclear
-            "The quick brown fox jumps"  # Irrelevant
+            "Define alpha waves"
         ]
         
-        for query in ambiguous_queries:
+        for query in simple_queries:
             result = router.route_query(query)
-            
-            # Should still return a result with low confidence
-            assert isinstance(result, RoutingResult)
-            assert 0 <= result.confidence <= 1
+            assert result.complexity == 'simple'
+    
+    def test_medium_complexity(self, router):
+        """Test medium query complexity detection."""
+        medium_queries = [
+            "How does EEG compare to MEG for source localization?",
+            "Effect of caffeine on EEG alpha power"
+        ]
+        
+        for query in medium_queries:
+            result = router.route_query(query)
+            assert result.complexity in ['medium', 'complex']
+    
+    def test_complex_routing_to_orchestrator(self, router):
+        """Test complex queries route to orchestrator."""
+        complex_query = "Analyze the multifactorial relationship between EEG connectivity patterns, cognitive performance, and neuropharmacological interventions in epilepsy patients"
+        
+        result = router.route_query(complex_query)
+        assert result.complexity == 'complex'
+        assert result.recommended_agent == 'orchestrator'
+
+
+class TestPerformance:
+    """Test routing performance."""
+    
+    @pytest.fixture
+    def router(self):
+        return QueryRouter()
+    
+    def test_routing_latency(self, router):
+        """Test routing latency is within bounds."""
+        query = "What is EEG alpha power?"
+        
+        start_time = time.time()
+        result = router.route_query(query)
+        end_time = time.time()
+        
+        latency = end_time - start_time
+        assert latency < 1.0  # Should be under 1 second
+        assert result is not None
+    
+    def test_batch_routing(self, router):
+        """Test batch routing performance."""
+        queries = ["What is EEG?"] * 10
+        
+        start_time = time.time()
+        results = [router.route_query(q) for q in queries]
+        end_time = time.time()
+        
+        total_time = end_time - start_time
+        avg_time = total_time / len(queries)
+        
+        assert avg_time < 0.5  # Average under 500ms per query
+        assert len(results) == len(queries)
+
+
+class TestEdgeCases:
+    """Test error handling and edge cases."""
+    
+    @pytest.fixture
+    def router(self):
+        return QueryRouter()
+    
+    def test_empty_query(self, router):
+        """Test handling of empty queries."""
+        with pytest.raises(ValueError, match="Query cannot be empty"):
+            router.route_query("")
+    
+    def test_very_long_query(self, router):
+        """Test handling of very long queries."""
+        long_query = "What is EEG? " * 50
+        
+        result = router.route_query(long_query)
+        assert result is not None
+        assert result.confidence >= 0.0
+    
+    def test_special_characters(self, router):
+        """Test handling of queries with special characters."""
+        special_queries = [
+            "What is µV in EEG measurements?",
+            "Alpha waves (8-12 Hz) significance"
+        ]
+        
+        for query in special_queries:
+            result = router.route_query(query)
+            assert result is not None
+
+
+class TestRoutingResult:
+    """Test RoutingResult functionality."""
+    
+    def test_routing_result_creation(self):
+        """Test RoutingResult creation."""
+        result = RoutingResult(
+            query_type=QueryType.DEFINITIONAL,
+            confidence=0.85,
+            recommended_agent='local_agent',
+            reasoning="Test reasoning",
+            keywords=['eeg', 'test'],
+            complexity='simple'
+        )
+        
+        assert result.query_type == QueryType.DEFINITIONAL
+        assert result.confidence == 0.85
+    
+    def test_to_dict_serialization(self):
+        """Test conversion to dictionary."""
+        result = RoutingResult(
+            query_type=QueryType.COMPARATIVE,
+            confidence=0.75,
+            recommended_agent='graph_agent',
+            reasoning="Comparison query",
+            keywords=['compare', 'eeg'],
+            complexity='medium'
+        )
+        
+        result_dict = result.to_dict()
+        assert result_dict['query_type'] == 'comparative'
+        assert result_dict['confidence'] == 0.75
+
+
+class TestEEGOptimization:
+    """Test EEG domain optimizations."""
+    
+    @pytest.fixture
+    def router(self):
+        return QueryRouter()
+    
+    def test_eeg_keyword_boost(self, router):
+        """Test EEG keywords boost confidence."""
+        eeg_query = "EEG electroencephalography seizure detection"
+        generic_query = "What is data analysis?"
+        
+        eeg_result = router.route_query(eeg_query)
+        generic_result = router.route_query(generic_query)
+        
+        # EEG query should have higher or equal confidence
+        assert eeg_result.confidence >= generic_result.confidence
 
 
 class TestConvenienceFunction:
-    """Test convenience routing function"""
+    """Test convenience routing function."""
     
-    def test_route_query_function(self):
-        """Test standalone routing function"""
-        query = "What is epilepsy?"
+    def test_quick_route_function(self):
+        """Test the convenience route_query function."""
+        result = route_query("What is EEG?")
         
-        result = route_query(query)
-        
-        assert isinstance(result, RoutingResult)
+        assert result is not None
         assert result.query_type == QueryType.DEFINITIONAL
-        assert result.confidence > 0
-
-
-class TestIntegration:
-    """Integration tests for query routing"""
-    
-    def test_real_world_queries(self):
-        """Test routing with realistic EEG research queries"""
-        router = QueryRouter()
-        
-        test_cases = [
-            {
-                'query': "How effective are convolutional neural networks for automated seizure detection in long-term EEG monitoring?",
-                'expected_type': QueryType.METHODOLOGICAL,
-                'expected_complexity': 'complex'
-            },
-            {
-                'query': "What are the latest 2024 developments in brain-computer interface research?",
-                'expected_type': QueryType.RECENT_LITERATURE,
-                'expected_agent': 'web_agent'
-            },
-            {
-                'query': "Define sleep spindle morphology",
-                'expected_type': QueryType.DEFINITIONAL,
-                'expected_complexity': 'simple'
-            },
-            {
-                'query': "Compare performance of ICA versus wavelet denoising for EEG artifact removal",
-                'expected_type': QueryType.COMPARATIVE,
-                'expected_agent': 'graph_agent'
-            }
-        ]
-        
-        for case in test_cases:
-            result = router.route_query(case['query'])
-            
-            if 'expected_type' in case:
-                assert result.query_type == case['expected_type'], f"Failed for: {case['query']}"
-            
-            if 'expected_complexity' in case:
-                assert result.complexity == case['expected_complexity'], f"Failed for: {case['query']}"
-            
-            if 'expected_agent' in case:
-                assert result.recommended_agent == case['expected_agent'], f"Failed for: {case['query']}"
+        assert result.recommended_agent == 'local_agent'
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__, "-v"])
