@@ -458,3 +458,26 @@ _global_monitor = PerformanceMonitor()
 def get_performance_monitor() -> PerformanceMonitor:
     """Get global performance monitor instance."""
     return _global_monitor
+
+
+def get_logger(name: str = None) -> logging.Logger:
+    """
+    Get a logger instance.
+    
+    Args:
+        name: Logger name (uses __name__ if None)
+    
+    Returns:
+        Logger instance
+    """
+    if name is None:
+        # Get the caller's module name
+        import inspect
+        frame = inspect.currentframe()
+        try:
+            caller_frame = frame.f_back
+            name = caller_frame.f_globals.get('__name__', 'eeg_rag')
+        finally:
+            del frame
+    
+    return logging.getLogger(name)
