@@ -1,0 +1,469 @@
+{
+  "timestamp": "2026-01-19T12:08:32.954515",
+  "summary": {
+    "total_tests": 36,
+    "passed_tests": 35,
+    "failed_tests": 0,
+    "skipped_tests": 0,
+    "error_tests": 1,
+    "total_duration": 0.8064334392547607,
+    "success_rate": 0.9722222222222222
+  },
+  "test_results": [
+    {
+      "test_name": "TestSequencePointViolations.test_evaluation_order_dependence",
+      "status": "passed",
+      "duration": 4.7206878662109375e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestSequencePointViolations.test_side_effect_ordering",
+      "status": "passed",
+      "duration": 3.0517578125e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestTypeConversionDangers.test_implicit_conversions",
+      "status": "passed",
+      "duration": 0.00012922286987304688,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestTypeConversionDangers.test_overflow_behavior",
+      "status": "passed",
+      "duration": 3.8623809814453125e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestTypeConversionDangers.test_precision_loss",
+      "status": "passed",
+      "duration": 5.841255187988281e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryLayoutIssues.test_alignment_assumptions",
+      "status": "passed",
+      "duration": 6.794929504394531e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryLayoutIssues.test_endianness_issues",
+      "status": "passed",
+      "duration": 3.600120544433594e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryLayoutIssues.test_struct_packing_simulation",
+      "status": "passed",
+      "duration": 6.103515625e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestPointerArithmeticSimulation.test_buffer_overflow_simulation",
+      "status": "passed",
+      "duration": 8.440017700195312e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestPointerArithmeticSimulation.test_dangling_reference_simulation",
+      "status": "passed",
+      "duration": 1.5497207641601562e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestPointerArithmeticSimulation.test_null_pointer_simulation",
+      "status": "passed",
+      "duration": 4.792213439941406e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestConcurrencyPitfalls.test_async_concurrency_issues",
+      "status": "passed",
+      "duration": 0.43402791023254395,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestConcurrencyPitfalls.test_deadlock_detection",
+      "status": "passed",
+      "duration": 0.20066571235656738,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestConcurrencyPitfalls.test_race_condition_detection",
+      "status": "passed",
+      "duration": 0.01329660415649414,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestFloatingPointIssues.test_accumulation_errors",
+      "status": "passed",
+      "duration": 0.0007579326629638672,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestFloatingPointIssues.test_division_by_zero_handling",
+      "status": "passed",
+      "duration": 6.222724914550781e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestFloatingPointIssues.test_precision_comparison_issues",
+      "status": "passed",
+      "duration": 8.225440979003906e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMutableDefaults.test_generator_state_confusion",
+      "status": "passed",
+      "duration": 2.193450927734375e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMutableDefaults.test_late_binding_closures",
+      "status": "passed",
+      "duration": 2.7179718017578125e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMutableDefaults.test_mutable_default_arguments",
+      "status": "passed",
+      "duration": 2.2649765014648438e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestABTestingIntegration.test_ab_performance_comparison",
+      "status": "passed",
+      "duration": 0.0008642673492431641,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestABTestingIntegration.test_ab_safety_comparison",
+      "status": "passed",
+      "duration": 0.00020503997802734375,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestABTestingIntegration.test_ab_testing_report_generation",
+      "status": "passed",
+      "duration": 0.0007429122924804688,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestStackOverflowPatterns.test_mutual_recursion_detection",
+      "status": "passed",
+      "duration": 0.0004100799560546875,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestStackOverflowPatterns.test_unbounded_recursion_detection",
+      "status": "passed",
+      "duration": 0.0007884502410888672,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryManagementEdgeCases.test_double_free_detection",
+      "status": "passed",
+      "duration": 0.0001285076141357422,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryManagementEdgeCases.test_memory_leak_detection",
+      "status": "passed",
+      "duration": 0.05017518997192383,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestMemoryManagementEdgeCases.test_use_after_free_simulation",
+      "status": "passed",
+      "duration": 0.00012731552124023438,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestUnicodeEncodingEdgeCases.test_case_conversion_edge_cases",
+      "status": "passed",
+      "duration": 6.628036499023438e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestUnicodeEncodingEdgeCases.test_encoding_confusion",
+      "status": "passed",
+      "duration": 1.7404556274414062e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestUnicodeEncodingEdgeCases.test_normalization_issues",
+      "status": "passed",
+      "duration": 0.008447408676147461,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestNumericEdgeCases.test_decimal_precision_edge_cases",
+      "status": "passed",
+      "duration": 8.869171142578125e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestNumericEdgeCases.test_floating_point_special_values",
+      "status": "passed",
+      "duration": 0.00010633468627929688,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestNumericEdgeCases.test_integer_boundary_conditions",
+      "status": "passed",
+      "duration": 4.887580871582031e-05,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestSignalHandlingEdgeCases.test_async_generator_edge_cases",
+      "status": "error",
+      "duration": 0.08205986022949219,
+      "error_message": "ValueError: a coroutine was expected, got None",
+      "warnings": [],
+      "performance_metrics": {}
+    },
+    {
+      "test_name": "TestSignalHandlingEdgeCases.test_signal_handler_race_conditions",
+      "status": "passed",
+      "duration": 0.010255098342895508,
+      "error_message": null,
+      "warnings": [],
+      "performance_metrics": {}
+    }
+  ],
+  "safety_assessments": [
+    {
+      "category": "sequence_points",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 2,
+      "recommendation": "All safety checks passed for sequence_points - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "type_conversions",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for type_conversions - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "memory_layout",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for memory_layout - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "pointer_arithmetic",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for pointer_arithmetic - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "concurrency",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for concurrency - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "floating_point",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for floating_point - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "mutable_defaults",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for mutable_defaults - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "ab_testing",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for ab_testing - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "stack_overflow",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 2,
+      "recommendation": "All safety checks passed for stack_overflow - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "memory_management",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for memory_management - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "unicode_encoding",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for unicode_encoding - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "numeric_edge_cases",
+      "risk_level": "low",
+      "vulnerabilities_found": 0,
+      "safe_patterns_validated": 3,
+      "recommendation": "All safety checks passed for numeric_edge_cases - maintain current practices",
+      "confidence_score": 1.0
+    },
+    {
+      "category": "signal_handling",
+      "risk_level": "critical",
+      "vulnerabilities_found": 1,
+      "safe_patterns_validated": 1,
+      "recommendation": "Investigate 1 test errors in signal_handling",
+      "confidence_score": 0.5
+    }
+  ],
+  "ab_test_results": [
+    {
+      "variant_a": "A",
+      "variant_b": "B",
+      "performance_a": 3.871139997499995e-06,
+      "performance_b": 3.2807599927764384e-06,
+      "error_rate_a": 0.0,
+      "error_rate_b": 0.0,
+      "reliability_score_a": 1.0,
+      "reliability_score_b": 1.0,
+      "recommendation": "Variant B is better",
+      "confidence": 99.9,
+      "timestamp": "2026-01-19T12:08:32.953592"
+    },
+    {
+      "variant_a": "A",
+      "variant_b": "B",
+      "performance_a": 10.0,
+      "performance_b": 2.564959868323058e-06,
+      "error_rate_a": 1.0,
+      "error_rate_b": 0.0,
+      "reliability_score_a": 0.0,
+      "reliability_score_b": 1.0,
+      "recommendation": "Variant B is better",
+      "confidence": 99.9,
+      "timestamp": "2026-01-19T12:08:32.953907"
+    },
+    {
+      "variant_a": "A",
+      "variant_b": "B",
+      "performance_a": 3.1307600875152276e-06,
+      "performance_b": 4.124739934923127e-06,
+      "error_rate_a": 0.0,
+      "error_rate_b": 0.0,
+      "reliability_score_a": 1.0,
+      "reliability_score_b": 1.0,
+      "recommendation": "Variant A is better",
+      "confidence": 99.9,
+      "timestamp": "2026-01-19T12:08:32.954292"
+    }
+  ],
+  "risk_summary": {
+    "overall_success_rate": 0.9722222222222222,
+    "risk_distribution": {
+      "low": 12,
+      "critical": 1
+    },
+    "performance_metrics": {
+      "average_test_duration": 0.022336469756232366,
+      "total_execution_time": 0.8041129112243652
+    },
+    "critical_issues": 1,
+    "safety_score": 97.22222222222221
+  },
+  "recommendations": [
+    "Investigate 1 test errors that may indicate system issues",
+    "Priority review needed for high-risk categories: signal_handling",
+    "Consider adopting safer implementation pattern (showed 99.9% confidence)",
+    "Consider adopting safer implementation pattern (showed 99.9% confidence)",
+    "Regular undefined behavior testing recommended for ongoing safety"
+  ]
+}

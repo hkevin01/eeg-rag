@@ -49,12 +49,47 @@ try:
         TestSignalHandlingEdgeCases
     )
 except ImportError:
-    # Handle case when running directly
-    import test_undefined_behavior as ub_module
-    import test_undefined_edge_cases as edge_module
+    # Handle case when running directly - use dynamic imports
+    import importlib.util
+    import sys
+    from pathlib import Path
     
+    # Get current directory
+    current_dir = Path(__file__).parent
+    
+    # Import main undefined behavior module
+    ub_spec = importlib.util.spec_from_file_location(
+        "test_undefined_behavior", 
+        current_dir / "test_undefined_behavior.py"
+    )
+    ub_module = importlib.util.module_from_spec(ub_spec)
+    ub_spec.loader.exec_module(ub_module)
+    
+    # Import edge cases module
+    edge_spec = importlib.util.spec_from_file_location(
+        "test_undefined_edge_cases",
+        current_dir / "test_undefined_edge_cases.py"
+    )
+    edge_module = importlib.util.module_from_spec(edge_spec)
+    edge_spec.loader.exec_module(edge_module)
+    
+    # Extract classes
     ABTester = ub_module.ABTester
     ABTestResult = ub_module.ABTestResult
+    TestSequencePointViolations = ub_module.TestSequencePointViolations
+    TestTypeConversionDangers = ub_module.TestTypeConversionDangers
+    TestMemoryLayoutIssues = ub_module.TestMemoryLayoutIssues
+    TestPointerArithmeticSimulation = ub_module.TestPointerArithmeticSimulation
+    TestConcurrencyPitfalls = ub_module.TestConcurrencyPitfalls
+    TestFloatingPointIssues = ub_module.TestFloatingPointIssues
+    TestMutableDefaults = ub_module.TestMutableDefaults
+    TestABTestingIntegration = ub_module.TestABTestingIntegration
+    
+    TestStackOverflowPatterns = edge_module.TestStackOverflowPatterns
+    TestMemoryManagementEdgeCases = edge_module.TestMemoryManagementEdgeCases
+    TestUnicodeEncodingEdgeCases = edge_module.TestUnicodeEncodingEdgeCases
+    TestNumericEdgeCases = edge_module.TestNumericEdgeCases
+    TestSignalHandlingEdgeCases = edge_module.TestSignalHandlingEdgeCases
 
 
 @dataclass
