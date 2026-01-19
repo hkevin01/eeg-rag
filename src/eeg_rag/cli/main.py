@@ -402,52 +402,79 @@ Examples:
 
 async def cli_main():
     """Main CLI entry point"""
-    parser = create_argument_parser()
-    args = parser.parse_args()
-    
-    # Set up logging level
-    if args.verbose:
-        logging.getLogger().setLevel(logging.INFO)
-    
-    # Create CLI app
-    app = EEGRAGCLIApp()
-    
-    # Handle single-shot commands
-    if args.health:
-        health = check_system_health()
-        if args.json:
-            print(json.dumps(health.to_dict(), indent=2))
-        else:
-            print(f"System Status: {health.status.value}")
-            for warning in health.warnings:
-                print(f"  ⚠️  {warning}")
-        return
-    
-    if args.stats:
-        if not await app.initialize_system():
-            print("❌ Failed to initialize system")
+    try:
+        import click
+        # Use Click CLI if available for extended commands
+        from .commands import add_extended_commands
+        
+        @click.group()
+        def main_cli():
+            """EEG-RAG: AI-Powered EEG Research Assistant"""
+            pass
+        
+        # Add extended commands
+        add_extended_commands(main_cli)
+        
+        # Add basic interactive command
+        @main_cli.command()
+        @click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
+        @click.option('--json', 'json_output', is_flag=True, help='Output in JSON format')
+        async def interactive(verbose, json_output):
+            """Start interactive CLI session"""
+            app = EEGRAGCLIApp()
+            await app.run_interactive()
+        
+        # Run Click CLI
+        main_cli()
+        
+    except ImportError:
+        # Fallback to basic CLI if Click not available
+        parser = create_argument_parser()
+        args = parser.parse_args()
+        
+        # Set up logging level
+        if args.verbose:
+            logging.getLogger().setLevel(logging.INFO)
+        
+        # Create CLI app
+        app = EEGRAGCLIApp()
+        
+        # Handle single-shot commands
+        if args.health:
+            health = check_system_health()
+            if args.json:
+                print(json.dumps(health.to_dict(), indent=2))
+            else:
+                print(f"System Status: {health.status.value}")
+                for warning in health.warnings:
+                    print(f"  ⚠️  {warning}")
             return
         
-        if args.json:
-            stats = {}
-            if app.agent:
-                stats["agent"] = app.agent.get_statistics()
-            stats["memory"] = await app.memory_manager.get_statistics()
-            stats["system"] = check_system_health().to_dict()
-            print(json.dumps(stats, indent=2))
-        else:
-            await app.show_stats()
-        return
-    
-    if args.query:
-        if not await app.initialize_system():
-            print("❌ Failed to initialize system")
+        if args.stats:
+            if not await app.initialize_system():
+                print("❌ Failed to initialize system")
+                return
+            
+            if args.json:
+                stats = {}
+                if app.agent:
+                    stats["agent"] = app.agent.get_statistics()
+                stats["memory"] = await app.memory_manager.get_statistics()
+                stats["system"] = check_system_health().to_dict()
+                print(json.dumps(stats, indent=2))
+            else:
+                await app.show_stats()
             return
         
-        response = await app.process_query(args.query)
-        
-        if args.json:
-            print(json.dumps(response, indent=2))
+        if args.query:
+            if not await app.initialize_system():
+                print("❌ Failed to initialize system")
+                return
+            
+            response = await app.process_query(args.query)
+            
+            if args.json:
+                print(json.dumps(response, indent=2))
         else:
             app.format_response(response)
         return
