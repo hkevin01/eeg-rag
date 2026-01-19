@@ -483,7 +483,7 @@ class FinalAggregator:
             confidence=adjusted_confidence,
             sources=sources,
             query=query,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             metadata=metadata,
             statistics=statistics,
             warnings=warnings

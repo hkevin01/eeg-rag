@@ -87,7 +87,7 @@ def sample_context(sample_citations, sample_entities):
         total_sources=3,
         agent_contributions={'local_agent': 2, 'web_agent': 1},
         relevance_threshold=0.8,
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now().isoformat(),
         statistics={'total_chunks': 5, 'unique_papers': 3}
     )
 
@@ -125,7 +125,7 @@ def sample_ensemble_response(sample_generation_results):
         contributing_models=["gpt-4", "gemini-pro"],
         individual_responses=sample_generation_results,
         voting_results={'consensus': True, 'agreement': 0.85},
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now().isoformat(),
         statistics={'total_models': 2, 'successful': 2}
     )
 
@@ -144,7 +144,7 @@ class TestHallucinationDetector:
             total_sources=0,
             agent_contributions={},
             relevance_threshold=0.8,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         
@@ -169,7 +169,7 @@ class TestHallucinationDetector:
             total_sources=1,
             agent_contributions={},
             relevance_threshold=0.8,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         
@@ -189,7 +189,7 @@ class TestHallucinationDetector:
             total_sources=0,
             agent_contributions={},
             relevance_threshold=0.8,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         
@@ -247,7 +247,7 @@ class TestResponseValidator:
             total_sources=0,
             agent_contributions={},
             relevance_threshold=0.8,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         
@@ -386,7 +386,7 @@ class TestFinalAggregator:
                 )
             ],
             voting_results={},
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         
@@ -397,7 +397,7 @@ class TestFinalAggregator:
             total_sources=0,
             agent_contributions={},
             relevance_threshold=0.8,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             statistics={}
         )
         

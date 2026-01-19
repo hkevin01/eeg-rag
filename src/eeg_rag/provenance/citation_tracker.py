@@ -353,7 +353,7 @@ class CitationProvenanceTracker:
         event = ProvenanceEvent(
             event_id=f"{citation_id}-{int(time.time() * 1000)}",
             event_type=ProvenanceEventType.RETRIEVED,
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.now().isoformat() + 'Z',
             citation_id=citation_id,
             source_type=source_type,
             agent_id=agent_id,
@@ -390,7 +390,7 @@ class CitationProvenanceTracker:
         event = ProvenanceEvent(
             event_id=f"{citation_id}-use-{int(time.time() * 1000)}",
             event_type=ProvenanceEventType.USED,
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.now().isoformat() + 'Z',
             citation_id=citation_id,
             source_type=SourceType.LOCAL_DB,  # Already in system
             agent_id=agent_id,
