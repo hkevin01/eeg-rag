@@ -1,0 +1,218 @@
+[
+    {
+        "question": "What EEG biomarkers predict seizure recurrence after first unprovoked seizure?",
+        "expected_pmids": [
+            "34521678",
+            "33456789",
+            "32345678"
+        ],
+        "expected_entities": [
+            "interictal epileptiform discharges",
+            "focal slowing",
+            "photoparoxysmal response"
+        ],
+        "domain": "epilepsy",
+        "difficulty": "medium",
+        "expected_answer_length": 200,
+        "expected_key_concepts": [
+            "seizure recurrence",
+            "biomarkers",
+            "EEG predictors"
+        ]
+    },
+    {
+        "question": "What is the P300 component in event-related potentials?",
+        "expected_pmids": [
+            "12345678",
+            "23456789"
+        ],
+        "expected_entities": [
+            "P300",
+            "event-related potential",
+            "cognitive processing",
+            "oddball paradigm"
+        ],
+        "domain": "cognitive_neuroscience",
+        "difficulty": "easy",
+        "expected_answer_length": 150,
+        "expected_key_concepts": [
+            "P300",
+            "ERP",
+            "cognitive component"
+        ]
+    },
+    {
+        "question": "How do theta oscillations differ between REM and NREM sleep stages?",
+        "expected_pmids": [
+            "45678901",
+            "56789012"
+        ],
+        "expected_entities": [
+            "theta oscillations",
+            "REM sleep",
+            "NREM sleep",
+            "hippocampus"
+        ],
+        "domain": "sleep",
+        "difficulty": "hard",
+        "expected_answer_length": 250,
+        "expected_key_concepts": [
+            "theta rhythm",
+            "sleep stages",
+            "oscillatory activity"
+        ]
+    },
+    {
+        "question": "What are the latest 2024 findings on BCI control using motor imagery?",
+        "expected_pmids": [
+            "67890123",
+            "78901234"
+        ],
+        "expected_entities": [
+            "brain-computer interface",
+            "motor imagery",
+            "sensorimotor rhythm",
+            "mu rhythm"
+        ],
+        "domain": "bci",
+        "difficulty": "hard",
+        "expected_answer_length": 300,
+        "expected_key_concepts": [
+            "BCI",
+            "motor imagery",
+            "neural control"
+        ]
+    },
+    {
+        "question": "What electrode positions are used for recording occipital alpha rhythm?",
+        "expected_pmids": [
+            "11223344",
+            "22334455"
+        ],
+        "expected_entities": [
+            "occipital electrodes",
+            "O1",
+            "O2",
+            "alpha rhythm",
+            "posterior derivations"
+        ],
+        "domain": "clinical_eeg",
+        "difficulty": "easy",
+        "expected_answer_length": 120,
+        "expected_key_concepts": [
+            "occipital",
+            "alpha",
+            "electrode placement"
+        ]
+    },
+    {
+        "question": "How does sleep deprivation affect EEG spectral power in different frequency bands?",
+        "expected_pmids": [
+            "55667788",
+            "66778899"
+        ],
+        "expected_entities": [
+            "sleep deprivation",
+            "spectral power",
+            "delta",
+            "theta",
+            "alpha",
+            "beta"
+        ],
+        "domain": "sleep",
+        "difficulty": "medium",
+        "expected_answer_length": 220,
+        "expected_key_concepts": [
+            "sleep deprivation",
+            "spectral analysis",
+            "frequency bands"
+        ]
+    },
+    {
+        "question": "What are the characteristic EEG patterns in Lennox-Gastaut syndrome?",
+        "expected_pmids": [
+            "77889900",
+            "88990011"
+        ],
+        "expected_entities": [
+            "Lennox-Gastaut syndrome",
+            "slow spike-wave",
+            "generalized paroxysmal fast activity",
+            "background slowing"
+        ],
+        "domain": "epilepsy",
+        "difficulty": "medium",
+        "expected_answer_length": 180,
+        "expected_key_concepts": [
+            "Lennox-Gastaut",
+            "epileptic encephalopathy",
+            "EEG patterns"
+        ]
+    },
+    {
+        "question": "How do sensorimotor rhythms change during imagined movement in BCI applications?",
+        "expected_pmids": [
+            "99001122",
+            "00112233"
+        ],
+        "expected_entities": [
+            "sensorimotor rhythm",
+            "mu rhythm",
+            "beta rhythm",
+            "event-related desynchronization",
+            "motor imagery"
+        ],
+        "domain": "bci",
+        "difficulty": "hard",
+        "expected_answer_length": 280,
+        "expected_key_concepts": [
+            "SMR",
+            "ERD",
+            "motor cortex"
+        ]
+    },
+    {
+        "question": "What is the difference between sharp waves and spikes in EEG?",
+        "expected_pmids": [
+            "11335577",
+            "22446688"
+        ],
+        "expected_entities": [
+            "sharp waves",
+            "spikes",
+            "duration",
+            "morphology",
+            "epileptiform discharge"
+        ],
+        "domain": "clinical_eeg",
+        "difficulty": "easy",
+        "expected_answer_length": 100,
+        "expected_key_concepts": [
+            "sharp waves",
+            "spikes",
+            "epileptiform"
+        ]
+    },
+    {
+        "question": "How does the N400 component relate to semantic processing in language ERP studies?",
+        "expected_pmids": [
+            "33557799",
+            "44668800"
+        ],
+        "expected_entities": [
+            "N400",
+            "semantic processing",
+            "semantic priming",
+            "language comprehension",
+            "event-related potential"
+        ],
+        "domain": "cognitive_neuroscience",
+        "difficulty": "medium",
+        "expected_answer_length": 240,
+        "expected_key_concepts": [
+            "N400",
+            "semantics",
+            "language ERP"
+        ]
+    }
+]
