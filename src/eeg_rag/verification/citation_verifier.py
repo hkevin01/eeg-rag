@@ -18,43 +18,181 @@ from ..utils.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
+# Medical literature domain constants
+PMID_PATTERN = re.compile(r'PMID[:\s]*?(\d{7,8})(?![\d])')  # Precise PMID extraction
+MAX_ABSTRACT_LENGTH = 5000  # Maximum abstract length for processing
+DEFAULT_REQUEST_TIMEOUT = 30.0  # PubMed API timeout in seconds
+RETRY_ATTEMPTS = 3  # Number of retry attempts for failed requests
+RETRY_DELAY = 1.0  # Initial retry delay in seconds
+
+# Hallucination risk patterns for medical content
+HALLUCINATION_PATTERNS = {
+    'absolute_claims': {
+        'pattern': r'\b(always|never|all|none|every|no|100%|0%|completely|entirely|absolutely)\s+(patients?|studies?|cases?|research|evidence)\b',
+        'description': 'Absolute claims without qualification',
+        'risk_multiplier': 2.0
+    },
+    'unsupported_statistics': {
+        'pattern': r'\b\d+%\s*of\s*(patients?|subjects?|cases?)(?!.*\(.*PMID)',
+        'description': 'Specific percentages without citation',
+        'risk_multiplier': 1.8
+    },
+    'temporal_claims': {
+        'pattern': r'\b(recent|latest|new|cutting-edge|breakthrough)\s*(research|studies?|findings?)(?!.*\(.*PMID)',
+        'description': 'Temporal claims without recent citations',
+        'risk_multiplier': 1.5
+    },
+    'superlative_claims': {
+        'pattern': r'\b(best|most effective|optimal|superior|inferior|highest|lowest)\s*(treatment|method|approach)(?!.*\(.*PMID)',
+        'description': 'Comparative claims without evidence',
+        'risk_multiplier': 1.7
+    }
+}
+
 
 @dataclass
 class VerificationResult:
-    """Result of citation verification"""
+    """Comprehensive result of citation verification.
+    
+    This class encapsulates all aspects of citation verification including
+    existence validation, content matching, and claim support assessment.
+    Critical for medical domain applications where citation accuracy is mandatory.
+    
+    Attributes:
+        pmid: PubMed identifier (7-8 digits)
+        exists: Whether the PMID exists in PubMed database
+        title_match: Similarity score between claimed and actual title (0-1)
+        claim_supported: Whether the claim is supported by the abstract content
+        original_abstract: Full abstract text if retrieved successfully
+        error_message: Detailed error information if verification failed
+        verification_timestamp: When the verification was performed
+        api_response_time: Time taken for PubMed API response (ms)
+    """
     pmid: str
     exists: bool
-    title_match: float  # 0-1 similarity
+    title_match: float  # 0-1 similarity score
     claim_supported: bool
     original_abstract: Optional[str] = None
     error_message: Optional[str] = None
+    verification_timestamp: Optional[float] = None
+    api_response_time: Optional[float] = None
+    
+    def __post_init__(self):
+        """Validate PMID format and score ranges."""
+        if not self._is_valid_pmid(self.pmid):
+            logger.warning(f"Invalid PMID format: {self.pmid}")
+        
+        if not 0.0 <= self.title_match <= 1.0:
+            logger.warning(f"Title match score out of range: {self.title_match}")
+            self.title_match = max(0.0, min(1.0, self.title_match))
+    
+    @staticmethod
+    def _is_valid_pmid(pmid: str) -> bool:
+        """Validate PMID format (7-8 digits)."""
+        return bool(re.match(r'^\d{7,8}$', pmid))
     
     def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization.
+        
+        Returns comprehensive verification data suitable for logging,
+        API responses, or persistent storage.
+        """
         return {
             'pmid': self.pmid,
             'exists': self.exists,
-            'title_match': self.title_match,
+            'title_match': round(self.title_match, 3),
             'claim_supported': self.claim_supported,
             'has_abstract': self.original_abstract is not None,
-            'error_message': self.error_message
+            'abstract_length': len(self.original_abstract) if self.original_abstract else 0,
+            'error_message': self.error_message,
+            'verification_timestamp': self.verification_timestamp,
+            'api_response_time_ms': self.api_response_time,
+            'is_valid_format': self._is_valid_pmid(self.pmid)
         }
 
 
 class CitationVerifier:
-    """Verifies citations against PubMed database"""
+    """Production-grade citation verification against PubMed database.
     
-    def __init__(self, email: Optional[str] = None, similarity_threshold: float = 0.5):
+    This class provides comprehensive citation verification capabilities specifically
+    designed for medical and scientific literature. It validates PMIDs against the
+    NCBI PubMed database, retrieves abstracts, and assesses claim support using
+    semantic analysis.
+    
+    Key Features:
+        - Real-time PMID validation against PubMed API
+        - Abstract retrieval with XML parsing
+        - Semantic claim-abstract matching using sentence transformers
+        - Comprehensive error handling with retry logic
+        - Performance optimization through caching
+        - Medical domain-specific validation patterns
+    
+    Args:
+        email: Contact email for PubMed API (required for compliance)
+        similarity_threshold: Minimum similarity for claim support (0.0-1.0)
+        request_timeout: API request timeout in seconds
+        enable_cache: Whether to cache abstract retrievals
+        max_retries: Maximum retry attempts for failed requests
+    
+    Example:
+        >>> verifier = CitationVerifier(email="researcher@university.edu")
+        >>> result = await verifier.verify_citation(
+        ...     pmid="12345678",
+        ...     claimed_finding="EEG shows 95% seizure detection accuracy"
+        ... )
+        >>> print(f"Citation valid: {result.exists}")
+        >>> print(f"Claim supported: {result.claim_supported}")
+    """
+    
+    def __init__(self, 
+                 email: Optional[str] = None, 
+                 similarity_threshold: float = 0.5,
+                 request_timeout: float = DEFAULT_REQUEST_TIMEOUT,
+                 enable_cache: bool = True,
+                 max_retries: int = RETRY_ATTEMPTS):
+        
+        # API configuration with validation
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.email = email or "research@eeg-rag.org"
-        self.similarity_threshold = similarity_threshold
-        self.cache: Dict[str, str] = {}
+        self.request_timeout = request_timeout
+        self.max_retries = max_retries
         
-        # Initialize sentence transformer for semantic similarity
+        # Validation parameters
+        if not 0.0 <= similarity_threshold <= 1.0:
+            raise ValueError(f"Similarity threshold must be 0.0-1.0, got {similarity_threshold}")
+        self.similarity_threshold = similarity_threshold
+        
+        # Performance optimization
+        self.cache = {} if enable_cache else None
+        self._request_count = 0
+        self._cache_hits = 0
+        
+        # Initialize ML model for semantic analysis
+        self.sentence_model = self._initialize_sentence_model()
+        
+        logger.info(f"CitationVerifier initialized with threshold={similarity_threshold}, "
+                   f"timeout={request_timeout}s, email={self.email}")
+    
+    def _initialize_sentence_model(self) -> Optional[SentenceTransformer]:
+        """Initialize sentence transformer with error handling.
+        
+        Returns:
+            SentenceTransformer model or None if initialization fails
+        """
         try:
-            self.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+            # Use PubMedBERT for biomedical domain
+            model = SentenceTransformer('microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext')
+            logger.info("Biomedical sentence transformer loaded successfully")
+            return model
         except Exception as e:
-            logger.warning(f"Could not load sentence transformer: {e}")
-            self.sentence_model = None
+            logger.warning(f"Failed to load PubMedBERT, falling back to general model: {e}")
+            try:
+                model = SentenceTransformer('all-MiniLM-L6-v2')
+                logger.info("General sentence transformer loaded as fallback")
+                return model
+            except Exception as e2:
+                logger.error(f"Failed to load any sentence transformer: {e2}")
+                return None
     
     async def verify_citation(self, pmid: str, claimed_finding: str = "") -> VerificationResult:
         """Verify a single PMID citation"""
