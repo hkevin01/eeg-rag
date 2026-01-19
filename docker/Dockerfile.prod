@@ -1,0 +1,136 @@
+# Multi-stage production Dockerfile for EEG-RAG
+# Optimized for size, security, and performance
+
+# Build stage
+FROM python:3.9-slim as builder
+
+# Set build arguments
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG BUILDARCH
+ARG TARGETARCH
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    pkg-config \
+    libopenblas-dev \
+    liblapack-dev \
+    gfortran \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python environment
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and install wheel
+RUN pip install --upgrade pip setuptools wheel
+
+# Copy requirements first (better caching)
+COPY requirements.txt requirements-dev.txt /tmp/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Install additional production dependencies
+RUN pip install --no-cache-dir \
+    gunicorn[gevent]==21.2.0 \
+    redis==4.5.1 \
+    prometheus-client==0.16.0 \
+    sentry-sdk==1.14.0
+
+# Download and cache ML models
+RUN python -c "import sentence_transformers; sentence_transformers.SentenceTransformer('microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext')"
+RUN python -c "import spacy; spacy.cli.download('en_core_web_sm')"
+
+# Production stage
+FROM python:3.9-slim as production
+
+# Create non-root user
+RUN groupadd --gid 1000 eegrag \
+    && useradd --uid 1000 --gid eegrag --shell /bin/bash --create-home eegrag
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    libopenblas0 \
+    liblapack3 \
+    libgomp1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    PATH="/opt/venv/bin:$PATH" \
+    WORKERS=4 \
+    WORKER_CLASS=gevent \
+    WORKER_CONNECTIONS=1000 \
+    MAX_REQUESTS=1000 \
+    MAX_REQUESTS_JITTER=100 \
+    TIMEOUT=120 \
+    KEEP_ALIVE=5 \
+    BIND=0.0.0.0:8000
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Create app directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=eegrag:eegrag src/ src/
+COPY --chown=eegrag:eegrag data/ data/
+COPY --chown=eegrag:eegrag scripts/ scripts/
+COPY --chown=eegrag:eegrag pyproject.toml ./
+COPY --chown=eegrag:eegrag README.md ./
+
+# Copy production configuration
+COPY --chown=eegrag:eegrag docker/configs/production.yml config/
+COPY --chown=eegrag:eegrag docker/scripts/entrypoint.prod.sh /entrypoint.sh
+COPY --chown=eegrag:eegrag docker/scripts/healthcheck.sh /healthcheck.sh
+
+# Set proper permissions
+RUN chmod +x /entrypoint.sh /healthcheck.sh
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/tmp /app/data/cache \
+    && chown -R eegrag:eegrag /app
+
+# Switch to non-root user
+USER eegrag
+
+# Install package in development mode
+RUN pip install -e .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD /healthcheck.sh
+
+# Expose port
+EXPOSE 8000
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "src.eeg_rag.api.main:app", \
+    "--workers", "$WORKERS", \
+    "--worker-class", "$WORKER_CLASS", \
+    "--worker-connections", "$WORKER_CONNECTIONS", \
+    "--max-requests", "$MAX_REQUESTS", \
+    "--max-requests-jitter", "$MAX_REQUESTS_JITTER", \
+    "--timeout", "$TIMEOUT", \
+    "--keep-alive", "$KEEP_ALIVE", \
+    "--bind", "$BIND", \
+    "--access-logfile", "-", \
+    "--error-logfile", "-", \
+    "--log-level", "info"]
