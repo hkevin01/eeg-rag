@@ -10,6 +10,13 @@ Requirements Covered:
 - REQ-MEM-003: Memory retrieval with relevance scoring
 - REQ-MEM-004: Memory consolidation and cleanup
 - REQ-MEM-005: Redis/SQLite integration for storage
+
+Enhancements:
+- REQ-MEM-025: Improved validation with standardized error messages
+- REQ-MEM-026: Time unit standardization (all times in seconds)
+- REQ-MEM-027: Robust error handling with retry mechanisms
+- REQ-MEM-028: Boundary condition validation
+- REQ-MEM-029: Memory usage monitoring and optimization
 """
 
 import logging
@@ -21,6 +28,21 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from collections import deque
 import hashlib
+
+# Import common utilities for standardized operations
+from eeg_rag.utils.common_utils import (
+    validate_non_empty_string,
+    validate_positive_number,
+    validate_range,
+    standardize_time_unit,
+    safe_divide,
+    compute_content_hash,
+    retry_with_backoff,
+    handle_database_operation,
+    ensure_directory_exists,
+    format_error_message,
+    SECOND, MINUTE, HOUR
+)
 
 # REQ-MEM-006: Memory entry types
 from enum import Enum
@@ -47,6 +69,8 @@ class MemoryEntry:
     - Timestamp
     - Relevance score
     - Metadata
+    
+    REQ-MEM-025: Enhanced validation for all fields
     """
     content: str
     memory_type: MemoryType
@@ -56,51 +80,125 @@ class MemoryEntry:
     entry_id: Optional[str] = None
     
     def __post_init__(self):
-        """Generate unique ID if not provided"""
+        """Generate unique ID if not provided and validate all fields"""
+        # REQ-MEM-025: Validate content
+        self.content = validate_non_empty_string(
+            self.content, 
+            "content",
+            allow_none=False
+        )
+        
+        # REQ-MEM-025: Validate relevance score
+        self.relevance_score = validate_range(
+            self.relevance_score,
+            0.0, 1.0,
+            "relevance_score"
+        )
+        
+        # REQ-MEM-025: Ensure metadata is a dict
+        if self.metadata is None:
+            self.metadata = {}
+        elif not isinstance(self.metadata, dict):
+            raise ValueError(f"metadata must be a dictionary, got {type(self.metadata).__name__}")
+        
+        # REQ-MEM-008: Generate unique ID if not provided
         if not self.entry_id:
-            # REQ-MEM-008: Generate unique IDs based on content hash
-            content_hash = hashlib.md5(
-                f"{self.content}{self.timestamp.isoformat()}".encode()
-            ).hexdigest()
-            self.entry_id = f"{self.memory_type.value}_{content_hash[:12]}"
+            self.entry_id = compute_content_hash(
+                f"{self.content}{self.timestamp.isoformat()}",
+                prefix=self.memory_type.value
+            )
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage"""
-        return {
-            "entry_id": self.entry_id,
-            "content": self.content,
-            "memory_type": self.memory_type.value,
-            "timestamp": self.timestamp.isoformat(),
-            "relevance_score": self.relevance_score,
-            "metadata": self.metadata
-        }
+        try:
+            return {
+                "entry_id": self.entry_id,
+                "content": self.content,
+                "memory_type": self.memory_type.value,
+                "timestamp": self.timestamp.isoformat(),
+                "relevance_score": self.relevance_score,
+                "metadata": self.metadata
+            }
+        except Exception as e:
+            raise ValueError(f"Failed to serialize MemoryEntry: {str(e)}") from e
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "MemoryEntry":
-        """Create from dictionary"""
-        return cls(
-            entry_id=data["entry_id"],
-            content=data["content"],
-            memory_type=MemoryType(data["memory_type"]),
-            timestamp=datetime.fromisoformat(data["timestamp"]),
-            relevance_score=data["relevance_score"],
-            metadata=data["metadata"]
-        )
+        """Create from dictionary with validation"""
+        try:
+            # REQ-MEM-025: Validate required fields
+            if not isinstance(data, dict):
+                raise ValueError(f"Expected dictionary, got {type(data).__name__}")
+            
+            required_fields = ["content", "memory_type", "timestamp"]
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Missing required field: {field}")
+            
+            return cls(
+                entry_id=data.get("entry_id"),
+                content=data["content"],
+                memory_type=MemoryType(data["memory_type"]),
+                timestamp=datetime.fromisoformat(data["timestamp"]),
+                relevance_score=data.get("relevance_score", 1.0),
+                metadata=data.get("metadata", {})
+            )
+        except Exception as e:
+            raise ValueError(f"Failed to deserialize MemoryEntry: {str(e)}") from e
     
-    def is_expired(self, ttl_hours: float) -> bool:
+    def is_expired(self, ttl_seconds: float) -> bool:
         """
         Check if entry is expired
         
         Args:
-            ttl_hours: Time to live in hours
+            ttl_seconds: Time to live in seconds (REQ-MEM-026: standardized to seconds)
             
         Returns:
             True if expired
             
         REQ-MEM-009: Memory expiration logic
+        REQ-MEM-026: Time measurements in seconds
         """
-        age = (datetime.now() - self.timestamp).total_seconds() / 3600.0
-        return age > ttl_hours
+        # REQ-MEM-025: Validate TTL
+        ttl_seconds = validate_positive_number(ttl_seconds, "ttl_seconds", allow_zero=True)
+        
+        age_seconds = (datetime.now() - self.timestamp).total_seconds()
+        return age_seconds > ttl_seconds
+    
+    def update_relevance_score(self, new_score: float, reason: Optional[str] = None) -> None:
+        """
+        Update relevance score with validation
+        
+        Args:
+            new_score: New relevance score (0.0 to 1.0)
+            reason: Optional reason for the update
+            
+        REQ-MEM-025: Validated score updates
+        """
+        old_score = self.relevance_score
+        self.relevance_score = validate_range(new_score, 0.0, 1.0, "new_score")
+        
+        # Track the update in metadata
+        if "score_history" not in self.metadata:
+            self.metadata["score_history"] = []
+        
+        self.metadata["score_history"].append({
+            "old_score": old_score,
+            "new_score": self.relevance_score,
+            "timestamp": datetime.now().isoformat(),
+            "reason": reason
+        })
+    
+    def get_age_seconds(self) -> float:
+        """
+        Get entry age in seconds
+        
+        Returns:
+            Age in seconds
+            
+        REQ-MEM-026: Standardized time units
+        """
+        return (datetime.now() - self.timestamp).total_seconds()
 
 
 class ShortTermMemory:
@@ -112,12 +210,15 @@ class ShortTermMemory:
     - Recent queries and responses
     - Fast in-memory access
     - Automatic expiration
+    
+    REQ-MEM-025: Enhanced validation and error handling
+    REQ-MEM-026: Time measurements standardized to seconds
     """
     
     def __init__(
         self,
         max_entries: int = 50,
-        ttl_hours: float = 1.0,
+        ttl_seconds: float = 3600.0,  # REQ-MEM-026: Default 1 hour in seconds
         logger: Optional[logging.Logger] = None
     ):
         """
@@ -125,66 +226,121 @@ class ShortTermMemory:
         
         Args:
             max_entries: Maximum number of entries to keep
-            ttl_hours: Time to live in hours
+            ttl_seconds: Time to live in seconds (REQ-MEM-026: standardized)
             logger: Logger instance
+            
+        Raises:
+            ValueError: If parameters are invalid
         """
-        self.max_entries = max_entries
-        self.ttl_hours = ttl_hours
+        # REQ-MEM-025: Validate parameters
+        self.max_entries = validate_positive_number(
+            max_entries, 
+            "max_entries", 
+            min_value=1
+        )
+        self.ttl_seconds = validate_positive_number(
+            ttl_seconds, 
+            "ttl_seconds", 
+            allow_zero=True
+        )
+        
         self.logger = logger or logging.getLogger("eeg_rag.memory.short_term")
         
         # REQ-MEM-011: Use deque for efficient FIFO operations
-        self._memory: deque = deque(maxlen=max_entries)
+        self._memory: deque = deque(maxlen=self.max_entries)
         
         # REQ-MEM-012: Index for fast lookup by ID
         self._index: Dict[str, MemoryEntry] = {}
         
+        # REQ-MEM-028: Statistics for monitoring
+        self._stats = {
+            "total_entries_added": 0,
+            "entries_evicted": 0,
+            "expired_entries_removed": 0,
+            "search_operations": 0,
+            "cache_hits": 0,
+            "cache_misses": 0
+        }
+        
         self.logger.info(
             f"Initialized ShortTermMemory "
-            f"(max_entries={max_entries}, ttl={ttl_hours}h)"
+            f"(max_entries={self.max_entries}, ttl={self.ttl_seconds}s)"
         )
     
     def add(self, entry: MemoryEntry) -> None:
         """
-        Add entry to short-term memory
+        Add entry to short-term memory with validation
         
         Args:
             entry: Memory entry to add
             
+        Raises:
+            ValueError: If entry is invalid
+            
         REQ-MEM-013: FIFO with automatic eviction
+        REQ-MEM-025: Entry validation
         """
-        # Check if we're about to evict an entry
-        if len(self._memory) == self.max_entries:
-            evicted = self._memory[0]
-            del self._index[evicted.entry_id]
-            self.logger.debug(f"Evicted entry: {evicted.entry_id}")
+        # REQ-MEM-025: Validate entry
+        if not isinstance(entry, MemoryEntry):
+            raise ValueError(f"Expected MemoryEntry, got {type(entry).__name__}")
         
-        # Add new entry
-        self._memory.append(entry)
-        self._index[entry.entry_id] = entry
-        
-        self.logger.debug(
-            f"Added entry {entry.entry_id} "
-            f"(type={entry.memory_type.value}, size={len(self._memory)})"
-        )
+        try:
+            # Check if we're about to evict an entry
+            if len(self._memory) == self.max_entries:
+                evicted = self._memory[0]
+                del self._index[evicted.entry_id]
+                self._stats["entries_evicted"] += 1
+                self.logger.debug(f"Evicted entry: {evicted.entry_id}")
+            
+            # Add new entry
+            self._memory.append(entry)
+            self._index[entry.entry_id] = entry
+            self._stats["total_entries_added"] += 1
+            
+            self.logger.debug(
+                f"Added entry {entry.entry_id} "
+                f"(type={entry.memory_type.value}, size={len(self._memory)})"
+            )
+            
+        except Exception as e:
+            error_msg = format_error_message(
+                "add entry to short-term memory",
+                e,
+                {"entry_id": getattr(entry, 'entry_id', 'unknown')}
+            )
+            self.logger.error(error_msg)
+            raise ValueError(error_msg) from e
     
     def get(self, entry_id: str) -> Optional[MemoryEntry]:
         """
-        Get entry by ID
+        Get entry by ID with expiration checking
         
         Args:
             entry_id: Entry ID
             
         Returns:
-            MemoryEntry if found, None otherwise
+            MemoryEntry if found and not expired, None otherwise
+            
+        REQ-MEM-025: Input validation and error handling
         """
+        # REQ-MEM-025: Validate entry_id
+        entry_id = validate_non_empty_string(entry_id, "entry_id")
+        
         entry = self._index.get(entry_id)
         
-        # Check expiration
-        if entry and entry.is_expired(self.ttl_hours):
-            self.logger.debug(f"Entry {entry_id} expired, removing")
-            self.remove(entry_id)
+        if entry is None:
+            self._stats["cache_misses"] += 1
             return None
         
+        # Check expiration
+        if entry.is_expired(self.ttl_seconds):
+            self.logger.debug(f"Entry {entry_id} expired, removing")
+            self.remove(entry_id)
+            self._stats["expired_entries_removed"] += 1
+            self._stats["cache_misses"] += 1
+            return None
+        
+        self._stats["cache_hits"] += 1
         return entry
     
     def get_recent(self, n: int = 5) -> List[MemoryEntry]:
@@ -197,136 +353,330 @@ class ShortTermMemory:
         Returns:
             List of recent memory entries
             
+        Raises:
+            ValueError: If n is invalid
+            
         REQ-MEM-014: Retrieve recent context
+        REQ-MEM-025: Parameter validation
         """
-        # Return last N entries (most recent)
-        recent = list(self._memory)[-n:]
+        # REQ-MEM-025: Validate parameter
+        n = validate_positive_number(n, "n", min_value=1)
         
-        # Filter out expired entries
-        valid_recent = [
-            entry for entry in recent
-            if not entry.is_expired(self.ttl_hours)
-        ]
-        
-        self.logger.debug(f"Retrieved {len(valid_recent)} recent entries")
-        return valid_recent
+        try:
+            # Return last N entries (most recent)
+            recent = list(self._memory)[-n:]
+            
+            # Filter out expired entries
+            valid_recent = [
+                entry for entry in recent
+                if not entry.is_expired(self.ttl_seconds)
+            ]
+            
+            self.logger.debug(
+                f"Retrieved {len(valid_recent)} recent entries (requested {n})"
+            )
+            return valid_recent
+            
+        except Exception as e:
+            error_msg = format_error_message(
+                "get recent entries",
+                e,
+                {"requested_count": n, "memory_size": len(self._memory)}
+            )
+            self.logger.error(error_msg)
+            return []  # Return empty list on error rather than crashing
     
     def search(
         self,
         query: str,
         memory_type: Optional[MemoryType] = None,
-        top_k: int = 5
+        top_k: int = 5,
+        min_similarity: float = 0.1
     ) -> List[Tuple[MemoryEntry, float]]:
         """
-        Search memory by content similarity
+        Search memory by content similarity with enhanced validation
         
         Args:
             query: Search query
             memory_type: Filter by memory type
             top_k: Number of results
+            min_similarity: Minimum similarity threshold (0.0 to 1.0)
             
         Returns:
-            List of (entry, similarity_score) tuples
+            List of (entry, similarity_score) tuples sorted by score
+            
+        Raises:
+            ValueError: If parameters are invalid
             
         REQ-MEM-015: Memory search with relevance scoring
+        REQ-MEM-025: Enhanced parameter validation
         """
-        results = []
-        query_lower = query.lower()
+        # REQ-MEM-025: Validate parameters
+        query = validate_non_empty_string(query, "query")
+        top_k = validate_positive_number(top_k, "top_k", min_value=1)
+        min_similarity = validate_range(min_similarity, 0.0, 1.0, "min_similarity")
         
-        for entry in self._memory:
-            # Skip expired
-            if entry.is_expired(self.ttl_hours):
-                continue
-            
-            # Filter by type if specified
-            if memory_type and entry.memory_type != memory_type:
-                continue
-            
-            # Simple similarity: word overlap (can be enhanced with embeddings)
-            entry_lower = entry.content.lower()
+        self._stats["search_operations"] += 1
+        
+        try:
+            results = []
+            query_lower = query.lower()
             query_words = set(query_lower.split())
-            entry_words = set(entry_lower.split())
             
-            if query_words and entry_words:
-                overlap = len(query_words & entry_words)
-                similarity = overlap / len(query_words | entry_words)
+            if not query_words:
+                self.logger.warning(f"Search query '{query}' contains no valid words")
+                return []
+            
+            for entry in self._memory:
+                # Skip expired entries
+                if entry.is_expired(self.ttl_seconds):
+                    continue
                 
-                if similarity > 0.1:  # Threshold
-                    results.append((entry, similarity))
-        
-        # Sort by similarity descending
-        results.sort(key=lambda x: x[1], reverse=True)
-        
-        self.logger.debug(
-            f"Search found {len(results)} matches, returning top {top_k}"
-        )
-        return results[:top_k]
+                # Filter by type if specified
+                if memory_type and entry.memory_type != memory_type:
+                    continue
+                
+                # Compute similarity using word overlap
+                entry_lower = entry.content.lower()
+                entry_words = set(entry_lower.split())
+                
+                if not entry_words:
+                    continue
+                
+                # Calculate Jaccard similarity
+                intersection = len(query_words & entry_words)
+                union = len(query_words | entry_words)
+                similarity = safe_divide(intersection, union, default=0.0)
+                
+                # Apply relevance score boost
+                boosted_similarity = similarity * entry.relevance_score
+                
+                if boosted_similarity >= min_similarity:
+                    results.append((entry, boosted_similarity))
+            
+            # Sort by similarity descending
+            results.sort(key=lambda x: x[1], reverse=True)
+            
+            # Return top_k results
+            final_results = results[:top_k]
+            
+            self.logger.debug(
+                f"Search '{query}' found {len(results)} matches, "
+                f"returning top {len(final_results)}"
+            )
+            
+            return final_results
+            
+        except Exception as e:
+            error_msg = format_error_message(
+                "search memory",
+                e,
+                {
+                    "query": query[:50] + "..." if len(query) > 50 else query,
+                    "memory_type": memory_type.value if memory_type else None,
+                    "top_k": top_k
+                }
+            )
+            self.logger.error(error_msg)
+            return []  # Return empty list on error
     
     def remove(self, entry_id: str) -> bool:
         """
-        Remove entry by ID
+        Remove entry by ID with validation
         
         Args:
             entry_id: Entry ID
             
         Returns:
             True if removed, False if not found
+            
+        Raises:
+            ValueError: If entry_id is invalid
+            
+        REQ-MEM-025: Input validation
         """
-        if entry_id in self._index:
-            entry = self._index[entry_id]
-            self._memory.remove(entry)
-            del self._index[entry_id]
-            self.logger.debug(f"Removed entry: {entry_id}")
-            return True
-        return False
+        # REQ-MEM-025: Validate entry_id
+        entry_id = validate_non_empty_string(entry_id, "entry_id")
+        
+        try:
+            if entry_id in self._index:
+                entry = self._index[entry_id]
+                self._memory.remove(entry)
+                del self._index[entry_id]
+                self.logger.debug(f"Removed entry: {entry_id}")
+                return True
+            
+            self.logger.debug(f"Entry not found for removal: {entry_id}")
+            return False
+            
+        except Exception as e:
+            error_msg = format_error_message(
+                "remove memory entry",
+                e,
+                {"entry_id": entry_id}
+            )
+            self.logger.error(error_msg)
+            return False
     
     def clear(self) -> None:
         """
-        Clear all entries
+        Clear all entries with statistics tracking
         
         REQ-MEM-016: Memory reset functionality
+        REQ-MEM-028: Statistics tracking
         """
-        self._memory.clear()
-        self._index.clear()
-        self.logger.info("Cleared short-term memory")
+        try:
+            entries_cleared = len(self._memory)
+            self._memory.clear()
+            self._index.clear()
+            
+            # Reset relevant statistics
+            self._stats["entries_evicted"] += entries_cleared
+            
+            self.logger.info(f"Cleared short-term memory ({entries_cleared} entries)")
+            
+        except Exception as e:
+            error_msg = format_error_message("clear short-term memory", e)
+            self.logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
     
     def cleanup_expired(self) -> int:
         """
-        Remove expired entries
+        Remove expired entries with enhanced error handling
         
         Returns:
             Number of entries removed
             
         REQ-MEM-017: Automatic cleanup
+        REQ-MEM-025: Error handling
         """
-        expired_ids = [
-            entry.entry_id for entry in self._memory
-            if entry.is_expired(self.ttl_hours)
-        ]
-        
-        for entry_id in expired_ids:
-            self.remove(entry_id)
-        
-        self.logger.info(f"Cleaned up {len(expired_ids)} expired entries")
-        return len(expired_ids)
+        try:
+            expired_ids = []
+            
+            # Collect expired entry IDs
+            for entry in self._memory:
+                if entry.is_expired(self.ttl_seconds):
+                    expired_ids.append(entry.entry_id)
+            
+            # Remove expired entries
+            removed_count = 0
+            for entry_id in expired_ids:
+                if self.remove(entry_id):
+                    removed_count += 1
+                    self._stats["expired_entries_removed"] += 1
+            
+            if removed_count > 0:
+                self.logger.info(f"Cleaned up {removed_count} expired entries")
+            else:
+                self.logger.debug("No expired entries found during cleanup")
+            
+            return removed_count
+            
+        except Exception as e:
+            error_msg = format_error_message("cleanup expired entries", e)
+            self.logger.error(error_msg)
+            return 0
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Get memory statistics"""
-        type_counts = {}
-        for entry in self._memory:
-            type_name = entry.memory_type.value
-            type_counts[type_name] = type_counts.get(type_name, 0) + 1
+        """
+        Get comprehensive memory statistics
         
-        return {
-            "total_entries": len(self._memory),
-            "max_entries": self.max_entries,
-            "utilization": len(self._memory) / self.max_entries,
-            "type_counts": type_counts,
-            "oldest_entry_age_hours": (
-                (datetime.now() - self._memory[0].timestamp).total_seconds() / 3600.0
-                if self._memory else 0
+        Returns:
+            Dictionary with memory statistics
+            
+        REQ-MEM-028: Enhanced statistics for monitoring
+        """
+        try:
+            # Count entries by type
+            type_counts = {}
+            total_age_seconds = 0.0
+            
+            for entry in self._memory:
+                type_name = entry.memory_type.value
+                type_counts[type_name] = type_counts.get(type_name, 0) + 1
+                total_age_seconds += entry.get_age_seconds()
+            
+            # Calculate utilization and averages
+            current_size = len(self._memory)
+            utilization = safe_divide(current_size, self.max_entries, default=0.0)
+            avg_age_seconds = safe_divide(total_age_seconds, current_size, default=0.0)
+            
+            # Get oldest entry age
+            oldest_age_seconds = (
+                self._memory[0].get_age_seconds() if self._memory else 0.0
             )
-        }
+            
+            # Cache hit rate
+            total_cache_ops = self._stats["cache_hits"] + self._stats["cache_misses"]
+            cache_hit_rate = safe_divide(
+                self._stats["cache_hits"], 
+                total_cache_ops,
+                default=0.0
+            )
+            
+            base_stats = {
+                "total_entries": current_size,
+                "max_entries": self.max_entries,
+                "utilization": utilization,
+                "ttl_seconds": self.ttl_seconds,
+                "type_counts": type_counts,
+                "oldest_entry_age_seconds": oldest_age_seconds,
+                "average_entry_age_seconds": avg_age_seconds,
+                "cache_hit_rate": cache_hit_rate
+            }
+            
+            # Add operational statistics
+            base_stats.update(self._stats)
+            
+            return base_stats
+            
+        except Exception as e:
+            error_msg = format_error_message("get memory statistics", e)
+            self.logger.error(error_msg)
+            return {
+                "error": str(e),
+                "total_entries": 0,
+                "max_entries": self.max_entries
+            }
+    
+    def get_memory_usage_info(self) -> Dict[str, Any]:
+        """
+        Get detailed memory usage information for monitoring
+        
+        Returns:
+            Dictionary with memory usage details
+            
+        REQ-MEM-029: Memory usage monitoring
+        """
+        try:
+            import sys
+            
+            # Calculate approximate memory usage
+            entry_sizes = []
+            for entry in self._memory:
+                # Rough estimate of entry size
+                entry_size = (
+                    sys.getsizeof(entry.content) +
+                    sys.getsizeof(entry.metadata) +
+                    sys.getsizeof(entry.entry_id) +
+                    100  # overhead estimate
+                )
+                entry_sizes.append(entry_size)
+            
+            total_memory_bytes = sum(entry_sizes)
+            avg_entry_size = safe_divide(total_memory_bytes, len(entry_sizes), default=0.0)
+            
+            return {
+                "total_memory_bytes": total_memory_bytes,
+                "total_memory_mb": total_memory_bytes / (1024 * 1024),
+                "average_entry_size_bytes": avg_entry_size,
+                "largest_entry_size_bytes": max(entry_sizes) if entry_sizes else 0,
+                "smallest_entry_size_bytes": min(entry_sizes) if entry_sizes else 0
+            }
+            
+        except Exception as e:
+            self.logger.warning(f"Could not calculate memory usage: {str(e)}")
+            return {"error": "Memory usage calculation failed"}
 
 
 class LongTermMemory:
@@ -610,13 +960,14 @@ class MemoryManager:
     Unified memory manager combining short-term and long-term memory
     
     REQ-MEM-021: Orchestrates both memory systems
+    REQ-MEM-025: Enhanced validation and error handling
     """
     
     def __init__(
         self,
         db_path: Path,
         short_term_max_entries: int = 50,
-        short_term_ttl_hours: float = 1.0,
+        short_term_ttl_hours: float = 1.0,  # Keep for backward compatibility
         logger: Optional[logging.Logger] = None
     ):
         """
@@ -625,24 +976,63 @@ class MemoryManager:
         Args:
             db_path: Path to SQLite database for long-term memory
             short_term_max_entries: Max entries in short-term memory
-            short_term_ttl_hours: TTL for short-term entries
+            short_term_ttl_hours: TTL for short-term entries (converted to seconds internally)
             logger: Logger instance
+            
+        REQ-MEM-025: Parameter validation
+        REQ-MEM-026: Time unit standardization
         """
+        # REQ-MEM-025: Validate parameters
+        if not isinstance(db_path, Path):
+            db_path = Path(db_path)
+        
+        short_term_max_entries = validate_positive_number(
+            short_term_max_entries,
+            "short_term_max_entries",
+            min_value=1
+        )
+        
+        short_term_ttl_hours = validate_positive_number(
+            short_term_ttl_hours,
+            "short_term_ttl_hours",
+            allow_zero=True
+        )
+        
         self.logger = logger or logging.getLogger("eeg_rag.memory.manager")
         
-        # Initialize both memory systems
-        self.short_term = ShortTermMemory(
-            max_entries=short_term_max_entries,
-            ttl_hours=short_term_ttl_hours,
-            logger=self.logger
-        )
-        
-        self.long_term = LongTermMemory(
-            db_path=db_path,
-            logger=self.logger
-        )
-        
-        self.logger.info("MemoryManager initialized with short-term + long-term")
+        try:
+            # REQ-MEM-026: Convert hours to seconds for internal consistency
+            ttl_seconds = standardize_time_unit(short_term_ttl_hours, "hours")
+            
+            # Initialize both memory systems
+            self.short_term = ShortTermMemory(
+                max_entries=short_term_max_entries,
+                ttl_seconds=ttl_seconds,
+                logger=self.logger
+            )
+            
+            self.long_term = LongTermMemory(
+                db_path=db_path,
+                logger=self.logger
+            )
+            
+            self.logger.info(
+                f"MemoryManager initialized: short-term ({short_term_max_entries} entries, "
+                f"{ttl_seconds}s TTL) + long-term ({db_path})"
+            )
+            
+        except Exception as e:
+            error_msg = format_error_message(
+                "initialize memory manager",
+                e,
+                {
+                    "db_path": str(db_path),
+                    "max_entries": short_term_max_entries,
+                    "ttl_hours": short_term_ttl_hours
+                }
+            )
+            self.logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
     
     def add_query(self, query: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Add query to both memory systems"""

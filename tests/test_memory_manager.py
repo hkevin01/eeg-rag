@@ -74,8 +74,9 @@ class TestMemoryEntry(unittest.TestCase):
             timestamp=datetime.now() - timedelta(hours=2)
         )
 
-        self.assertTrue(entry.is_expired(1.0))  # TTL 1 hour
-        self.assertFalse(entry.is_expired(3.0))  # TTL 3 hours
+        # TTL in seconds: 1 hour = 3600 seconds, 3 hours = 10800 seconds
+        self.assertTrue(entry.is_expired(3600.0))  # TTL 1 hour in seconds
+        self.assertFalse(entry.is_expired(10800.0))  # TTL 3 hours in seconds
 
 
 class TestShortTermMemory(unittest.TestCase):
@@ -83,7 +84,8 @@ class TestShortTermMemory(unittest.TestCase):
 
     def setUp(self):
         """Create fresh short-term memory for each test"""
-        self.memory = ShortTermMemory(max_entries=10, ttl_hours=1.0)
+        # Use ttl_seconds instead of ttl_hours (1 hour = 3600 seconds)
+        self.memory = ShortTermMemory(max_entries=10, ttl_seconds=3600.0)
 
     def test_add_and_get(self):
         """Test adding and retrieving entries"""
@@ -159,7 +161,7 @@ class TestShortTermMemory(unittest.TestCase):
         )
         self.memory.add(new_entry)
 
-        # Cleanup with TTL of 1 hour
+        # Cleanup expired entries (TTL is 3600 seconds = 1 hour)
         cleaned = self.memory.cleanup_expired()
 
         self.assertEqual(cleaned, 1)  # One old entry removed

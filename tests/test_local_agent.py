@@ -307,13 +307,12 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
         self.assertLess(result.elapsed_time, 1.0)
 
     async def test_empty_query(self):
-        """Test handling empty query"""
-        query = AgentQuery(text="", intent="factual")
-
-        result = await self.agent.execute(query)
-
-        # Should still succeed but return no results
-        self.assertTrue(result.success)
+        """Test validation of empty query"""
+        # Empty query should raise ValueError during AgentQuery creation
+        with self.assertRaises(ValueError) as cm:
+            AgentQuery(text="", intent="factual")
+        
+        self.assertIn("cannot be empty", str(cm.exception))
 
     def test_add_documents(self):
         """Test adding new documents"""

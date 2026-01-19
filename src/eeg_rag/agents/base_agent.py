@@ -10,6 +10,11 @@ Requirements Covered:
 - REQ-AGT-003: Performance monitoring for all agent operations
 - REQ-AGT-004: Logging with context tracking
 - REQ-AGT-005: Async support for parallel execution
+
+Enhancements:
+- REQ-AGT-031: Enhanced validation using common utilities
+- REQ-AGT-032: Improved error handling and resilience
+- REQ-AGT-033: Standardized time measurements in seconds
 """
 
 import logging
@@ -21,6 +26,12 @@ from datetime import datetime
 from enum import Enum
 
 from eeg_rag.utils.logging_utils import PerformanceTimer, log_exception, timed
+from eeg_rag.utils.common_utils import (
+    validate_non_empty_string,
+    validate_positive_number,
+    format_error_message,
+    SECOND
+)
 
 
 # REQ-AGT-006: Define agent types for routing and identification
@@ -88,6 +99,8 @@ class AgentQuery:
     - Intent/purpose
     - Context (memory, conversation)
     - Configuration/parameters
+    
+    REQ-AGT-031: Enhanced validation for all fields
     """
     text: str
     intent: Optional[str] = None
@@ -96,16 +109,73 @@ class AgentQuery:
     query_id: Optional[str] = None
     timestamp: datetime = field(default_factory=datetime.now)
     
+    def __post_init__(self):
+        """Validate query fields after initialization"""
+        # REQ-AGT-031: Validate query text
+        self.text = validate_non_empty_string(self.text, "query text")
+        
+        # Validate optional fields
+        if self.intent is not None:
+            self.intent = validate_non_empty_string(self.intent, "intent", allow_none=True)
+        
+        # Ensure context and parameters are dictionaries
+        if self.context is None:
+            self.context = {}
+        elif not isinstance(self.context, dict):
+            raise ValueError(f"context must be a dictionary, got {type(self.context).__name__}")
+        
+        if self.parameters is None:
+            self.parameters = {}
+        elif not isinstance(self.parameters, dict):
+            raise ValueError(f"parameters must be a dictionary, got {type(self.parameters).__name__}")
+        
+        # Generate query_id if not provided
+        if not self.query_id:
+            from eeg_rag.utils.common_utils import compute_content_hash
+            self.query_id = compute_content_hash(
+                f"{self.text}{self.timestamp.isoformat()}",
+                prefix="query"
+            )
+    
     def to_dict(self) -> Dict[str, Any]:
-        """Convert query to dictionary"""
-        return {
-            "text": self.text,
-            "intent": self.intent,
-            "context": self.context,
-            "parameters": self.parameters,
-            "query_id": self.query_id,
-            "timestamp": self.timestamp.isoformat()
-        }
+        """Convert query to dictionary with validation"""
+        try:
+            return {
+                "text": self.text,
+                "intent": self.intent,
+                "context": self.context,
+                "parameters": self.parameters,
+                "query_id": self.query_id,
+                "timestamp": self.timestamp.isoformat()
+            }
+        except Exception as e:
+            raise ValueError(f"Failed to serialize AgentQuery: {str(e)}") from e
+    
+    def get_context_value(self, key: str, default: Any = None) -> Any:
+        """
+        Safely get value from context dictionary
+        
+        Args:
+            key: Context key
+            default: Default value if key not found
+            
+        Returns:
+            Context value or default
+        """
+        return self.context.get(key, default)
+    
+    def get_parameter_value(self, key: str, default: Any = None) -> Any:
+        """
+        Safely get value from parameters dictionary
+        
+        Args:
+            key: Parameter key
+            default: Default value if key not found
+            
+        Returns:
+            Parameter value or default
+        """
+        return self.parameters.get(key, default)
 
 
 class BaseAgent(ABC):
@@ -122,6 +192,8 @@ class BaseAgent(ABC):
     REQ-AGT-012: Time measurement standardization
     - All times in seconds (SECOND = 1.0)
     - Human-readable formatting available
+    
+    REQ-AGT-031: Enhanced validation and error handling
     """
     
     def __init__(
@@ -139,12 +211,34 @@ class BaseAgent(ABC):
             name: Human-readable agent name
             config: Configuration dictionary
             logger: Logger instance (creates new if None)
+            
+        Raises:
+            ValueError: If agent_type is invalid or name is invalid
         
         REQ-AGT-013: All agents must be identifiable
+        REQ-AGT-031: Input validation
         """
+        # REQ-AGT-031: Validate agent_type
+        if not isinstance(agent_type, AgentType):
+            raise ValueError(f"agent_type must be an AgentType enum, got {type(agent_type).__name__}")
+        
         self.agent_type = agent_type
-        self.name = name or f"{agent_type.value}_agent"
-        self.config = config or {}
+        
+        # REQ-AGT-031: Validate and set name
+        if name is not None:
+            self.name = validate_non_empty_string(name, "agent name")
+        else:
+            self.name = f"{agent_type.value}_agent"
+        
+        # Validate config
+        if config is None:
+            self.config = {}
+        elif isinstance(config, dict):
+            self.config = config.copy()  # Defensive copy
+        else:
+            raise ValueError(f"config must be a dictionary, got {type(config).__name__}")
+        
+        # Set up logger
         self.logger = logger or logging.getLogger(f"eeg_rag.agents.{self.name}")
         
         # REQ-AGT-014: Track agent state
@@ -154,7 +248,14 @@ class BaseAgent(ABC):
         self.successful_executions: int = 0
         self.failed_executions: int = 0
         
-        self.logger.info(f"Initialized {self.name} (type: {agent_type.value})")
+        # REQ-AGT-033: Track timing statistics in seconds
+        self._execution_times: List[float] = []
+        self._max_execution_time: float = 0.0
+        self._min_execution_time: float = float('inf')
+        
+        self.logger.info(
+            f"Initialized {self.name} (type: {agent_type.value})"
+        )
     
     @abstractmethod
     async def execute(self, query: AgentQuery) -> AgentResult:
@@ -162,17 +263,20 @@ class BaseAgent(ABC):
         Execute agent-specific logic (must be implemented by subclasses)
         
         Args:
-            query: Standardized query object
+            query: Standardized query object (pre-validated)
             
         Returns:
             AgentResult with data and metadata
             
+        Raises:
+            NotImplementedError: If not implemented by subclass
+            
         REQ-AGT-015: All agents must implement execute() method
         REQ-AGT-016: Execute must be async for parallel execution
+        REQ-AGT-031: Input validation handled at BaseAgent level
         """
         pass
     
-    @timed
     async def run(self, query: AgentQuery) -> AgentResult:
         """
         Main entry point for agent execution with error handling and timing
@@ -183,12 +287,29 @@ class BaseAgent(ABC):
         Returns:
             AgentResult with success/failure information
             
+        Raises:
+            ValueError: If query is invalid
+            
         REQ-AGT-017: Wrapper for execute() with:
         - Status tracking
         - Error handling
         - Performance measurement
         - Logging
+        
+        REQ-AGT-031: Input validation
+        REQ-AGT-032: Enhanced error handling
         """
+        # REQ-AGT-031: Validate input
+        if not isinstance(query, AgentQuery):
+            raise ValueError(f"Expected AgentQuery, got {type(query).__name__}")
+        
+        execution_context = {
+            "agent_name": self.name,
+            "agent_type": self.agent_type.value,
+            "query_id": query.query_id,
+            "query_text": query.text[:50] + "..." if len(query.text) > 50 else query.text
+        }
+        
         self.logger.info(f"[{self.name}] Starting execution for query: {query.query_id}")
         self.status = AgentStatus.EXECUTING
         self.total_executions += 1
@@ -201,20 +322,40 @@ class BaseAgent(ABC):
             with PerformanceTimer(f"{self.name}.execute", self.logger):
                 result = await self.execute(query)
             
+            # REQ-AGT-031: Validate result
+            if not isinstance(result, AgentResult):
+                raise ValueError(
+                    f"Agent execute() must return AgentResult, got {type(result).__name__}"
+                )
+            
             # REQ-AGT-019: Track successful execution
             self.successful_executions += 1
             self.status = AgentStatus.COMPLETED
+            
+            # REQ-AGT-033: Track execution time statistics
+            elapsed = result.elapsed_time
+            self._execution_times.append(elapsed)
+            self._max_execution_time = max(self._max_execution_time, elapsed)
+            self._min_execution_time = min(self._min_execution_time, elapsed)
+            
             self.logger.info(
                 f"[{self.name}] Execution completed successfully "
-                f"(time: {result.elapsed_time:.2f}s)"
+                f"(time: {result.elapsed_time:.3f}s)"
             )
             
         except asyncio.TimeoutError as e:
             # REQ-AGT-020: Handle timeout errors
             self.status = AgentStatus.TIMEOUT
             self.failed_executions += 1
-            error_msg = f"Agent execution timeout: {str(e)}"
-            self.logger.error(f"[{self.name}] {error_msg}")
+            error_msg = f"Agent execution timeout after {(datetime.now() - start_time).total_seconds():.1f}s: {str(e)}"
+            
+            formatted_error = format_error_message(
+                f"{self.name} execution",
+                e,
+                execution_context
+            )
+            self.logger.error(formatted_error)
+            
             result = AgentResult(
                 success=False,
                 data=None,
@@ -226,12 +367,18 @@ class BaseAgent(ABC):
             # REQ-AGT-021: Handle all other errors with logging
             self.status = AgentStatus.FAILED
             self.failed_executions += 1
-            error_msg = f"Agent execution failed: {str(e)}"
-            self.logger.exception(f"[{self.name}] {error_msg}")
+            
+            formatted_error = format_error_message(
+                f"{self.name} execution",
+                e,
+                execution_context
+            )
+            self.logger.exception(formatted_error)
+            
             result = AgentResult(
                 success=False,
                 data=None,
-                error=error_msg,
+                error=str(e),
                 agent_type=self.agent_type
             )
         
@@ -248,20 +395,47 @@ class BaseAgent(ABC):
     
     def get_statistics(self) -> Dict[str, Any]:
         """
-        Get agent performance statistics
+        Get comprehensive agent performance statistics
         
         Returns:
             Dictionary with execution statistics
             
         REQ-AGT-023: Provide performance metrics for monitoring
+        REQ-AGT-033: Include detailed timing statistics
         """
-        success_rate = (
-            self.successful_executions / self.total_executions
-            if self.total_executions > 0
-            else 0.0
+        from eeg_rag.utils.common_utils import safe_divide
+        
+        # Basic success rate
+        success_rate = safe_divide(
+            self.successful_executions, 
+            self.total_executions,
+            default=0.0
         )
         
-        return {
+        failure_rate = safe_divide(
+            self.failed_executions,
+            self.total_executions, 
+            default=0.0
+        )
+        
+        # Timing statistics
+        avg_execution_time = safe_divide(
+            sum(self._execution_times),
+            len(self._execution_times),
+            default=0.0
+        )
+        
+        # Median execution time
+        median_time = 0.0
+        if self._execution_times:
+            sorted_times = sorted(self._execution_times)
+            n = len(sorted_times)
+            if n % 2 == 0:
+                median_time = (sorted_times[n//2 - 1] + sorted_times[n//2]) / 2
+            else:
+                median_time = sorted_times[n//2]
+        
+        base_stats = {
             "agent_name": self.name,
             "agent_type": self.agent_type.value,
             "status": self.status.value,
@@ -269,19 +443,65 @@ class BaseAgent(ABC):
             "successful_executions": self.successful_executions,
             "failed_executions": self.failed_executions,
             "success_rate": success_rate,
-            "last_execution_time": self.last_execution_time
+            "failure_rate": failure_rate,
         }
+        
+        # Add timing statistics
+        timing_stats = {
+            "last_execution_time_seconds": self.last_execution_time,
+            "average_execution_time_seconds": avg_execution_time,
+            "median_execution_time_seconds": median_time,
+            "min_execution_time_seconds": self._min_execution_time if self._min_execution_time != float('inf') else 0.0,
+            "max_execution_time_seconds": self._max_execution_time,
+            "total_execution_samples": len(self._execution_times)
+        }
+        
+        base_stats.update(timing_stats)
+        return base_stats
+    
+    def get_performance_summary(self) -> str:
+        """
+        Get human-readable performance summary
+        
+        Returns:
+            Formatted performance summary string
+            
+        REQ-AGT-033: Human-readable performance reporting
+        """
+        stats = self.get_statistics()
+        
+        from eeg_rag.utils.common_utils import format_duration_human_readable
+        
+        summary_parts = [
+            f"Agent: {stats['agent_name']} ({stats['agent_type']})",
+            f"Status: {stats['status']}",
+            f"Executions: {stats['total_executions']} total, {stats['successful_executions']} successful",
+            f"Success Rate: {stats['success_rate']:.1%}"
+        ]
+        
+        if stats['average_execution_time_seconds'] > 0:
+            avg_time = format_duration_human_readable(stats['average_execution_time_seconds'])
+            summary_parts.append(f"Avg Time: {avg_time}")
+        
+        return " | ".join(summary_parts)
     
     def reset_statistics(self) -> None:
         """
-        Reset agent statistics
+        Reset agent statistics including timing data
         
         REQ-AGT-024: Allow statistics reset for testing/monitoring
+        REQ-AGT-033: Reset timing statistics
         """
         self.total_executions = 0
         self.successful_executions = 0
         self.failed_executions = 0
         self.last_execution_time = None
+        
+        # Reset timing statistics
+        self._execution_times.clear()
+        self._max_execution_time = 0.0
+        self._min_execution_time = float('inf')
+        
         self.logger.info(f"[{self.name}] Statistics reset")
     
     def __repr__(self) -> str:
