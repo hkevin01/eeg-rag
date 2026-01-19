@@ -24,6 +24,9 @@ from typing import Any, Dict, List, Optional, Type
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+import time
+import random
+from collections import defaultdict, deque
 
 from eeg_rag.utils.logging_utils import PerformanceTimer, log_exception, timed
 from eeg_rag.utils.common_utils import (
@@ -55,6 +58,10 @@ class AgentStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     TIMEOUT = "timeout"
+    PAUSED = "paused"
+    RECOVERING = "recovering"
+    CIRCUIT_OPEN = "circuit_open"
+    THROTTLED = "throttled"
 
 
 @dataclass
@@ -67,6 +74,8 @@ class AgentResult:
     - Data payload
     - Metadata (sources, confidence, timing)
     - Error information (if applicable)
+    - Performance metrics
+    - Coordination data
     """
     success: bool
     data: Any
@@ -75,6 +84,19 @@ class AgentResult:
     agent_type: Optional[AgentType] = None
     elapsed_time: float = 0.0  # REQ-AGT-009: Time in seconds
     timestamp: datetime = field(default_factory=datetime.now)
+    
+    # Enhanced performance metrics
+    cpu_time: float = 0.0
+    memory_peak: float = 0.0  # MB
+    network_calls: int = 0
+    cache_hits: int = 0
+    cache_misses: int = 0
+    
+    # Coordination metrics
+    retry_count: int = 0
+    circuit_breaker_triggered: bool = False
+    load_balancer_node: Optional[str] = None
+    confidence_score: float = 1.0
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary for logging/serialization"""
@@ -85,7 +107,16 @@ class AgentResult:
             "error": self.error,
             "agent_type": self.agent_type.value if self.agent_type else None,
             "elapsed_time": self.elapsed_time,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
+            "cpu_time": self.cpu_time,
+            "memory_peak": self.memory_peak,
+            "network_calls": self.network_calls,
+            "cache_hits": self.cache_hits,
+            "cache_misses": self.cache_misses,
+            "retry_count": self.retry_count,
+            "circuit_breaker_triggered": self.circuit_breaker_triggered,
+            "load_balancer_node": self.load_balancer_node,
+            "confidence_score": self.confidence_score
         }
 
 
@@ -599,5 +630,390 @@ __all__ = [
     "AgentResult",
     "AgentQuery",
     "BaseAgent",
-    "AgentRegistry"
+    "AgentRegistry",
+    "CircuitBreaker",
+    "LoadBalancer",
+    "RetryManager",
+    "AgentCoordinator"
 ]
+
+
+# Advanced Coordination Infrastructure
+class CircuitBreakerState(Enum):
+    """Circuit breaker states"""
+    CLOSED = "closed"      # Normal operation
+    OPEN = "open"          # Failing, blocking requests
+    HALF_OPEN = "half_open"  # Testing recovery
+
+
+@dataclass
+class CircuitBreakerMetrics:
+    """Metrics for circuit breaker"""
+    total_requests: int = 0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    last_failure_time: Optional[datetime] = None
+    consecutive_failures: int = 0
+
+
+class CircuitBreaker:
+    """
+    Circuit breaker pattern for agent resilience
+    
+    REQ-AGT-034: Prevent cascade failures across agents
+    """
+    
+    def __init__(
+        self,
+        failure_threshold: int = 5,
+        timeout_seconds: float = 60.0,
+        test_requests: int = 3
+    ):
+        self.failure_threshold = failure_threshold
+        self.timeout_seconds = timeout_seconds
+        self.test_requests = test_requests
+        
+        self.state = CircuitBreakerState.CLOSED
+        self.metrics = CircuitBreakerMetrics()
+        self.test_request_count = 0
+        
+        self.logger = logging.getLogger("eeg_rag.agents.circuit_breaker")
+    
+    def can_execute(self) -> bool:
+        """Check if request can proceed"""
+        if self.state == CircuitBreakerState.CLOSED:
+            return True
+        
+        if self.state == CircuitBreakerState.OPEN:
+            # Check if timeout has elapsed
+            if (self.metrics.last_failure_time and
+                (datetime.now() - self.metrics.last_failure_time).total_seconds() > self.timeout_seconds):
+                self.state = CircuitBreakerState.HALF_OPEN
+                self.test_request_count = 0
+                self.logger.info("Circuit breaker transitioning to HALF_OPEN")
+                return True
+            return False
+        
+        if self.state == CircuitBreakerState.HALF_OPEN:
+            return self.test_request_count < self.test_requests
+        
+        return False
+    
+    def record_success(self) -> None:
+        """Record successful execution"""
+        self.metrics.total_requests += 1
+        self.metrics.successful_requests += 1
+        self.metrics.consecutive_failures = 0
+        
+        if self.state == CircuitBreakerState.HALF_OPEN:
+            self.test_request_count += 1
+            if self.test_request_count >= self.test_requests:
+                self.state = CircuitBreakerState.CLOSED
+                self.logger.info("Circuit breaker reset to CLOSED")
+    
+    def record_failure(self) -> None:
+        """Record failed execution"""
+        self.metrics.total_requests += 1
+        self.metrics.failed_requests += 1
+        self.metrics.consecutive_failures += 1
+        self.metrics.last_failure_time = datetime.now()
+        
+        if self.state == CircuitBreakerState.HALF_OPEN:
+            self.state = CircuitBreakerState.OPEN
+            self.logger.warning("Circuit breaker reopened due to test failure")
+        elif (self.state == CircuitBreakerState.CLOSED and
+              self.metrics.consecutive_failures >= self.failure_threshold):
+            self.state = CircuitBreakerState.OPEN
+            self.logger.warning(f"Circuit breaker opened after {self.metrics.consecutive_failures} failures")
+
+
+@dataclass
+class LoadBalancerNode:
+    """Node in load balancer"""
+    agent: BaseAgent
+    weight: float = 1.0
+    active_requests: int = 0
+    total_requests: int = 0
+    avg_response_time: float = 0.0
+    health_score: float = 1.0  # 0.0 to 1.0
+
+
+class LoadBalancer:
+    """
+    Intelligent load balancer for agent instances
+    
+    REQ-AGT-035: Distribute load across agent replicas
+    """
+    
+    def __init__(self, strategy: str = "weighted_round_robin"):
+        self.strategy = strategy
+        self.nodes: Dict[str, LoadBalancerNode] = {}
+        self.current_index = 0
+        self.logger = logging.getLogger("eeg_rag.agents.load_balancer")
+    
+    def add_node(self, agent: BaseAgent, weight: float = 1.0) -> None:
+        """Add agent to load balancer"""
+        node = LoadBalancerNode(agent=agent, weight=weight)
+        self.nodes[agent.name] = node
+        self.logger.info(f"Added node {agent.name} with weight {weight}")
+    
+    def remove_node(self, agent_name: str) -> None:
+        """Remove agent from load balancer"""
+        if agent_name in self.nodes:
+            del self.nodes[agent_name]
+            self.logger.info(f"Removed node {agent_name}")
+    
+    def select_agent(self) -> Optional[BaseAgent]:
+        """Select agent based on load balancing strategy"""
+        if not self.nodes:
+            return None
+        
+        healthy_nodes = [
+            node for node in self.nodes.values()
+            if node.health_score > 0.1  # Minimum health threshold
+        ]
+        
+        if not healthy_nodes:
+            self.logger.warning("No healthy nodes available")
+            return None
+        
+        if self.strategy == "round_robin":
+            return self._round_robin_selection(healthy_nodes)
+        elif self.strategy == "weighted_round_robin":
+            return self._weighted_round_robin_selection(healthy_nodes)
+        elif self.strategy == "least_connections":
+            return self._least_connections_selection(healthy_nodes)
+        elif self.strategy == "response_time":
+            return self._response_time_selection(healthy_nodes)
+        else:
+            # Default to round robin
+            return self._round_robin_selection(healthy_nodes)
+    
+    def _round_robin_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
+        """Simple round robin selection"""
+        if self.current_index >= len(nodes):
+            self.current_index = 0
+        
+        selected = nodes[self.current_index]
+        self.current_index += 1
+        return selected.agent
+    
+    def _weighted_round_robin_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
+        """Weighted round robin based on health and capacity"""
+        total_weight = sum(node.weight * node.health_score for node in nodes)
+        if total_weight <= 0:
+            return self._round_robin_selection(nodes)
+        
+        # Select based on weighted probability
+        import random
+        rand_val = random.uniform(0, total_weight)
+        current_weight = 0
+        
+        for node in nodes:
+            current_weight += node.weight * node.health_score
+            if current_weight >= rand_val:
+                return node.agent
+        
+        # Fallback to last node
+        return nodes[-1].agent
+    
+    def _least_connections_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
+        """Select node with least active connections"""
+        return min(nodes, key=lambda n: n.active_requests).agent
+    
+    def _response_time_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
+        """Select node with best response time"""
+        return min(nodes, key=lambda n: n.avg_response_time or float('inf')).agent
+    
+    def update_node_stats(self, agent_name: str, response_time: float, success: bool) -> None:
+        """Update node statistics after request"""
+        if agent_name not in self.nodes:
+            return
+        
+        node = self.nodes[agent_name]
+        node.total_requests += 1
+        
+        # Update average response time with exponential moving average
+        alpha = 0.1  # Smoothing factor
+        if node.avg_response_time == 0:
+            node.avg_response_time = response_time
+        else:
+            node.avg_response_time = (alpha * response_time + 
+                                    (1 - alpha) * node.avg_response_time)
+        
+        # Update health score based on success rate and response time
+        if success:
+            node.health_score = min(1.0, node.health_score + 0.1)
+        else:
+            node.health_score = max(0.0, node.health_score - 0.2)
+
+
+class RetryManager:
+    """
+    Intelligent retry management with exponential backoff
+    
+    REQ-AGT-036: Smart retry logic for failed operations
+    """
+    
+    def __init__(
+        self,
+        max_retries: int = 3,
+        base_delay: float = 1.0,
+        max_delay: float = 60.0,
+        exponential_base: float = 2.0,
+        jitter: bool = True
+    ):
+        self.max_retries = max_retries
+        self.base_delay = base_delay
+        self.max_delay = max_delay
+        self.exponential_base = exponential_base
+        self.jitter = jitter
+        
+        self.logger = logging.getLogger("eeg_rag.agents.retry_manager")
+    
+    async def execute_with_retry(
+        self,
+        operation: callable,
+        *args,
+        **kwargs
+    ) -> Any:
+        """Execute operation with intelligent retry"""
+        last_exception = None
+        
+        for attempt in range(self.max_retries + 1):
+            try:
+                if attempt > 0:
+                    delay = self._calculate_delay(attempt)
+                    self.logger.info(f"Retrying operation (attempt {attempt + 1}) after {delay:.2f}s delay")
+                    await asyncio.sleep(delay)
+                
+                result = await operation(*args, **kwargs)
+                
+                if attempt > 0:
+                    self.logger.info(f"Operation succeeded on attempt {attempt + 1}")
+                
+                return result
+                
+            except Exception as e:
+                last_exception = e
+                self.logger.warning(f"Operation failed on attempt {attempt + 1}: {str(e)}")
+                
+                if attempt >= self.max_retries:
+                    break
+                
+                # Check if error is retryable
+                if not self._is_retryable_error(e):
+                    self.logger.info(f"Non-retryable error: {str(e)}")
+                    break
+        
+        # All retries exhausted
+        self.logger.error(f"Operation failed after {self.max_retries + 1} attempts")
+        if last_exception:
+            raise last_exception
+    
+    def _calculate_delay(self, attempt: int) -> float:
+        """Calculate delay with exponential backoff and jitter"""
+        delay = self.base_delay * (self.exponential_base ** (attempt - 1))
+        delay = min(delay, self.max_delay)
+        
+        if self.jitter:
+            # Add up to 25% jitter to prevent thundering herd
+            jitter_amount = delay * 0.25 * random.random()
+            delay += jitter_amount
+        
+        return delay
+    
+    def _is_retryable_error(self, error: Exception) -> bool:
+        """Determine if error is retryable"""
+        retryable_types = (
+            ConnectionError,
+            TimeoutError,
+            asyncio.TimeoutError,
+        )
+        
+        if isinstance(error, retryable_types):
+            return True
+        
+        # Check for specific error messages
+        error_str = str(error).lower()
+        retryable_messages = [
+            "connection reset",
+            "connection timeout",
+            "temporary failure",
+            "service unavailable",
+            "too many requests"
+        ]
+        
+        return any(msg in error_str for msg in retryable_messages)
+
+
+class AgentCoordinator:
+    """
+    Advanced agent coordination with circuit breakers, load balancing, and retry logic
+    
+    REQ-AGT-037: Comprehensive agent orchestration
+    """
+    
+    def __init__(self):
+        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.load_balancers: Dict[str, LoadBalancer] = {}
+        self.retry_manager = RetryManager()
+        
+        self.logger = logging.getLogger("eeg_rag.agents.coordinator")
+    
+    def add_circuit_breaker(self, agent_name: str, **kwargs) -> None:
+        """Add circuit breaker for agent"""
+        self.circuit_breakers[agent_name] = CircuitBreaker(**kwargs)
+    
+    def add_load_balancer(self, agent_type: str, strategy: str = "weighted_round_robin") -> None:
+        """Add load balancer for agent type"""
+        self.load_balancers[agent_type] = LoadBalancer(strategy=strategy)
+    
+    async def execute_with_coordination(
+        self,
+        agent: BaseAgent,
+        query: AgentQuery,
+        use_circuit_breaker: bool = True,
+        use_retry: bool = True
+    ) -> AgentResult:
+        """Execute agent with full coordination features"""
+        
+        # Check circuit breaker
+        if use_circuit_breaker and agent.name in self.circuit_breakers:
+            circuit_breaker = self.circuit_breakers[agent.name]
+            if not circuit_breaker.can_execute():
+                return AgentResult(
+                    success=False,
+                    data=None,
+                    error="Circuit breaker is open",
+                    agent_type=agent.agent_type,
+                    circuit_breaker_triggered=True
+                )
+        
+        # Execute with retry if enabled
+        try:
+            if use_retry:
+                result = await self.retry_manager.execute_with_retry(
+                    agent.execute_with_monitoring,
+                    query
+                )
+            else:
+                result = await agent.execute_with_monitoring(query)
+            
+            # Record success in circuit breaker
+            if use_circuit_breaker and agent.name in self.circuit_breakers:
+                self.circuit_breakers[agent.name].record_success()
+            
+            return result
+            
+        except Exception as e:
+            # Record failure in circuit breaker
+            if use_circuit_breaker and agent.name in self.circuit_breakers:
+                self.circuit_breakers[agent.name].record_failure()
+            
+            return AgentResult(
+                success=False,
+                data=None,
+                error=str(e),
+                agent_type=agent.agent_type
+            )

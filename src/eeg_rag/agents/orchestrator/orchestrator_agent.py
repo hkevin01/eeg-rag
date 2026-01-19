@@ -530,9 +530,350 @@ class OrchestratorAgent(BaseAgent):
         return aggregated
 
 
+class EnhancedOrchestratorAgent(OrchestratorAgent):
+    """
+    Enhanced orchestrator with advanced coordination capabilities
+    
+    REQ-ORCH-019: Advanced multi-agent coordination
+    REQ-ORCH-020: Circuit breakers and load balancing
+    REQ-ORCH-021: Adaptive replanning and optimization
+    """
+    
+    def __init__(
+        self,
+        registry: AgentRegistry,
+        memory_manager: MemoryManager,
+        planner: QueryPlanner,
+        performance_monitor: Optional['PerformanceMonitor'] = None,
+        enable_coordination: bool = True,
+        **kwargs
+    ):
+        super().__init__(registry, memory_manager, planner, **kwargs)
+        
+        # Enhanced coordination
+        if enable_coordination:
+            self.coordinator = AgentCoordinator()
+            self._setup_coordination()
+        else:
+            self.coordinator = None
+        
+        # Performance monitoring
+        self.performance_monitor = performance_monitor
+        
+        # Adaptive planning parameters
+        self.adaptation_enabled = True
+        self.success_threshold = 0.8  # 80% success rate required
+        self.performance_history = deque(maxlen=100)
+        
+        self.logger.info("Enhanced orchestrator initialized with coordination features")
+    
+    def _setup_coordination(self) -> None:
+        """Setup circuit breakers and load balancers for registered agents"""
+        if not self.coordinator:
+            return
+        
+        # Setup circuit breakers for each agent type
+        agent_types = {agent.agent_type for agent in self.registry.get_all()}
+        
+        for agent_type in agent_types:
+            # Add circuit breaker for each agent
+            agents = self.registry.get_by_type(agent_type)
+            for agent in agents:
+                self.coordinator.add_circuit_breaker(
+                    agent.name,
+                    failure_threshold=3,
+                    timeout_seconds=30.0
+                )
+            
+            # Add load balancer if multiple agents of same type
+            if len(agents) > 1:
+                self.coordinator.add_load_balancer(
+                    agent_type.value,
+                    strategy="weighted_round_robin"
+                )
+                
+                # Add agents to load balancer
+                load_balancer = self.coordinator.load_balancers[agent_type.value]
+                for agent in agents:
+                    load_balancer.add_node(agent, weight=1.0)
+        
+        self.logger.info(f"Coordination setup complete: {len(self.coordinator.circuit_breakers)} circuit breakers, "
+                        f"{len(self.coordinator.load_balancers)} load balancers")
+    
+    async def execute_with_coordination(
+        self,
+        query: AgentQuery,
+        enable_monitoring: bool = True,
+        enable_adaptation: bool = True
+    ) -> AgentResult:
+        """Execute query with enhanced coordination and monitoring"""
+        
+        execution_start = datetime.now()
+        
+        try:
+            # Performance monitoring context
+            if enable_monitoring and self.performance_monitor:
+                with monitor_performance(self.performance_monitor, "orchestrator_execution"):
+                    result = await self._execute_with_enhancements(
+                        query, enable_adaptation
+                    )
+            else:
+                result = await self._execute_with_enhancements(
+                    query, enable_adaptation
+                )
+            
+            # Record performance metrics
+            execution_time = (datetime.now() - execution_start).total_seconds()
+            self.performance_history.append({
+                'success': result.success,
+                'execution_time': execution_time,
+                'timestamp': execution_start
+            })
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced orchestrator execution failed: {str(e)}")
+            return AgentResult(
+                success=False,
+                data=None,
+                error=str(e),
+                agent_type=self.agent_type
+            )
+    
+    async def _execute_with_enhancements(
+        self,
+        query: AgentQuery,
+        enable_adaptation: bool
+    ) -> AgentResult:
+        """Execute with coordination and adaptive features"""
+        
+        # Create execution plan
+        plan = await self._create_enhanced_execution_plan(query)
+        
+        # Execute with coordination if available
+        if self.coordinator:
+            return await self._execute_plan_with_coordination(plan)
+        else:
+            return await self._execute_plan(plan)
+    
+    async def _create_enhanced_execution_plan(self, query: AgentQuery) -> ExecutionPlan:
+        """Create execution plan with adaptive optimizations"""
+        
+        # Get base plan from planner
+        query_plan = await self.planner.plan_query(query.text, query.context)
+        
+        # Apply adaptive optimizations based on performance history
+        if self.adaptation_enabled and self.performance_history:
+            query_plan = self._optimize_plan_based_on_history(query_plan)
+        
+        # Create execution nodes
+        nodes = []
+        for i, action in enumerate(query_plan.actions):
+            # Select best agent for action (with load balancing if available)
+            agent_name = await self._select_optimal_agent(action)
+            
+            node = ExecutionNode(
+                action=action,
+                agent_name=agent_name,
+                parallel_group=action.parallel_group
+            )
+            nodes.append(node)
+        
+        return ExecutionPlan(
+            query_plan=query_plan,
+            nodes=nodes,
+            parallel_groups={}
+        )
+    
+    async def _select_optimal_agent(self, action: ReActAction) -> str:
+        """Select optimal agent for action with load balancing"""
+        
+        # Get agents that can handle this action
+        capable_agents = []
+        for agent in self.registry.get_all():
+            if self._can_handle_action(agent, action):
+                capable_agents.append(agent)
+        
+        if not capable_agents:
+            raise RuntimeError(f"No agents capable of handling action: {action.action}")
+        
+        # Use load balancer if available
+        agent_type = capable_agents[0].agent_type.value
+        if (self.coordinator and 
+            agent_type in self.coordinator.load_balancers and 
+            len(capable_agents) > 1):
+            
+            selected_agent = self.coordinator.load_balancers[agent_type].select_agent()
+            return selected_agent.name if selected_agent else capable_agents[0].name
+        
+        # Default to first capable agent
+        return capable_agents[0].name
+    
+    async def _execute_plan_with_coordination(self, plan: ExecutionPlan) -> AgentResult:
+        """Execute plan using coordination features"""
+        
+        results = []
+        
+        # Execute in parallel groups
+        for group_id in sorted(plan.parallel_groups.keys()):
+            group_nodes = plan.parallel_groups[group_id]
+            
+            # Execute group in parallel
+            group_tasks = []
+            for node in group_nodes:
+                agent = self.registry.get(node.agent_name)
+                if agent:
+                    task = self._execute_node_with_coordination(node, agent)
+                    group_tasks.append(task)
+            
+            # Wait for group completion
+            if group_tasks:
+                group_results = await asyncio.gather(*group_tasks, return_exceptions=True)
+                
+                # Process results and handle failures
+                for i, result in enumerate(group_results):
+                    if isinstance(result, Exception):
+                        self.logger.error(f"Node execution failed: {str(result)}")
+                        # Consider adaptive replanning here
+                    else:
+                        results.append(result)
+        
+        # Aggregate results
+        return await self._aggregate_coordinated_results(results)
+    
+    async def _execute_node_with_coordination(
+        self,
+        node: ExecutionNode,
+        agent: BaseAgent
+    ) -> AgentResult:
+        """Execute individual node with coordination features"""
+        
+        node.start_time = datetime.now()
+        node.status = AgentStatus.EXECUTING
+        
+        try:
+            # Create query from action
+            query = AgentQuery(
+                text=node.action.observation,
+                intent=node.action.action,
+                context=node.action.context or {}
+            )
+            
+            # Execute with coordination if available
+            if self.coordinator:
+                result = await self.coordinator.execute_with_coordination(
+                    agent, query,
+                    use_circuit_breaker=True,
+                    use_retry=True
+                )
+            else:
+                result = await agent.execute_with_monitoring(query)
+            
+            node.result = result
+            node.status = AgentStatus.COMPLETED if result.success else AgentStatus.FAILED
+            
+            return result
+            
+        except Exception as e:
+            node.status = AgentStatus.FAILED
+            self.logger.error(f"Node execution failed: {str(e)}")
+            
+            return AgentResult(
+                success=False,
+                data=None,
+                error=str(e),
+                agent_type=agent.agent_type
+            )
+        
+        finally:
+            node.end_time = datetime.now()
+    
+    def _optimize_plan_based_on_history(self, plan: QueryPlan) -> QueryPlan:
+        """Optimize plan based on performance history"""
+        
+        if not self.performance_history:
+            return plan
+        
+        # Calculate recent success rate
+        recent_history = list(self.performance_history)[-20:]  # Last 20 executions
+        success_rate = sum(1 for h in recent_history if h['success']) / len(recent_history)
+        
+        # If success rate is low, add redundancy
+        if success_rate < self.success_threshold:
+            self.logger.warning(f"Low success rate ({success_rate:.2%}), adding redundancy to plan")
+            # Add parallel execution for critical actions
+            for action in plan.actions:
+                if action.confidence < 0.8:  # Low confidence actions
+                    action.parallel_group = max(a.parallel_group for a in plan.actions) + 1
+        
+        return plan
+    
+    async def _aggregate_coordinated_results(self, results: List[AgentResult]) -> AgentResult:
+        """Aggregate results with enhanced error handling"""
+        
+        successful_results = [r for r in results if r.success]
+        failed_results = [r for r in results if not r.success]
+        
+        if not successful_results:
+            # All failed - return aggregated error
+            errors = [r.error for r in failed_results if r.error]
+            return AgentResult(
+                success=False,
+                data=None,
+                error=f"All agents failed: {'; '.join(errors)}",
+                agent_type=self.agent_type
+            )
+        
+        # Aggregate successful results
+        aggregated_data = []
+        total_confidence = 0.0
+        
+        for result in successful_results:
+            if result.data:
+                aggregated_data.append(result.data)
+            total_confidence += result.confidence_score
+        
+        avg_confidence = total_confidence / len(successful_results) if successful_results else 0.0
+        
+        return AgentResult(
+            success=True,
+            data=aggregated_data,
+            metadata={
+                'successful_agents': len(successful_results),
+                'failed_agents': len(failed_results),
+                'average_confidence': avg_confidence,
+                'coordination_used': self.coordinator is not None
+            },
+            agent_type=self.agent_type,
+            confidence_score=avg_confidence
+        )
+    
+    def get_coordination_statistics(self) -> Dict[str, Any]:
+        """Get coordination and performance statistics"""
+        
+        stats = {
+            'coordination_enabled': self.coordinator is not None,
+            'performance_monitoring': self.performance_monitor is not None,
+            'adaptation_enabled': self.adaptation_enabled
+        }
+        
+        if self.coordinator:
+            stats['circuit_breakers'] = len(self.coordinator.circuit_breakers)
+            stats['load_balancers'] = len(self.coordinator.load_balancers)
+        
+        if self.performance_history:
+            recent = list(self.performance_history)[-10:]
+            stats['recent_success_rate'] = sum(1 for h in recent if h['success']) / len(recent)
+            stats['average_execution_time'] = sum(h['execution_time'] for h in recent) / len(recent)
+        
+        return stats
+
+
 # REQ-ORCH-018: Export public interface
 __all__ = [
     "OrchestratorAgent",
+    "EnhancedOrchestratorAgent",
     "ExecutionNode",
     "ExecutionPlan"
 ]
