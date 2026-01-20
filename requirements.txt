@@ -21,5 +21,9 @@ rank-bm25>=0.2.2,<1.0.0
 httpx>=0.24.0,<1.0.0
 scikit-learn>=1.0.0,<2.0.0
 
+# Data ingestion
+aiohttp>=3.8.0,<4.0.0
+feedparser>=6.0.0,<7.0.0
+
 # Web UI
 streamlit>=1.28.0,<2.0.0
