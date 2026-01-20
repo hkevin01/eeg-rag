@@ -1,0 +1,33 @@
+# Lightweight Docker Compose for EEG-RAG
+# No external dependencies (Neo4j, Redis) - uses local storage only
+# Perfect for researchers who just want to try EEG-RAG quickly
+
+version: '3.8'
+
+services:
+  eeg-rag:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: eeg-rag-lite
+    volumes:
+      # Mount data directory for persistence
+      - ../data:/app/data
+      # Mount .env for API keys (optional)
+      - ../.env:/app/.env:ro
+    environment:
+      - PYTHONPATH=/app/src
+      # Use local storage instead of external services
+      - EEG_RAG_USE_REDIS=false
+      - EEG_RAG_USE_NEO4J=false
+    ports:
+      - "8000:8000"
+    # Simple healthcheck
+    healthcheck:
+      test: ["CMD", "python", "-c", "import eeg_rag; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+# No external volumes needed for lite version
