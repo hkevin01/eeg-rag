@@ -911,12 +911,24 @@ def init_session_state():
             "show_confidence": True
         },
         "query_engine": None,
-        "benchmark_instance": None
+        "benchmark_instance": None,
+        "selected_paper_idx": None,
+        "selected_paper_data": None,
+        "navigate_to_explorer": False,
+        "explorer_search_query": None
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+
+def navigate_to_paper(paper_id: str, paper_data: Optional[Dict] = None):
+    """Navigate to Paper Research Explorer with a specific paper selected."""
+    st.session_state["navigate_to_explorer"] = True
+    st.session_state["explorer_search_query"] = paper_id
+    if paper_data:
+        st.session_state["selected_paper_data"] = paper_data
 
 
 # =============================================================================
@@ -1113,8 +1125,12 @@ def render_query_page():
                         st.link_button("🎓 Google Scholar", scholar_url, use_container_width=True)
                     
                     with btn_col3:
-                        st.button(f"🔬 View Details", key=f"view_{i}", use_container_width=True, 
-                                  help="Go to Paper Research Explorer for full details")
+                        # Navigate to Paper Explorer with this paper
+                        if st.button(f"🔬 View Details", key=f"view_{i}", use_container_width=True, 
+                                  help="Go to Paper Research Explorer for full details"):
+                            doc_id = source.get('doc_id', source.get('title', '')[:20])
+                            navigate_to_paper(doc_id, source)
+                            st.rerun()
         else:
             st.warning("No relevant sources found for this query.")
         
@@ -1284,37 +1300,37 @@ def render_benchmark_page():
                 ])
                 st.dataframe(error_df, use_container_width=True, hide_index=True)
             
-            # Sample results with clickable links
+            # Sample results with clickable papers
             st.markdown("### 📝 Sample Paper Results")
+            st.markdown("*Click any paper to view full details in Paper Research Explorer*")
             
             results_df = results.to_dataframe()
             
-            # Add PubMed links if we can lookup PMIDs
-            st.markdown("*Click paper IDs to view in Paper Research Explorer*")
+            # Display papers as clickable cards
+            for idx, row in results_df.head(15).iterrows():
+                col1, col2, col3, col4, col5 = st.columns([2, 4, 1, 1, 1])
+                
+                with col1:
+                    if st.button(f"📄 {row['paper_id']}", key=f"bench_paper_{idx}", use_container_width=True):
+                        navigate_to_paper(row['paper_id'])
+                        st.rerun()
+                
+                with col2:
+                    st.markdown(f"**{row['title'][:50]}...**" if len(str(row['title'])) > 50 else f"**{row['title']}**")
+                
+                with col3:
+                    st.markdown(f"📅 {int(row['year'])}")
+                
+                with col4:
+                    accuracy_pct = row['accuracy'] * 100
+                    color = "green" if accuracy_pct >= 80 else "orange" if accuracy_pct >= 50 else "red"
+                    st.markdown(f":{color}[{accuracy_pct:.0f}%]")
+                
+                with col5:
+                    st.markdown(f"✓{row['correct_fields']} ✗{row['incorrect_fields']}")
             
-            # Make paper_id clickable (link to explorer)
-            display_df = results_df.head(15).copy()
-            display_df['paper_id'] = display_df['paper_id'].apply(
-                lambda x: x  # Paper ID displayed as-is, use explorer for details
-            )
-            
-            st.dataframe(
-                display_df,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "paper_id": st.column_config.TextColumn("Paper ID", width="medium"),
-                    "title": st.column_config.TextColumn("Title", width="large"),
-                    "year": st.column_config.NumberColumn("Year", format="%d"),
-                    "accuracy": st.column_config.ProgressColumn("Accuracy", min_value=0, max_value=1, format="%.1%%"),
-                    "correct_fields": st.column_config.NumberColumn("✓ Correct", format="%d"),
-                    "incorrect_fields": st.column_config.NumberColumn("✗ Incorrect", format="%d"),
-                    "extraction_time_ms": st.column_config.NumberColumn("Time (ms)", format="%.2f")
-                }
-            )
-            
-            # Quick link to explorer
-            st.info("💡 **Tip:** Go to 🔬 Paper Research Explorer to search, filter, and view full paper metadata with PubMed links.")
+            st.markdown("---")
+            st.info("💡 **Tip:** Click any paper ID above to view full metadata, PubMed links, and more in the Paper Research Explorer.")
             
         except Exception as e:
             st.error(f"❌ Benchmark failed: {str(e)}")
@@ -1491,6 +1507,32 @@ def render_paper_explorer_page():
     if "selected_paper_idx" not in st.session_state:
         st.session_state["selected_paper_idx"] = None
     
+    # Check if navigated here with a specific paper to find
+    incoming_search = None
+    found_paper = False
+    
+    if st.session_state.get("navigate_to_explorer") and st.session_state.get("explorer_search_query"):
+        incoming_search = st.session_state["explorer_search_query"]
+        st.session_state["navigate_to_explorer"] = False
+        
+        # Try to find the paper by citation or title
+        search_term = incoming_search.lower()
+        for idx, row in df.iterrows():
+            citation = str(row.get("Citation", "")).lower()
+            title = str(row.get("Title", "")).lower()
+            if search_term == citation or search_term in citation or search_term in title:
+                st.session_state["selected_paper_idx"] = idx
+                st.session_state["selected_paper_data"] = row.to_dict()
+                found_paper = True
+                st.success(f"✅ Found paper: **{row.get('Title', 'Unknown')[:60]}...**")
+                break
+        
+        if not found_paper:
+            st.warning(f"⚠️ Could not find exact match for: **{incoming_search}**. Showing search results.")
+        
+        # Clear the search query after processing
+        st.session_state["explorer_search_query"] = None
+    
     st.markdown("---")
     
     # ==========================================================================
@@ -1503,7 +1545,7 @@ def render_paper_explorer_page():
     with col1:
         search_query = st.text_input(
             "🔎 Search papers",
-            placeholder="Search by title, authors, keywords...",
+            placeholder="Search by title, authors, citation ID...",
             key="paper_search"
         )
     
@@ -1934,6 +1976,11 @@ def main():
     
     # Render sidebar and get selected page
     page = render_sidebar()
+    
+    # Check if we need to navigate to Paper Explorer (from clicking a paper elsewhere)
+    if st.session_state.get("navigate_to_explorer"):
+        # Override page selection to go to Paper Explorer
+        page = "🔬 Paper Research Explorer"
     
     st.markdown("---")
     
