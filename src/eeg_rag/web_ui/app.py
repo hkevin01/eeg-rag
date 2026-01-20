@@ -960,6 +960,7 @@ def render_sidebar() -> str:
     
     pages = [
         "🔍 Query System",
+        "� Data Ingestion",
         "📊 Systematic Review Benchmark", 
         "📈 Results Dashboard",
         "📚 Corpus Explorer",
@@ -994,8 +995,8 @@ def render_sidebar() -> str:
     st.sidebar.markdown("""
     EEG-RAG is a production-grade RAG system for electroencephalography research.
     
-    **Version:** 1.0.0  
-    **Papers indexed:** ~150 (Roy et al. 2019)
+    **Version:** 1.1.0  
+    **Features:** Multi-source ingestion, RAG query
     """)
     
     return page
