@@ -2208,7 +2208,9 @@ def main():
     # Render selected page
     if page == "🔍 Query System":
         render_query_page()
-    elif page == "📊 Systematic Review Benchmark":
+    elif page == "� Data Ingestion":
+        render_ingestion_page()
+    elif page == "�📊 Systematic Review Benchmark":
         render_benchmark_page()
     elif page == "📈 Results Dashboard":
         render_results_page()

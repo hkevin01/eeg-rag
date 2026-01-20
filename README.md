@@ -133,21 +133,22 @@ mindmap
 
 ## 🎯 Project Status
 
-> **Development Phase**: Agentic RAG Implementation (Phase 3)
-> **Version**: 0.3.0 (Alpha)
-> **Last Updated**: November 22, 2025
+> **Development Phase**: Production Features & Polish (Phase 4)
+> **Version**: 0.4.0 (Beta)
+> **Last Updated**: January 20, 2026
 
-### Current Status: MVP COMPLETE! 🎉 (16/16 Core Components)
+### Current Status: MVP COMPLETE + DATA INGESTION! 🎉
 
 ```
 📊 Progress: ████████████████████████ 100%
-🧪 Tests:    260 passing (100% pass rate)
-📝 Code:     7,400+ lines production + 2,800+ lines tests
+🧪 Tests:    260+ passing (100% pass rate)
+📝 Code:     10,000+ lines production code
 ⚡ Status:   MVP COMPLETE - All components operational!
-🚀 Milestone: Ready for end-to-end integration testing
+📥 Data:     Multi-source ingestion (120K+ papers supported)
+🌐 UI:       Streamlit web interface with 7 pages
 ```
 
-#### ✅ Completed Components (Phase 1-3)
+#### ✅ Completed Components (Phase 1-4)
 
 - ✅ **Architecture Design** - Multi-agent RAG system with 6 specialized agents
 - ✅ **Base Agent Framework** - Abstract base class with async execution (30 requirements)
@@ -165,26 +166,31 @@ mindmap
 - ✅ **PubMedBERT Embeddings** - 768-dimensional biomedical embeddings (10 requirements)
 - ✅ **Named Entity Recognition (NER)** - EEG terminology extraction with 400+ terms (12 entity types)
 - ✅ **Final Aggregator** - Answer assembly with citations, hallucination detection, validation (15 requirements)
+- ✅ **Multi-Source Data Ingestion** - PubMed, Semantic Scholar, arXiv, OpenAlex (NEW!)
+- ✅ **Bulk Ingestion with Checkpointing** - 120K+ papers with resume capability (NEW!)
+- ✅ **Streamlit Web UI** - 7-page interactive interface with data ingestion (NEW!)
 
-#### 🔄 Next Phase: Integration & Polish
+#### 🔄 Next Phase: Advanced Features
 
-- ⭕ **End-to-end Integration Testing** - Full pipeline query→answer tests (In Progress)
-- ⭕ **MVP Demo Application** - CLI interface for queries
+- 🟡 **Full LLM Integration** - OpenAI/Anthropic API for response generation
 - ⭕ **Performance Optimization** - Sub-2s query response times
+- ⭕ **Docker Deployment** - Production containerization
 
 ### Key Achievements
 
-🎯 **255/261 requirements covered (98%)**
-🧪 **260 unit tests passing (100% pass rate)**
+🎯 **260+ requirements covered (98%)**
+🧪 **260+ unit tests passing (100% pass rate)**
 ⚡ **Sub-100ms local search performance achieved**
 🌐 **PubMed E-utilities integration with NCBI-compliant rate limiting**
 🔄 **All 4 specialized agents complete (Local, Web, Graph, Citation)**
 📊 **Complete data pipeline: chunking → corpus → embeddings → NER**
+📥 **Multi-source data ingestion: 120K+ papers from 4 academic sources**
 🧠 **PubMedBERT embeddings with 768-dimensional vectors**
 🗄️ **Neo4j knowledge graph integration with Cypher queries**
 ✅ **Citation validation with impact scoring and retraction detection**
 🔬 **EEG terminology extraction with 400+ terms across 12 entity types**
 🎓 **Final answer assembly with hallucination detection and validation**
+🌐 **Streamlit Web UI with query, ingestion, and benchmark pages**
 🏗️ **Solid foundation with comprehensive error handling**
 📚 **Complete documentation and architecture diagrams**
 
@@ -193,6 +199,116 @@ mindmap
 ---
 
 ## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/eeg-rag.git
+cd eeg-rag
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Launch the Web UI
+
+```bash
+# Start the Streamlit web interface
+streamlit run src/eeg_rag/web_ui/app.py
+```
+
+Open http://localhost:8501 in your browser.
+
+### Collect Research Papers (Data Ingestion)
+
+EEG-RAG includes a comprehensive multi-source data ingestion system that collects papers from PubMed, Semantic Scholar, arXiv, and OpenAlex. **No API keys required!**
+
+```bash
+# Quick start: Collect ~1,000 papers (5-10 minutes)
+python scripts/run_ingestion.py --sources pubmed arxiv
+
+# Standard: Collect ~10,000 papers (1-2 hours)
+python scripts/run_bulk_ingestion.py --pubmed 4000 --scholar 3000 --arxiv 1500 --openalex 1500
+
+# Bulk: Collect 120,000+ papers (5-8 hours, can run overnight)
+python scripts/run_bulk_ingestion.py
+```
+
+Features:
+- ✅ **No API keys needed** - Works out of the box
+- ✅ **Checkpointing** - Resume if interrupted
+- ✅ **Deduplication** - Skips papers already collected
+- ✅ **Multi-source** - PubMed, Semantic Scholar, arXiv, OpenAlex
+
+### Query the System
+
+```python
+from eeg_rag.web_ui.app import RAGQueryEngine
+import asyncio
+
+# Initialize the query engine
+engine = RAGQueryEngine()
+
+# Ask a question
+result = asyncio.run(engine.query(
+    "What deep learning architectures work best for EEG seizure detection?"
+))
+
+print(result.response)
+print(f"Sources: {len(result.sources)} papers")
+```
+
+---
+
+## 📥 Data Ingestion System
+
+EEG-RAG includes a production-grade data ingestion pipeline for collecting EEG research papers from multiple academic sources.
+
+### Supported Sources
+
+| Source               | Rate (no key)  | Rate (with key) | Key Required  |
+| -------------------- | -------------- | --------------- | ------------- |
+| **PubMed**           | 3 req/sec      | 10 req/sec      | Optional      |
+| **Semantic Scholar** | 100 req/5min   | Higher limits   | Optional      |
+| **arXiv**            | ~20 papers/min | N/A             | No key exists |
+| **OpenAlex**         | 100K/day       | N/A             | No key needed |
+
+### Quick Commands
+
+```bash
+# Standard ingestion (all sources, default targets)
+python scripts/run_ingestion.py
+
+# Bulk ingestion with checkpointing (100K+ papers)
+python scripts/run_bulk_ingestion.py
+
+# Resume interrupted ingestion
+python scripts/run_bulk_ingestion.py --resume
+
+# Custom targets
+python scripts/run_bulk_ingestion.py --pubmed 50000 --openalex 30000
+```
+
+### Features
+
+- **Checkpointing**: Saves progress every 100 papers; resume if interrupted
+- **Deduplication**: Cross-source dedup by DOI, PMID, and normalized title
+- **EEG-focused queries**: 60+ curated search terms covering all EEG domains
+- **Semantic chunking**: Section-aware document chunking for RAG indexing
+- **Error resilience**: Continues on individual failures, logs all errors
+
+### Optional API Keys (for faster ingestion)
+
+```bash
+# Set in environment (optional - speeds up bulk ingestion)
+export PUBMED_API_KEY="your-key"  # https://www.ncbi.nlm.nih.gov/account/settings/
+export SEMANTIC_SCHOLAR_API_KEY="your-key"  # https://www.semanticscholar.org/product/api#api-key
+```
 
 ---
 
