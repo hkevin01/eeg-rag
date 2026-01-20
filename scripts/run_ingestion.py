@@ -9,9 +9,8 @@ Usage:
     # Specific sources only
     python scripts/run_ingestion.py --sources pubmed arxiv
     
-    # With API keys
-    export PUBMED_API_KEY="your-key"
-    export SEMANTIC_SCHOLAR_API_KEY="your-key"
+    # API keys are OPTIONAL - all sources work without them
+    # Keys only provide faster rate limits
     python scripts/run_ingestion.py
 """
 
@@ -61,10 +60,10 @@ Examples:
   # Last 5 years only
   python scripts/run_ingestion.py --years-back 5
   
-Environment Variables:
-  PUBMED_API_KEY          - NCBI API key for faster rate limits
-  SEMANTIC_SCHOLAR_API_KEY - Semantic Scholar API key
-  CONTACT_EMAIL           - Your email for API identification
+Environment Variables (ALL OPTIONAL - system works without them):
+  PUBMED_API_KEY          - Optional: NCBI API key for 10 req/sec (vs 3 req/sec)
+  SEMANTIC_SCHOLAR_API_KEY - Optional: Semantic Scholar key for higher limits
+  CONTACT_EMAIL           - Optional: Your email for polite API identification
         """
     )
     
@@ -123,8 +122,8 @@ Environment Variables:
     logger.info(f"Output directory: {args.output_dir}")
     logger.info(f"Years back: {args.years_back}")
     logger.info(f"Chunk size: {args.chunk_size}")
-    logger.info(f"PubMed API key: {'set' if pubmed_api_key else 'not set'}")
-    logger.info(f"Semantic Scholar API key: {'set' if s2_api_key else 'not set'}")
+    logger.info(f"PubMed API key: {'set (10 req/s)' if pubmed_api_key else 'not set (3 req/s - OK)'}")
+    logger.info(f"Semantic Scholar API key: {'set (faster)' if s2_api_key else 'not set (works fine)'}")
     logger.info(f"Contact email: {email}")
     logger.info("=" * 60)
     
