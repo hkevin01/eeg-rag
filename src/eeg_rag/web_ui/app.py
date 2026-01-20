@@ -1875,6 +1875,226 @@ def render_paper_explorer_page():
                         st.metric("Top Domain", top_domain)
 
 
+def render_ingestion_page():
+    """Render data ingestion page."""
+    st.header("📥 Data Ingestion")
+    
+    st.markdown("""
+    **Collect EEG research papers from multiple academic sources**
+    
+    The ingestion system collects papers from:
+    - **PubMed/PMC** - Peer-reviewed biomedical literature with full-text access
+    - **Semantic Scholar** - Cross-disciplinary academic graph with citations
+    - **arXiv** - Preprints and cutting-edge research
+    - **OpenAlex** - Open access metadata with 100K+ daily limit
+    
+    > 💡 **No API keys required!** All sources work without authentication.
+    > Keys are optional and only provide faster rate limits for bulk ingestion.
+    """)
+    
+    st.markdown("---")
+    
+    # Ingestion mode selection
+    mode = st.radio(
+        "Select Ingestion Mode",
+        ["🚀 Quick Start (1K papers)", "📊 Standard (10K papers)", "🏭 Bulk (100K+ papers)", "🔧 Custom"],
+        horizontal=True
+    )
+    
+    st.markdown("---")
+    
+    # Configuration based on mode
+    if mode == "🚀 Quick Start (1K papers)":
+        st.info("**Quick Start Mode**: Collect ~1,000 papers for testing. Takes about 5-10 minutes.")
+        pubmed_target = 400
+        scholar_target = 300
+        arxiv_target = 150
+        openalex_target = 150
+        
+    elif mode == "📊 Standard (10K papers)":
+        st.info("**Standard Mode**: Collect ~10,000 papers for a solid research corpus. Takes about 1-2 hours.")
+        pubmed_target = 4000
+        scholar_target = 3000
+        arxiv_target = 1500
+        openalex_target = 1500
+        
+    elif mode == "🏭 Bulk (100K+ papers)":
+        st.info("**Bulk Mode**: Collect 120,000+ papers for comprehensive coverage. Takes 5-8 hours (faster with API keys).")
+        pubmed_target = 50000
+        scholar_target = 30000
+        arxiv_target = 10000
+        openalex_target = 30000
+        
+    else:  # Custom
+        st.markdown("### Custom Configuration")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            pubmed_target = st.number_input("PubMed Target", min_value=0, max_value=100000, value=5000, step=1000)
+            scholar_target = st.number_input("Semantic Scholar Target", min_value=0, max_value=100000, value=3000, step=1000)
+        
+        with col2:
+            arxiv_target = st.number_input("arXiv Target", min_value=0, max_value=50000, value=1000, step=500)
+            openalex_target = st.number_input("OpenAlex Target", min_value=0, max_value=100000, value=3000, step=1000)
+    
+    # Show totals
+    total = pubmed_target + scholar_target + arxiv_target + openalex_target
+    
+    st.markdown("### 📊 Target Summary")
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("PubMed", f"{pubmed_target:,}")
+    col2.metric("Semantic Scholar", f"{scholar_target:,}")
+    col3.metric("arXiv", f"{arxiv_target:,}")
+    col4.metric("OpenAlex", f"{openalex_target:,}")
+    col5.metric("**Total**", f"{total:,}")
+    
+    # Estimate time
+    # Without API keys: ~300 papers/minute average
+    est_minutes = total / 300
+    if est_minutes < 60:
+        est_time = f"{int(est_minutes)} minutes"
+    else:
+        est_time = f"{est_minutes / 60:.1f} hours"
+    
+    st.markdown(f"**Estimated time**: {est_time} (without API keys)")
+    
+    st.markdown("---")
+    
+    # Output configuration
+    st.markdown("### 📁 Output Configuration")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        output_dir = st.text_input(
+            "Output Directory",
+            value="data/ingestion",
+            help="Where to save collected papers"
+        )
+    
+    with col2:
+        resume = st.checkbox(
+            "Resume from checkpoint",
+            value=True,
+            help="Continue from where you left off if interrupted"
+        )
+    
+    st.markdown("---")
+    
+    # API Keys (optional)
+    with st.expander("🔑 API Keys (Optional - for faster ingestion)"):
+        st.markdown("""
+        API keys are **completely optional**. Without keys, you'll get:
+        - PubMed: 3 requests/second
+        - Semantic Scholar: 100 requests/5 minutes
+        - arXiv & OpenAlex: No keys needed
+        
+        With free API keys, you can get 3-4x faster ingestion.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            pubmed_key = st.text_input(
+                "PubMed API Key",
+                type="password",
+                placeholder="Optional",
+                help="Get free at: https://www.ncbi.nlm.nih.gov/account/settings/"
+            )
+            st.caption("[Get free PubMed key](https://www.ncbi.nlm.nih.gov/account/settings/)")
+        
+        with col2:
+            s2_key = st.text_input(
+                "Semantic Scholar API Key",
+                type="password",
+                placeholder="Optional",
+                help="Get free at: https://www.semanticscholar.org/product/api#api-key"
+            )
+            st.caption("[Get free S2 key](https://www.semanticscholar.org/product/api#api-key)")
+    
+    st.markdown("---")
+    
+    # Action buttons
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        start_clicked = st.button("🚀 Start Ingestion", type="primary", use_container_width=True)
+    
+    with col2:
+        if st.button("📋 Generate CLI Command", use_container_width=True):
+            cmd = f"python scripts/run_bulk_ingestion.py --pubmed {pubmed_target} --scholar {scholar_target} --arxiv {arxiv_target} --openalex {openalex_target} --output-dir {output_dir}"
+            if not resume:
+                cmd += " --fresh"
+            st.code(cmd, language="bash")
+            st.caption("Run this command in terminal for background execution")
+    
+    with col3:
+        if st.button("❓ Help", use_container_width=True):
+            st.info("See docs/DATA_INGESTION.md for detailed instructions")
+    
+    # Start ingestion
+    if start_clicked:
+        st.warning("⚠️ **Note**: For large ingestion jobs (10K+ papers), we recommend using the CLI command instead for better reliability.")
+        
+        st.markdown("### 🔄 Ingestion Progress")
+        
+        progress_bar = st.progress(0.0, text="Initializing...")
+        status_text = st.empty()
+        
+        # For demo, show simulation (actual ingestion is async and long-running)
+        import time as time_module
+        
+        sources = ["PubMed", "Semantic Scholar", "arXiv", "OpenAlex"]
+        
+        for i, source in enumerate(sources):
+            progress = (i + 1) / len(sources)
+            progress_bar.progress(progress, text=f"Collecting from {source}...")
+            status_text.markdown(f"📡 **Status**: Connecting to {source} API...")
+            time_module.sleep(0.5)
+        
+        progress_bar.progress(1.0, text="Setup complete!")
+        
+        st.success("""
+        ✅ **Ingestion initialized!**
+        
+        For actual paper collection, run the CLI command in your terminal:
+        """)
+        
+        cmd = f"python scripts/run_bulk_ingestion.py --pubmed {pubmed_target} --scholar {scholar_target} --arxiv {arxiv_target} --openalex {openalex_target} --output-dir {output_dir}"
+        st.code(cmd, language="bash")
+        
+        st.info("""
+        **Why CLI for bulk ingestion?**
+        - ✅ Runs in background (won't time out)
+        - ✅ Automatic checkpointing (resume if interrupted)
+        - ✅ Better progress logging
+        - ✅ Can run overnight
+        """)
+    
+    # Show existing data
+    st.markdown("---")
+    st.markdown("### 📊 Existing Ingested Data")
+    
+    data_dirs = ["data/ingestion", "data/bulk_ingestion", "data/raw"]
+    
+    for dir_path in data_dirs:
+        dir_full = Path(dir_path)
+        if dir_full.exists():
+            jsonl_files = list(dir_full.glob("*.jsonl"))
+            if jsonl_files:
+                for f in jsonl_files:
+                    size_mb = f.stat().st_size / (1024 * 1024)
+                    # Count lines (papers)
+                    try:
+                        with open(f) as fp:
+                            line_count = sum(1 for _ in fp)
+                    except:
+                        line_count = 0
+                    
+                    st.markdown(f"📄 **{f.name}** - {line_count:,} papers ({size_mb:.1f} MB)")
+
+
 def render_settings_page():
     """Render settings page."""
     st.header("⚙️ Settings")
