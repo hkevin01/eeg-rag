@@ -200,19 +200,41 @@ mindmap
 
 ## 🚀 Quick Start
 
-### Installation
+### Automated Installation (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/your-username/eeg-rag.git
 cd eeg-rag
 
+# Run setup script (installs everything including Mistral AI)
+bash scripts/setup.sh
+
+# Activate environment and launch
+source venv/bin/activate
+streamlit run src/eeg_rag/web_ui/app.py
+```
+
+The setup script automatically installs:
+- Python dependencies
+- **Ollama** (local LLM runtime)
+- **Mistral 7B** model (for AI-powered responses)
+- Downloads benchmark dataset
+
+### Manual Installation
+
+```bash
 # Create virtual environment
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install Ollama for local LLM
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve &
+ollama pull mistral
 ```
 
 ### Launch the Web UI

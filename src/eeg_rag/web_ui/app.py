@@ -146,6 +146,7 @@ class SystematicReviewBenchmarkResult:
 
 
 @dataclass
+@dataclass
 class QueryResult:
     """Result of a RAG query."""
 
@@ -157,6 +158,7 @@ class QueryResult:
     processing_time_ms: float
     timestamp: str
     query_id: str = ""
+    related_queries: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         if not self.query_id:
@@ -968,37 +970,110 @@ question, acknowledge the limitations.
         return "\n".join(response_parts)
 
     async def _generate_response_llm(self, query: str, context: str) -> str:
-        """Generate response using LLM API."""
-        # Check for API key
-        import os
-
-        api_key = os.environ.get("OPENAI_API_KEY")
-
-        if not api_key:
-            return self._generate_response_local(query, context, [])
-
+        """Generate response using Ollama/Mistral or OpenAI."""
         try:
-            import openai
+            # Try Ollama first (local, free)
+            import requests
 
-            client = openai.AsyncOpenAI(api_key=api_key)
+            ollama_url = "http://localhost:11434/api/generate"
 
             prompt = self.RAG_PROMPT_TEMPLATE.format(context=context, question=query)
+            full_prompt = f"{self.SYSTEM_PROMPT}\n\n{prompt}"
 
-            response = await client.chat.completions.create(
-                model="gpt-4o-mini",  # Cost-effective model
-                messages=[
-                    {"role": "system", "content": self.SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.3,  # Lower for factual accuracy
-                max_tokens=1500,
+            response = requests.post(
+                ollama_url,
+                json={
+                    "model": "mistral",
+                    "prompt": full_prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.3,
+                        "num_predict": 1500,
+                    },
+                },
+                timeout=30,
             )
 
-            return response.choices[0].message.content
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("response", "")
+            else:
+                logger.warning(f"Ollama failed with status {response.status_code}")
 
         except Exception as e:
-            logger.warning(f"LLM generation failed: {e}")
-            return self._generate_response_local(query, context, [])
+            logger.warning(f"Ollama generation failed: {e}")
+
+        # Fallback to OpenAI if Ollama fails
+        try:
+            import os
+
+            api_key = os.environ.get("OPENAI_API_KEY")
+
+            if api_key:
+                import openai
+
+                client = openai.AsyncOpenAI(api_key=api_key)
+
+                prompt = self.RAG_PROMPT_TEMPLATE.format(
+                    context=context, question=query
+                )
+
+                response = await client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": self.SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.3,
+                    max_tokens=1500,
+                )
+
+                return response.choices[0].message.content
+        except Exception as e:
+            logger.warning(f"OpenAI generation failed: {e}")
+
+        # Final fallback to local template
+        return self._generate_response_local(query, context, [])
+
+    def generate_related_queries(self, query: str, sources: List[Dict]) -> List[str]:
+        """Generate 3 related search suggestions based on current query and results."""
+        suggestions = []
+
+        # Extract topics from sources
+        architectures = [
+            s.get("architecture", "") for s in sources if s.get("architecture")
+        ]
+        domains = [s.get("domain", "") for s in sources if s.get("domain")]
+
+        # Suggestion 1: Focus on specific architecture if found
+        if architectures:
+            arch = architectures[0]
+            suggestions.append(
+                f"How does {arch} compare to other architectures for EEG?"
+            )
+
+        # Suggestion 2: Focus on specific domain if found
+        if domains:
+            domain = domains[0]
+            suggestions.append(f"What datasets are commonly used for {domain}?")
+
+        # Suggestion 3: Broaden or narrow the query
+        if "deep learning" in query.lower():
+            suggestions.append(
+                "What are the latest transfer learning approaches for EEG?"
+            )
+        elif "seizure" in query.lower():
+            suggestions.append(
+                "What preprocessing methods improve seizure detection accuracy?"
+            )
+        elif "accuracy" in query.lower() or "performance" in query.lower():
+            suggestions.append(
+                "What are the benchmark accuracies for EEG classification tasks?"
+            )
+        else:
+            suggestions.append("What are the most cited EEG deep learning papers?")
+
+        return suggestions[:3]
 
     async def query(
         self, query_text: str, max_sources: int = 5, use_llm: bool = False
@@ -1104,6 +1179,9 @@ question, acknowledge the limitations.
         )
         confidence = min(0.95, 0.5 + avg_score)
 
+        # Generate related search suggestions
+        related_queries = self.generate_related_queries(query_text, formatted_sources)
+
         return QueryResult(
             query=query_text,
             response=response,
@@ -1112,6 +1190,7 @@ question, acknowledge the limitations.
             confidence=confidence,
             processing_time_ms=processing_time,
             timestamp=datetime.now().isoformat(),
+            related_queries=related_queries,
         )
 
 
@@ -1200,7 +1279,14 @@ def render_sidebar() -> str:
         "⚙️ Settings",
     ]
 
-    page = st.sidebar.radio("Select Page", pages, label_visibility="collapsed")
+    # Check if we need to navigate to Paper Explorer (force selection)
+    default_index = 0
+    if st.session_state.get("navigate_to_explorer"):
+        default_index = pages.index("🔬 Paper Research Explorer")
+
+    page = st.sidebar.radio(
+        "Select Page", pages, index=default_index, label_visibility="collapsed"
+    )
 
     st.sidebar.markdown("---")
 
@@ -1286,6 +1372,7 @@ def render_query_page():
                     "How does DeepSleepNet classify sleep stages?",
                     "Compare motor imagery classification methods",
                     "What preprocessing is needed for EEG deep learning?",
+                    "What are state-of-the-art accuracies for P300 detection?",
                 ]
                 import random
 
@@ -1299,18 +1386,20 @@ def render_query_page():
 
     # Process query
     if search_clicked and query:
-        with st.spinner("🔍 Retrieving relevant papers and generating response..."):
+        with st.spinner(
+            "🤖 Retrieving papers and generating AI response with Mistral..."
+        ):
             # Initialize RAG query engine
             if st.session_state["query_engine"] is None:
                 st.session_state["query_engine"] = RAGQueryEngine(
                     corpus_path=st.session_state["settings"]["benchmark_csv"]
                 )
 
-            # Run RAG query
+            # Run RAG query with LLM always enabled
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(
-                st.session_state["query_engine"].query(query, max_sources)
+                st.session_state["query_engine"].query(query, max_sources, use_llm=True)
             )
 
             # Store in history
@@ -1318,7 +1407,7 @@ def render_query_page():
 
         # Display results
         st.success(
-            f"✅ Retrieved {len(result.sources)} papers and generated response in {result.processing_time_ms:.0f}ms"
+            f"✅ 🤖 Mistral AI | Retrieved {len(result.sources)} papers in {result.processing_time_ms:.0f}ms"
         )
 
         # Response section
@@ -1337,10 +1426,27 @@ def render_query_page():
 
         st.markdown(result.response)
 
+        # Related queries section
+        if result.related_queries:
+            st.markdown("---")
+            st.markdown("### 💡 Related Searches")
+            cols = st.columns(3)
+            for idx, related_query in enumerate(result.related_queries):
+                with cols[idx]:
+                    if st.button(
+                        related_query,
+                        key=f"related_{idx}",
+                        use_container_width=True,
+                        help="Click to search this query",
+                    ):
+                        st.session_state["random_query"] = related_query
+                        st.rerun()
+
         # Sources section with clickable links
+        st.markdown("---")
         st.markdown("### 📚 Retrieved Sources")
         st.markdown(
-            "*Click on a source to search PubMed or view in the Paper Research Explorer*"
+            "*Expand any source to see full details including abstract, PMID, and external links*"
         )
 
         if result.sources:
@@ -1366,8 +1472,8 @@ def render_query_page():
                         relevance = source.get("relevance", 0)
                         st.metric("Relevance", f"{relevance:.0%}")
 
-                    # Action buttons
-                    btn_col1, btn_col2, btn_col3 = st.columns(3)
+                    # Action buttons row
+                    btn_col1, btn_col2 = st.columns(2)
 
                     with btn_col1:
                         pubmed_url = source.get(
@@ -1384,17 +1490,37 @@ def render_query_page():
                             "🎓 Google Scholar", scholar_url, use_container_width=True
                         )
 
-                    with btn_col3:
-                        # Navigate to Paper Explorer with this paper
-                        if st.button(
-                            f"🔬 View Details",
-                            key=f"view_{i}",
-                            use_container_width=True,
-                            help="Go to Paper Research Explorer for full details",
-                        ):
-                            doc_id = source.get("doc_id", source.get("title", "")[:20])
-                            navigate_to_paper(doc_id, source)
-                            st.rerun()
+                    # Show additional details inline
+                    st.markdown("---")
+                    st.markdown("##### 📋 Full Details")
+
+                    # Results/Abstract
+                    results_text = source.get("results", source.get("Results", ""))
+                    if results_text and str(results_text) != "nan":
+                        st.markdown(f"**Results/Abstract:**")
+                        st.markdown(
+                            f"> {results_text[:500]}{'...' if len(str(results_text)) > 500 else ''}"
+                        )
+
+                    # Dataset info
+                    dataset = source.get("dataset", source.get("Dataset name", ""))
+                    if dataset and str(dataset) != "nan":
+                        st.markdown(f"**Dataset:** {dataset}")
+
+                    # Citation info
+                    doc_id = source.get("doc_id", "")
+                    if doc_id:
+                        st.markdown(f"**Citation ID:** `{doc_id}`")
+
+                    # PMID/DOI if available
+                    pmid = source.get("pmid", "")
+                    doi = source.get("doi", "")
+                    if pmid:
+                        st.markdown(
+                            f"**PMID:** [{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)"
+                        )
+                    if doi:
+                        st.markdown(f"**DOI:** [{doi}](https://doi.org/{doi})")
         else:
             st.warning("No relevant sources found for this query.")
 

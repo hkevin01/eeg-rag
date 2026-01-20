@@ -158,6 +158,44 @@ verify_installation() {
     echo -e "  ${GREEN}✓${NC} Installation verified"
 }
 
+# Install Ollama and Mistral for local LLM
+install_ollama() {
+    echo ""
+    echo -e "${YELLOW}Installing Ollama for local LLM (Mistral)...${NC}"
+    
+    if command -v ollama &> /dev/null; then
+        echo -e "  ${GREEN}✓${NC} Ollama already installed"
+    else
+        echo "  Downloading and installing Ollama..."
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            curl -fsSL https://ollama.com/install.sh | sh
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "  Please install Ollama manually from: https://ollama.com/download"
+            echo "  Or use: brew install ollama"
+        else
+            echo -e "  ${YELLOW}!${NC} Unsupported OS for automatic Ollama install"
+            echo "  Please install manually from: https://ollama.com/download"
+            return
+        fi
+        echo -e "  ${GREEN}✓${NC} Ollama installed"
+    fi
+    
+    # Start Ollama service
+    if pgrep -x "ollama" > /dev/null; then
+        echo -e "  ${GREEN}✓${NC} Ollama service is running"
+    else
+        echo "  Starting Ollama service..."
+        ollama serve > /dev/null 2>&1 &
+        sleep 2
+        echo -e "  ${GREEN}✓${NC} Ollama service started"
+    fi
+    
+    # Pull Mistral model
+    echo "  Downloading Mistral model (this may take a few minutes)..."
+    ollama pull mistral
+    echo -e "  ${GREEN}✓${NC} Mistral model ready"
+}
+
 # Print next steps
 print_next_steps() {
     echo ""
@@ -170,18 +208,20 @@ print_next_steps() {
     echo "  1. Activate the virtual environment:"
     echo -e "     ${BLUE}source venv/bin/activate${NC}"
     echo ""
-    echo "  2. Add your OpenAI API key to .env:"
-    echo -e "     ${BLUE}nano .env${NC}"
+    echo "  2. Start the web GUI with Mistral AI:"
+    echo -e "     ${BLUE}streamlit run src/eeg_rag/web_ui/app.py${NC}"
     echo ""
-    echo "  3. Run the demo:"
+    echo "  3. Or run the demo:"
     echo -e "     ${BLUE}python examples/demo_all_components.py${NC}"
     echo ""
-    echo "  4. Or run tests:"
+    echo "  4. Run tests:"
     echo -e "     ${BLUE}make test${NC}"
     echo ""
     echo "For Docker deployment:"
     echo -e "     ${BLUE}make docker-up-lite${NC}    # Quick start (no external deps)"
     echo -e "     ${BLUE}make docker-up${NC}         # Full stack with Neo4j + Redis"
+    echo ""
+    echo -e "${BLUE}✨ EEG-RAG now uses Mistral AI locally (no API key needed!)${NC}"
     echo ""
     echo "Documentation: https://github.com/hkevin01/eeg-rag#readme"
     echo ""
@@ -194,6 +234,7 @@ main() {
     install_eeg_rag
     setup_directories
     create_env_file
+    install_ollama
     verify_installation
     print_next_steps
 }

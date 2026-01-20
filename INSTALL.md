@@ -7,9 +7,11 @@ This guide covers all installation methods for EEG-RAG. Choose the method that b
 | Requirement | Minimum                     | Recommended |
 | ----------- | --------------------------- | ----------- |
 | Python      | 3.9+                        | 3.11+       |
-| RAM         | 4 GB                        | 16 GB       |
-| Disk Space  | 2 GB                        | 10 GB       |
+| RAM         | 8 GB (for Mistral)          | 16 GB       |
+| Disk Space  | 6 GB (includes Mistral)     | 15 GB       |
 | OS          | Linux, macOS, Windows (WSL) | Linux/macOS |
+
+**Note:** EEG-RAG now includes **Mistral 7B** via Ollama for local AI responses (no API key needed).
 
 **Optional (for advanced features):**
 - Docker & Docker Compose (for containerized deployment)
@@ -33,8 +35,15 @@ This script will:
 - ✅ Check Python version
 - ✅ Create virtual environment
 - ✅ Install dependencies
+- ✅ **Install Ollama + Mistral 7B** (local LLM)
 - ✅ Set up data directories
 - ✅ Create config file template
+
+**After setup:**
+```bash
+source venv/bin/activate
+streamlit run src/eeg_rag/web_ui/app.py
+```
 
 ### Option 2: Manual pip Install
 
@@ -46,6 +55,14 @@ cd eeg-rag
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Install Ollama for local LLM
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve &
+ollama pull mistral
 
 # Install
 pip install -e .
