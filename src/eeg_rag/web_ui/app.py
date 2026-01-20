@@ -146,7 +146,6 @@ class SystematicReviewBenchmarkResult:
 
 
 @dataclass
-@dataclass
 class QueryResult:
     """Result of a RAG query."""
 
