@@ -223,11 +223,13 @@ class SystematicReviewBenchmark:
         if not self.ground_truth_path.exists():
             raise FileNotFoundError(f"Ground truth CSV not found: {self.ground_truth_path}")
         
+        # Roy et al. 2019 CSV has group headers in row 0, actual columns in row 1
         df = pd.read_csv(
             self.ground_truth_path, 
             encoding='utf-8', 
             on_bad_lines='skip',
-            low_memory=False
+            low_memory=False,
+            header=1  # Skip the group header row
         )
         df.columns = df.columns.str.strip()
         
