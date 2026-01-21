@@ -13,6 +13,7 @@ from collections import defaultdict
 from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
 from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
+from eeg_rag.retrieval.reranker import CrossEncoderReranker, NoOpReranker, RerankedResult
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,9 @@ class HybridRetriever:
         bm25_weight: float = 0.5,
         dense_weight: float = 0.5,
         rrf_k: int = 60,
-        use_query_expansion: bool = True
+        use_query_expansion: bool = True,
+        use_reranking: bool = False,
+        reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     ):
         """
         Initialize hybrid retriever.
@@ -74,6 +77,8 @@ class HybridRetriever:
             dense_weight: Weight for dense results (0-1)
             rrf_k: RRF constant (typically 60)
             use_query_expansion: Enable EEG domain query expansion
+            use_reranking: Enable cross-encoder reranking
+            reranker_model: Cross-encoder model for reranking
         """
         self.bm25 = bm25_retriever
         self.dense = dense_retriever
@@ -81,20 +86,28 @@ class HybridRetriever:
         self.dense_weight = dense_weight
         self.rrf_k = rrf_k
         self.use_query_expansion = use_query_expansion
+        self.use_reranking = use_reranking
         
         # Initialize query expander if enabled
         self.query_expander = EEGQueryExpander() if use_query_expansion else None
+        
+        # Initialize reranker if enabled
+        if use_reranking:
+            try:
+                self.reranker = CrossEncoderReranker(model_name=reranker_model)
+                logger.info(f"  Reranking: enabled ({reranker_model})")
+            except ImportError:
+                logger.warning("sentence-transformers not available, disabling reranking")
+                self.reranker = NoOpReranker()
+                self.use_reranking = False
+        else:
+            self.reranker = None
         
         logger.info(f"Initialized HybridRetriever")
         logger.info(f"  BM25 weight: {bm25_weight}")
         logger.info(f"  Dense weight: {dense_weight}")
         logger.info(f"  RRF k: {rrf_k}")
         logger.info(f"  Query expansion: {'enabled' if use_query_expansion else 'disabled'}")
-        
-        logger.info(f"Initialized HybridRetriever")
-        logger.info(f"  BM25 weight: {bm25_weight}")
-        logger.info(f"  Dense weight: {dense_weight}")
-        logger.info(f"  RRF k: {rrf_k}")
     
     def _compute_rrf_scores(
         self,
@@ -224,6 +237,45 @@ class HybridRetriever:
         # Sort by RRF score and take top_k
         results.sort(key=lambda x: x.rrf_score, reverse=True)
         results = results[:top_k]
+        
+        # Apply reranking if enabled
+        if self.use_reranking and self.reranker:
+            logger.info(f"  Reranking {len(results)} results...")
+            
+            # Store original results for reference
+            original_results = {r.doc_id: r for r in results}
+            
+            # Convert to reranker format
+            candidates = []
+            for r in results:
+                candidates.append({
+                    'doc_id': r.doc_id,
+                    'text': r.text,
+                    'score': r.rrf_score,
+                    'metadata': r.metadata
+                })
+            
+            # Rerank
+            reranked = self.reranker.rerank(query, candidates)
+            
+            # Convert back to HybridResult
+            results = []
+            for rr in reranked:
+                # Get original result to preserve BM25/Dense scores
+                original = original_results.get(rr.doc_id)
+                if original:
+                    results.append(HybridResult(
+                        doc_id=rr.doc_id,
+                        text=rr.text,
+                        metadata=rr.metadata,
+                        rrf_score=rr.final_score,  # Use reranked score as RRF
+                        bm25_score=original.bm25_score,
+                        dense_score=original.dense_score,
+                        bm25_rank=original.bm25_rank,
+                        dense_rank=original.dense_rank
+                    ))
+            
+            logger.info(f"  Reranking complete")
         
         logger.info(f"✅ Hybrid search returned {len(results)} results")
         if results:
