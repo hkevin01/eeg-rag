@@ -1,15 +1,16 @@
 """
-Local Data Agent - FAISS Vector Search
+Local Data Agent - Hybrid Retrieval System
 
 This agent provides fast local retrieval from indexed EEG literature corpus using
-FAISS (Facebook AI Similarity Search) for vector-based semantic search.
+hybrid search combining BM25 (sparse) and dense semantic search with RRF fusion.
 
 Requirements Covered:
-- REQ-AGT1-001: FAISS vector store integration
+- REQ-AGT1-001: Hybrid retrieval integration (BM25 + Dense)
 - REQ-AGT1-002: Fast retrieval (<100ms target)
 - REQ-AGT1-003: Citation tracking
 - REQ-AGT1-004: EEG-specific indexing
-- REQ-AGT1-005: Relevance scoring
+- REQ-AGT1-005: Relevance scoring with RRF fusion
+- REQ-AGT1-006: Query expansion with EEG domain knowledge
 """
 
 import logging
@@ -21,6 +22,19 @@ from pathlib import Path
 import json
 import pickle
 
+# Import new hybrid retrieval system
+try:
+    from eeg_rag.retrieval import (
+        HybridRetriever, HybridResult,
+        BM25Retriever, DenseRetriever,
+        EEGQueryExpander
+    )
+    HYBRID_RETRIEVAL_AVAILABLE = True
+except ImportError:
+    HYBRID_RETRIEVAL_AVAILABLE = False
+    logging.warning("Hybrid retrieval not available, using fallback mode")
+
+# Keep FAISS for backward compatibility
 try:
     import faiss
     FAISS_AVAILABLE = True
@@ -355,9 +369,9 @@ class FAISSVectorStore:
 
 class LocalDataAgent(BaseAgent):
     """
-    Local data agent for fast vector-based retrieval
+    Local data agent for fast hybrid retrieval
     
-    REQ-AGT1-015: Main agent implementation
+    REQ-AGT1-015: Main agent implementation with hybrid search
     """
     
     def __init__(
@@ -365,7 +379,8 @@ class LocalDataAgent(BaseAgent):
         vector_store_path: Optional[Path] = None,
         embedding_dimension: int = 768,
         config: Optional[Dict[str, Any]] = None,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
+        use_hybrid_retrieval: bool = True
     ):
         """
         Initialize local data agent
@@ -375,6 +390,7 @@ class LocalDataAgent(BaseAgent):
             embedding_dimension: Dimension of embeddings
             config: Configuration options
             logger: Logger instance
+            use_hybrid_retrieval: Use new hybrid retrieval system (recommended)
         """
         super().__init__(
             agent_type=AgentType.LOCAL_DATA,
@@ -383,25 +399,234 @@ class LocalDataAgent(BaseAgent):
             logger=logger or logging.getLogger("eeg_rag.local_data_agent")
         )
         
-        # Initialize vector store
-        self.vector_store = FAISSVectorStore(
-            dimension=embedding_dimension,
-            index_type=config.get("index_type", "Flat") if config else "Flat",
-            logger=self.logger
-        )
-        
-        # Load existing index if path provided
-        if vector_store_path and vector_store_path.exists():
-            self.vector_store.load(vector_store_path)
-            self.logger.info(f"Loaded vector store from {vector_store_path}")
-        
         # Configuration
         self.top_k = config.get("top_k", 5) if config else 5
         self.min_relevance_score = config.get("min_relevance_score", 0.3) if config else 0.3
+        self.use_hybrid_retrieval = use_hybrid_retrieval and HYBRID_RETRIEVAL_AVAILABLE
         
-        self.logger.info("LocalDataAgent initialized")
+        # Initialize retrieval system
+        if self.use_hybrid_retrieval:
+            self.logger.info("Initializing hybrid retrieval system (BM25 + Dense + RRF)")
+            self._init_hybrid_retrieval(config or {})
+        else:
+            self.logger.info("Initializing legacy FAISS retrieval")
+            # Initialize legacy FAISS vector store
+            self.vector_store = FAISSVectorStore(
+                dimension=embedding_dimension,
+                index_type=config.get("index_type", "Flat") if config else "Flat",
+                logger=self.logger
+            )
+            
+            # Load existing index if path provided
+            if vector_store_path and vector_store_path.exists():
+                self.vector_store.load(vector_store_path)
+                self.logger.info(f"Loaded vector store from {vector_store_path}")
+        
+        self.logger.info(f"LocalDataAgent initialized (hybrid={self.use_hybrid_retrieval})")
+    
+    def _init_hybrid_retrieval(self, config: Dict[str, Any]) -> None:
+        """
+        Initialize hybrid retrieval system with BM25, Dense, and Query Expansion
+        
+        Args:
+            config: Configuration dictionary with optional keys:
+                - qdrant_url: Qdrant server URL (default: http://localhost:6333)
+                - qdrant_collection: Collection name (default: eeg_papers)
+                - bm25_cache_dir: BM25 index cache directory
+                - bm25_weight: Weight for BM25 scores (default: 0.5)
+                - dense_weight: Weight for dense scores (default: 0.5)
+                - rrf_k: RRF rank constant (default: 60)
+                - use_query_expansion: Enable EEG query expansion (default: True)
+                - retrieve_k: Number of results to retrieve before reranking (default: 20)
+        """
+        # Get config values
+        qdrant_url = config.get("qdrant_url", "http://localhost:6333")
+        qdrant_collection = config.get("qdrant_collection", "eeg_papers")
+        bm25_cache_dir = config.get("bm25_cache_dir", "data/embeddings/cache/bm25")
+        
+        # Initialize retrievers
+        try:
+            # BM25 sparse retriever
+            self.bm25_retriever = BM25Retriever(cache_dir=bm25_cache_dir)
+            self.logger.info(f"BM25 retriever initialized (cache: {bm25_cache_dir})")
+            
+            # Dense semantic retriever
+            self.dense_retriever = DenseRetriever(
+                url=qdrant_url,
+                collection_name=qdrant_collection
+            )
+            self.logger.info(f"Dense retriever initialized (Qdrant: {qdrant_url}/{qdrant_collection})")
+            
+            # Hybrid retriever with RRF fusion
+            self.hybrid_retriever = HybridRetriever(
+                bm25_retriever=self.bm25_retriever,
+                dense_retriever=self.dense_retriever,
+                bm25_weight=config.get("bm25_weight", 0.5),
+                dense_weight=config.get("dense_weight", 0.5),
+                rrf_k=config.get("rrf_k", 60),
+                use_query_expansion=config.get("use_query_expansion", True)
+            )
+            
+            # Store config
+            self.retrieve_k = config.get("retrieve_k", 20)
+            
+            self.logger.info("Hybrid retrieval system fully initialized")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize hybrid retrieval: {e}")
+            self.use_hybrid_retrieval = False
+            raise
     
     async def execute(self, query: AgentQuery) -> AgentResult:
+        """
+        Execute local search using hybrid retrieval or legacy FAISS
+        
+        Args:
+            query: Search query
+            
+        Returns:
+            AgentResult with search results
+        """
+        try:
+            start_time = datetime.now()
+            
+            if self.use_hybrid_retrieval:
+                # Use new hybrid retrieval system
+                search_results = await self._hybrid_search(query.text)
+            else:
+                # Use legacy FAISS search
+                search_results = await self._faiss_search(query.text)
+            
+            elapsed_time = (datetime.now() - start_time).total_seconds()
+            
+            self.logger.info(
+                f"Local search completed: {len(search_results)} results "
+                f"in {elapsed_time*1000:.1f}ms (hybrid={self.use_hybrid_retrieval})"
+            )
+            
+            return AgentResult(
+                success=True,
+                data={
+                    "results": [r.to_dict() for r in search_results],
+                    "total_results": len(search_results),
+                    "search_time_ms": elapsed_time * 1000,
+                    "query": query.text
+                },
+                metadata={
+                    "source": "hybrid_retrieval" if self.use_hybrid_retrieval else "local_faiss",
+                    "top_k": self.top_k,
+                    "min_relevance": self.min_relevance_score
+                },
+                agent_type=AgentType.LOCAL_DATA,
+                elapsed_time=elapsed_time
+            )
+            
+        except Exception as e:
+            self.logger.exception(f"Local search failed: {e}")
+            return AgentResult(
+                success=False,
+                data={},
+                error=str(e),
+                agent_type=AgentType.LOCAL_DATA
+            )
+    
+    async def _hybrid_search(self, query_text: str) -> List[SearchResult]:
+        """
+        Perform hybrid search using BM25 + Dense + RRF fusion
+        
+        Args:
+            query_text: Search query text
+            
+        Returns:
+            List of SearchResult objects
+        """
+        # Perform hybrid search
+        hybrid_results: List[HybridResult] = self.hybrid_retriever.search(
+            query=query_text,
+            top_k=self.top_k,
+            retrieve_k=self.retrieve_k
+        )
+        
+        # Convert HybridResult to SearchResult format
+        search_results = []
+        for result in hybrid_results:
+            # Extract metadata
+            metadata = result.metadata or {}
+            
+            # Create citation from metadata
+            citation = Citation(
+                pmid=metadata.get("pmid"),
+                doi=metadata.get("doi"),
+                title=metadata.get("title", ""),
+                authors=metadata.get("authors", []),
+                journal=metadata.get("journal", ""),
+                year=metadata.get("year"),
+                url=metadata.get("url"),
+                abstract=metadata.get("abstract", "")
+            )
+            
+            # Convert to SearchResult
+            search_result = SearchResult(
+                document_id=result.doc_id,
+                content=result.text,
+                citation=citation,
+                relevance_score=result.rrf_score,  # Use RRF score as relevance
+                metadata={
+                    **metadata,
+                    "bm25_score": result.bm25_score,
+                    "dense_score": result.dense_score,
+                    "bm25_rank": result.bm25_rank,
+                    "dense_rank": result.dense_rank
+                }
+            )
+            
+            # Filter by relevance threshold
+            if search_result.relevance_score >= self.min_relevance_score:
+                search_results.append(search_result)
+        
+        return search_results
+    
+    async def _faiss_search(self, query_text: str) -> List[SearchResult]:
+        """
+        Legacy FAISS search (for backward compatibility)
+        
+        Args:
+            query_text: Search query text
+            
+        Returns:
+            List of SearchResult objects
+        """
+        # Generate query embedding
+        query_embedding = self._generate_mock_embedding(query_text)
+        
+        # Search vector store
+        raw_results = self.vector_store.search(
+            query_embedding,
+            k=self.top_k
+        )
+        
+        # Convert to SearchResult objects
+        search_results = []
+        for doc_id, distance in raw_results:
+            if doc_id in self.vector_store.documents:
+                doc = self.vector_store.documents[doc_id]
+                
+                # Convert distance to relevance score (0-1)
+                relevance_score = 1.0 / (1.0 + distance)
+                
+                if relevance_score >= self.min_relevance_score:
+                    result = SearchResult(
+                        document_id=str(doc_id),
+                        content=doc.get("content", ""),
+                        citation=Citation(**doc.get("citation", {})),
+                        relevance_score=relevance_score,
+                        metadata=doc.get("metadata", {})
+                    )
+                    search_results.append(result)
+        
+        return search_results
+    
+    async def execute_old(self, query: AgentQuery) -> AgentResult:
         """
         Execute local search
         
