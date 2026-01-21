@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
 from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
+from eeg_rag.retrieval.query_expander import EEGQueryExpander
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,8 @@ class HybridRetriever:
         dense_retriever: DenseRetriever,
         bm25_weight: float = 0.5,
         dense_weight: float = 0.5,
-        rrf_k: int = 60
+        rrf_k: int = 60,
+        use_query_expansion: bool = True
     ):
         """
         Initialize hybrid retriever.
@@ -71,12 +73,23 @@ class HybridRetriever:
             bm25_weight: Weight for BM25 results (0-1)
             dense_weight: Weight for dense results (0-1)
             rrf_k: RRF constant (typically 60)
+            use_query_expansion: Enable EEG domain query expansion
         """
         self.bm25 = bm25_retriever
         self.dense = dense_retriever
         self.bm25_weight = bm25_weight
         self.dense_weight = dense_weight
         self.rrf_k = rrf_k
+        self.use_query_expansion = use_query_expansion
+        
+        # Initialize query expander if enabled
+        self.query_expander = EEGQueryExpander() if use_query_expansion else None
+        
+        logger.info(f"Initialized HybridRetriever")
+        logger.info(f"  BM25 weight: {bm25_weight}")
+        logger.info(f"  Dense weight: {dense_weight}")
+        logger.info(f"  RRF k: {rrf_k}")
+        logger.info(f"  Query expansion: {'enabled' if use_query_expansion else 'disabled'}")
         
         logger.info(f"Initialized HybridRetriever")
         logger.info(f"  BM25 weight: {bm25_weight}")
@@ -174,11 +187,19 @@ class HybridRetriever:
             ... )
         """
         logger.info(f"Hybrid search for: '{query}'")
+        
+        # Apply query expansion if enabled
+        search_query = query
+        if self.query_expander:
+            search_query = self.query_expander.expand(query, max_expansions=2)
+            if search_query != query.lower():
+                logger.info(f"  Expanded: '{search_query}'")
+        
         logger.info(f"  Retrieving {retrieve_k} candidates from each method")
         
         # Get results from both retrievers
-        bm25_results = self.bm25.search(query, top_k=retrieve_k)
-        dense_results = self.dense.search(query, top_k=retrieve_k, filters=filters)
+        bm25_results = self.bm25.search(search_query, top_k=retrieve_k)
+        dense_results = self.dense.search(search_query, top_k=retrieve_k, filters=filters)
         
         logger.info(f"  BM25: {len(bm25_results)} results")
         logger.info(f"  Dense: {len(dense_results)} results")
