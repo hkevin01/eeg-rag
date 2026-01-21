@@ -1,0 +1,194 @@
+# Systematic Review Extraction Schema
+# Based on Roy et al. 2019 "Deep learning-based electroencephalography analysis: a systematic review"
+# https://doi.org/10.1088/1741-2552/ab260c
+
+# Metadata
+schema_version: "1.0"
+name: "Deep Learning EEG Systematic Review"
+description: "Extraction schema for systematic reviews of deep learning approaches in EEG analysis"
+baseline_study: "Roy et al. 2019"
+baseline_year: 2019
+
+# Extraction fields
+fields:
+  - name: "architecture_type"
+    type: "enum"
+    description: "Primary deep learning architecture used"
+    enum_values:
+      - "CNN"
+      - "RNN"
+      - "LSTM"
+      - "GRU"
+      - "Transformer"
+      - "Autoencoder"
+      - "GAN"
+      - "Hybrid"
+      - "Other"
+    required: true
+    extraction_prompt: |
+      What is the primary deep learning architecture used in this study?
+      Look for mentions of CNN, RNN, LSTM, GRU, Transformer, Autoencoder, GAN, or hybrid approaches.
+      If multiple architectures are combined, classify as "Hybrid".
+
+  - name: "task_type"
+    type: "enum"
+    description: "Primary EEG analysis task"
+    enum_values:
+      - "Seizure Detection"
+      - "Epilepsy Classification"
+      - "Sleep Staging"
+      - "Motor Imagery BCI"
+      - "P300 BCI"
+      - "SSVEP BCI"
+      - "Emotion Recognition"
+      - "Cognitive State"
+      - "Drowsiness Detection"
+      - "Mental Workload"
+      - "ERP Analysis"
+      - "Artifact Removal"
+      - "Other"
+    required: true
+    extraction_prompt: |
+      What is the primary EEG analysis task?
+      Common tasks include seizure detection, sleep staging, BCI, emotion recognition, etc.
+
+  - name: "dataset_name"
+    type: "string"
+    description: "Primary dataset used for evaluation"
+    required: true
+    extraction_prompt: |
+      What dataset(s) were used in this study?
+      Common EEG datasets include: CHB-MIT, Bonn, TUSZ, PhysioNet, DEAP, SEED, BCI Competition, etc.
+      If multiple datasets, list the primary one.
+
+  - name: "dataset_size"
+    type: "number"
+    description: "Number of subjects/recordings in the dataset"
+    required: false
+    extraction_prompt: |
+      How many subjects or recordings were used?
+      Extract the number of subjects, patients, participants, or recordings.
+
+  - name: "reported_accuracy"
+    type: "number"
+    description: "Primary performance metric (accuracy, F1, AUC, etc.)"
+    required: false
+    extraction_prompt: |
+      What was the primary reported performance metric?
+      Look for accuracy, F1-score, AUC, sensitivity, specificity, etc.
+      Report as a decimal (e.g., 0.95 for 95%).
+
+  - name: "performance_metric"
+    type: "enum"
+    description: "Type of performance metric reported"
+    enum_values:
+      - "Accuracy"
+      - "F1-Score"
+      - "AUC"
+      - "Sensitivity"
+      - "Specificity"
+      - "Precision"
+      - "Recall"
+      - "Kappa"
+      - "Other"
+    required: false
+    extraction_prompt: |
+      What type of performance metric was reported?
+
+  - name: "code_available"
+    type: "boolean"
+    description: "Is code publicly available?"
+    required: true
+    extraction_prompt: |
+      Is the source code publicly available?
+      Look for GitHub links, mentions of "code available", "open source", etc.
+      Return true if code is available, false otherwise.
+
+  - name: "code_url"
+    type: "string"
+    description: "URL to code repository (if available)"
+    required: false
+    extraction_prompt: |
+      What is the URL to the code repository?
+      Look for GitHub, GitLab, Bitbucket links.
+
+  - name: "data_available"
+    type: "boolean"
+    description: "Is the dataset publicly available?"
+    required: false
+    extraction_prompt: |
+      Is the dataset publicly available?
+      Public datasets include CHB-MIT, Bonn, TUSZ, PhysioNet, etc.
+
+  - name: "preprocessing"
+    type: "list"
+    description: "Preprocessing steps applied"
+    required: false
+    extraction_prompt: |
+      What preprocessing steps were applied to the EEG data?
+      Common steps: filtering, artifact removal, normalization, downsampling, etc.
+
+  - name: "feature_engineering"
+    type: "boolean"
+    description: "Was manual feature engineering used?"
+    required: false
+    extraction_prompt: |
+      Did the study use manual feature engineering before deep learning?
+      Look for mentions of feature extraction, hand-crafted features, etc.
+
+  - name: "end_to_end"
+    type: "boolean"
+    description: "Is it end-to-end learning (raw signals to predictions)?"
+    required: false
+    extraction_prompt: |
+      Does the model learn end-to-end from raw EEG signals?
+      Return true if no manual feature engineering, false if features were extracted first.
+
+  - name: "validation_strategy"
+    type: "enum"
+    description: "Validation/evaluation strategy used"
+    enum_values:
+      - "k-fold cross-validation"
+      - "Leave-one-subject-out"
+      - "Hold-out validation"
+      - "Time-series split"
+      - "Other"
+    required: false
+    extraction_prompt: |
+      What validation strategy was used?
+      Common approaches: k-fold CV, LOSO, hold-out, time-series split.
+
+  - name: "transfer_learning"
+    type: "boolean"
+    description: "Was transfer learning or pre-training used?"
+    required: false
+    extraction_prompt: |
+      Did the study use transfer learning or pre-trained models?
+
+  - name: "explainability"
+    type: "boolean"
+    description: "Does the paper include explainability analysis?"
+    required: false
+    extraction_prompt: |
+      Did the study include explainability or interpretability analysis?
+      Look for saliency maps, attention visualizations, SHAP, etc.
+
+  - name: "year"
+    type: "number"
+    description: "Publication year"
+    required: true
+    extraction_prompt: |
+      What year was this paper published?
+
+# Comparison criteria
+comparison_criteria:
+  - field: "architecture_type"
+    analysis: "Distribution shift over time"
+  - field: "task_type"
+    analysis: "Emerging vs established tasks"
+  - field: "code_available"
+    analysis: "Reproducibility trend"
+  - field: "reported_accuracy"
+    analysis: "Performance improvements"
+  - field: "end_to_end"
+    analysis: "Shift toward end-to-end learning"
