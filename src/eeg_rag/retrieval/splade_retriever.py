@@ -148,9 +148,22 @@ class SpladeRetriever:
         self.logger.info(f"Indexing {len(documents)} documents with SPLADE...")
         
         for i, doc in enumerate(documents):
-            doc_id = doc["id"]
-            text = doc["text"]
-            metadata = doc.get("metadata", {})
+            # Handle different ID field names
+            doc_id = doc.get("id") or doc.get("pmid") or doc.get("doc_id") or str(i)
+            
+            # Handle different text field names
+            if "text" in doc:
+                text = doc["text"]
+            else:
+                # Construct text from title and abstract if available
+                parts = []
+                if "title" in doc:
+                    parts.append(doc["title"])
+                if "abstract" in doc:
+                    parts.append(doc["abstract"])
+                text = " ".join(parts) if parts else str(doc)
+            
+            metadata = doc.get("metadata", {}) or {k: v for k, v in doc.items() if k not in ["text", "id", "pmid", "title", "abstract"]}
             
             # Encode document
             sparse_vec = self._encode(text)
