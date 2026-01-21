@@ -26,6 +26,9 @@ Medical domain validation with PMID verification, hallucination detection, and b
 ### 📊 **Built-in Evaluation Framework**
 Domain-specific metrics, automated testing, and quality benchmarks for continuous performance monitoring.
 
+### 🔬 **Systematic Review Automation (NEW!)** 
+Automated structured data extraction from research papers with YAML-based schemas, reproducibility scoring, and temporal comparison against baseline studies like Roy et al. 2019. Export to CSV/JSON for meta-analysis.
+
 ### In plain language: benefits for EEG professionals
 
 - ⏱️ **Spend less time digging through charts and papers.** The RAG pipeline keeps a rolling index of peer-reviewed EEG studies and guidelines so you can pull the relevant paragraph (with PMID) in seconds instead of skimming dozens of PDFs.[^mdpi-healthcare]
@@ -289,6 +292,132 @@ python3 examples/evaluate_reranking_improvements.py
 - `src/eeg_rag/evaluation/retrieval_metrics.py` - Complete IR metrics
 - `tests/test_reranker.py` - 14 comprehensive tests (all passing)
 - Full integration with HybridRetriever, LocalDataAgent, and FastAPI
+
+---
+
+## 🔬 Systematic Review Automation (NEW!)
+
+Automate structured data extraction from research papers at scale, replicating methodologies like **Roy et al. 2019** for EEG deep learning systematic reviews.
+
+### 🎯 Key Features
+
+- **YAML-based extraction schemas** - Define custom fields for any systematic review protocol
+- **Multi-source extraction** - Rule-based patterns + LLM integration for complex fields
+- **Confidence scoring** - Track extraction quality per field (0.0-1.0 scale)
+- **Reproducibility analysis** - Automatic scoring based on code/data availability
+- **Temporal comparison** - Compare new papers against baseline studies
+- **Export formats** - CSV, JSON, Excel for meta-analysis tools
+
+### 📊 Reproducibility Scoring Rubric
+
+| Criterion                | Score  | Example                                   |
+| ------------------------ | ------ | ----------------------------------------- |
+| Public GitHub repo       | 10     | `https://github.com/author/repo`          |
+| Code on request          | 5      | "Code available upon reasonable request"  |
+| Public dataset           | 8      | CHB-MIT, PhysioNet, DEAP, TUSZ            |
+| Private/clinical dataset | 4      | Hospital EEG recordings (ethics approved) |
+| **Maximum**              | **18** | Fully reproducible research               |
+
+### 🚀 Quick Usage
+
+```python
+from eeg_rag.review import SystematicReviewExtractor, ReproducibilityScorer
+
+# 1. Load extraction schema
+extractor = SystematicReviewExtractor(
+    protocol="schemas/dl_eeg_review_2019_schema.yaml"
+)
+
+# 2. Extract structured data from papers
+papers = [
+    {
+        "title": "Deep CNN for Seizure Detection",
+        "authors": "Smith et al.",
+        "year": 2023,
+        "abstract": "We propose a CNN architecture using CHB-MIT dataset..."
+    }
+]
+df = extractor.run(papers)
+
+# 3. Score reproducibility
+scorer = ReproducibilityScorer()
+scored_df = scorer.score_dataset(df)
+
+# 4. Export results
+extractor.export("systematic_review.csv", format="csv")
+
+# 5. Compare against baseline (optional)
+from eeg_rag.review import SystematicReviewComparator
+comparator = SystematicReviewComparator(baseline_path="roy_2019_data.csv")
+comparison = comparator.compare(scored_df)
+print(comparison.summary())
+```
+
+### 📋 Example YAML Schema
+
+```yaml
+# schemas/dl_eeg_review_2019_schema.yaml
+schema_version: "1.0"
+name: "Deep Learning EEG Systematic Review"
+baseline_study: "Roy et al. 2019"
+
+fields:
+  - name: "architecture_type"
+    type: "enum"
+    enum_values: ["CNN", "RNN", "LSTM", "Transformer", "Hybrid"]
+    required: true
+    extraction_prompt: |
+      What is the primary deep learning architecture used?
+      
+  - name: "dataset_name"
+    type: "string"
+    required: true
+    extraction_prompt: |
+      What dataset(s) were used? (e.g., CHB-MIT, Bonn, TUSZ)
+      
+  - name: "reported_accuracy"
+    type: "number"
+    required: false
+    extraction_prompt: |
+      What was the primary performance metric? Report as decimal (0.95 for 95%)
+      
+  - name: "code_available"
+    type: "boolean"
+    required: true
+    extraction_prompt: |
+      Is source code publicly available? Look for GitHub links.
+```
+
+### 🧪 Run Demo
+
+```bash
+# Full systematic review workflow
+python examples/systematic_review_demo.py
+
+# Output:
+# ✓ Extracted 4 papers
+# ✓ Mean reproducibility score: 15.0/18
+# ✓ Exported to data/systematic_review/extracted_papers.csv
+```
+
+### 📈 Trend Analysis
+
+The comparator automatically identifies:
+
+- **Architecture shifts** - CNN vs Transformer vs Hybrid adoption over time
+- **Reproducibility trends** - Code availability improvements since baseline
+- **Performance improvements** - Mean accuracy gains across studies
+- **Dataset evolution** - Emerging datasets vs established benchmarks
+- **Task distribution** - Seizure detection vs BCI vs sleep staging trends
+
+### 📖 Files Created
+
+**Implementation (1,500+ lines):**
+- `src/eeg_rag/review/extractor.py` - SystematicReviewExtractor class
+- `src/eeg_rag/review/comparator.py` - Comparison & reproducibility scoring
+- `schemas/dl_eeg_review_2019_schema.yaml` - Example extraction schema
+- `examples/systematic_review_demo.py` - Full workflow demonstration
+- `tests/test_systematic_review.py` - 7 comprehensive tests (all passing)
 
 ---
 

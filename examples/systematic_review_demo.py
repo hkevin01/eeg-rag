@@ -171,13 +171,18 @@ def main():
     print("LOW CONFIDENCE EXTRACTIONS (need manual review)")
     print("="*80)
     low_conf = extractor.get_low_confidence_extractions(threshold=0.7)
-    if low_conf:
+    if not low_conf.empty:
         print(f"\nFound {len(low_conf)} papers with low-confidence extractions:")
-        for paper in low_conf[:3]:  # Show first 3
-            print(f"\n  Paper: {paper.title[:60]}...")
-            for field, conf in paper.confidence_scores.items():
+        # Get confidence columns
+        conf_cols = [col for col in low_conf.columns if col.endswith('_confidence')]
+        for idx in low_conf.index[:3]:  # Show first 3
+            row = low_conf.loc[idx]
+            print(f"\n  Paper: {row['title'][:60]}...")
+            for col in conf_cols:
+                conf = row[col]
                 if conf < 0.7:
-                    print(f"    {field}: {conf:.2f} confidence")
+                    field_name = col.replace('_confidence', '')
+                    print(f"    {field_name}: {conf:.2f} confidence")
     else:
         print("\n✓ All extractions have high confidence (>0.70)")
     
