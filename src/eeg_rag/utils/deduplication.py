@@ -32,6 +32,10 @@ class PaperDeduplicator:
         if not title:
             return ""
         
+        # Handle non-string titles (e.g., float, None)
+        if not isinstance(title, str):
+            title = str(title) if title is not None else ""
+        
         # Convert to lowercase
         title = title.lower()
         
@@ -107,18 +111,25 @@ class PaperDeduplicator:
         
         # Check title similarity
         title = paper.get('title') or paper.get('Title') or ''
+        
+        # Handle non-string titles
+        if title and not isinstance(title, str):
+            title = str(title) if title is not None else ''
+        
         if title:
             normalized_title = self.normalize_title(title)
             
             # Exact match
             if normalized_title in self.seen_titles:
-                return True, f"Duplicate title (exact): {title[:50]}..."
+                title_preview = str(title)[:50] if title else "N/A"
+                return True, f"Duplicate title (exact): {title_preview}..."
             
             # Fuzzy match
             for seen_title_norm, seen_doc_id in self.seen_titles.items():
                 similarity = self.title_similarity(title, seen_title_norm)
                 if similarity >= self.TITLE_SIMILARITY_THRESHOLD:
-                    return True, f"Duplicate title (fuzzy {similarity:.2f}): {title[:50]}..."
+                    title_preview = str(title)[:50] if title else "N/A"
+                    return True, f"Duplicate title (fuzzy {similarity:.2f}): {title_preview}..."
         
         return False, None
     
