@@ -25,6 +25,16 @@ from datetime import datetime
 from enum import Enum
 import logging
 
+# Import new utilities
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils import (
+    deduplicate_papers,
+    generate_citations,
+    get_all_badges,
+    get_quality_score
+)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -692,9 +702,16 @@ question, acknowledge the limitations.
 
         # Merge all sources
         if papers_list:
-            self.papers_df = pd.concat(papers_list, ignore_index=True)
+            merged_df = pd.concat(papers_list, ignore_index=True)
+            
+            # Apply deduplication
+            papers_for_dedup = merged_df.to_dict('records')
+            unique_papers, duplicate_papers = deduplicate_papers(papers_for_dedup)
+            
+            self.papers_df = pd.DataFrame(unique_papers)
             logger.info(
-                f"Total corpus: {len(self.papers_df)} papers (CSV: {len(self.papers_df) - ingested_count}, Ingested: {ingested_count})"
+                f"Total corpus: {len(self.papers_df)} unique papers after deduplication "
+                f"(removed {len(duplicate_papers)} duplicates from {len(merged_df)} total)"
             )
         else:
             logger.warning("No corpus loaded - using demo mode")
@@ -1443,15 +1460,32 @@ def render_query_page():
 
         # Sources section with clickable links
         st.markdown("---")
-        st.markdown("### 📚 Retrieved Sources")
-        st.markdown(
-            "*Expand any source to see full details including abstract, PMID, and external links*"
-        )
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("### 📚 Retrieved Sources")
+            st.markdown(
+                "*Expand any source to see full details including abstract, PMID, and external links*"
+            )
+        with col2:
+            # Citation export dropdown
+            export_format = st.selectbox("📥 Export Citations", ["None", "BibTeX", "RIS", "Plain Text"], key="export_sources")
+            if export_format != "None":
+                citation_text = generate_citations(result.sources, format=export_format.lower().replace(" ", ""))
+                st.download_button(
+                    label=f"Download {export_format}",
+                    data=citation_text,
+                    file_name=f"citations.{export_format.lower().replace(' ', '_')}.txt",
+                    mime="text/plain"
+                )
 
         if result.sources:
             for i, source in enumerate(result.sources, 1):
+                # Get badges for this paper
+                badges = get_all_badges(source)
+                badge_suffix = f" {badges}" if badges else ""
+                
                 with st.expander(
-                    f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')})",
+                    f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')}){badge_suffix}",
                     expanded=(i <= 2),
                 ):
                     col1, col2 = st.columns([3, 1])
@@ -1460,6 +1494,11 @@ def render_query_page():
                         st.markdown(f"**Title:** {source.get('title', 'Unknown')}")
                         st.markdown(f"**Authors:** {source.get('authors', 'Unknown')}")
                         st.markdown(f"**Year:** {source.get('year', 'N/A')}")
+                        
+                        # Show quality badges prominently
+                        if badges:
+                            st.markdown(f"**Quality:** {badges}")
+                        
                         if source.get("domain"):
                             st.markdown(f"**Domain:** {source.get('domain')}")
                         if source.get("architecture"):
@@ -2199,14 +2238,26 @@ def render_paper_explorer_page():
             year = int(row.get("Year", 0)) if pd.notna(row.get("Year")) else "N/A"
             citation = str(row.get("Citation", f"paper_{idx}"))
             domain = str(row.get("Domain 1", ""))[:20]
+            
+            # Get quality badges for this paper
+            paper_dict = row.to_dict()
+            badges = get_all_badges(paper_dict)
+            quality_score = get_quality_score(paper_dict)
+            
+            # Quality indicator emoji
+            quality_emoji = "⭐" if quality_score >= 0.8 else "🟢" if quality_score >= 0.5 else "⚪"
 
             # Create a button-like card for each paper
             with st.container():
+                button_label = f"{quality_emoji} {citation} ({year})"
+                if badges:
+                    button_label += f"\n{badges}"
+                    
                 if st.button(
-                    f"📄 {citation} ({year})",
+                    button_label,
                     key=f"paper_btn_{row_idx}",
                     use_container_width=True,
-                    help=title,
+                    help=f"{title}\nQuality Score: {quality_score:.0%}",
                 ):
                     st.session_state["selected_paper_idx"] = row_idx
                     st.session_state["selected_paper_data"] = row.to_dict()

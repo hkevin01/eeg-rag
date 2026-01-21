@@ -1,55 +1,27 @@
-"""Utility modules for EEG-RAG system.
-
-Provides common functionality for:
-- Configuration management
-- Logging and timing utilities
-- Common validation patterns
-- Error handling standards
-- Time unit conversions
+"""
+Utility modules for EEG-RAG.
 """
 
-from .config import Config
-from .logging_utils import (
-    setup_logging,
-    PerformanceTimer,
-    timed,
-    log_exception,
-    get_performance_monitor,
-    format_time,
-    SECOND, MINUTE, HOUR, MILLISECOND
-)
-from .common_utils import (
-    validate_non_empty_string,
-    validate_positive_number,
-    validate_range,
-    standardize_time_unit,
-    safe_divide,
-    safe_get_nested,
-    compute_content_hash,
-    retry_with_backoff,
-    handle_database_operation,
-    ensure_directory_exists,
-    format_error_message
+from .deduplication import PaperDeduplicator, deduplicate_papers
+from .citations import CitationGenerator, generate_citations
+from .quality_badges import (
+    get_code_badge,
+    get_data_badge,
+    get_reproducibility_badge,
+    get_citation_count_badge,
+    get_all_badges,
+    get_quality_score,
 )
 
 __all__ = [
-    "Config",
-    "setup_logging",
-    "PerformanceTimer",
-    "timed",
-    "log_exception",
-    "get_performance_monitor",
-    "format_time",
-    "validate_non_empty_string",
-    "validate_positive_number",
-    "validate_range", 
-    "standardize_time_unit",
-    "safe_divide",
-    "safe_get_nested",
-    "compute_content_hash",
-    "retry_with_backoff",
-    "handle_database_operation",
-    "ensure_directory_exists",
-    "format_error_message",
-    "SECOND", "MINUTE", "HOUR", "MILLISECOND"
+    'PaperDeduplicator',
+    'deduplicate_papers',
+    'CitationGenerator',
+    'generate_citations',
+    'get_code_badge',
+    'get_data_badge',
+    'get_reproducibility_badge',
+    'get_citation_count_badge',
+    'get_all_badges',
+    'get_quality_score',
 ]
