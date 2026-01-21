@@ -42,6 +42,7 @@ class SearchRequest(BaseModel):
     query: str = Field(..., min_length=1)
     top_k: int = Field(5, ge=1, le=20)
     use_query_expansion: bool = Field(True)
+    use_reranking: bool = Field(False, description="Enable cross-encoder reranking for improved quality")
 
 
 class SearchResponse(BaseModel):
@@ -51,15 +52,20 @@ class SearchResponse(BaseModel):
     num_results: int
     search_time_ms: float
     results: List[Dict[str, Any]]
+    reranking_enabled: bool = False
 
 
 # Global agent instance
 _agent: Optional[LocalDataAgent] = None
 
 
-def get_agent() -> LocalDataAgent:
+def get_agent(use_reranking: bool = False) -> LocalDataAgent:
     """Get or create agent instance"""
     global _agent
+    
+    # Recreate agent if reranking setting changed
+    if _agent is not None and _agent.use_reranking != use_reranking:
+        _agent = None
     
     if _agent is None:
         config = {
@@ -67,11 +73,16 @@ def get_agent() -> LocalDataAgent:
             "qdrant_collection": "eeg_papers",
             "bm25_cache_dir": "data/bm25_cache",
             "use_query_expansion": True,
-            "min_relevance_score": 0.01
+            "min_relevance_score": 0.01,
+            "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2"
         }
         
-        _agent = LocalDataAgent(config=config, use_hybrid_retrieval=True)
-        logger.info("LocalDataAgent initialized with hybrid retrieval")
+        _agent = LocalDataAgent(
+            config=config,
+            use_hybrid_retrieval=True,
+            use_reranking=use_reranking
+        )
+        logger.info(f"LocalDataAgent initialized (hybrid=True, reranking={use_reranking})")
     
     return _agent
 
@@ -92,9 +103,9 @@ async def root():
 
 @app.post("/search", response_model=SearchResponse)
 async def search(request: SearchRequest):
-    """Hybrid search endpoint"""
+    """Hybrid search endpoint with optional reranking"""
     try:
-        agent = get_agent()
+        agent = get_agent(use_reranking=request.use_reranking)
         agent.top_k = request.top_k
         
         query = AgentQuery(text=request.query, intent="search")
@@ -108,7 +119,8 @@ async def search(request: SearchRequest):
             query=request.query,
             num_results=len(result.data['results']),
             search_time_ms=result.data['search_time_ms'],
-            results=result.data['results']
+            results=result.data['results'],
+            reranking_enabled=request.use_reranking
         )
         
     except HTTPException:

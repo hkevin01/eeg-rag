@@ -380,7 +380,8 @@ class LocalDataAgent(BaseAgent):
         embedding_dimension: int = 768,
         config: Optional[Dict[str, Any]] = None,
         logger: Optional[logging.Logger] = None,
-        use_hybrid_retrieval: bool = True
+        use_hybrid_retrieval: bool = True,
+        use_reranking: bool = False
     ):
         """
         Initialize local data agent
@@ -391,6 +392,7 @@ class LocalDataAgent(BaseAgent):
             config: Configuration options
             logger: Logger instance
             use_hybrid_retrieval: Use new hybrid retrieval system (recommended)
+            use_reranking: Enable cross-encoder reranking (adds latency but improves quality)
         """
         super().__init__(
             agent_type=AgentType.LOCAL_DATA,
@@ -403,10 +405,11 @@ class LocalDataAgent(BaseAgent):
         self.top_k = config.get("top_k", 5) if config else 5
         self.min_relevance_score = config.get("min_relevance_score", 0.3) if config else 0.3
         self.use_hybrid_retrieval = use_hybrid_retrieval and HYBRID_RETRIEVAL_AVAILABLE
+        self.use_reranking = use_reranking
         
         # Initialize retrieval system
         if self.use_hybrid_retrieval:
-            self.logger.info("Initializing hybrid retrieval system (BM25 + Dense + RRF)")
+            self.logger.info(f"Initializing hybrid retrieval system (BM25 + Dense + RRF, reranking={use_reranking})")
             self._init_hybrid_retrieval(config or {})
         else:
             self.logger.info("Initializing legacy FAISS retrieval")
@@ -438,6 +441,7 @@ class LocalDataAgent(BaseAgent):
                 - rrf_k: RRF rank constant (default: 60)
                 - use_query_expansion: Enable EEG query expansion (default: True)
                 - retrieve_k: Number of results to retrieve before reranking (default: 20)
+                - reranker_model: Cross-encoder model name (default: cross-encoder/ms-marco-MiniLM-L-6-v2)
         """
         # Get config values
         qdrant_url = config.get("qdrant_url", "http://localhost:6333")
@@ -464,7 +468,9 @@ class LocalDataAgent(BaseAgent):
                 bm25_weight=config.get("bm25_weight", 0.5),
                 dense_weight=config.get("dense_weight", 0.5),
                 rrf_k=config.get("rrf_k", 60),
-                use_query_expansion=config.get("use_query_expansion", True)
+                use_query_expansion=config.get("use_query_expansion", True),
+                use_reranking=self.use_reranking,
+                reranker_model=config.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
             )
             
             # Store config
