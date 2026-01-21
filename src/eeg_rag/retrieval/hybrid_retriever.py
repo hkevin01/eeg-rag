@@ -14,6 +14,7 @@ from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
 from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
 from eeg_rag.retrieval.reranker import CrossEncoderReranker, NoOpReranker, RerankedResult
+from eeg_rag.retrieval.query_analyzer import QueryAnalyzer, QueryAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,8 @@ class HybridRetriever:
         rrf_k: int = 60,
         use_query_expansion: bool = True,
         use_reranking: bool = False,
-        reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        adaptive_reranking: bool = False
     ):
         """
         Initialize hybrid retriever.
@@ -79,6 +81,7 @@ class HybridRetriever:
             use_query_expansion: Enable EEG domain query expansion
             use_reranking: Enable cross-encoder reranking
             reranker_model: Cross-encoder model for reranking
+            adaptive_reranking: Automatically decide whether to rerank based on query
         """
         self.bm25 = bm25_retriever
         self.dense = dense_retriever
@@ -87,19 +90,28 @@ class HybridRetriever:
         self.rrf_k = rrf_k
         self.use_query_expansion = use_query_expansion
         self.use_reranking = use_reranking
+        self.adaptive_reranking = adaptive_reranking
         
         # Initialize query expander if enabled
         self.query_expander = EEGQueryExpander() if use_query_expansion else None
         
+        # Initialize query analyzer for adaptive reranking
+        if adaptive_reranking:
+            self.query_analyzer = QueryAnalyzer()
+            logger.info("  Adaptive reranking: enabled (query analyzer active)")
+        else:
+            self.query_analyzer = None
+        
         # Initialize reranker if enabled
-        if use_reranking:
+        if use_reranking or adaptive_reranking:
             try:
                 self.reranker = CrossEncoderReranker(model_name=reranker_model)
-                logger.info(f"  Reranking: enabled ({reranker_model})")
+                logger.info(f"  Reranking: {'adaptive' if adaptive_reranking else 'always'} ({reranker_model})")
             except ImportError:
                 logger.warning("sentence-transformers not available, disabling reranking")
                 self.reranker = NoOpReranker()
                 self.use_reranking = False
+                self.adaptive_reranking = False
         else:
             self.reranker = None
         
@@ -238,8 +250,20 @@ class HybridRetriever:
         results.sort(key=lambda x: x.rrf_score, reverse=True)
         results = results[:top_k]
         
+        # Determine if reranking should be applied
+        should_rerank_query = self.use_reranking
+        query_analysis = None
+        
+        if self.adaptive_reranking and self.query_analyzer:
+            # Analyze query to decide if reranking is needed
+            query_analysis = self.query_analyzer.analyze(query)
+            should_rerank_query = query_analysis.should_rerank
+            logger.info(f"  Query analysis: {query_analysis.complexity.value}, "
+                       f"rerank={should_rerank_query} (conf: {query_analysis.confidence:.2f})")
+            logger.info(f"  Reasoning: {query_analysis.reasoning}")
+        
         # Apply reranking if enabled
-        if self.use_reranking and self.reranker:
+        if should_rerank_query and self.reranker:
             logger.info(f"  Reranking {len(results)} results...")
             
             # Store original results for reference
@@ -276,6 +300,8 @@ class HybridRetriever:
                     ))
             
             logger.info(f"  Reranking complete")
+        elif self.adaptive_reranking:
+            logger.info(f"  Skipping reranking for simple query")
         
         logger.info(f"✅ Hybrid search returned {len(results)} results")
         if results:
