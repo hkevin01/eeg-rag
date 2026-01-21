@@ -1,432 +1,278 @@
-#!/usr/bin/env python3
 """
-Hybrid Retrieval System for EEG-RAG
+Hybrid Retriever for EEG-RAG.
 
-Combines BM25 sparse retrieval with dense vector search for optimal performance
-in the medical/EEG domain. This hybrid approach addresses the limitations of
-pure dense retrieval which can miss exact terminology matches critical in
-medical literature.
-
-Key Features:
-- BM25 for precise keyword/terminology matching (electrode names, frequencies)
-- Dense retrieval for semantic similarity and contextual understanding  
-- EEG-specific tokenization and preprocessing
-- Configurable fusion strategies (weighted, max, reciprocal rank)
-- Production-grade error handling and performance optimization
-- Medical terminology normalization
-
-Architectural Benefits:
-1. Recall Improvement: BM25 catches terminology that dense models might miss
-2. Precision Enhancement: Dense retrieval provides semantic understanding
-3. Domain Optimization: Custom tokenization for EEG/medical terms
-4. Flexibility: Multiple fusion methods for different use cases
-5. Performance: Caching and batch processing for production workloads
-
-Typical Performance:
-- 15-25% recall improvement over pure dense retrieval
-- 10-15% precision improvement over pure BM25
-- Sub-100ms retrieval for 10K document collections
-- Memory efficient with lazy loading and caching
+This module combines BM25 (sparse) and dense (semantic) retrieval using
+Reciprocal Rank Fusion (RRF) for optimal search results.
 """
 
-import numpy as np
-from typing import List, Dict, Any, Optional, Union, Tuple
-from dataclasses import dataclass, field
-from rank_bm25 import BM25Okapi
-import json
-import time
-import re
+import logging
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any, Tuple
 from collections import defaultdict
-from ..utils.logging_utils import get_logger, PerformanceTimer
 
-logger = get_logger(__name__)
+from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
+from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
 
-# Domain-specific constants for EEG research
-EEG_TERMINOLOGY_MAP = {
-    # Standard forms -> normalized forms for better matching
-    'electroencephalogram': 'eeg',
-    'electroencephalography': 'eeg', 
-    'event-related potential': 'erp',
-    'event related potential': 'erp',
-    'brain-computer interface': 'bci',
-    'brain computer interface': 'bci',
-    'motor imagery': 'motor_imagery',
-    'sleep spindle': 'sleep_spindle',
-    'sleep spindles': 'sleep_spindle',
-    'k-complex': 'k_complex',
-    'k-complexes': 'k_complex',
-    'slow wave': 'slow_wave',
-    'slow waves': 'slow_wave',
-    'fast fourier transform': 'fft',
-    'independent component analysis': 'ica',
-    'common spatial patterns': 'csp'
-}
-
-# EEG-specific electrode names and frequency bands
-EEG_PRESERVED_TERMS = {
-    # Electrode locations (10-20 system)
-    'fp1', 'fp2', 'f3', 'f4', 'f7', 'f8', 'fz', 'c3', 'c4', 'cz',
-    't3', 't4', 't5', 't6', 'p3', 'p4', 'pz', 'o1', 'o2', 'oz',
-    'a1', 'a2', 'pg1', 'pg2',
-    # Frequency bands
-    'delta', 'theta', 'alpha', 'beta', 'gamma', 'mu',
-    # ERP components
-    'p300', 'p3', 'n400', 'n1', 'p1', 'n170', 'mmn', 'p600',
-    # Clinical terms
-    'seizure', 'epilepsy', 'spike', 'sharp', 'wave', 'rhythm', 'artifact',
-    'montage', 'bipolar', 'referential', 'average', 'eog', 'emg', 'ecg'
-}
-
-# Default configuration for optimal EEG domain performance
-DEFAULT_CONFIG = {
-    'alpha': 0.6,  # 60% dense, 40% BM25 - optimal for medical literature
-    'fusion_method': 'weighted_sum',
-    'max_results': 1000,
-    'bm25_k1': 1.2,  # BM25 term frequency saturation
-    'bm25_b': 0.75,  # BM25 document length normalization
-    'enable_caching': True,
-    'cache_size': 10000
-}
+logger = logging.getLogger(__name__)
 
 
 @dataclass
-class RetrievalResult:
-    """Comprehensive retrieval result with detailed scoring information.
-    
-    This class encapsulates all information about a retrieved document including
-    relevance scores, source attribution, and performance metadata. Critical for
-    transparency and debugging in production RAG systems.
-    
-    Attributes:
-        doc_id: Unique document identifier
-        score: Final combined relevance score (0.0-1.0)
-        content: Document text content
-        metadata: Additional document metadata (PMID, year, journal, etc.)
-        bm25_score: Raw BM25 relevance score
-        dense_score: Dense embedding similarity score
-        fusion_method: Method used to combine scores
-        retrieval_timestamp: When retrieval was performed
-        chunk_info: Information about text chunking if applicable
-    """
-    doc_id: Union[str, int]
-    score: float  # Combined final score
-    content: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    bm25_score: float = 0.0
-    dense_score: float = 0.0
-    fusion_method: str = "unknown"
-    retrieval_timestamp: Optional[float] = None
-    chunk_info: Optional[Dict[str, Any]] = None
-    
-    def __post_init__(self):
-        """Validate score ranges and add timestamp."""
-        # Ensure scores are in valid ranges
-        if not 0.0 <= self.score <= 1.0:
-            logger.warning(f"Combined score out of range: {self.score}")
-            self.score = max(0.0, min(1.0, self.score))
-        
-        # Add timestamp if not provided
-        if self.retrieval_timestamp is None:
-            self.retrieval_timestamp = time.time()
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization and logging.
-        
-        Returns comprehensive retrieval information suitable for API responses,
-        logging, debugging, and performance analysis.
-        """
-        return {
-            'doc_id': str(self.doc_id),
-            'score': round(self.score, 4),
-            'content_preview': self._get_content_preview(),
-            'content_length': len(self.content),
-            'metadata': self.metadata,
-            'scoring': {
-                'bm25_score': round(self.bm25_score, 4),
-                'dense_score': round(self.dense_score, 4),
-                'fusion_method': self.fusion_method
-            },
-            'retrieval_info': {
-                'timestamp': self.retrieval_timestamp,
-                'chunk_info': self.chunk_info
-            }
-        }
-    
-    def _get_content_preview(self, max_length: int = 200) -> str:
-        """Get truncated content for display purposes."""
-        if len(self.content) <= max_length:
-            return self.content
-        return self.content[:max_length] + '...'
+class HybridResult:
+    """Result from hybrid search with both sparse and dense scores."""
+    doc_id: str
+    text: str
+    metadata: Dict[str, Any]
+    rrf_score: float  # Final fused score
+    bm25_score: float  # Raw BM25 score
+    dense_score: float  # Raw dense score
+    bm25_rank: Optional[int] = None  # Rank in BM25 results (1-indexed)
+    dense_rank: Optional[int] = None  # Rank in dense results (1-indexed)
 
 
 class HybridRetriever:
-    """Hybrid retrieval combining BM25 and dense retrieval"""
+    """
+    Hybrid retrieval combining BM25 and dense search with RRF fusion.
     
-    def __init__(self, dense_retriever=None, alpha: float = 0.5, 
-                 fusion_method: str = 'weighted_sum'):
+    Reciprocal Rank Fusion (RRF) is a simple but effective method to combine
+    rankings from different retrieval systems. It's more robust than score
+    normalization because it only uses rank information.
+    
+    RRF formula: score(d) = Σ 1/(k + rank(d))
+    where k is a constant (typically 60) and rank is 1-indexed.
+    
+    Example:
+        >>> # Initialize both retrievers
+        >>> bm25 = BM25Retriever()
+        >>> dense = DenseRetriever()
+        >>> 
+        >>> # Create hybrid retriever
+        >>> hybrid = HybridRetriever(bm25_retriever=bm25, dense_retriever=dense)
+        >>> 
+        >>> # Search with both methods
+        >>> results = hybrid.search("epilepsy seizure detection", top_k=10)
+        >>> for r in results:
+        ...     print(f"{r.doc_id}: RRF={r.rrf_score:.3f}")
+    """
+    
+    def __init__(
+        self,
+        bm25_retriever: BM25Retriever,
+        dense_retriever: DenseRetriever,
+        bm25_weight: float = 0.5,
+        dense_weight: float = 0.5,
+        rrf_k: int = 60
+    ):
         """
-        Initialize hybrid retriever
+        Initialize hybrid retriever.
         
         Args:
-            dense_retriever: Dense retrieval system (FAISS, etc.)
-            alpha: Weight for dense vs sparse (0.5 = equal weight)
-            fusion_method: 'weighted_sum', 'reciprocal_rank', or 'max'
+            bm25_retriever: BM25 sparse retriever
+            dense_retriever: Dense semantic retriever
+            bm25_weight: Weight for BM25 results (0-1)
+            dense_weight: Weight for dense results (0-1)
+            rrf_k: RRF constant (typically 60)
         """
-        self.dense_retriever = dense_retriever
-        self.bm25: Optional[BM25Okapi] = None
-        self.alpha = alpha
-        self.fusion_method = fusion_method
+        self.bm25 = bm25_retriever
+        self.dense = dense_retriever
+        self.bm25_weight = bm25_weight
+        self.dense_weight = dense_weight
+        self.rrf_k = rrf_k
         
-        # Document storage
-        self.documents: List[str] = []
-        self.doc_metadata: List[Dict[str, Any]] = []
-        self.doc_ids: List[Union[str, int]] = []
-        
-        # Preprocessing for BM25
-        self.stopwords = set([
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 
-            'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 
-            'through', 'during', 'before', 'after', 'above', 'below', 
-            'between', 'among', 'under', 'over'
-        ])
+        logger.info(f"Initialized HybridRetriever")
+        logger.info(f"  BM25 weight: {bm25_weight}")
+        logger.info(f"  Dense weight: {dense_weight}")
+        logger.info(f"  RRF k: {rrf_k}")
     
-    def add_documents(self, documents: List[str], 
-                     metadata: List[Dict[str, Any]] = None,
-                     doc_ids: List[Union[str, int]] = None):
-        """Add documents to the retrieval system"""
-        self.documents = documents
-        self.doc_metadata = metadata or [{} for _ in documents]
-        self.doc_ids = doc_ids or list(range(len(documents)))
+    def _compute_rrf_scores(
+        self,
+        bm25_results: List[BM25Result],
+        dense_results: List[DenseResult]
+    ) -> Dict[str, Tuple[float, Dict[str, Any]]]:
+        """
+        Compute Reciprocal Rank Fusion scores.
         
-        # Build BM25 index
-        self._build_bm25_index()
-        
-        # Add to dense retriever if available
-        if self.dense_retriever and hasattr(self.dense_retriever, 'add_documents'):
-            try:
-                self.dense_retriever.add_documents(documents)
-            except Exception as e:
-                logger.warning(f"Failed to add documents to dense retriever: {e}")
-    
-    def _build_bm25_index(self):
-        """Build BM25 index from documents"""
-        try:
-            # Tokenize documents for BM25
-            tokenized_docs = []
-            for doc in self.documents:
-                tokens = self._tokenize_for_bm25(doc)
-                tokenized_docs.append(tokens)
+        Args:
+            bm25_results: Results from BM25 search
+            dense_results: Results from dense search
             
-            self.bm25 = BM25Okapi(tokenized_docs)
-            logger.info(f"Built BM25 index for {len(self.documents)} documents")
-            
-        except Exception as e:
-            logger.error(f"Failed to build BM25 index: {e}")
-            self.bm25 = None
-    
-    def _tokenize_for_bm25(self, text: str) -> List[str]:
-        """Tokenize text for BM25 with EEG-specific preprocessing"""
-        # Convert to lowercase
-        text = text.lower()
+        Returns:
+            Dict mapping doc_id to (rrf_score, metadata)
+        """
+        rrf_scores = defaultdict(float)
+        doc_metadata = {}  # Store text and metadata for each doc
         
-        # Replace common EEG abbreviations to improve matching
-        eeg_replacements = {
-            'electroencephalogram': 'eeg',
-            'electroencephalography': 'eeg',
-            'event-related potential': 'erp',
-            'event related potential': 'erp',
-            'brain-computer interface': 'bci',
-            'brain computer interface': 'bci',
-            'motor imagery': 'motor_imagery',
-            'sleep spindle': 'sleep_spindle',
-            'k-complex': 'k_complex',
-            'slow wave': 'slow_wave'
-        }
-        
-        for full_term, abbrev in eeg_replacements.items():
-            text = text.replace(full_term, abbrev)
-        
-        # Simple tokenization (could be improved with spaCy)
-        import re
-        tokens = re.findall(r'\b\w+\b', text)
-        
-        # Remove stopwords but keep EEG-specific terms
-        eeg_terms = {
-            'eeg', 'erp', 'bci', 'alpha', 'beta', 'gamma', 'delta', 'theta',
-            'mu', 'c3', 'c4', 'cz', 'f3', 'f4', 'fz', 'o1', 'o2', 'oz',
-            'p3', 'p4', 'pz', 't3', 't4', 't5', 't6', 'fp1', 'fp2',
-            'seizure', 'epilepsy', 'spike', 'sharp', 'wave', 'rhythm'
-        }
-        
-        filtered_tokens = [
-            token for token in tokens 
-            if token not in self.stopwords or token in eeg_terms
-        ]
-        
-        return filtered_tokens
-    
-    def search(self, query: str, top_k: int = 10, 
-               dense_top_k: int = None, bm25_top_k: int = None) -> List[RetrievalResult]:
-        """Hybrid search combining BM25 and dense retrieval"""
-        if not self.documents:
-            logger.warning("No documents indexed")
-            return []
-        
-        # Set default top_k for individual retrievers
-        dense_top_k = dense_top_k or min(top_k * 2, len(self.documents))
-        bm25_top_k = bm25_top_k or min(top_k * 2, len(self.documents))
-        
-        # Get BM25 scores
-        bm25_scores = self._get_bm25_scores(query, bm25_top_k)
-        
-        # Get dense scores
-        dense_scores = self._get_dense_scores(query, dense_top_k)
-        
-        # Combine scores
-        combined_results = self._combine_scores(bm25_scores, dense_scores, top_k)
-        
-        return combined_results
-    
-    def _get_bm25_scores(self, query: str, top_k: int) -> Dict[int, float]:
-        """Get BM25 scores for query"""
-        if not self.bm25:
-            logger.warning("BM25 index not available")
-            return {}
-        
-        try:
-            # Tokenize query
-            query_tokens = self._tokenize_for_bm25(query)
-            
-            # Get scores for all documents
-            scores = self.bm25.get_scores(query_tokens)
-            
-            # Normalize scores to 0-1 range
-            if len(scores) > 0:
-                max_score = max(scores)
-                min_score = min(scores)
-                if max_score > min_score:
-                    scores = (scores - min_score) / (max_score - min_score)
-                else:
-                    scores = np.ones_like(scores)
-            
-            # Get top results
-            top_indices = np.argsort(scores)[-top_k:][::-1]
-            
-            return {idx: scores[idx] for idx in top_indices if scores[idx] > 0}
-            
-        except Exception as e:
-            logger.error(f"BM25 search failed: {e}")
-            return {}
-    
-    def _get_dense_scores(self, query: str, top_k: int) -> Dict[int, float]:
-        """Get dense retrieval scores"""
-        if not self.dense_retriever:
-            logger.warning("Dense retriever not available")
-            return {}
-        
-        try:
-            # Try different methods to get dense scores
-            if hasattr(self.dense_retriever, 'search'):
-                results = self.dense_retriever.search(query, top_k=top_k)
-                
-                # Handle different result formats
-                scores_dict = {}
-                for i, result in enumerate(results):
-                    if hasattr(result, 'doc_id') and hasattr(result, 'score'):
-                        scores_dict[result.doc_id] = result.score
-                    elif isinstance(result, dict):
-                        doc_id = result.get('doc_id', result.get('id', i))
-                        score = result.get('score', result.get('similarity', 0.8))
-                        scores_dict[doc_id] = score
-                    else:
-                        scores_dict[i] = 0.8  # Default score
-                
-                return scores_dict
-                
-            elif hasattr(self.dense_retriever, 'similarity_search_with_score'):
-                results = self.dense_retriever.similarity_search_with_score(query, k=top_k)
-                return {i: score for i, (doc, score) in enumerate(results)}
-            
-            else:
-                logger.warning("Dense retriever has no compatible search method")
-                return {}
-                
-        except Exception as e:
-            logger.warning(f"Dense search failed: {e}")
-            return {}
-    
-    def _combine_scores(self, bm25_scores: Dict[int, float], 
-                       dense_scores: Dict[int, float], 
-                       top_k: int) -> List[RetrievalResult]:
-        """Combine BM25 and dense scores using specified fusion method"""
-        # Get all document indices
-        all_indices = set(bm25_scores.keys()) | set(dense_scores.keys())
-        
-        if not all_indices:
-            return []
-        
-        combined_results = []
-        
-        for idx in all_indices:
-            if idx >= len(self.documents):
-                continue
-            
-            bm25_score = bm25_scores.get(idx, 0.0)
-            dense_score = dense_scores.get(idx, 0.0)
-            
-            # Apply fusion method
-            if self.fusion_method == 'weighted_sum':
-                final_score = self.alpha * dense_score + (1 - self.alpha) * bm25_score
-            elif self.fusion_method == 'max':
-                final_score = max(dense_score, bm25_score)
-            elif self.fusion_method == 'reciprocal_rank':
-                # Reciprocal rank fusion (simplified)
-                dense_rank = 1 / (list(dense_scores.keys()).index(idx) + 1) if idx in dense_scores else 0
-                bm25_rank = 1 / (list(bm25_scores.keys()).index(idx) + 1) if idx in bm25_scores else 0
-                final_score = self.alpha * dense_rank + (1 - self.alpha) * bm25_rank
-            else:
-                final_score = (dense_score + bm25_score) / 2
-            
-            result = RetrievalResult(
-                doc_id=self.doc_ids[idx],
-                score=final_score,
-                content=self.documents[idx],
-                metadata=self.doc_metadata[idx],
-                bm25_score=bm25_score,
-                dense_score=dense_score
+        # BM25 rankings
+        for rank, result in enumerate(bm25_results, 1):
+            rrf_scores[result.doc_id] += (
+                self.bm25_weight / (self.rrf_k + rank)
             )
             
-            combined_results.append(result)
+            # Store metadata if not already present
+            if result.doc_id not in doc_metadata:
+                doc_metadata[result.doc_id] = {
+                    "text": result.text,
+                    "metadata": result.metadata,
+                    "bm25_score": result.score,
+                    "bm25_rank": rank,
+                    "dense_score": 0.0,
+                    "dense_rank": None
+                }
         
-        # Sort by combined score and return top_k
-        combined_results.sort(key=lambda x: x.score, reverse=True)
-        return combined_results[:top_k]
-    
-    def get_stats(self) -> Dict[str, Any]:
-        """Get retrieval system statistics"""
-        return {
-            'total_documents': len(self.documents),
-            'bm25_available': self.bm25 is not None,
-            'dense_retriever_available': self.dense_retriever is not None,
-            'alpha': self.alpha,
-            'fusion_method': self.fusion_method
+        # Dense rankings
+        for rank, result in enumerate(dense_results, 1):
+            rrf_scores[result.doc_id] += (
+                self.dense_weight / (self.rrf_k + rank)
+            )
+            
+            # Store or update metadata
+            if result.doc_id not in doc_metadata:
+                doc_metadata[result.doc_id] = {
+                    "text": result.text,
+                    "metadata": result.metadata,
+                    "bm25_score": 0.0,
+                    "bm25_rank": None,
+                    "dense_score": result.score,
+                    "dense_rank": rank
+                }
+            else:
+                doc_metadata[result.doc_id]["dense_score"] = result.score
+                doc_metadata[result.doc_id]["dense_rank"] = rank
+        
+        # Combine scores with metadata
+        combined = {
+            doc_id: (score, doc_metadata[doc_id])
+            for doc_id, score in rrf_scores.items()
         }
+        
+        return combined
     
-    def save_config(self, filepath: str):
-        """Save configuration to file"""
-        config = {
-            'alpha': self.alpha,
-            'fusion_method': self.fusion_method,
-            'total_documents': len(self.documents)
+    def search(
+        self,
+        query: str,
+        top_k: int = 10,
+        retrieve_k: int = 100,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[HybridResult]:
+        """
+        Search using hybrid BM25 + dense retrieval with RRF.
+        
+        Args:
+            query: Search query
+            top_k: Number of final results to return
+            retrieve_k: Number of candidates to retrieve from each method
+                       (should be >> top_k for effective fusion)
+            filters: Optional filters for dense retrieval
+            
+        Returns:
+            List of HybridResult objects sorted by RRF score (descending)
+            
+        Example:
+            >>> results = hybrid.search(
+            ...     "neural networks for seizure detection",
+            ...     top_k=10,
+            ...     retrieve_k=100
+            ... )
+        """
+        logger.info(f"Hybrid search for: '{query}'")
+        logger.info(f"  Retrieving {retrieve_k} candidates from each method")
+        
+        # Get results from both retrievers
+        bm25_results = self.bm25.search(query, top_k=retrieve_k)
+        dense_results = self.dense.search(query, top_k=retrieve_k, filters=filters)
+        
+        logger.info(f"  BM25: {len(bm25_results)} results")
+        logger.info(f"  Dense: {len(dense_results)} results")
+        
+        # Compute RRF scores
+        rrf_scores = self._compute_rrf_scores(bm25_results, dense_results)
+        
+        # Create HybridResult objects
+        results = []
+        for doc_id, (rrf_score, meta) in rrf_scores.items():
+            results.append(HybridResult(
+                doc_id=doc_id,
+                text=meta["text"],
+                metadata=meta["metadata"],
+                rrf_score=rrf_score,
+                bm25_score=meta["bm25_score"],
+                dense_score=meta["dense_score"],
+                bm25_rank=meta["bm25_rank"],
+                dense_rank=meta["dense_rank"]
+            ))
+        
+        # Sort by RRF score and take top_k
+        results.sort(key=lambda x: x.rrf_score, reverse=True)
+        results = results[:top_k]
+        
+        logger.info(f"✅ Hybrid search returned {len(results)} results")
+        if results:
+            logger.info(f"  Top result: {results[0].doc_id} (RRF: {results[0].rrf_score:.3f})")
+            logger.info(f"    BM25 rank: {results[0].bm25_rank}, Dense rank: {results[0].dense_rank}")
+        
+        return results
+
+
+if __name__ == "__main__":
+    # Simple test
+    import sys
+    import os
+    
+    # Add parent directory to path
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+    
+    logging.basicConfig(level=logging.INFO)
+    
+    # Test documents
+    docs = [
+        {
+            "id": "1",
+            "text": "Deep convolutional neural networks for epilepsy seizure detection from EEG signals",
+            "metadata": {"year": 2019}
+        },
+        {
+            "id": "2",
+            "text": "Sleep staging using recurrent neural networks and EEG time series",
+            "metadata": {"year": 2020}
+        },
+        {
+            "id": "3",
+            "text": "Motor imagery classification with convolutional neural networks for BCI",
+            "metadata": {"year": 2021}
+        },
+        {
+            "id": "4",
+            "text": "Epileptic seizure prediction using machine learning and EEG features",
+            "metadata": {"year": 2018}
         }
-        
-        with open(filepath, 'w') as f:
-            json.dump(config, f, indent=2)
+    ]
     
-    def load_config(self, filepath: str):
-        """Load configuration from file"""
-        with open(filepath, 'r') as f:
-            config = json.load(f)
+    # Initialize BM25
+    bm25 = BM25Retriever(cache_dir="data/bm25_cache_test")
+    bm25.index_documents(docs)
+    
+    # Initialize dense (requires Qdrant running - skip if not available)
+    try:
+        dense = DenseRetriever(url="http://localhost:6333", collection_name="eeg_papers")
         
-        self.alpha = config.get('alpha', 0.5)
-        self.fusion_method = config.get('fusion_method', 'weighted_sum')
+        # Create hybrid retriever
+        hybrid = HybridRetriever(
+            bm25_retriever=bm25,
+            dense_retriever=dense,
+            bm25_weight=0.5,
+            dense_weight=0.5
+        )
+        
+        # Test search
+        results = hybrid.search("epilepsy seizure detection", top_k=3, retrieve_k=10)
+        
+        print("\n🔍 Hybrid Search Results:")
+        for i, r in enumerate(results, 1):
+            print(f"\n{i}. Doc {r.doc_id}:")
+            print(f"   RRF Score: {r.rrf_score:.4f}")
+            print(f"   BM25: score={r.bm25_score:.3f}, rank={r.bm25_rank}")
+            print(f"   Dense: score={r.dense_score:.3f}, rank={r.dense_rank}")
+            print(f"   Text: {r.text[:80]}...")
+            
+    except Exception as e:
+        logger.error(f"Could not run hybrid test: {e}")
+        logger.info("Make sure Qdrant is running with eeg_papers collection")
