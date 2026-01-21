@@ -40,14 +40,14 @@ async def main():
     config = {
         "qdrant_url": "http://localhost:6333",
         "qdrant_collection": "eeg_papers",
-        "bm25_cache_dir": "data/embeddings/cache/bm25",
+        "bm25_cache_dir": "data/bm25_cache",  # Must match where script builds it
         "top_k": 5,
         "retrieve_k": 20,
         "bm25_weight": 0.5,
         "dense_weight": 0.5,
         "rrf_k": 60,
         "use_query_expansion": True,
-        "min_relevance_score": 0.3
+        "min_relevance_score": 0.01  # Lower threshold for RRF scores
     }
     
     # Initialize LocalDataAgent with hybrid retrieval
