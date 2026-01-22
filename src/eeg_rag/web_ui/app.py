@@ -27,12 +27,13 @@ import logging
 
 # Import new utilities
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils import (
     deduplicate_papers,
     generate_citations,
     get_all_badges,
-    get_quality_score
+    get_quality_score,
 )
 
 # Configure logging
@@ -703,11 +704,11 @@ question, acknowledge the limitations.
         # Merge all sources
         if papers_list:
             merged_df = pd.concat(papers_list, ignore_index=True)
-            
+
             # Apply deduplication
-            papers_for_dedup = merged_df.to_dict('records')
+            papers_for_dedup = merged_df.to_dict("records")
             unique_papers, duplicate_papers = deduplicate_papers(papers_for_dedup)
-            
+
             self.papers_df = pd.DataFrame(unique_papers)
             logger.info(
                 f"Total corpus: {len(self.papers_df)} unique papers after deduplication "
@@ -1270,7 +1271,7 @@ def render_header():
             """
         **Retrieval-Augmented Generation for EEG Research**
         
-        Query the EEG literature, extract structured data, and benchmark accuracy.
+        Query the EEG literature, ingest papers, and explore research insights.
         """
         )
 
@@ -1288,9 +1289,7 @@ def render_sidebar() -> str:
     pages = [
         "🔍 Query System",
         "📥 Data Ingestion",
-        "📊 Systematic Review Benchmark",
-        "📈 Results Dashboard",
-        "📚 Corpus Explorer",
+        " Corpus Explorer",
         "🔬 Paper Research Explorer",
         "⚙️ Settings",
     ]
@@ -1344,8 +1343,18 @@ def render_query_page():
 
     # Query input section
     with st.container():
+        # Pre-populate with random/related query if available
+        if "pending_query" in st.session_state:
+            default_query = st.session_state.pop("pending_query")
+            # Clear the query_input widget state to force update
+            if "query_input" in st.session_state:
+                del st.session_state["query_input"]
+        else:
+            default_query = ""
+
         query = st.text_area(
             "Enter your research question:",
+            value=default_query,
             placeholder="e.g., What are the best deep learning architectures for EEG seizure detection?",
             height=100,
             max_chars=AppConfig.MAX_QUERY_LENGTH,
@@ -1386,18 +1395,25 @@ def render_query_page():
                 sample_queries = [
                     "What CNNs are used for EEG seizure detection?",
                     "How does DeepSleepNet classify sleep stages?",
-                    "Compare motor imagery classification methods",
+                    "Compare motor imagery classification methods in BCIs",
                     "What preprocessing is needed for EEG deep learning?",
                     "What are state-of-the-art accuracies for P300 detection?",
+                    "How effective are LSTMs for epileptic seizure prediction?",
+                    "What are the best feature extraction methods for EEG?",
+                    "Compare CNN vs Transformer architectures for EEG analysis",
+                    "What datasets are commonly used for sleep stage classification?",
+                    "How do attention mechanisms improve EEG classification?",
+                    "What are the challenges in real-time EEG processing?",
+                    "Which neural networks work best for emotion recognition from EEG?",
                 ]
                 import random
 
-                st.session_state["random_query"] = random.choice(sample_queries)
+                st.session_state["pending_query"] = random.choice(sample_queries)
+                st.session_state["trigger_search"] = True
                 st.rerun()
 
-    # Handle random query
-    if "random_query" in st.session_state:
-        query = st.session_state.pop("random_query")
+    # Check if we need to trigger search from random/related query
+    if default_query and st.session_state.pop("trigger_search", False):
         search_clicked = True
 
     # Process query
@@ -1455,7 +1471,8 @@ def render_query_page():
                         use_container_width=True,
                         help="Click to search this query",
                     ):
-                        st.session_state["random_query"] = related_query
+                        st.session_state["pending_query"] = related_query
+                        st.session_state["trigger_search"] = True
                         st.rerun()
 
         # Sources section with clickable links
@@ -1468,14 +1485,20 @@ def render_query_page():
             )
         with col2:
             # Citation export dropdown
-            export_format = st.selectbox("📥 Export Citations", ["None", "BibTeX", "RIS", "Plain Text"], key="export_sources")
+            export_format = st.selectbox(
+                "📥 Export Citations",
+                ["None", "BibTeX", "RIS", "Plain Text"],
+                key="export_sources",
+            )
             if export_format != "None":
-                citation_text = generate_citations(result.sources, format=export_format.lower().replace(" ", ""))
+                citation_text = generate_citations(
+                    result.sources, format=export_format.lower().replace(" ", "")
+                )
                 st.download_button(
                     label=f"Download {export_format}",
                     data=citation_text,
                     file_name=f"citations.{export_format.lower().replace(' ', '_')}.txt",
-                    mime="text/plain"
+                    mime="text/plain",
                 )
 
         if result.sources:
@@ -1483,7 +1506,7 @@ def render_query_page():
                 # Get badges for this paper
                 badges = get_all_badges(source)
                 badge_suffix = f" {badges}" if badges else ""
-                
+
                 with st.expander(
                     f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')}){badge_suffix}",
                     expanded=(i <= 2),
@@ -1494,11 +1517,11 @@ def render_query_page():
                         st.markdown(f"**Title:** {source.get('title', 'Unknown')}")
                         st.markdown(f"**Authors:** {source.get('authors', 'Unknown')}")
                         st.markdown(f"**Year:** {source.get('year', 'N/A')}")
-                        
+
                         # Show quality badges prominently
                         if badges:
                             st.markdown(f"**Quality:** {badges}")
-                        
+
                         if source.get("domain"):
                             st.markdown(f"**Domain:** {source.get('domain')}")
                         if source.get("architecture"):
@@ -2238,21 +2261,23 @@ def render_paper_explorer_page():
             year = int(row.get("Year", 0)) if pd.notna(row.get("Year")) else "N/A"
             citation = str(row.get("Citation", f"paper_{idx}"))
             domain = str(row.get("Domain 1", ""))[:20]
-            
+
             # Get quality badges for this paper
             paper_dict = row.to_dict()
             badges = get_all_badges(paper_dict)
             quality_score = get_quality_score(paper_dict)
-            
+
             # Quality indicator emoji
-            quality_emoji = "⭐" if quality_score >= 0.8 else "🟢" if quality_score >= 0.5 else "⚪"
+            quality_emoji = (
+                "⭐" if quality_score >= 0.8 else "🟢" if quality_score >= 0.5 else "⚪"
+            )
 
             # Create a button-like card for each paper
             with st.container():
                 button_label = f"{quality_emoji} {citation} ({year})"
                 if badges:
                     button_label += f"\n{badges}"
-                    
+
                 if st.button(
                     button_label,
                     key=f"paper_btn_{row_idx}",
@@ -2921,11 +2946,7 @@ def main():
         render_query_page()
     elif page == "📥 Data Ingestion":
         render_ingestion_page()
-    elif page == "📊 Systematic Review Benchmark":
-        render_benchmark_page()
-    elif page == "📈 Results Dashboard":
-        render_results_page()
-    elif page == "📚 Corpus Explorer":
+    elif page == " Corpus Explorer":
         render_corpus_page()
     elif page == "🔬 Paper Research Explorer":
         render_paper_explorer_page()
