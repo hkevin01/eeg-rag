@@ -1053,44 +1053,85 @@ question, acknowledge the limitations.
         return self._generate_response_local(query, context, [])
 
     def generate_related_queries(self, query: str, sources: List[Dict]) -> List[str]:
-        """Generate 3 related search suggestions based on current query and results."""
-        suggestions = []
+        """Generate related search suggestions based on current query and results."""
+        import random
+        suggestions = set()
+        query_lower = query.lower()
+        query_terms = set(query_lower.split())
 
         # Extract topics from sources
-        architectures = [
+        architectures = list(set(
             s.get("architecture", "") for s in sources if s.get("architecture")
-        ]
-        domains = [s.get("domain", "") for s in sources if s.get("domain")]
+        ))
+        domains = list(set(
+            s.get("domain", "") for s in sources if s.get("domain")
+        ))
+        datasets = list(set(
+            s.get("dataset", s.get("Dataset name", "")) 
+            for s in sources if s.get("dataset") or s.get("Dataset name")
+        ))
 
-        # Suggestion 1: Focus on specific architecture if found
-        if architectures:
-            arch = architectures[0]
-            suggestions.append(
-                f"How does {arch} compare to other architectures for EEG?"
-            )
+        # Architecture-based suggestions
+        for arch in architectures[:2]:
+            if arch and arch.lower() not in query_lower:
+                suggestions.add(f"{query} {arch}")
+                suggestions.add(f"{arch} EEG classification benchmark")
 
-        # Suggestion 2: Focus on specific domain if found
-        if domains:
-            domain = domains[0]
-            suggestions.append(f"What datasets are commonly used for {domain}?")
+        # Domain-based suggestions
+        for domain in domains[:2]:
+            if domain and domain.lower() not in query_lower:
+                suggestions.add(f"{domain} deep learning methods")
+                suggestions.add(f"Best accuracy for {domain}")
 
-        # Suggestion 3: Broaden or narrow the query
-        if "deep learning" in query.lower():
-            suggestions.append(
-                "What are the latest transfer learning approaches for EEG?"
-            )
-        elif "seizure" in query.lower():
-            suggestions.append(
-                "What preprocessing methods improve seizure detection accuracy?"
-            )
-        elif "accuracy" in query.lower() or "performance" in query.lower():
-            suggestions.append(
-                "What are the benchmark accuracies for EEG classification tasks?"
-            )
-        else:
-            suggestions.append("What are the most cited EEG deep learning papers?")
+        # Dataset-based suggestions
+        for dataset in datasets[:1]:
+            if dataset and str(dataset) != "nan" and dataset.lower() not in query_lower:
+                suggestions.add(f"{dataset} benchmark results")
 
-        return suggestions[:3]
+        # Method-based expansions
+        methods = ['CNN', 'transformer', 'LSTM', 'attention', 'ResNet', 'EEGNet']
+        for method in methods:
+            if method.lower() not in query_lower:
+                suggestions.add(f"{query} {method}")
+                break
+
+        # Topic expansions based on query content
+        if "seizure" in query_lower or "epilep" in query_lower:
+            suggestions.add("Seizure prediction vs detection accuracy")
+            suggestions.add("Cross-patient seizure detection generalization")
+        elif "sleep" in query_lower:
+            suggestions.add("Single-channel EEG sleep staging")
+            suggestions.add("Sleep stage classification transformer")
+        elif "bci" in query_lower or "brain-computer" in query_lower:
+            suggestions.add("Motor imagery BCI calibration-free")
+            suggestions.add("P300 speller deep learning")
+        elif "emotion" in query_lower:
+            suggestions.add("EEG emotion recognition DEAP dataset")
+            suggestions.add("Cross-subject emotion classification")
+
+        # General expansions
+        if "benchmark" not in query_lower and "comparison" not in query_lower:
+            suggestions.add(f"{query} benchmark comparison")
+        if "reproducib" not in query_lower:
+            suggestions.add(f"{query} reproducibility")
+        if "dataset" not in query_lower:
+            suggestions.add(f"{query} public dataset")
+        if "state-of-the-art" not in query_lower and "sota" not in query_lower:
+            suggestions.add(f"{query} state-of-the-art 2024")
+        if "preprocess" not in query_lower:
+            suggestions.add(f"{query} preprocessing pipeline")
+
+        # Filter out duplicates and queries too similar to original
+        filtered = []
+        for s in suggestions:
+            s_clean = s.strip()
+            s_lower = s_clean.lower()
+            if s_lower != query_lower and set(s_lower.split()) != query_terms:
+                filtered.append(s_clean)
+
+        # Shuffle and return top suggestions
+        random.shuffle(filtered)
+        return filtered[:3]
 
     async def query(
         self, query_text: str, max_sources: int = 5, use_llm: bool = False
