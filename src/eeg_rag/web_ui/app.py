@@ -18,6 +18,7 @@ import json
 import re
 import time
 import hashlib
+import urllib.parse
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, Callable
 from dataclasses import dataclass, field, asdict
@@ -1418,6 +1419,18 @@ def render_query_page():
     """Render query interface page."""
     st.header("🔍 Query the EEG Research Corpus")
 
+    # Check URL query params for related search navigation (scroll to top)
+    url_search = st.query_params.get("q")
+    if url_search:
+        decoded_query = urllib.parse.unquote(url_search)
+        current_query = ""
+        if st.session_state.get("current_result"):
+            current_query = getattr(st.session_state["current_result"], "query", "")
+        if decoded_query != current_query:
+            st.session_state["pending_query"] = decoded_query
+            # Clear URL param after processing
+            st.query_params.clear()
+
     # CRITICAL: Check for pending query FIRST, before any widget initialization
     # This ensures the pending query is processed before the widget gets created
     if "pending_query" in st.session_state:
@@ -1549,21 +1562,35 @@ def render_query_page():
 
         st.markdown(result.response)
 
-        # Related queries section
+        # Related queries section - use URL links for reliable scroll-to-top
         if result.related_queries:
             st.markdown("---")
             st.markdown("### 💡 Related Searches")
+            st.caption("Click to explore related topics")
             cols = st.columns(3)
             for idx, related_query in enumerate(result.related_queries):
                 with cols[idx]:
-                    if st.button(
-                        related_query,
-                        key=f"related_{idx}",
-                        use_container_width=True,
-                        help="Click to search this query",
-                    ):
-                        st.session_state["pending_query"] = related_query
-                        st.rerun()
+                    # Use URL-based navigation for reliable scroll-to-top
+                    encoded_query = urllib.parse.quote(related_query)
+                    display_text = related_query if len(related_query) <= 40 else related_query[:37] + "..."
+                    st.markdown(
+                        f'<a href="?q={encoded_query}" target="_self" style="'
+                        f'display: block; '
+                        f'background-color: #262730; '
+                        f'border: 1px solid #4a4a5a; '
+                        f'border-radius: 8px; '
+                        f'padding: 10px 12px; '
+                        f'margin: 4px 0; '
+                        f'color: #fafafa; '
+                        f'text-decoration: none; '
+                        f'font-size: 14px; '
+                        f'text-align: center; '
+                        f'transition: background-color 0.2s;'
+                        f'">'
+                        f'🔎 {display_text}'
+                        f'</a>',
+                        unsafe_allow_html=True
+                    )
 
         # Sources section with clickable links
         st.markdown("---")
