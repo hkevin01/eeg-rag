@@ -1519,17 +1519,35 @@ def render_query_page():
                 # Get badges for this paper
                 badges = get_all_badges(source)
                 badge_suffix = f" {badges}" if badges else ""
+                
+                # Get citation count for display
+                citation_count = source.get("citation_count", source.get("citations", 0))
+                citation_suffix = f" 📚{citation_count}" if citation_count else ""
 
                 with st.expander(
-                    f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')}){badge_suffix}",
+                    f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')}){badge_suffix}{citation_suffix}",
                     expanded=(i <= 2),
                 ):
                     col1, col2 = st.columns([3, 1])
 
                     with col1:
                         st.markdown(f"**Title:** {source.get('title', 'Unknown')}")
-                        st.markdown(f"**Authors:** {source.get('authors', 'Unknown')}")
+                        
+                        # Authors with smart truncation
+                        authors = source.get('authors', 'Unknown')
+                        if isinstance(authors, list):
+                            if len(authors) > 5:
+                                authors = ', '.join(authors[:5]) + f' et al. (+{len(authors)-5} more)'
+                            else:
+                                authors = ', '.join(authors) if authors else 'Unknown'
+                        st.markdown(f"**Authors:** {authors}")
+                        
                         st.markdown(f"**Year:** {source.get('year', 'N/A')}")
+                        
+                        # Journal/venue
+                        journal = source.get("journal", source.get("venue", source.get("source", "")))
+                        if journal and str(journal) != "nan":
+                            st.markdown(f"**Journal:** {journal}")
 
                         # Show quality badges prominently
                         if badges:
@@ -1543,11 +1561,28 @@ def render_query_page():
                             )
 
                     with col2:
-                        relevance = source.get("relevance", 0)
+                        relevance = source.get("relevance", source.get("score", 0))
                         st.metric("Relevance", f"{relevance:.0%}")
+                        
+                        # Citation count metric
+                        if citation_count:
+                            st.metric("Citations", f"{citation_count:,}")
+
+                    # Identifiers row
+                    pmid = source.get("pmid", source.get("PMID", ""))
+                    doi = source.get("doi", source.get("DOI", ""))
+                    
+                    if pmid or doi:
+                        id_col1, id_col2 = st.columns(2)
+                        with id_col1:
+                            if pmid:
+                                st.markdown(f"**PMID:** [{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)")
+                        with id_col2:
+                            if doi:
+                                st.markdown(f"**DOI:** [{doi}](https://doi.org/{doi})")
 
                     # Action buttons row
-                    btn_col1, btn_col2 = st.columns(2)
+                    btn_col1, btn_col2, btn_col3 = st.columns(3)
 
                     with btn_col1:
                         pubmed_url = source.get(
@@ -1563,38 +1598,78 @@ def render_query_page():
                         st.link_button(
                             "🎓 Google Scholar", scholar_url, use_container_width=True
                         )
+                    
+                    with btn_col3:
+                        # Find similar papers button
+                        if st.button("🔍 Find Similar", key=f"similar_{i}", use_container_width=True):
+                            similar_query = source.get('title', '')[:60]
+                            st.session_state["pending_query"] = similar_query
+                            st.rerun()
 
                     # Show additional details inline
                     st.markdown("---")
                     st.markdown("##### 📋 Full Details")
 
                     # Results/Abstract
-                    results_text = source.get("results", source.get("Results", ""))
+                    results_text = source.get("results", source.get("Results", source.get("abstract", "")))
                     if results_text and str(results_text) != "nan":
                         st.markdown(f"**Results/Abstract:**")
                         st.markdown(
-                            f"> {results_text[:500]}{'...' if len(str(results_text)) > 500 else ''}"
+                            f"> {str(results_text)[:500]}{'...' if len(str(results_text)) > 500 else ''}"
                         )
 
-                    # Dataset info
-                    dataset = source.get("dataset", source.get("Dataset name", ""))
-                    if dataset and str(dataset) != "nan":
-                        st.markdown(f"**Dataset:** {dataset}")
+                    # Two column layout for additional metadata
+                    detail_col1, detail_col2 = st.columns(2)
+                    
+                    with detail_col1:
+                        # Dataset info
+                        dataset = source.get("dataset", source.get("Dataset name", ""))
+                        if dataset and str(dataset) != "nan":
+                            st.markdown(f"**Dataset:** {dataset}")
+                        
+                        # Sample size
+                        sample_size = source.get("sample_size", source.get("n_subjects", ""))
+                        if sample_size and str(sample_size) != "nan":
+                            st.markdown(f"**Sample Size:** {sample_size}")
+                        
+                        # Performance metrics
+                        accuracy = source.get("accuracy", source.get("performance", source.get("f1_score", "")))
+                        if accuracy and str(accuracy) != "nan":
+                            st.markdown(f"**Reported Performance:** {accuracy}")
+                    
+                    with detail_col2:
+                        # Code availability
+                        code_available = source.get("code_available", source.get("github_url", ""))
+                        if code_available:
+                            if isinstance(code_available, bool):
+                                st.markdown(f"**Code Available:** {'✅ Yes' if code_available else '❌ No'}")
+                            elif code_available and str(code_available) != "nan":
+                                st.markdown(f"**Code:** [{code_available}]({code_available})")
+                        
+                        # Data availability
+                        data_available = source.get("data_available", source.get("data_url", ""))
+                        if data_available:
+                            if isinstance(data_available, bool):
+                                st.markdown(f"**Data Available:** {'✅ Yes' if data_available else '❌ No'}")
+                            elif data_available and str(data_available) != "nan":
+                                st.markdown(f"**Data:** [{data_available}]({data_available})")
+                        
+                        # Citation ID
+                        doc_id = source.get("doc_id", "")
+                        if doc_id:
+                            st.markdown(f"**Citation ID:** `{doc_id}`")
 
-                    # Citation info
-                    doc_id = source.get("doc_id", "")
-                    if doc_id:
-                        st.markdown(f"**Citation ID:** `{doc_id}`")
+                    # MeSH terms / Keywords as tags
+                    mesh_terms = source.get("mesh_terms", source.get("keywords", []))
+                    if mesh_terms and mesh_terms != "nan":
+                        if isinstance(mesh_terms, str):
+                            mesh_terms = [t.strip() for t in mesh_terms.split(",") if t.strip()]
+                        if mesh_terms:
+                            st.markdown("**Keywords/MeSH:**")
+                            # Display as inline tags
+                            tags_display = " • ".join(mesh_terms[:10])
+                            st.caption(tags_display)
 
-                    # PMID/DOI if available
-                    pmid = source.get("pmid", "")
-                    doi = source.get("doi", "")
-                    if pmid:
-                        st.markdown(
-                            f"**PMID:** [{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)"
-                        )
-                    if doi:
-                        st.markdown(f"**DOI:** [{doi}](https://doi.org/{doi})")
         else:
             st.warning("No relevant sources found for this query.")
 
