@@ -35,37 +35,21 @@ def main():
     page = st.sidebar.radio(
         "Select Page",
         [
-            "🔍 Query System",
-            "🔬 Systematic Review",
-            "📥 Data Ingestion",
-            "📚 Corpus Explorer",
-            "⚙️ Settings"
+            "� Systematic Review"
         ]
     )
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Additional Tools**")
-    st.sidebar.markdown("🧪 [Testing Suite](pages/1_Testing_Suite.py)")
-    st.sidebar.markdown("📊 [Benchmarking](pages/2_Benchmarking.py)")
+    st.sidebar.info("🧪 Testing Suite - See separate page 1_Testing_Suite.py")
+    st.sidebar.info("📊 Benchmarking - See separate page 2_Benchmarking.py")
     
     st.markdown("---")
     
     # Render selected page
-    if page == "🔍 Query System":
-        from pages import query_page
-        query_page.render()
-    elif page == "🔬 Systematic Review":
+    if page == "🔬 Systematic Review":
         from pages import systematic_review_page
         systematic_review_page.render()
-    elif page == "📥 Data Ingestion":
-        from pages import ingestion_page
-        ingestion_page.render()
-    elif page == "📚 Corpus Explorer":
-        from pages import corpus_page
-        corpus_page.render()
-    elif page == "⚙️ Settings":
-        from pages import settings_page
-        settings_page.render()
 
 
 if __name__ == "__main__":
