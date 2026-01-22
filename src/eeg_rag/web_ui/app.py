@@ -1341,13 +1341,12 @@ def render_query_page():
     """Render query interface page."""
     st.header("🔍 Query the EEG Research Corpus")
 
+    # Pre-populate query from pending_query BEFORE creating widgets
+    if "pending_query" in st.session_state:
+        st.session_state["query_input"] = st.session_state.pop("pending_query")
+
     # Query input section
     with st.container():
-        # Pre-populate with random/related query if available
-        if "pending_query" in st.session_state:
-            # Directly set the widget's session state value
-            st.session_state["query_input"] = st.session_state.pop("pending_query")
-
         query = st.text_area(
             "Enter your research question:",
             placeholder="e.g., What are the best deep learning architectures for EEG seizure detection?",
@@ -1410,6 +1409,9 @@ def render_query_page():
     # Check if we need to trigger search from random/related query
     if st.session_state.pop("trigger_search", False):
         search_clicked = True
+        # Ensure we have the query from the widget
+        if not query and "query_input" in st.session_state:
+            query = st.session_state["query_input"]
 
     # Process query
     if search_clicked and query:
