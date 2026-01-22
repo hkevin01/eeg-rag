@@ -41,6 +41,34 @@ from utils import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Stopwords for extracting key terms from titles
+STOPWORDS = {
+    'a', 'an', 'the', 'of', 'for', 'in', 'on', 'to', 'and', 'or', 
+    'with', 'using', 'based', 'from', 'by', 'as', 'at', 'is', 'are',
+    'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+    'this', 'that', 'these', 'those', 'it', 'we', 'they',
+    'what', 'which', 'who', 'where', 'when', 'why', 'how',
+    'all', 'each', 'both', 'few', 'more', 'most', 'other', 'some',
+    'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
+    'very', 'just', 'also', 'now', 'new', 'study', 'analysis',
+    'approach', 'method', 'methods', 'review', 'comprehensive', 
+    'novel', 'proposed', 'paper', 'research', 'results', 'used',
+    'can', 'may', 'will', 'would', 'could', 'should', 'our', 'their'
+}
+
+
+def extract_key_terms(text: str, max_terms: int = 5) -> str:
+    """Extract key terms from text, removing stopwords."""
+    # Clean punctuation and split
+    cleaned = text.replace(':', ' ').replace('-', ' ').replace('(', ' ').replace(')', ' ')
+    cleaned = cleaned.replace('[', ' ').replace(']', ' ').replace(',', ' ')
+    words = cleaned.split()
+    
+    # Filter stopwords and short words
+    key_terms = [w for w in words if w.lower() not in STOPWORDS and len(w) > 2]
+    
+    return ' '.join(key_terms[:max_terms])
+
 
 # =============================================================================
 # Configuration & Constants
@@ -1608,13 +1636,16 @@ def render_query_page():
                 key="export_sources",
             )
             if export_format != "None":
+                # Map display names to format codes
+                format_map = {"BibTeX": "bibtex", "RIS": "ris", "Plain Text": "plain"}
+                format_code = format_map.get(export_format, "plain")
                 citation_text = generate_citations(
-                    result.sources, format=export_format.lower().replace(" ", "")
+                    result.sources, format=format_code
                 )
                 st.download_button(
                     label=f"Download {export_format}",
                     data=citation_text,
-                    file_name=f"citations.{export_format.lower().replace(' ', '_')}.txt",
+                    file_name=f"citations.{format_code}.txt",
                     mime="text/plain",
                 )
 
@@ -1704,11 +1735,31 @@ def render_query_page():
                         )
                     
                     with btn_col3:
-                        # Find similar papers button
-                        if st.button("🔍 Find Similar", key=f"similar_{i}", use_container_width=True):
-                            similar_query = source.get('title', '')[:60]
-                            st.session_state["pending_query"] = similar_query
-                            st.rerun()
+                        # Find similar papers - use URL link for scroll-to-top
+                        title = source.get('title', '')
+                        similar_query = extract_key_terms(title, max_terms=5)
+                        if similar_query:
+                            encoded_query = urllib.parse.quote(similar_query)
+                            st.markdown(
+                                f'<a href="?q={encoded_query}" target="_self" style="'
+                                f'display: inline-flex; '
+                                f'align-items: center; '
+                                f'justify-content: center; '
+                                f'background-color: #262730; '
+                                f'border: 1px solid #4a4a5a; '
+                                f'border-radius: 8px; '
+                                f'padding: 8px 16px; '
+                                f'color: #fafafa; '
+                                f'text-decoration: none; '
+                                f'font-size: 14px; '
+                                f'width: 100%; '
+                                f'box-sizing: border-box; '
+                                f'height: 38px;'
+                                f'">'
+                                f'🔍 Find Similar'
+                                f'</a>',
+                                unsafe_allow_html=True
+                            )
 
                     # Show additional details inline
                     st.markdown("---")
