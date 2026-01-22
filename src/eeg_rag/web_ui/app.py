@@ -1345,16 +1345,11 @@ def render_query_page():
     with st.container():
         # Pre-populate with random/related query if available
         if "pending_query" in st.session_state:
-            default_query = st.session_state.pop("pending_query")
-            # Clear the query_input widget state to force update
-            if "query_input" in st.session_state:
-                del st.session_state["query_input"]
-        else:
-            default_query = ""
+            # Directly set the widget's session state value
+            st.session_state["query_input"] = st.session_state.pop("pending_query")
 
         query = st.text_area(
             "Enter your research question:",
-            value=default_query,
             placeholder="e.g., What are the best deep learning architectures for EEG seizure detection?",
             height=100,
             max_chars=AppConfig.MAX_QUERY_LENGTH,
@@ -1413,7 +1408,7 @@ def render_query_page():
                 st.rerun()
 
     # Check if we need to trigger search from random/related query
-    if default_query and st.session_state.pop("trigger_search", False):
+    if st.session_state.pop("trigger_search", False):
         search_clicked = True
 
     # Process query
