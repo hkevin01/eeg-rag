@@ -1055,83 +1055,119 @@ question, acknowledge the limitations.
     def generate_related_queries(self, query: str, sources: List[Dict]) -> List[str]:
         """Generate related search suggestions based on current query and results."""
         import random
-        suggestions = set()
+        related = []
         query_lower = query.lower()
         query_terms = set(query_lower.split())
-
-        # Extract topics from sources
-        architectures = list(set(
-            s.get("architecture", "") for s in sources if s.get("architecture")
-        ))
-        domains = list(set(
-            s.get("domain", "") for s in sources if s.get("domain")
-        ))
-        datasets = list(set(
-            s.get("dataset", s.get("Dataset name", "")) 
-            for s in sources if s.get("dataset") or s.get("Dataset name")
-        ))
-
-        # Architecture-based suggestions
-        for arch in architectures[:2]:
+        
+        # Extract core concepts (remove stopwords and filler)
+        stopwords = {'of', 'the', 'a', 'an', 'and', 'or', 'for', 'in', 'on', 'to', 'with', 
+                     'using', 'based', 'methods', 'method', 'approach', 'approaches',
+                     'analysis', 'study', 'review', 'state-of-the-art', '2024', '2023', '2022'}
+        
+        core_terms = [t for t in query_lower.split() if t not in stopwords and len(t) > 2]
+        core_query = ' '.join(core_terms[:4])  # Keep max 4 core terms
+        
+        # Extract entities from results
+        found_architectures = set()
+        found_conditions = set()
+        found_datasets = set()
+        
+        for source in sources[:10]:
+            # Extract architecture
+            arch = source.get('architecture', '')
             if arch and arch.lower() not in query_lower:
-                suggestions.add(f"{query} {arch}")
-                suggestions.add(f"{arch} EEG classification benchmark")
-
-        # Domain-based suggestions
-        for domain in domains[:2]:
+                found_architectures.add(arch)
+            
+            # Extract dataset
+            dataset = source.get('dataset', source.get('Dataset name', ''))
+            if dataset and str(dataset) != 'nan' and dataset.lower() not in query_lower:
+                found_datasets.add(dataset)
+            
+            # Extract domain as condition
+            domain = source.get('domain', '')
             if domain and domain.lower() not in query_lower:
-                suggestions.add(f"{domain} deep learning methods")
-                suggestions.add(f"Best accuracy for {domain}")
-
-        # Dataset-based suggestions
-        for dataset in datasets[:1]:
-            if dataset and str(dataset) != "nan" and dataset.lower() not in query_lower:
-                suggestions.add(f"{dataset} benchmark results")
-
-        # Method-based expansions
-        methods = ['CNN', 'transformer', 'LSTM', 'attention', 'ResNet', 'EEGNet']
-        for method in methods:
+                found_conditions.add(domain)
+        
+        # Strategy 1: Add different method/architecture
+        method_alternatives = ['CNN', 'LSTM', 'transformer', 'attention mechanism', 'EEGNet']
+        for method in method_alternatives:
             if method.lower() not in query_lower:
-                suggestions.add(f"{query} {method}")
+                related.append(f"{core_query} {method}")
                 break
-
-        # Topic expansions based on query content
-        if "seizure" in query_lower or "epilep" in query_lower:
-            suggestions.add("Seizure prediction vs detection accuracy")
-            suggestions.add("Cross-patient seizure detection generalization")
-        elif "sleep" in query_lower:
-            suggestions.add("Single-channel EEG sleep staging")
-            suggestions.add("Sleep stage classification transformer")
-        elif "bci" in query_lower or "brain-computer" in query_lower:
-            suggestions.add("Motor imagery BCI calibration-free")
-            suggestions.add("P300 speller deep learning")
-        elif "emotion" in query_lower:
-            suggestions.add("EEG emotion recognition DEAP dataset")
-            suggestions.add("Cross-subject emotion classification")
-
-        # General expansions
-        if "benchmark" not in query_lower and "comparison" not in query_lower:
-            suggestions.add(f"{query} benchmark comparison")
-        if "reproducib" not in query_lower:
-            suggestions.add(f"{query} reproducibility")
-        if "dataset" not in query_lower:
-            suggestions.add(f"{query} public dataset")
-        if "state-of-the-art" not in query_lower and "sota" not in query_lower:
-            suggestions.add(f"{query} state-of-the-art 2024")
-        if "preprocess" not in query_lower:
-            suggestions.add(f"{query} preprocessing pipeline")
-
-        # Filter out duplicates and queries too similar to original
-        filtered = []
-        for s in suggestions:
-            s_clean = s.strip()
-            s_lower = s_clean.lower()
-            if s_lower != query_lower and set(s_lower.split()) != query_terms:
-                filtered.append(s_clean)
-
-        # Shuffle and return top suggestions
-        random.shuffle(filtered)
-        return filtered[:3]
+        
+        # Strategy 2: Add found architectures from results
+        for arch in list(found_architectures)[:1]:
+            related.append(f"{core_query} {arch}")
+        
+        # Strategy 3: Pivot to related applications
+        applications = {
+            'eeg': ['seizure detection', 'sleep staging', 'emotion recognition', 'motor imagery'],
+            'classification': ['detection', 'prediction'],
+            'deep learning': ['machine learning comparison'],
+            'seizure': ['epilepsy monitoring', 'ictal detection'],
+            'sleep': ['insomnia detection', 'sleep apnea'],
+            'motor': ['movement prediction', 'rehabilitation BCI']
+        }
+        
+        for key, alternatives in applications.items():
+            if key in query_lower:
+                for alt in alternatives:
+                    if alt.lower() not in query_lower:
+                        base = ' '.join([t for t in core_terms if key not in t.lower()][:3])
+                        related.append(f"EEG {alt}" if not base else f"{base} {alt}")
+                        break
+                break
+        
+        # Strategy 4: Add dataset-specific search
+        common_datasets = ['CHB-MIT', 'BCI Competition', 'DEAP', 'PhysioNet', 'TUH EEG']
+        for ds in common_datasets:
+            if ds.lower() not in query_lower:
+                related.append(f"{core_query} {ds}")
+                break
+        
+        # Strategy 5: Evaluation/benchmark angle
+        if 'benchmark' not in query_lower:
+            related.append(f"{core_query} benchmark comparison")
+        
+        # Strategy 6: Cross-subject/transfer learning
+        if 'cross' not in query_lower and 'transfer' not in query_lower:
+            related.append(f"{core_query} cross-subject generalization")
+        
+        # Strategy 7: Real-time/clinical angle
+        if 'real-time' not in query_lower and 'clinical' not in query_lower:
+            related.append(f"{core_query} real-time clinical")
+        
+        # Strategy 8: Tangential but related searches
+        tangential_searches = [
+            "EEG preprocessing artifact removal",
+            "EEG feature extraction comparison",
+            "explainable AI EEG classification",
+            "lightweight models EEG edge deployment"
+        ]
+        for ts in tangential_searches:
+            if not any(term in query_lower for term in ts.lower().split()[:2]):
+                related.append(ts)
+                break
+        
+        # Clean up and deduplicate
+        seen = set()
+        cleaned = []
+        for r in related:
+            r_clean = ' '.join(r.split())  # Normalize whitespace
+            r_lower = r_clean.lower()
+            
+            if r_lower == query_lower or r_lower in seen:
+                continue
+            if len(r_clean) < 10:  # Too short
+                continue
+            if len(r_clean) > 50:  # Too long - truncate
+                r_clean = ' '.join(r_clean.split()[:6])
+            
+            seen.add(r_lower)
+            cleaned.append(r_clean)
+        
+        random.shuffle(cleaned)
+        return cleaned[:3]
 
     async def query(
         self, query_text: str, max_sources: int = 5, use_llm: bool = False
