@@ -1341,18 +1341,33 @@ def render_query_page():
     """Render query interface page."""
     st.header("🔍 Query the EEG Research Corpus")
 
-    # Pre-populate query from pending_query BEFORE creating widgets
+    # CRITICAL: Check for pending query FIRST, before any widget initialization
+    # This ensures the pending query is processed before the widget gets created
     if "pending_query" in st.session_state:
-        st.session_state["query_input"] = st.session_state.pop("pending_query")
+        pending = st.session_state.pop("pending_query")
+        # Set the widget's value directly via session state
+        st.session_state["_query_widget"] = pending
+        st.session_state["do_search"] = True
+
+    # Initialize session state for search trigger flag
+    if "do_search" not in st.session_state:
+        st.session_state["do_search"] = False
+
+    # Initialize the widget key if not present (only if not set by pending_query)
+    if "_query_widget" not in st.session_state:
+        st.session_state["_query_widget"] = ""
 
     # Query input section
     with st.container():
+        # The widget automatically uses st.session_state["_query_widget"] for its value
+        # because we specified key="_query_widget"
+        # DO NOT use value= parameter when you want session_state to control the widget
         query = st.text_area(
             "Enter your research question:",
             placeholder="e.g., What are the best deep learning architectures for EEG seizure detection?",
             height=100,
             max_chars=AppConfig.MAX_QUERY_LENGTH,
-            key="query_input",
+            key="_query_widget",
         )
 
         col1, col2, col3 = st.columns([2, 2, 1])
@@ -1403,17 +1418,14 @@ def render_query_page():
                 import random
 
                 st.session_state["pending_query"] = random.choice(sample_queries)
-                st.session_state["trigger_search"] = True
                 st.rerun()
 
     # Check if we need to trigger search from random/related query
-    if st.session_state.pop("trigger_search", False):
+    search_triggered = st.session_state.pop("do_search", False)
+    if search_triggered:
         search_clicked = True
-        # Ensure we have the query from the widget
-        if not query and "query_input" in st.session_state:
-            query = st.session_state["query_input"]
 
-    # Process query
+    # Process query - perform search when button clicked or triggered
     if search_clicked and query:
         with st.spinner(
             "🤖 Retrieving papers and generating AI response with Mistral..."
@@ -1431,8 +1443,13 @@ def render_query_page():
                 st.session_state["query_engine"].query(query, max_sources, use_llm=True)
             )
 
-            # Store in history
+            # Store in history AND as current result for display
             st.session_state["query_history"].append(result)
+            st.session_state["current_result"] = result
+
+    # Display results if we have a current result (either from new search or previous)
+    result = st.session_state.get("current_result")
+    if result:
 
         # Display results
         st.success(
@@ -1469,7 +1486,6 @@ def render_query_page():
                         help="Click to search this query",
                     ):
                         st.session_state["pending_query"] = related_query
-                        st.session_state["trigger_search"] = True
                         st.rerun()
 
         # Sources section with clickable links
