@@ -1447,17 +1447,17 @@ def render_query_page():
     """Render query interface page."""
     st.header("🔍 Query the EEG Research Corpus")
 
-    # Check URL query params for related search navigation (scroll to top)
+    # Check URL query params for related search / find similar navigation
     url_search = st.query_params.get("q")
     if url_search:
         decoded_query = urllib.parse.unquote(url_search)
-        current_query = ""
-        if st.session_state.get("current_result"):
-            current_query = getattr(st.session_state["current_result"], "query", "")
-        if decoded_query != current_query:
-            st.session_state["pending_query"] = decoded_query
-            # Clear URL param after processing
-            st.query_params.clear()
+        # Clear URL param first to prevent infinite loops
+        st.query_params.clear()
+        # Set as pending query and rerun
+        st.session_state["pending_query"] = decoded_query
+        st.session_state["_query_widget"] = decoded_query
+        st.session_state["do_search"] = True
+        st.rerun()
 
     # CRITICAL: Check for pending query FIRST, before any widget initialization
     # This ensures the pending query is processed before the widget gets created
