@@ -61,9 +61,9 @@ def render_result_rating():
     latest_query = st.session_state.query_history[-1]
     
     st.markdown(f"""
-    <div style="background: #1a1a2e; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-        <div style="color: #8b8bc0; font-size: 0.8rem;">Rating results for:</div>
-        <div style="color: #fff; margin-top: 0.25rem;">"{latest_query.get('query', 'Unknown query')[:100]}..."</div>
+    <div style="background: #FFF9C4; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #FFF59D;">
+        <div style="color: #795548; font-size: 0.8rem;">Rating results for:</div>
+        <div style="color: #000; margin-top: 0.25rem;">"{latest_query.get('query', 'Unknown query')[:100]}..."</div>
     </div>
     """, unsafe_allow_html=True)
     
