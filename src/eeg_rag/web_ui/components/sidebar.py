@@ -14,8 +14,8 @@ def render_sidebar():
         st.markdown("""
         <div style="text-align: center; padding: 1rem 0;">
             <span style="font-size: 3rem;">🧠</span>
-            <h2 style="margin: 0.5rem 0 0 0; color: #fff;">EEG-RAG</h2>
-            <p style="color: #888; font-size: 0.85rem; margin: 0;">
+            <h2 style="margin: 0.5rem 0 0 0; color: #000;">EEG-RAG</h2>
+            <p style="color: #616161; font-size: 0.85rem; margin: 0;">
                 AI Research Assistant
             </p>
         </div>
@@ -59,10 +59,10 @@ def render_sidebar():
         
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="width: 8px; height: 8px; background: #34d399; border-radius: 50%;"></span>
-            <span style="color: #a0a0c0; font-size: 0.85rem;">All agents online</span>
+            <span style="width: 8px; height: 8px; background: #2e7d32; border-radius: 50%;"></span>
+            <span style="color: #424242; font-size: 0.85rem;">All agents online</span>
         </div>
-        <div style="color: #666; font-size: 0.8rem;">
+        <div style="color: #616161; font-size: 0.8rem;">
             📚 52,431 papers indexed<br/>
             🔄 Last sync: 2h ago<br/>
             ⚡ Avg response: 2.3s
@@ -84,7 +84,7 @@ def render_sidebar():
         
         # Version info
         st.markdown("""
-        <div style="text-align: center; color: #666; font-size: 0.8rem;">
+        <div style="text-align: center; color: #616161; font-size: 0.8rem;">
             EEG-RAG v0.5.0 Beta<br/>
             © 2024 EEG Research Team
         </div>

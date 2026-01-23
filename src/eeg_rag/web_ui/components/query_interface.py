@@ -13,18 +13,23 @@ import re
 def render_query_interface():
     """Render the main query input interface with options."""
     
+    # Initialize query_input in session state if not present
+    if 'query_input' not in st.session_state:
+        st.session_state.query_input = ''
+    
+    # If an example query was selected, update the query_input
+    if 'example_query' in st.session_state:
+        st.session_state.query_input = st.session_state.example_query
+        del st.session_state.example_query
+        st.rerun()
+    
     # Query input
     query = st.text_area(
         "Enter your EEG research question",
         placeholder="Example: What are the P300 amplitude differences between patients with treatment-resistant depression and healthy controls?",
         height=100,
-        key="query_input",
-        value=st.session_state.get('example_query', '')
+        key="query_input"
     )
-    
-    # Clear example query after use
-    if 'example_query' in st.session_state:
-        del st.session_state.example_query
     
     # Query options
     with st.expander("⚙️ Query Options", expanded=False):

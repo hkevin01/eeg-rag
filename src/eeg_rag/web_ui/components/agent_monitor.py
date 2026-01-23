@@ -335,84 +335,84 @@ def render_pipeline_diagram():
     st.markdown("### 🔄 Query Processing Pipeline")
     
     st.markdown("""
-    <div style="background: #1a1a2e; border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+    <div style="background: #f5f5f5; border-radius: 12px; padding: 1.5rem; margin: 1rem 0; border: 1px solid #e0e0e0;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
             
             <!-- Query Input -->
             <div style="text-align: center;">
-                <div style="background: #2d2d4d; padding: 1rem; border-radius: 8px; min-width: 120px;">
+                <div style="background: #e0e0e0; padding: 1rem; border-radius: 8px; min-width: 120px;">
                     <div style="font-size: 1.5rem;">❓</div>
-                    <div style="color: #fff; font-weight: 600; margin-top: 0.5rem;">Your Query</div>
+                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Your Query</div>
                 </div>
             </div>
             
-            <div style="color: #4a4a6a; font-size: 1.5rem;">→</div>
+            <div style="color: #9e9e9e; font-size: 1.5rem;">→</div>
             
             <!-- Orchestrator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #1e1e2e, #2d2d44); padding: 1rem; border-radius: 8px; 
+                <div style="background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 1rem; border-radius: 8px; 
                             border-left: 4px solid #6366F1; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🎯</div>
-                    <div style="color: #fff; font-weight: 600; margin-top: 0.5rem;">Orchestrator</div>
+                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Orchestrator</div>
                 </div>
             </div>
             
-            <div style="color: #4a4a6a; font-size: 1.5rem;">→</div>
+            <div style="color: #9e9e9e; font-size: 1.5rem;">→</div>
             
             <!-- Retrieval Agents (parallel) -->
             <div style="text-align: center;">
-                <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; border: 1px dashed #4a4a6a;">
-                    <div style="color: #8b8bc0; font-size: 0.8rem; margin-bottom: 0.5rem;">Parallel Retrieval</div>
+                <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px; border: 1px dashed #bdbdbd;">
+                    <div style="color: #616161; font-size: 0.8rem; margin-bottom: 0.5rem;">Parallel Retrieval</div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <div style="background: #1e1e2e; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #10B981;">
+                        <div style="background: #e0f2f1; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #10B981; color: #000;">
                             💾 Local
                         </div>
-                        <div style="background: #1e1e2e; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #3B82F6;">
+                        <div style="background: #e3f2fd; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #3B82F6; color: #000;">
                             🌐 Web
                         </div>
-                        <div style="background: #1e1e2e; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #F59E0B;">
+                        <div style="background: #fff3e0; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #F59E0B; color: #000;">
                             🕸️ Graph
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div style="color: #4a4a6a; font-size: 1.5rem;">→</div>
+            <div style="color: #9e9e9e; font-size: 1.5rem;">→</div>
             
             <!-- Aggregator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #1e1e2e, #2d2d44); padding: 1rem; border-radius: 8px;
+                <div style="background: linear-gradient(135deg, #e0f7fa, #b2ebf2); padding: 1rem; border-radius: 8px;
                             border-left: 4px solid #06B6D4; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🔄</div>
-                    <div style="color: #fff; font-weight: 600; margin-top: 0.5rem;">Aggregator</div>
+                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Aggregator</div>
                 </div>
             </div>
             
-            <div style="color: #4a4a6a; font-size: 1.5rem;">→</div>
+            <div style="color: #9e9e9e; font-size: 1.5rem;">→</div>
             
             <!-- Generator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #1e1e2e, #2d2d44); padding: 1rem; border-radius: 8px;
+                <div style="background: linear-gradient(135deg, #fce4ec, #f8bbd0); padding: 1rem; border-radius: 8px;
                             border-left: 4px solid #EC4899; min-width: 120px;">
                     <div style="font-size: 1.5rem;">✍️</div>
-                    <div style="color: #fff; font-weight: 600; margin-top: 0.5rem;">Generator</div>
+                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Generator</div>
                 </div>
             </div>
             
-            <div style="color: #4a4a6a; font-size: 1.5rem;">→</div>
+            <div style="color: #9e9e9e; font-size: 1.5rem;">→</div>
             
             <!-- Response -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #10B981, #059669); padding: 1rem; border-radius: 8px; min-width: 120px;">
+                <div style="background: linear-gradient(135deg, #c8e6c9, #a5d6a7); padding: 1rem; border-radius: 8px; min-width: 120px;">
                     <div style="font-size: 1.5rem;">📄</div>
-                    <div style="color: #fff; font-weight: 600; margin-top: 0.5rem;">Response</div>
+                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Response</div>
                 </div>
             </div>
         </div>
         
-        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #2d2d4d;">
-            <div style="color: #8b8bc0; font-size: 0.85rem; text-align: center;">
-                ⚡ Typical pipeline execution: <strong style="color: #fff;">1.5 - 3.0 seconds</strong>
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+            <div style="color: #616161; font-size: 0.85rem; text-align: center;">
+                ⚡ Typical pipeline execution: <strong style="color: #000;">1.5 - 3.0 seconds</strong>
             </div>
         </div>
     </div>
@@ -449,8 +449,8 @@ def render_agent_detail():
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <span style="font-size: 2rem;">{agent.icon}</span>
-                <h3 style="color: #fff; margin: 0.5rem 0;">{agent.name}</h3>
-                <p style="color: #a0a0c0;">{agent.short_description}</p>
+                <h3 style="color: #000; margin: 0.5rem 0;">{agent.name}</h3>
+                <p style="color: #424242;">{agent.short_description}</p>
             </div>
             <div style="text-align: right;">
                 <div style="background: {agent.color}33; color: {agent.color}; padding: 0.25rem 0.75rem; 
@@ -506,12 +506,12 @@ def render_agents_overview():
     
     # Status explanation
     st.markdown("""
-    <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
-        <span style="color: #8b8bc0; font-size: 0.85rem;">
+    <div style="background: rgba(0,0,0,0.03); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        <span style="color: #616161; font-size: 0.85rem;">
             Status indicators: 
-            <span style="color: #34d399;">● Ready</span> | 
-            <span style="color: #fbbf24;">● Processing</span> | 
-            <span style="color: #60a5fa;">● Waiting</span>
+            <span style="color: #2e7d32;">● Ready</span> | 
+            <span style="color: #f57c00;">● Processing</span> | 
+            <span style="color: #1976d2;">● Waiting</span>
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -522,7 +522,7 @@ def render_agents_overview():
     for idx, (agent_id, agent) in enumerate(AGENTS.items()):
         with cols[idx % 2]:
             # Simulate status - in real app, this would come from session state
-            status_color = "#34d399"  # Ready
+            status_color = "#2e7d32"  # Ready
             status_text = "Ready"
             
             st.markdown(f"""

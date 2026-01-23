@@ -44,9 +44,17 @@ st.set_page_config(
     }
 )
 
-# Enhanced CSS for researcher-friendly UI
+# Enhanced CSS for researcher-friendly UI - Light Theme
 st.markdown("""
 <style>
+    /* Force light theme globally */
+    :root {
+        --background-color: #ffffff;
+        --secondary-background-color: #f5f5f5;
+        --text-color: #000000;
+        --primary-color: #1976d2;
+    }
+    
     /* Global styling */
     .main .block-container {
         padding-top: 1rem;
@@ -54,19 +62,63 @@ st.markdown("""
         max-width: 1400px;
     }
     
-    /* Dark theme base */
+    /* Light theme base */
     .stApp {
-        background-color: #0d0d14;
+        background-color: #ffffff;
+        color: #000000;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #f5f5f5 !important;
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #000000 !important;
+    }
+    
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4,
+    [data-testid="stSidebar"] h5,
+    [data-testid="stSidebar"] h6 {
+        color: #000000 !important;
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #000000 !important;
+    }
+    
+    /* Sidebar widget styling */
+    [data-testid="stSidebar"] [data-baseweb="input"],
+    [data-testid="stSidebar"] [data-baseweb="select"],
+    [data-testid="stSidebar"] [data-baseweb="checkbox"],
+    [data-testid="stSidebar"] .stButton button {
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
+        color: #000000 !important;
+    }
+    
+    /* Ensure all text is black */
+    body, p, span, div, label, input, textarea, select {
+        color: #000000 !important;
+    }
+    
+    /* Override any dark backgrounds */
+    [data-testid="stVerticalBlock"],
+    [data-testid="stHorizontalBlock"] {
+        background-color: transparent !important;
     }
     
     /* Info boxes for researchers */
     .researcher-tip {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
-        border-left: 4px solid #4a90e2;
+        background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 100%); /* Sunny yellow gradient */
+        border-left: 4px solid #FFC107;
         border-radius: 8px;
         padding: 1rem 1.25rem;
         margin: 1rem 0;
-        color: #e0e0e0;
+        color: #000000;
     }
     
     .researcher-tip .tip-header {
@@ -74,66 +126,95 @@ st.markdown("""
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: #60a5fa;
+        color: #795548; /* Brown text for contrast */
         margin-bottom: 0.5rem;
     }
     
     .researcher-tip .tip-content {
         font-size: 0.9rem;
         line-height: 1.6;
+        color: #000000;
     }
     
     /* Educational callouts */
     .edu-callout {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        border: 1px solid #3d3d5c;
+        background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%); /* Light sky blue */
+        border: 1px solid #4FC3F7;
         border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
     }
     
     .edu-callout h4 {
-        color: #a78bfa;
+        color: #01579B;
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
+    .edu-callout p {
+        color: #000000;
+    }
+    
     /* System explanation boxes */
     .system-explanation {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px dashed #4a4a6a;
+        background: #f5f5f5;
+        border: 1px dashed #9e9e9e;
         border-radius: 8px;
         padding: 1rem;
         margin: 0.75rem 0;
         font-size: 0.85rem;
-        color: #b0b0c0;
+        color: #000000;
     }
     
     .system-explanation summary {
         cursor: pointer;
-        color: #8b8bc0;
+        color: #000000;
         font-weight: 500;
     }
     
     .system-explanation summary:hover {
-        color: #a0a0ff;
+        color: #1976d2;
+    }
+
+    .response-summary-box {
+        background: #FFFDE7; /* Light sunny yellow */
+        border: 1px solid #FFF59D;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        color: #000000;
+        line-height: 1.8;
+    }
+    
+    .response-metadata {
+        background: #FFF9C4; /* Pastel yellow */
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        color: #424242;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-around;
+        border: 1px solid #FFF59D;
     }
     
     /* Agent status cards */
     .agent-card {
-        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1rem;
         border-left: 4px solid;
         transition: all 0.2s ease;
+        border: 1px solid #e0e0e0;
+        color: #000000;
     }
     
     .agent-card:hover {
         transform: translateX(4px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     
     .agent-card.orchestrator { border-left-color: #6366F1; }
@@ -147,21 +228,22 @@ st.markdown("""
     
     /* Metric displays */
     .metric-highlight {
-        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
         border-radius: 8px;
         padding: 1rem;
         text-align: center;
+        border: 1px solid #9fa8da;
     }
     
     .metric-value {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #ffffff;
+        color: #000000;
     }
     
     .metric-label {
         font-size: 0.75rem;
-        color: #8888aa;
+        color: #000000;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-top: 0.25rem;
@@ -172,14 +254,14 @@ st.markdown("""
         margin-top: 0.25rem;
     }
     
-    .metric-delta.positive { color: #34d399; }
-    .metric-delta.negative { color: #f87171; }
+    .metric-delta.positive { color: #2e7d32; }
+    .metric-delta.negative { color: #c62828; }
     
     /* Confidence bars */
     .confidence-bar {
         height: 8px;
         border-radius: 4px;
-        background: #2d2d4d;
+        background: #e0e0e0;
         overflow: hidden;
     }
     
@@ -189,25 +271,27 @@ st.markdown("""
         transition: width 0.5s ease;
     }
     
-    .confidence-fill.high { background: linear-gradient(90deg, #10B981, #34d399); }
-    .confidence-fill.medium { background: linear-gradient(90deg, #F59E0B, #fbbf24); }
-    .confidence-fill.low { background: linear-gradient(90deg, #EF4444, #f87171); }
+    .confidence-fill.high { background: linear-gradient(90deg, #43a047, #66bb6a); }
+    .confidence-fill.medium { background: linear-gradient(90deg, #fb8c00, #ffa726); }
+    .confidence-fill.low { background: linear-gradient(90deg, #e53935, #ef5350); }
     
     /* Citation display */
     .citation-card {
-        background: #1a1a2e;
-        border: 1px solid #2d2d4d;
+        background: #F1F8E9; /* Light green */
+        border: 1px solid #C5E1A5;
         border-radius: 8px;
         padding: 1rem;
         margin: 0.5rem 0;
+        color: #000000;
     }
     
     .citation-pmid {
         font-family: monospace;
-        background: #2d2d4d;
+        background: #DCEDC8;
         padding: 0.125rem 0.5rem;
         border-radius: 4px;
         font-size: 0.85rem;
+        color: #000000;
     }
     
     /* Hide default Streamlit elements */
@@ -245,33 +329,33 @@ def render_welcome_banner():
         
         with col1:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); 
+            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
                         border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
-                        border: 1px solid #3d5a8f;">
-                <h3 style="color: #60a5fa; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
-                <p style="color: #d0d0e0; margin-bottom: 1rem;">
+                        border: 1px solid #90caf9;">
+                <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
+                <p style="color: #000000; margin-bottom: 1rem;">
                     EEG-RAG helps you query <strong>50,000+ peer-reviewed EEG papers</strong> using natural language. 
                     Every answer is grounded in evidence with verifiable citations.
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
-                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
                         <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
-                        <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Ask Anything</div>
-                        <div style="font-size: 0.85rem; color: #a0a0c0;">
+                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Ask Anything</div>
+                        <div style="font-size: 0.85rem; color: #424242;">
                             "What EEG biomarkers predict seizure recurrence?"
                         </div>
                     </div>
-                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
                         <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📚</div>
-                        <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Get Citations</div>
-                        <div style="font-size: 0.85rem; color: #a0a0c0;">
+                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Get Citations</div>
+                        <div style="font-size: 0.85rem; color: #424242;">
                             Every claim includes PMID references you can verify
                         </div>
                     </div>
-                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
                         <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💬</div>
-                        <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Give Feedback</div>
-                        <div style="font-size: 0.85rem; color: #a0a0c0;">
+                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Give Feedback</div>
+                        <div style="font-size: 0.85rem; color: #424242;">
                             Your input helps improve this research tool
                         </div>
                     </div>
@@ -289,26 +373,26 @@ def render_system_status_bar():
     """Render a compact system status bar."""
     
     st.markdown("""
-    <div style="background: #1a1a2e; border-radius: 8px; padding: 0.75rem 1rem; 
+    <div style="background: #f5f5f5; border-radius: 8px; padding: 0.75rem 1rem; 
                 margin-bottom: 1rem; display: flex; justify-content: space-between;
-                align-items: center; border: 1px solid #2d2d4d;">
+                align-items: center; border: 1px solid #e0e0e0;">
         <div style="display: flex; gap: 2rem; align-items: center;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="width: 8px; height: 8px; background: #34d399; border-radius: 50%;"></span>
-                <span style="color: #a0a0c0; font-size: 0.85rem;">System Online</span>
+                <span style="width: 8px; height: 8px; background: #2e7d32; border-radius: 50%;"></span>
+                <span style="color: #424242; font-size: 0.85rem;">System Online</span>
             </div>
-            <div style="color: #888; font-size: 0.85rem;">
-                📚 <strong style="color: #fff;">52,431</strong> papers indexed
+            <div style="color: #616161; font-size: 0.85rem;">
+                📚 <strong style="color: #000;">52,431</strong> papers indexed
             </div>
-            <div style="color: #888; font-size: 0.85rem;">
-                🔄 Last sync: <strong style="color: #fff;">2h ago</strong>
+            <div style="color: #616161; font-size: 0.85rem;">
+                🔄 Last sync: <strong style="color: #000;">2h ago</strong>
             </div>
-            <div style="color: #888; font-size: 0.85rem;">
-                ⚡ Avg response: <strong style="color: #fff;">2.3s</strong>
+            <div style="color: #616161; font-size: 0.85rem;">
+                ⚡ Avg response: <strong style="color: #000;">2.3s</strong>
             </div>
         </div>
         <div style="display: flex; gap: 1rem; align-items: center;">
-            <span style="color: #8b8bc0; font-size: 0.8rem;">v0.5.0 Beta</span>
+            <span style="color: #757575; font-size: 0.8rem;">v0.5.0 Beta</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -377,12 +461,12 @@ def render_query_tab():
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
                 st.markdown(f"""
-                <div style="background: #1a1a2e; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
-                    <div style="color: #8b8bc0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="background: #f5f5f5; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0;">
+                    <div style="color: #616161; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         {ex['category']}
                     </div>
-                    <div style="color: #fff; margin-top: 0.25rem;">{ex['query']}</div>
-                    <div style="color: #666; font-size: 0.8rem; margin-top: 0.25rem; font-style: italic;">
+                    <div style="color: #000; margin-top: 0.25rem;">{ex['query']}</div>
+                    <div style="color: #757575; font-size: 0.8rem; margin-top: 0.25rem; font-style: italic;">
                         💡 {ex['why']}
                     </div>
                 </div>
@@ -402,21 +486,21 @@ def render_agent_pipeline_tab():
     st.markdown("""
     <div class="edu-callout">
         <h4>🎓 Understanding the Agent Pipeline</h4>
-        <p style="color: #d0d0e0; margin-bottom: 1rem;">
+        <p style="color: #000000; margin-bottom: 1rem;">
             EEG-RAG uses a <strong>multi-agent architecture</strong> where specialized agents work together 
             to answer your query. Each agent has specific expertise, and the Orchestrator coordinates their work.
         </p>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px;">
-                <div style="color: #a78bfa; font-weight: 600;">Why Multiple Agents?</div>
-                <div style="color: #a0a0c0; font-size: 0.9rem; margin-top: 0.5rem;">
+            <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
+                <div style="color: #4a148c; font-weight: 600;">Why Multiple Agents?</div>
+                <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
                     Different information needs require different retrieval strategies. Local search is fast, 
                     web search is comprehensive, and graph queries find relationships.
                 </div>
             </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px;">
-                <div style="color: #a78bfa; font-weight: 600;">How Results Are Combined</div>
-                <div style="color: #a0a0c0; font-size: 0.9rem; margin-top: 0.5rem;">
+            <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
+                <div style="color: #4a148c; font-weight: 600;">How Results Are Combined</div>
+                <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
                     The Context Aggregator uses <strong>Reciprocal Rank Fusion (RRF)</strong> to merge 
                     results from multiple sources, eliminating duplicates while preserving diversity.
                 </div>
@@ -442,10 +526,10 @@ def render_results_tab():
         st.markdown("""
         <div class="edu-callout">
             <h4>📖 What You'll See Here</h4>
-            <p style="color: #d0d0e0;">
+            <p style="color: #000000;">
                 After submitting a query, this tab will show:
             </p>
-            <ul style="color: #a0a0c0; margin-top: 0.5rem;">
+            <ul style="color: #424242; margin-top: 0.5rem;">
                 <li><strong>Synthesized Answer:</strong> A comprehensive response grounded in retrieved literature</li>
                 <li><strong>Citation List:</strong> All PMIDs with verification status and metadata</li>
                 <li><strong>Confidence Score:</strong> How reliable the answer is based on source agreement</li>
@@ -459,12 +543,20 @@ def render_results_tab():
     latest = st.session_state.query_history[-1]
     
     # Answer section
-    st.markdown("### 📝 Answer")
+    st.markdown("### 📝 Response")
+    
+    # Metadata bar
     st.markdown(f"""
-    <div style="background: #1a1a2e; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
-        <div style="color: #d0d0e0; line-height: 1.8;">
-            {latest.get('answer', 'No answer available')}
-        </div>
+    <div class="response-metadata">
+        <div><strong>Query Type:</strong> Factual</div>
+        <div><strong>Entities Found:</strong> seizure, EEG</div>
+        <div><strong>Sources Retrieved:</strong> 8</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="response-summary-box">
+        {latest.get('answer', 'No answer available')}
     </div>
     """, unsafe_allow_html=True)
     
@@ -475,13 +567,13 @@ def render_results_tab():
     st.markdown(f"""
     <div style="margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-            <span style="color: #a0a0c0; font-size: 0.85rem;">Confidence Score</span>
-            <span style="color: #fff; font-weight: 600;">{confidence:.0%}</span>
+            <span style="color: #616161; font-size: 0.85rem;">Confidence Score</span>
+            <span style="color: #000; font-weight: 600;">{confidence:.0%}</span>
         </div>
         <div class="confidence-bar">
             <div class="confidence-fill {confidence_class}" style="width: {confidence*100}%;"></div>
         </div>
-        <div style="color: #666; font-size: 0.8rem; margin-top: 0.25rem;">
+        <div style="color: #757575; font-size: 0.8rem; margin-top: 0.25rem;">
             Based on source agreement and citation verification
         </div>
     </div>
@@ -510,7 +602,7 @@ def render_citation_card(citation: dict):
     relevance = citation.get('relevance_score', 0.0)
     
     verification_badge = '✅ Verified' if verified else '⚠️ Unverified'
-    verification_color = '#34d399' if verified else '#f59e0b'
+    verification_color = '#2e7d32' if verified else '#ef6c00'
     
     if isinstance(authors, list):
         authors_str = ', '.join(authors[:3]) + ('...' if len(authors) > 3 else '')
@@ -526,22 +618,22 @@ def render_citation_card(citation: dict):
                     {verification_badge}
                 </span>
             </div>
-            <div style="color: #888; font-size: 0.8rem;">
+            <div style="color: #616161; font-size: 0.8rem;">
                 Relevance: {relevance:.0%}
             </div>
         </div>
         <div style="margin-top: 0.75rem;">
-            <div style="color: #fff; font-weight: 500;">{title}</div>
-            <div style="color: #888; font-size: 0.85rem; margin-top: 0.25rem;">
+            <div style="color: #000; font-weight: 500;">{title}</div>
+            <div style="color: #616161; font-size: 0.85rem; margin-top: 0.25rem;">
                 {authors_str}
             </div>
-            <div style="color: #666; font-size: 0.85rem;">
+            <div style="color: #757575; font-size: 0.85rem;">
                 {journal} ({year})
             </div>
         </div>
         <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
             <a href="https://pubmed.ncbi.nlm.nih.gov/{pmid}" target="_blank" 
-               style="background: #2d2d4d; color: #60a5fa; padding: 0.25rem 0.75rem; 
+               style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.75rem; 
                       border-radius: 4px; text-decoration: none; font-size: 0.8rem;">
                 View on PubMed ↗
             </a>
