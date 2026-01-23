@@ -2,6 +2,7 @@
 """
 Dynamic corpus statistics component.
 Displays real-time corpus size and coverage information.
+Uses PaperStore database as primary source.
 """
 
 import streamlit as st
@@ -17,9 +18,49 @@ try:
 except ImportError:
     STATS_SERVICE_AVAILABLE = False
 
+# Import PaperStore for database stats
+try:
+    from eeg_rag.db.paper_store import get_paper_store
+    PAPER_STORE_AVAILABLE = True
+except ImportError:
+    PAPER_STORE_AVAILABLE = False
+
+
+def get_paper_store_stats() -> Dict[str, Any]:
+    """Get statistics directly from the paper database."""
+    if not PAPER_STORE_AVAILABLE:
+        return {}
+    
+    try:
+        store = get_paper_store()
+        stats = store.get_statistics()
+        if stats['total_papers'] > 0:
+            return {
+                "total_papers": stats['total_papers'],
+                "total_chunks": stats['total_papers'] * 6,  # Estimate
+                "sources": stats.get('by_source', {}),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "coverage": {
+                    "pmid": stats.get('pmid_coverage', 0),
+                    "doi": stats.get('doi_coverage', 0)
+                },
+                "year_range": stats.get('year_range', {}),
+                "db_size_mb": stats.get('db_size_mb', 0),
+                "status": "complete"
+            }
+    except Exception:
+        pass
+    
+    return {}
+
 
 def get_corpus_stats() -> Dict[str, Any]:
-    """Load actual corpus statistics from metadata files."""
+    """Load actual corpus statistics - prioritizes database."""
+    
+    # First try the paper database (production mode)
+    db_stats = get_paper_store_stats()
+    if db_stats and db_stats.get('total_papers', 0) > 0:
+        return db_stats
     
     # Check multiple possible metadata locations
     metadata_paths = [
