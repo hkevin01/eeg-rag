@@ -11,7 +11,10 @@ EEG-RAG is an enterprise-ready Retrieval-Augmented Generation (RAG) system speci
 
 ## 🚀 Production Features
 
-### � **FastAPI Web Service (NEW!)** ⚡
+### 🎨 **Enhanced Web UI with 8 AI Agents (NEW!)** ⚡
+Interactive Streamlit interface showcasing our multi-agent system. Watch 8 specialized AI agents work together in real-time: Orchestrator, Query Planner, Local Search, PubMed, Semantic Scholar, Knowledge Graph, Citation Validator, and Synthesis Agent. Features relevance filtering, pagination, and comprehensive research summaries. **[See Web UI Guide](#-enhanced-web-ui-with-8-ai-agents-new)**
+
+### 📡 **FastAPI Web Service** ⚡
 Production-ready REST API with 10 endpoints + Server-Sent Events (SSE) for real-time progress streaming. Complete with automatic OpenAPI documentation, health checks, metrics, and async lifecycle management. **[See Quick Start](#-quick-start)** | **[API Documentation](WEB_INTEGRATION_COMPLETE.md)**
 
 ### 🎯 **Intelligent Query Routing** 
@@ -48,6 +51,7 @@ Automated structured data extraction from research papers with YAML-based schema
 - [Project Purpose](#-project-purpose)
 - [Project Status](#-project-status)
 - [Quick Start (Web API)](#-quick-start) ⚡ **NEW!**
+- [Enhanced Web UI with 8 AI Agents](#-enhanced-web-ui-with-8-ai-agents-new) ⚡ **NEW!**
 - [Architecture Overview](#-architecture-overview)
 - [Technology Stack Explained](#-technology-stack-explained)
 - [Features](#-features)
@@ -140,21 +144,22 @@ mindmap
 ## 🎯 Project Status
 
 > **Development Phase**: Advanced Features (Phase 5) ⚡
-> **Version**: 0.5.0 (Beta)
-> **Last Updated**: January 21, 2026
+> **Version**: 0.6.0 (Beta)
+> **Last Updated**: January 23, 2026
 
-**🎯 CURRENT STAGE: Phase 5 - Advanced Retrieval Quality**
+**🎯 CURRENT STAGE: Phase 5 - Advanced Retrieval Quality + Enhanced Web UI**
 
 ### Current Status: MVP COMPLETE + DATA INGESTION! 🎉
 
 ```
 📊 Progress: ████████████████████████ 100%
 🧪 Tests:    270+ passing (100% pass rate)
-📝 Code:     13,000+ lines production code
+📝 Code:     15,000+ lines production code
 ⚡ Status:   MVP COMPLETE - All components operational!
 📥 Data:     Multi-source ingestion (120K+ papers supported)
-🌐 API:      FastAPI REST + SSE streaming (10 endpoints) ⚡ NEW!
-🎯 Stage:    Phase 5 - Advanced Retrieval Quality + Web API
+🌐 API:      FastAPI REST + SSE streaming (10 endpoints)
+🎨 UI:       Enhanced Streamlit with 8 AI agents (NEW! ⚡)
+🎯 Stage:    Phase 5 - Advanced Retrieval + Enhanced Web UI
 ```
 
 #### ✅ Completed Components (Phase 1-4)
@@ -178,6 +183,7 @@ mindmap
 - ✅ **Multi-Source Data Ingestion** - PubMed, Semantic Scholar, arXiv, OpenAlex
 - ✅ **Bulk Ingestion with Checkpointing** - 120K+ papers with resume capability
 - ✅ **Streamlit Web UI** - 7-page interactive interface with data ingestion
+- ✅ **Enhanced Web UI** - 8 AI agents showcase, relevance filtering, pagination (NEW! ⚡)
 - ✅ **Cross-Encoder Reranking** - Production-ready reranking with +5-10% MRR improvement
 - ✅ **SPLADE Learned Sparse Retrieval** - Advanced sparse retrieval with +10-15% recall over BM25
 - ✅ **IR Evaluation Framework** - Comprehensive metrics (Recall@K, MRR, NDCG@K, MAP)
@@ -205,6 +211,7 @@ mindmap
 🔬 **EEG terminology extraction with 400+ terms across 12 entity types**
 🎓 **Final answer assembly with hallucination detection and validation**
 🌐 **Streamlit Web UI with query, ingestion, and benchmark pages**
+🤖 **Enhanced UI with 8 AI agents, live monitoring, relevance filtering** (NEW! ⚡)
 🎯 **Advanced retrieval: Cross-encoder reranking + SPLADE learned sparse**
 📈 **Complete IR metrics: Recall@K, MRR, NDCG, MAP**
 🚀 **FastAPI Web Service: REST API + SSE streaming (10 endpoints)** (NEW! ⚡)
@@ -590,11 +597,44 @@ ollama pull mistral
 ### Launch the Web UI
 
 ```bash
-# Start the Streamlit web interface
-streamlit run src/eeg_rag/web_ui/app.py
+# Start the enhanced Streamlit web interface
+streamlit run src/eeg_rag/web_ui/app_enhanced.py --server.port 8504
 ```
 
-Open http://localhost:8501 in your browser.
+Open http://localhost:8504 in your browser.
+
+### 🤖 Enhanced Web UI with 8 AI Agents (NEW!)
+
+The EEG-RAG web interface now features a comprehensive **multi-agent visualization system** that shows exactly how your queries are processed:
+
+#### The 8 Specialized AI Agents
+
+| Agent                    | Role                | What It Does                                             |
+| ------------------------ | ------------------- | -------------------------------------------------------- |
+| 🎯 **Orchestrator**       | Central Coordinator | Routes queries to optimal agents, manages workflow       |
+| 📋 **Query Planner**      | Query Analyst       | Analyzes complexity, identifies entities, plans strategy |
+| 💾 **Local Search**       | Fast Retrieval      | Searches indexed corpus with hybrid BM25+vector (<100ms) |
+| 🏥 **PubMed Search**      | Literature Gateway  | Queries PubMed with MeSH terms and NCBI-compliant rates  |
+| 🔬 **Semantic Scholar**   | Citation Analysis   | Analyzes citation networks for influential papers        |
+| 🕸️ **Knowledge Graph**    | Relationship Mapper | Resolves EEG terminology via Neo4j knowledge graph       |
+| ✅ **Citation Validator** | Quality Assurance   | Verifies PMIDs, detects retractions, scores citations    |
+| 🧪 **Synthesis Agent**    | Answer Generator    | Creates comprehensive multi-paragraph summaries          |
+
+#### Enhanced Search Results
+
+- **📊 Relevance Filtering**: User-configurable relevance threshold (50-95%)
+- **📄 Comprehensive Summaries**: 3+ paragraph AI-synthesized research summaries with PMID citations
+- **📚 Extended Paper Display**: Top 10-50 papers with detailed relevance explanations
+- **📑 Pagination**: Clickable page navigation for large result sets
+- **🔍 Paper Details**: Citation counts, study types, sample sizes, MeSH terms, matched passages
+- **📈 Quality Metrics**: Confidence scores, source agreement, hallucination risk indicators
+
+#### Live Agent Monitoring
+
+Watch each agent work in real-time during query processing:
+- See which agents are active and what they're doing
+- Understand why each agent contributes to your search
+- Track progress with visual status indicators
 
 ### Collect Research Papers (Data Ingestion)
 
