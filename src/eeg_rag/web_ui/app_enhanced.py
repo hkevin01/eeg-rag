@@ -23,6 +23,7 @@ from eeg_rag.web_ui.components.feedback import render_feedback_panel
 from eeg_rag.web_ui.components.educational import render_educational_content
 from eeg_rag.web_ui.components.search_history import render_search_history, initialize_search_state
 from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
+from eeg_rag.web_ui.components.agents_showcase import render_agents_showcase
 
 # Page configuration
 st.set_page_config(
@@ -936,6 +937,7 @@ def main():
     # Main content area
     render_header()
     render_welcome_banner()
+    render_agents_showcase()  # Show the 8 AI agents on homepage
     render_system_status_bar()
     
     # Main tabs with enhanced content
