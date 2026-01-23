@@ -277,21 +277,83 @@ st.markdown("""
     
     /* Citation display */
     .citation-card {
-        background: #F1F8E9; /* Light green */
-        border: 1px solid #C5E1A5;
+        background: #FFFFF0; /* Ivory */
+        border: 1px solid #F0E68C; /* Khaki */
         border-radius: 8px;
         padding: 1rem;
         margin: 0.5rem 0;
         color: #000000;
     }
     
+    .citation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
     .citation-pmid {
         font-family: monospace;
-        background: #DCEDC8;
+        background: #F5F5DC; /* Beige */
         padding: 0.125rem 0.5rem;
         border-radius: 4px;
         font-size: 0.85rem;
         color: #000000;
+    }
+
+    .verification-badge {
+        margin-left: 0.5rem;
+        font-size: 0.8rem;
+    }
+    .verification-badge.verified {
+        color: #388E3C; /* Darker green */
+    }
+    .verification-badge.unverified {
+        color: #FBC02D; /* Amber */
+    }
+
+    .relevance-score {
+        color: #616161;
+        font-size: 0.8rem;
+    }
+
+    .citation-body {
+        margin-bottom: 0.75rem;
+    }
+
+    .citation-title {
+        color: #000;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .citation-authors {
+        color: #616161;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .citation-journal {
+        color: #757575;
+        font-size: 0.85rem;
+    }
+
+    .citation-footer {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .pubmed-link {
+        background: #E0F2F1; /* Light teal */
+        color: #00796B;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: background-color 0.2s;
+    }
+    .pubmed-link:hover {
+        background: #B2DFDB;
     }
     
     /* Hide default Streamlit elements */
@@ -602,7 +664,6 @@ def render_citation_card(citation: dict):
     relevance = citation.get('relevance_score', 0.0)
     
     verification_badge = '✅ Verified' if verified else '⚠️ Unverified'
-    verification_color = '#2e7d32' if verified else '#ef6c00'
     
     if isinstance(authors, list):
         authors_str = ', '.join(authors[:3]) + ('...' if len(authors) > 3 else '')
@@ -611,30 +672,24 @@ def render_citation_card(citation: dict):
     
     st.markdown(f"""
     <div class="citation-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="citation-header">
             <div>
                 <span class="citation-pmid">PMID: {pmid}</span>
-                <span style="margin-left: 0.5rem; color: {verification_color}; font-size: 0.8rem;">
+                <span class="verification-badge {'verified' if verified else 'unverified'}">
                     {verification_badge}
                 </span>
             </div>
-            <div style="color: #616161; font-size: 0.8rem;">
+            <div class="relevance-score">
                 Relevance: {relevance:.0%}
             </div>
         </div>
-        <div style="margin-top: 0.75rem;">
-            <div style="color: #000; font-weight: 500;">{title}</div>
-            <div style="color: #616161; font-size: 0.85rem; margin-top: 0.25rem;">
-                {authors_str}
-            </div>
-            <div style="color: #757575; font-size: 0.85rem;">
-                {journal} ({year})
-            </div>
+        <div class="citation-body">
+            <div class="citation-title">{title}</div>
+            <div class="citation-authors">{authors_str}</div>
+            <div class="citation-journal">{journal} ({year})</div>
         </div>
-        <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
-            <a href="https://pubmed.ncbi.nlm.nih.gov/{pmid}" target="_blank" 
-               style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.75rem; 
-                      border-radius: 4px; text-decoration: none; font-size: 0.8rem;">
+        <div class="citation-footer">
+            <a href="https://pubmed.ncbi.nlm.nih.gov/{pmid}" target="_blank" class="pubmed-link">
                 View on PubMed ↗
             </a>
         </div>
