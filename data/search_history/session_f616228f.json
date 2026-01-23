@@ -2,7 +2,7 @@
   "id": "f616228f",
   "name": "Session Jan 23, 14:34",
   "created_at": "2026-01-23T14:34:47.160744",
-  "updated_at": "2026-01-23T15:41:17.278667",
+  "updated_at": "2026-01-23T17:33:12.200897",
   "queries": [
     {
       "id": "5db6e043-129a-4d9c-ae3a-930f37d15047",
@@ -385,6 +385,48 @@
       "query_type": "factual",
       "entities_found": [
         "sleep"
+      ]
+    },
+    {
+      "id": "688ecef3-742a-4c5f-95bb-d81b5d28ff9f",
+      "query": "Which electrode montages are best for detecting temporal lobe epilepsy?",
+      "timestamp": "2026-01-23T17:33:12.200887",
+      "confidence": 0.87,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Orchestrator",
+        "Query Planner",
+        "Local",
+        "PubMed",
+        "Citation Validator",
+        "Synthesis"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.96
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.93
+        },
+        {
+          "pmid": "34567892",
+          "title": "ML for EEG analysis",
+          "verified": true,
+          "relevance_score": 0.91
+        }
+      ],
+      "results_summary": "Comprehensive multi-paragraph research synthesis with cited evidence.",
+      "query_type": "factual",
+      "entities_found": [
+        "temporal",
+        "epilepsy"
       ]
     }
   ],
