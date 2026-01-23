@@ -347,80 +347,80 @@ print(f"Found {result['total_found']} papers!")
 
 ## 📚 Paper Database (500K+ Papers)
 
-EEG-RAG includes a **production-grade paper database** optimized for 500K+ EEG research papers with full-text search.
+EEG-RAG uses a **lightweight metadata-first architecture** that keeps the repository small (~10 MB) while providing instant access to 500K+ EEG research papers. Full abstracts are fetched on-demand from PubMed/OpenAlex and cached locally.
 
-### New User Setup
+### How It Works
 
-Run the interactive setup script to populate your database:
-
-```bash
-# Interactive setup (recommended for new users)
-python scripts/setup_production.py
-
-# Quick start with 10,000 papers (~10 minutes)
-python scripts/setup_production.py --quick
-
-# Standard ingestion with 100,000 papers (~2 hours)
-python scripts/setup_production.py --standard
-
-# Full production with 500,000 papers (~10 hours)
-python scripts/setup_production.py --full
-
-# Check current database status
-python scripts/setup_production.py --status
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    EEG-RAG Architecture                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────────┐    ┌──────────────────────────────────┐  │
+│  │   Your Repo      │    │      External APIs (Live)         │  │
+│  │   (~10MB)        │    │                                    │  │
+│  │                  │    │  ┌─────────────┐ ┌─────────────┐  │  │
+│  │  data/metadata/  │───▶│  │  PubMed     │ │  OpenAlex   │  │  │
+│  │  └─ index.db.gz  │    │  │  E-utilities│ │  API        │  │  │
+│  │     (500K refs)  │    │  └─────────────┘ └─────────────┘  │  │
+│  │                  │    │                                    │  │
+│  └──────────────────┘    └──────────────────────────────────┘  │
+│           │                          │                          │
+│           │    On-Demand Fetch       │                          │
+│           ▼                          ▼                          │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                  Local Cache (~/.eeg_rag/cache/)          │  │
+│  │  papers.db - grows as you search (only what you need)     │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Database Features
+### Quick Start
 
-| Feature                   | Description                                                         |
-| ------------------------- | ------------------------------------------------------------------- |
-| **FTS5 Full-Text Search** | BM25-ranked search across titles, abstracts, keywords               |
-| **Deduplication**         | Automatic detection of duplicate papers via PMID, DOI, content hash |
-| **Multi-Source**          | Ingests from OpenAlex, PubMed, Semantic Scholar, arXiv              |
-| **Identifier Coverage**   | Track PMID, DOI, arXiv ID, OpenAlex ID, S2 ID                       |
-| **Statistics**            | Real-time stats on paper count, source distribution, coverage       |
+```bash
+# First-time setup (extracts index, tests APIs)
+python scripts/setup_user.py
 
-### Data Sources
-
-**OpenAlex** (Primary - No API Key Required):
-- 200M+ works with excellent EEG coverage
-- Includes PMIDs, DOIs, citations, concepts
-- 100K requests/day rate limit
-
-**PubMed** (Requires NCBI API Key):
-- Official NIH database for biomedical literature
-- MeSH terms and controlled vocabulary
-- Set `NCBI_API_KEY` in `.env`
+# Check status
+python scripts/setup_user.py --status
+```
 
 ### Programmatic Usage
 
 ```python
-from eeg_rag.db.paper_store import get_paper_store, Paper
+from eeg_rag.search.hybrid_pipeline import search_papers
 
-# Get the paper store singleton
-store = get_paper_store()
-
-# Search papers
-results = store.search_papers("EEG brain-computer interface P300")
-for paper in results[:5]:
-    print(f"{paper.title} ({paper.year})")
-
-# Get statistics
-stats = store.get_statistics()
-print(f"Total papers: {stats['total_papers']:,}")
-print(f"PMID coverage: {stats['pmid_coverage']:.1f}%")
-
-# Add custom papers
-paper = Paper(
-    paper_id="custom_001",
-    title="My EEG Study",
-    abstract="Investigation of neural oscillations...",
-    authors=["Author A", "Author B"],
-    year=2024,
-    source="local"
-)
-store.add_paper(paper)
+# Search with on-demand content resolution
+results = search_papers("P300 epilepsy", max_results=10)
+for r in results:
+    print(f"{r.title} - PMID:{r.pmid}")
+    print(f"  {r.abstract[:200]}...")
 ```
+
+### For Maintainers (Building the Index)
+
+```bash
+# Build lightweight metadata index (500K papers)
+python scripts/build_metadata_index.py --target 500000
+
+# Quick build for testing (50K papers)
+python scripts/build_metadata_index.py --quick
+```
+
+### Architecture Benefits
+
+| Component           | Ships with Repo | User Downloads | Size           |
+| ------------------- | --------------- | -------------- | -------------- |
+| **Metadata Index**  | ✅ index.db.gz   | -              | ~7-10 MB       |
+| **Paper Abstracts** | ❌               | On-demand      | 0 → grows      |
+| **Local Cache**     | ❌               | Built locally  | ~0.04 MB/paper |
+
+**Key Benefits:**
+- 🚀 **Instant clone**: Repository stays under 50 MB
+- ⚡ **Fast search**: Metadata search is instant (local FTS5)
+- 📡 **Fresh data**: Always fetches latest from APIs
+- 💾 **Smart caching**: Only download what you need
 
 ---
 

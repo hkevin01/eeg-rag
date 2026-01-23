@@ -71,6 +71,11 @@ data/processed/*
 !data/processed/.gitkeep
 data/embeddings/*
 !data/embeddings/.gitkeep
+
+# Metadata index - KEEP the compressed version, ignore extracted
+data/metadata/index.db
+!data/metadata/index.db.gz
+
 *.csv
 *.parquet
 *.hdf5
