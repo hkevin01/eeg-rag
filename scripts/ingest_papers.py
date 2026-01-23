@@ -205,63 +205,70 @@ async def quick_ingest_openalex(target: int = 100000) -> dict:
     Quick ingestion using OpenAlex (no API key needed, very generous limits).
     This is the fastest way to populate the database.
     """
-    from eeg_rag.ingestion.openalex_client import OpenAlexClient
+    from eeg_rag.ingestion.openalex_client import OpenAlexClient, OpenAlexWork
     
     paper_store = get_paper_store()
-    client = OpenAlexClient()
+    client = OpenAlexClient(email="eeg-rag@research.edu")
     
     logger.info(f"Quick ingestion from OpenAlex (target: {target:,} papers)")
     
-    # EEG-related concepts in OpenAlex
-    concepts = [
-        "C142724271",  # Electroencephalography
-        "C2776034682", # EEG
-        "C178790620",  # Brain–computer interface
-        "C62668985",   # Epilepsy
-        "C138885662",  # Event-related potential
-        "C2777046267", # P300
-        "C2779415726", # Sleep EEG
-        "C150903083",  # Theta rhythm
-        "C2778407487", # Alpha wave
-        "C2779415726", # Neural oscillation
-    ]
-    
     papers_collected = []
-    per_concept = target // len(concepts) + 1
     
-    for concept_id in concepts:
-        if len(papers_collected) >= target:
-            break
+    try:
+        # Use the built-in EEG corpus collection method
+        async for work in client.collect_eeg_corpus(from_year=2010, max_results=target):
+            # Extract publication year
+            pub_year = None
+            if work.publication_date:
+                try:
+                    pub_year = work.publication_date.year
+                except:
+                    pass
             
-        try:
-            async for work in client.search_by_concept(concept_id, max_results=per_concept):
-                paper = Paper(
-                    paper_id=work.openalex_id or f"openalex_{len(papers_collected)}",
-                    title=work.title or "",
-                    abstract=work.abstract or "",
-                    authors=[a.get('author', {}).get('display_name', '') 
-                            for a in (work.authors or [])],
-                    year=work.publication_year,
-                    source="openalex",
-                    doi=work.doi,
-                    pmid=work.pmid,
-                    openalex_id=work.openalex_id,
-                    url=work.pdf_url,
-                    journal=work.journal or "",
-                    citation_count=work.citation_count or 0,
-                    keywords=work.concepts or []
-                )
-                papers_collected.append(paper)
+            # Extract author names
+            author_names = []
+            for a in (work.authors or []):
+                name = a.get('name', '')
+                if name:
+                    author_names.append(name)
+            
+            # Extract concept names for keywords
+            concept_names = []
+            for c in (work.concepts or []):
+                if isinstance(c, dict):
+                    concept_names.append(c.get('name', ''))
+                elif isinstance(c, str):
+                    concept_names.append(c)
+            
+            paper = Paper(
+                paper_id=work.openalex_id or f"openalex_{len(papers_collected)}",
+                title=work.title or "",
+                abstract=work.abstract or "",
+                authors=author_names,
+                year=pub_year,
+                source="openalex",
+                doi=work.doi,
+                pmid=work.pmid,
+                openalex_id=work.openalex_id,
+                url=work.pdf_url,
+                journal=work.journal or "",
+                citation_count=work.citation_count or 0,
+                keywords=concept_names[:10]  # Limit to 10 keywords
+            )
+            papers_collected.append(paper)
+            
+            if len(papers_collected) % 1000 == 0:
+                logger.info(f"Collected {len(papers_collected):,} papers...")
+            
+            if len(papers_collected) >= target:
+                break
                 
-                if len(papers_collected) >= target:
-                    break
-                    
-        except Exception as e:
-            logger.warning(f"Error with concept {concept_id}: {e}")
-            continue
+    except Exception as e:
+        logger.error(f"Error during OpenAlex ingestion: {e}")
     
     # Batch insert
     if papers_collected:
+        logger.info(f"Inserting {len(papers_collected):,} papers into database...")
         added, updated, skipped = paper_store.add_papers_batch(
             papers_collected, update_if_exists=True
         )

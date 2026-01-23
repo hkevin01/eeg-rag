@@ -113,7 +113,7 @@ class OpenAlexClient:
         
         Args:
             query: Text search query
-            concept_ids: Filter by OpenAlex concept IDs
+            concept_ids: Filter by OpenAlex concept IDs (optional, may be deprecated)
             from_year: Minimum publication year
             to_year: Maximum publication year
             per_page: Results per page (max 200)
@@ -124,14 +124,15 @@ class OpenAlexClient:
         """
         filters = []
         
-        if concept_ids:
-            concept_filter = "|".join(concept_ids)
-            filters.append(f"concepts.id:{concept_filter}")
+        # Skip concept_ids filtering as it's deprecated - use text search instead
+        # if concept_ids:
+        #     concept_filter = "|".join(concept_ids)
+        #     filters.append(f"concepts.id:{concept_filter}")
         
         if from_year:
-            filters.append(f"publication_year:>={from_year}")
+            filters.append(f"from_publication_date:{from_year}-01-01")
         if to_year:
-            filters.append(f"publication_year:<={to_year}")
+            filters.append(f"to_publication_date:{to_year}-12-31")
         
         # Only works with abstracts
         filters.append("has_abstract:true")
@@ -281,7 +282,7 @@ class OpenAlexClient:
         max_results: int = 50000
     ) -> AsyncIterator[OpenAlexWork]:
         """
-        Collect comprehensive EEG corpus from OpenAlex.
+        Collect comprehensive EEG corpus from OpenAlex using keyword search.
         
         Args:
             from_year: Earliest publication year
@@ -290,10 +291,13 @@ class OpenAlexClient:
         Yields:
             OpenAlexWork objects
         """
-        logger.info("Collecting EEG corpus from OpenAlex...")
+        logger.info("Collecting EEG corpus from OpenAlex using keyword search...")
+        
+        # Use text search for EEG-related terms
+        eeg_search_query = "electroencephalography OR EEG OR brain-computer interface OR event-related potential"
         
         async for work in self.search_works(
-            concept_ids=self.EEG_CONCEPTS,
+            query=eeg_search_query,
             from_year=from_year,
             to_year=datetime.now().year,
             max_results=max_results
