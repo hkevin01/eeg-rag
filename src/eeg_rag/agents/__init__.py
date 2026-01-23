@@ -56,6 +56,23 @@ from .synthesis_agent import (
     ResearchGap,
 )
 
+# Agent registry with comprehensive metadata
+from .registry import (
+    AGENT_REGISTRY,
+    AgentCategory,
+    AgentCapability,
+    AgentConfig,
+    AgentInfo,
+    AgentMetrics,
+    AgentStatus as RegistryAgentStatus,
+    get_agent_info,
+    get_all_agents,
+    get_agents_by_category,
+    get_agent_dependencies,
+    update_agent_metrics,
+    set_agent_status,
+)
+
 __all__ = [
     # Base infrastructure
     "BaseAgent",
@@ -84,4 +101,18 @@ __all__ = [
     "EvidenceLevel",
     "GapDetector",
     "ResearchGap",
+    # Agent registry
+    "AGENT_REGISTRY",
+    "AgentCategory",
+    "AgentCapability",
+    "AgentConfig",
+    "AgentInfo",
+    "AgentMetrics",
+    "RegistryAgentStatus",
+    "get_agent_info",
+    "get_all_agents",
+    "get_agents_by_category",
+    "get_agent_dependencies",
+    "update_agent_metrics",
+    "set_agent_status",
 ]

@@ -55,7 +55,7 @@ class VerificationResult:
     """Comprehensive result of citation verification.
     
     This class encapsulates all aspects of citation verification including
-    existence validation, content matching, and claim support assessment.
+    existence validation, content matching, retraction status, and claim support.
     Critical for medical domain applications where citation accuracy is mandatory.
     
     Attributes:
@@ -63,19 +63,27 @@ class VerificationResult:
         exists: Whether the PMID exists in PubMed database
         title_match: Similarity score between claimed and actual title (0-1)
         claim_supported: Whether the claim is supported by the abstract content
+        is_retracted: Whether the paper has been retracted
         original_abstract: Full abstract text if retrieved successfully
         error_message: Detailed error information if verification failed
         verification_timestamp: When the verification was performed
         api_response_time: Time taken for PubMed API response (ms)
+        title: Paper title if retrieved
+        journal: Journal name if retrieved
+        doi: DOI if available
     """
     pmid: str
     exists: bool
     title_match: float  # 0-1 similarity score
     claim_supported: bool
+    is_retracted: bool = False
     original_abstract: Optional[str] = None
     error_message: Optional[str] = None
     verification_timestamp: Optional[float] = None
     api_response_time: Optional[float] = None
+    title: Optional[str] = None
+    journal: Optional[str] = None
+    doi: Optional[str] = None
     
     def __post_init__(self):
         """Validate PMID format and score ranges."""
@@ -100,6 +108,7 @@ class VerificationResult:
         return {
             'pmid': self.pmid,
             'exists': self.exists,
+            'is_retracted': self.is_retracted,
             'title_match': round(self.title_match, 3),
             'claim_supported': self.claim_supported,
             'has_abstract': self.original_abstract is not None,
@@ -107,8 +116,17 @@ class VerificationResult:
             'error_message': self.error_message,
             'verification_timestamp': self.verification_timestamp,
             'api_response_time_ms': self.api_response_time,
-            'is_valid_format': self._is_valid_pmid(self.pmid)
+            'is_valid_format': self._is_valid_pmid(self.pmid),
+            'title': self.title,
+            'journal': self.journal,
+            'doi': self.doi,
+            'is_valid': self.exists and not self.is_retracted,
         }
+    
+    @property
+    def is_valid(self) -> bool:
+        """Check if citation is valid (exists and not retracted)."""
+        return self.exists and not self.is_retracted
 
 
 class CitationVerifier:
@@ -194,32 +212,56 @@ class CitationVerifier:
                 logger.error(f"Failed to load any sentence transformer: {e2}")
                 return None
     
-    async def verify_citation(self, pmid: str, claimed_finding: str = "") -> VerificationResult:
-        """Verify a single PMID citation"""
-        try:
-            # Fetch abstract from PubMed
-            abstract = await self._fetch_abstract(pmid)
+    async def verify_citation(self, pmid: str, claimed_finding: str = "", check_retraction: bool = True) -> VerificationResult:
+        """Verify a single PMID citation with optional retraction checking.
+        
+        Args:
+            pmid: PubMed ID to verify
+            claimed_finding: Optional claim to check against abstract
+            check_retraction: Whether to check retraction status (default True)
             
-            if not abstract:
+        Returns:
+            VerificationResult with complete verification data
+        """
+        try:
+            # Fetch abstract and metadata from PubMed
+            paper_data = await self._fetch_paper_data(pmid)
+            
+            if not paper_data or not paper_data.get("abstract"):
                 return VerificationResult(
                     pmid=pmid,
                     exists=False,
                     title_match=0.0,
                     claim_supported=False,
+                    is_retracted=False,
                     error_message="PMID not found or no abstract available"
                 )
+            
+            abstract = paper_data.get("abstract", "")
+            title = paper_data.get("title", "")
+            journal = paper_data.get("journal", "")
+            doi = paper_data.get("doi", "")
             
             # Check if claimed finding is supported
             claim_supported = True
             if claimed_finding and self.sentence_model:
                 claim_supported = self._check_claim_support(claimed_finding, abstract)
             
+            # Check retraction status
+            is_retracted = False
+            if check_retraction:
+                is_retracted = await self._check_retraction_status(pmid, doi)
+            
             return VerificationResult(
                 pmid=pmid,
                 exists=True,
-                title_match=1.0,  # Could implement title comparison
+                title_match=1.0,
                 claim_supported=claim_supported,
-                original_abstract=abstract
+                is_retracted=is_retracted,
+                original_abstract=abstract,
+                title=title,
+                journal=journal,
+                doi=doi
             )
             
         except Exception as e:
@@ -327,6 +369,168 @@ class CitationVerifier:
         except Exception as e:
             logger.warning(f"Error checking claim support: {e}")
             return True  # Default to supported if error
+    
+    async def _fetch_paper_data(self, pmid: str) -> Optional[Dict[str, Any]]:
+        """Fetch complete paper data including title, journal, DOI from PubMed.
+        
+        Args:
+            pmid: PubMed ID to fetch
+            
+        Returns:
+            Dictionary with paper metadata or None if not found
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                url = f"{self.pubmed_base}/efetch.fcgi"
+                params = {
+                    'db': 'pubmed',
+                    'id': pmid,
+                    'retmode': 'xml',
+                    'email': self.email
+                }
+                
+                response = await client.get(url, params=params)
+                
+                if response.status_code != 200:
+                    logger.warning(f"Failed to fetch PMID {pmid}: HTTP {response.status_code}")
+                    return None
+                
+                return self._parse_paper_data_from_xml(response.text)
+                
+        except Exception as e:
+            logger.error(f"Error fetching paper data for {pmid}: {e}")
+            return None
+    
+    def _parse_paper_data_from_xml(self, xml_content: str) -> Optional[Dict[str, Any]]:
+        """Parse complete paper data from PubMed XML response."""
+        try:
+            root = ET.fromstring(xml_content)
+            article = root.find(".//PubmedArticle")
+            
+            if article is None:
+                return None
+            
+            medline = article.find("MedlineCitation")
+            if medline is None:
+                return None
+            
+            article_data = medline.find("Article")
+            if article_data is None:
+                return None
+            
+            # Extract title
+            title_elem = article_data.find("ArticleTitle")
+            title = title_elem.text if title_elem is not None else ""
+            
+            # Extract abstract
+            abstract = ""
+            abstract_elem = article_data.find("Abstract")
+            if abstract_elem is not None:
+                abstract_parts = []
+                for at in abstract_elem.findall("AbstractText"):
+                    label = at.get("Label", "")
+                    text = at.text or ""
+                    if label:
+                        abstract_parts.append(f"{label}: {text}")
+                    else:
+                        abstract_parts.append(text)
+                abstract = " ".join(abstract_parts)
+            
+            # Extract journal
+            journal = ""
+            journal_elem = article_data.find("Journal")
+            if journal_elem is not None:
+                title_elem = journal_elem.find("Title")
+                if title_elem is not None:
+                    journal = title_elem.text or ""
+            
+            # Extract DOI
+            doi = ""
+            article_ids = article.find(".//ArticleIdList")
+            if article_ids is not None:
+                for aid in article_ids.findall("ArticleId"):
+                    if aid.get("IdType") == "doi" and aid.text:
+                        doi = aid.text
+                        break
+            
+            return {
+                "title": title,
+                "abstract": abstract,
+                "journal": journal,
+                "doi": doi,
+            }
+            
+        except ET.ParseError as e:
+            logger.warning(f"Failed to parse paper XML: {e}")
+            return None
+    
+    async def _check_retraction_status(self, pmid: str, doi: Optional[str] = None) -> bool:
+        """Check if a paper has been retracted.
+        
+        Uses multiple methods:
+        1. Check PubMed for retraction notices
+        2. Check Crossref for retraction status (if DOI available)
+        
+        Args:
+            pmid: PubMed ID to check
+            doi: Optional DOI for additional checking
+            
+        Returns:
+            True if paper is retracted, False otherwise
+        """
+        # Method 1: Check PubMed for retraction notices
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                # Search for retraction notices linked to this PMID
+                url = f"{self.pubmed_base}/esearch.fcgi"
+                params = {
+                    'db': 'pubmed',
+                    'term': f'"{pmid}"[PMID] AND (retraction[pt] OR retracted publication[pt])',
+                    'retmode': 'json',
+                    'email': self.email
+                }
+                
+                response = await client.get(url, params=params)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    count = int(data.get("esearchresult", {}).get("count", "0"))
+                    if count > 0:
+                        logger.warning(f"Retraction notice found for PMID {pmid}")
+                        return True
+                        
+        except Exception as e:
+            logger.warning(f"Error checking PubMed retraction for {pmid}: {e}")
+        
+        # Method 2: Check Crossref if DOI available
+        if doi:
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    url = f"https://api.crossref.org/works/{doi}"
+                    headers = {"User-Agent": "EEG-RAG/1.0 (mailto:research@eeg-rag.org)"}
+                    
+                    response = await client.get(url, headers=headers)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        message = data.get("message", {})
+                        
+                        # Check for retraction in update-to field
+                        updates = message.get("update-to", [])
+                        for update in updates:
+                            if update.get("type") == "retraction":
+                                logger.warning(f"Crossref retraction found for DOI {doi}")
+                                return True
+                        
+                        # Also check the 'is-retracted' field if present
+                        if message.get("is-retracted", False):
+                            logger.warning(f"DOI {doi} marked as retracted in Crossref")
+                            return True
+                            
+            except Exception as e:
+                logger.debug(f"Error checking Crossref retraction for {doi}: {e}")
+        
+        return False
 
 
 class HallucinationDetector:
