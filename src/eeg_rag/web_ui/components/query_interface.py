@@ -131,7 +131,7 @@ def render_query_interface():
 def execute_query_with_monitoring(query: str, mode: str, max_sources: int, 
                                   include_trials: bool, validate: bool,
                                   relevance_threshold: float = 0.7):
-    """Execute query with detailed live agent monitoring."""
+    """Execute query with detailed live agent monitoring that shows completion status."""
     
     query_id = str(uuid.uuid4())
     
@@ -158,46 +158,70 @@ def execute_query_with_monitoring(query: str, mode: str, max_sources: int,
     
     # Create progress tracking
     progress_bar = st.progress(0)
-    status_container = st.container()
     
-    completed_agents = []
+    # Create a container for agent status cards with placeholders
+    agent_grid = st.container()
     
-    with status_container:
+    # Pre-create placeholders for each agent slot in a grid
+    with agent_grid:
         cols = st.columns(4)
+        agent_placeholders = {}
         
         for idx, agent_id in enumerate(agents_to_run):
             agent = get_agent_info(agent_id)
             if not agent:
                 continue
-            
-            col = cols[idx % 4]
-            
-            # Simulate processing with detailed status
-            processing_details = get_agent_processing_details(agent_id, query)
-            
-            with col:
-                st.markdown(f"""
-                <div style="background: {agent['color']}15; border-left: 3px solid {agent['color']}; 
-                            padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="font-size: 1.2rem;">{agent['icon']}</span>
-                            <span style="color: #1F2937; font-weight: 600; margin-left: 0.5rem;">{agent['name']}</span>
-                        </div>
-                        <span style="color: #3B82F6; font-size: 0.85rem;">🔄 Running</span>
-                    </div>
-                    <div style="color: #6B7280; font-size: 0.75rem; margin-top: 0.25rem;">{processing_details}</div>
+            col_idx = idx % 4
+            with cols[col_idx]:
+                agent_placeholders[agent_id] = st.empty()
+    
+    completed_agents = []
+    
+    # Process each agent and update status dynamically
+    for idx, agent_id in enumerate(agents_to_run):
+        agent = get_agent_info(agent_id)
+        if not agent:
+            continue
+        
+        processing_details = get_agent_processing_details(agent_id, query)
+        
+        # Show "Running" status
+        agent_placeholders[agent_id].markdown(f"""
+        <div style="background: {agent['color']}15; border-left: 3px solid {agent['color']}; 
+                    padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1.2rem;">{agent['icon']}</span>
+                    <span style="color: #1F2937; font-weight: 600; margin-left: 0.5rem;">{agent['name']}</span>
                 </div>
-                """, unsafe_allow_html=True)
-            
-            # Simulate processing time
-            time.sleep(0.2 + (0.15 * (idx % 3)))
-            
-            # Update progress
-            progress = (idx + 1) / len(agents_to_run)
-            progress_bar.progress(progress)
-            
-            completed_agents.append(agent_id)
+                <span style="color: #3B82F6; font-size: 0.85rem;">🔄 Running</span>
+            </div>
+            <div style="color: #6B7280; font-size: 0.75rem; margin-top: 0.25rem;">{processing_details}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Simulate processing time
+        time.sleep(0.2 + (0.15 * (idx % 3)))
+        
+        # Update to "Completed" status
+        completed_agents.append(agent_id)
+        agent_placeholders[agent_id].markdown(f"""
+        <div style="background: #E8F5E915; border-left: 3px solid #4CAF50; 
+                    padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1.2rem;">{agent['icon']}</span>
+                    <span style="color: #1F2937; font-weight: 600; margin-left: 0.5rem;">{agent['name']}</span>
+                </div>
+                <span style="color: #4CAF50; font-size: 0.85rem;">✅ Completed</span>
+            </div>
+            <div style="color: #6B7280; font-size: 0.75rem; margin-top: 0.25rem;">Processed successfully</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Update progress
+        progress = (idx + 1) / len(agents_to_run)
+        progress_bar.progress(progress)
     
     # Final status
     st.markdown(f"""

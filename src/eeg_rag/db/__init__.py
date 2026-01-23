@@ -6,10 +6,18 @@ from eeg_rag.db.history_models import (
     SearchQuery,
     SearchSession
 )
+from eeg_rag.db.paper_store import (
+    PaperStore,
+    Paper,
+    get_paper_store
+)
 
 __all__ = [
     'SearchHistoryDB',
     'SearchResult',
     'SearchQuery',
-    'SearchSession'
+    'SearchSession',
+    'PaperStore',
+    'Paper',
+    'get_paper_store'
 ]
