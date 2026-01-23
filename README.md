@@ -11,6 +11,9 @@ EEG-RAG is an enterprise-ready Retrieval-Augmented Generation (RAG) system speci
 
 ## 🚀 Production Features
 
+### � **FastAPI Web Service (NEW!)** ⚡
+Production-ready REST API with 10 endpoints + Server-Sent Events (SSE) for real-time progress streaming. Complete with automatic OpenAPI documentation, health checks, metrics, and async lifecycle management. **[See Quick Start](#-quick-start)** | **[API Documentation](WEB_INTEGRATION_COMPLETE.md)**
+
 ### 🎯 **Intelligent Query Routing** 
 Routes queries to optimal agents based on complexity and domain relevance, achieving 30% latency reduction and 40% cost savings.
 
@@ -26,7 +29,7 @@ Medical domain validation with PMID verification, hallucination detection, and b
 ### 📊 **Built-in Evaluation Framework**
 Domain-specific metrics, automated testing, and quality benchmarks for continuous performance monitoring.
 
-### 🔬 **Systematic Review Automation (NEW!)** 
+### 🔬 **Systematic Review Automation** 
 Automated structured data extraction from research papers with YAML-based schemas, reproducibility scoring, and temporal comparison against baseline studies like Roy et al. 2019. Export to CSV/JSON for meta-analysis.
 
 ### In plain language: benefits for EEG professionals
@@ -44,9 +47,9 @@ Automated structured data extraction from research papers with YAML-based schema
 - [Why EEG-RAG?](#-why-eeg-rag)
 - [Project Purpose](#-project-purpose)
 - [Project Status](#-project-status)
+- [Quick Start (Web API)](#-quick-start) ⚡ **NEW!**
 - [Architecture Overview](#-architecture-overview)
 - [Technology Stack Explained](#-technology-stack-explained)
-- [Quick Start](#-quick-start)
 - [Features](#-features)
 - [Development Roadmap](#-development-roadmap)
 - [Enterprise Features](#-enterprise-features)
@@ -147,11 +150,11 @@ mindmap
 ```
 📊 Progress: ████████████████████████ 100%
 🧪 Tests:    270+ passing (100% pass rate)
-📝 Code:     12,000+ lines production code
+📝 Code:     13,000+ lines production code
 ⚡ Status:   MVP COMPLETE - All components operational!
 📥 Data:     Multi-source ingestion (120K+ papers supported)
-🌐 UI:       Streamlit web interface with 7 pages
-🎯 Stage:    Phase 5 - Advanced Retrieval Quality
+🌐 API:      FastAPI REST + SSE streaming (10 endpoints) ⚡ NEW!
+🎯 Stage:    Phase 5 - Advanced Retrieval Quality + Web API
 ```
 
 #### ✅ Completed Components (Phase 1-4)
@@ -175,9 +178,10 @@ mindmap
 - ✅ **Multi-Source Data Ingestion** - PubMed, Semantic Scholar, arXiv, OpenAlex
 - ✅ **Bulk Ingestion with Checkpointing** - 120K+ papers with resume capability
 - ✅ **Streamlit Web UI** - 7-page interactive interface with data ingestion
-- ✅ **Cross-Encoder Reranking** - Production-ready reranking with +5-10% MRR improvement (NEW! ⚡)
-- ✅ **SPLADE Learned Sparse Retrieval** - Advanced sparse retrieval with +10-15% recall over BM25 (NEW! ⚡)
-- ✅ **IR Evaluation Framework** - Comprehensive metrics (Recall@K, MRR, NDCG@K, MAP) (NEW! ⚡)
+- ✅ **Cross-Encoder Reranking** - Production-ready reranking with +5-10% MRR improvement
+- ✅ **SPLADE Learned Sparse Retrieval** - Advanced sparse retrieval with +10-15% recall over BM25
+- ✅ **IR Evaluation Framework** - Comprehensive metrics (Recall@K, MRR, NDCG@K, MAP)
+- ✅ **FastAPI Web Service** - REST API with SSE streaming, 10 endpoints, auto docs (NEW! ⚡)
 
 #### 🔄 Next Phase: Production Optimization & Deployment
 
@@ -201,8 +205,10 @@ mindmap
 🔬 **EEG terminology extraction with 400+ terms across 12 entity types**
 🎓 **Final answer assembly with hallucination detection and validation**
 🌐 **Streamlit Web UI with query, ingestion, and benchmark pages**
-🎯 **Advanced retrieval: Cross-encoder reranking + SPLADE learned sparse** (NEW! ⚡)
-📈 **Complete IR metrics: Recall@K, MRR, NDCG, MAP** (NEW! ⚡)
+🎯 **Advanced retrieval: Cross-encoder reranking + SPLADE learned sparse**
+📈 **Complete IR metrics: Recall@K, MRR, NDCG, MAP**
+🚀 **FastAPI Web Service: REST API + SSE streaming (10 endpoints)** (NEW! ⚡)
+📖 **Automatic OpenAPI documentation (Swagger + ReDoc)**
 🏗️ **Solid foundation with comprehensive error handling**
 📚 **Complete documentation and architecture diagrams**
 
@@ -210,7 +216,128 @@ mindmap
 
 ---
 
-## ⚡ Advanced Retrieval Quality (NEW!)
+## 🚀 Quick Start
+
+Get the EEG-RAG API running in **5 minutes**! ⚡
+
+### Prerequisites
+
+- Python 3.9+ installed
+- 4GB RAM minimum (8GB recommended)
+- Optional: API keys for [PubMed](https://www.ncbi.nlm.nih.gov/account/register/) and [Semantic Scholar](https://www.semanticscholar.org/product/api)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/eeg-rag.git
+cd eeg-rag
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Configuration
+
+Create a `.env` file in the project root:
+
+```bash
+# Required
+RESEARCHER_EMAIL=your.email@example.com
+
+# Optional (recommended for full functionality)
+NCBI_API_KEY=your_ncbi_key_here
+S2_API_KEY=your_s2_key_here
+
+# ChromaDB (if using external instance)
+CHROMA_HOST=localhost
+CHROMA_PORT=8000
+
+# API Server
+CORS_ORIGINS=*
+```
+
+### Start the API Server
+
+```bash
+# Development mode (with auto-reload)
+uvicorn eeg_rag.api.main:app --reload --host 0.0.0.0 --port 8080
+
+# Production mode (with multiple workers)
+gunicorn eeg_rag.api.main:app \
+  --workers 4 \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --bind 0.0.0.0:8080
+```
+
+Server starts at: **http://localhost:8080**
+
+### Try It Out!
+
+**Option 1: Interactive API Docs**
+Visit http://localhost:8080/docs and try the `/search` endpoint
+
+**Option 2: curl**
+```bash
+curl -X POST "http://localhost:8080/search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "deep learning EEG classification",
+    "max_results": 10,
+    "synthesize": true
+  }'
+```
+
+**Option 3: Python**
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8080/search",
+    json={
+        "query": "deep learning EEG classification",
+        "max_results": 10,
+        "synthesize": True
+    }
+)
+
+result = response.json()
+print(f"Found {result['total_found']} papers!")
+```
+
+### API Endpoints
+
+| Endpoint           | Method | Description                    |
+| ------------------ | ------ | ------------------------------ |
+| `/health`          | GET    | Health check with agent status |
+| `/metrics`         | GET    | Performance metrics            |
+| `/search`          | POST   | Standard search with synthesis |
+| `/search/stream`   | POST   | **Streaming search (SSE)**     |
+| `/paper/details`   | POST   | Fetch paper metadata           |
+| `/paper/citations` | POST   | Citation network analysis      |
+| `/suggest`         | GET    | Query autocomplete             |
+| `/query-types`     | GET    | Available query types          |
+
+### Documentation
+
+- **Swagger UI**: http://localhost:8080/docs
+- **ReDoc**: http://localhost:8080/redoc
+- **OpenAPI Schema**: http://localhost:8080/openapi.json
+
+### Next Steps
+
+📖 **Detailed Guide**: See [QUICKSTART.md](QUICKSTART.md) for troubleshooting and examples  
+🌐 **API Documentation**: See [WEB_INTEGRATION_COMPLETE.md](WEB_INTEGRATION_COMPLETE.md)  
+🐳 **Docker Deployment**: See [docker/README.md](docker/README.md)  
+🎨 **Frontend Setup**: See artifacts for React UI
+
+---
+
+## ⚡ Advanced Retrieval Quality
 
 EEG-RAG now features **state-of-the-art multi-stage retrieval** with comprehensive evaluation:
 
@@ -1491,10 +1618,30 @@ graph TB
 
 ## 🏗️ Architecture Overview
 
+> **NEW!** The system now includes a **FastAPI Web Service** layer that exposes all functionality through REST endpoints with Server-Sent Events (SSE) for real-time progress updates. See [Quick Start](#-quick-start) for API usage.
+
 ### High-Level System Architecture (Agentic RAG)
 
 ```mermaid
 graph TB
+    subgraph "Client Layer (NEW!)"
+        WEB[Web Browser<br/>React/HTML]
+        CLI[CLI Tools<br/>Python/curl]
+        SDK[Python SDK<br/>requests]
+        style WEB fill:#38a169,stroke:#48bb78,stroke-width:2px,color:#fff
+        style CLI fill:#38a169,stroke:#48bb78,stroke-width:2px,color:#fff
+        style SDK fill:#38a169,stroke:#48bb78,stroke-width:2px,color:#fff
+    end
+
+    subgraph "FastAPI Web Service (NEW!)"
+        API[REST API<br/>10 Endpoints]
+        SSE[SSE Streaming<br/>Real-time Progress]
+        HEALTH[Health & Metrics<br/>Monitoring]
+        style API fill:#2f855a,stroke:#48bb78,stroke-width:3px,color:#fff
+        style SSE fill:#2f855a,stroke:#48bb78,stroke-width:2px,color:#fff
+        style HEALTH fill:#2f855a,stroke:#48bb78,stroke-width:2px,color:#fff
+    end
+
     subgraph "User Interface"
         USER[User Query]
         style USER fill:#2c5282,stroke:#4a90e2,stroke-width:3px,color:#fff
@@ -1540,6 +1687,14 @@ graph TB
         style PUBMED fill:#2d3748,stroke:#4a90e2,stroke-width:2px,color:#fff
     end
 
+    WEB --> API
+    CLI --> API
+    SDK --> API
+    
+    API --> SSE
+    API --> HEALTH
+    API --> USER
+    
     USER --> PLANNER
     PLANNER --> ORCH
     ORCH <--> MEM
@@ -1561,6 +1716,9 @@ graph TB
     CTX --> ENS
     ENS --> FINAL
     FINAL --> ANS[Answer + Citations]
+    
+    SSE -.Progress.-> WEB
+    ANS --> API
 
     REDIS -.Cache.-> ORCH
     MEM -.History.-> PLANNER
@@ -1569,6 +1727,9 @@ graph TB
 ```
 
 **Architecture Highlights:**
+- **🌐 FastAPI Web Service (NEW!)**: Production-ready REST API with 10 endpoints + SSE streaming
+- **📡 Real-Time Updates**: Server-Sent Events for progress tracking during searches
+- **🔍 Health Monitoring**: Built-in health checks and performance metrics
 - **6 Specialized Agents**: Each agent handles specific tasks (local search, web search, graph queries, validation)
 - **Parallel Execution**: Agents run concurrently for <2s total latency
 - **Memory Integration**: Conversation state maintained across queries
