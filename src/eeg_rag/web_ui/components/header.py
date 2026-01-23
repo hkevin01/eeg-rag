@@ -4,21 +4,23 @@ Enhanced header component for EEG-RAG application.
 """
 
 import streamlit as st
-from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
+from eeg_rag.web_ui.components.corpus_stats import get_header_display_stats
 
 
 def get_paper_count() -> str:
     """Get formatted paper count for display."""
-    count, is_actual = get_display_paper_count()
-    if count >= 1000:
-        return f"{count:,}"
-    return str(count)
+    stats = get_header_display_stats()
+    return stats.get("papers_indexed", "0")
 
 
 def render_header():
     """Render the application header with title and quick metrics."""
     
-    paper_count = get_paper_count()
+    # Get all display stats from centralized service
+    stats = get_header_display_stats()
+    paper_count = stats.get("papers_indexed", "0")
+    ai_agents = stats.get("ai_agents", "8")
+    citation_accuracy = stats.get("citation_accuracy", "99.2%")
     
     st.markdown(f"""
     <div style="background: #FFFFFF;
@@ -39,11 +41,11 @@ def render_header():
                     <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">Papers Indexed</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #4CAF50;">8</div>
+                    <div style="font-size: 1.75rem; font-weight: 700; color: #4CAF50;">{ai_agents}</div>
                     <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">AI Agents</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #FF9800;">99.2%</div>
+                    <div style="font-size: 1.75rem; font-weight: 700; color: #FF9800;">{citation_accuracy}</div>
                     <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">Citation Accuracy</div>
                 </div>
             </div>

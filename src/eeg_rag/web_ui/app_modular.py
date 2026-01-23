@@ -25,6 +25,7 @@ from components.query_interface import render_query_interface
 from components.agent_monitor import render_agent_monitor
 from components.educational import render_educational_content
 from components.feedback import render_feedback_panel
+from components.corpus_stats import get_header_display_stats
 
 
 # Page configuration
@@ -41,8 +42,8 @@ st.set_page_config(
         
         **Multi-Agent Retrieval-Augmented Generation for EEG Research**
         
-        This system uses 8 specialized AI agents to search, validate, and 
-        synthesize information from 52,000+ EEG research papers.
+        This system uses specialized AI agents to search, validate, and 
+        synthesize information from EEG research papers.
         
         All responses include verified citations with PMID links.
         """
@@ -299,6 +300,11 @@ def render_welcome_banner():
 def render_system_status_bar():
     """Render real-time system status bar."""
     
+    # Get dynamic stats
+    stats = get_header_display_stats()
+    paper_count = stats.get("papers_indexed", "0")
+    ai_agents = stats.get("ai_agents", "8")
+    
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
@@ -317,16 +323,16 @@ def render_system_status_bar():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div style="color: #888; font-size: 0.8rem;">
-            📚 52,431 papers indexed
+            📚 {paper_count} papers indexed
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        st.markdown("""
+        st.markdown(f"""
         <div style="color: #888; font-size: 0.8rem;">
-            🤖 8 agents ready
+            🤖 {ai_agents} agents ready
         </div>
         """, unsafe_allow_html=True)
     

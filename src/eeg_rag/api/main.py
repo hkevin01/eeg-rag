@@ -120,6 +120,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+from eeg_rag.api.stats_routes import router as stats_router
+app.include_router(stats_router)
+
 
 # ============== Pydantic Models ==============
 
