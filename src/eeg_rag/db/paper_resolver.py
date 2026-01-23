@@ -2,21 +2,30 @@
 """
 On-demand paper resolver with local caching.
 
-Resolves paper identifiers (PMID, DOI, OpenAlex ID) to full content
+Resolves paper identifiers (PMID, DOI, OpenAlex ID, arXiv ID) to full content
 by fetching from external APIs. Results are cached locally.
+
+Supported Sources:
+- PubMed (E-utilities API) - PMID lookup
+- OpenAlex API - DOI and OpenAlex ID lookup  
+- Semantic Scholar API - DOI, PMID, arXiv ID lookup
+- arXiv API - arXiv ID lookup
+- CrossRef API - DOI metadata lookup
+- bioRxiv/medRxiv API - preprint DOI lookup
 """
 
 import asyncio
 import json
 import logging
+import re
 import sqlite3
 import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Set
-from urllib.parse import quote
+from typing import List, Optional, Dict, Any, Set, Tuple
+from urllib.parse import quote, urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +36,8 @@ class ResolvedPaper:
     pmid: Optional[str] = None
     doi: Optional[str] = None
     openalex_id: Optional[str] = None
+    arxiv_id: Optional[str] = None
+    s2_id: Optional[str] = None  # Semantic Scholar ID
     title: str = ""
     abstract: str = ""
     authors: List[str] = field(default_factory=list)
@@ -36,6 +47,7 @@ class ResolvedPaper:
     keywords: List[str] = field(default_factory=list)
     source: str = "unknown"
     url: Optional[str] = None
+    pdf_url: Optional[str] = None
     citation_count: int = 0
     fetched_at: Optional[str] = None
     
@@ -59,6 +71,8 @@ class ResolvedPaper:
             pmid=row["pmid"],
             doi=row["doi"],
             openalex_id=row.get("openalex_id"),
+            arxiv_id=row.get("arxiv_id"),
+            s2_id=row.get("s2_id"),
             title=row["title"] or "",
             abstract=row["abstract"] or "",
             authors=parse_json_list(row["authors"]),
@@ -68,6 +82,7 @@ class ResolvedPaper:
             keywords=parse_json_list(row.get("keywords", "[]")),
             source=row["source"] or "unknown",
             url=row.get("url"),
+            pdf_url=row.get("pdf_url"),
             citation_count=row.get("citation_count", 0),
             fetched_at=row["fetched_at"],
         )
@@ -79,8 +94,12 @@ class ResolvedPaper:
             return f"pmid:{self.pmid}"
         elif self.doi:
             return f"doi:{self.doi}"
+        elif self.arxiv_id:
+            return f"arxiv:{self.arxiv_id}"
         elif self.openalex_id:
             return f"openalex:{self.openalex_id}"
+        elif self.s2_id:
+            return f"s2:{self.s2_id}"
         return f"title:{self.title[:50]}"
 
 
@@ -88,9 +107,13 @@ class PaperResolver:
     """
     Resolves paper IDs to full content using external APIs.
     
-    Supports:
-    - PubMed E-utilities (PMID)
-    - OpenAlex API (DOI, OpenAlex ID)
+    Supports multiple sources with fallback chain:
+    - PubMed E-utilities (PMID) - Best for medical/life sciences
+    - Semantic Scholar (DOI, PMID, arXiv) - Broad coverage, citation data
+    - OpenAlex API (DOI, OpenAlex ID) - Open metadata
+    - arXiv API (arXiv ID) - Preprints in physics, CS, etc.
+    - CrossRef API (DOI) - Authoritative DOI metadata
+    - bioRxiv/medRxiv API (DOI) - Life science preprints
     
     Results are cached locally in ~/.eeg_rag/cache/papers.db
     """
@@ -100,6 +123,8 @@ class PaperResolver:
         pmid TEXT PRIMARY KEY,
         doi TEXT,
         openalex_id TEXT,
+        arxiv_id TEXT,
+        s2_id TEXT,
         title TEXT,
         abstract TEXT,
         authors TEXT,  -- JSON array
@@ -109,12 +134,15 @@ class PaperResolver:
         keywords TEXT,  -- JSON array
         source TEXT,
         url TEXT,
+        pdf_url TEXT,
         citation_count INTEGER DEFAULT 0,
         fetched_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     
     CREATE INDEX IF NOT EXISTS idx_cache_doi ON papers(doi) WHERE doi IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_cache_openalex ON papers(openalex_id) WHERE openalex_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_cache_arxiv ON papers(arxiv_id) WHERE arxiv_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_cache_s2 ON papers(s2_id) WHERE s2_id IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_cache_fetched ON papers(fetched_at);
     
     -- Embeddings cache (optional, for vector search)
@@ -155,11 +183,21 @@ class PaperResolver:
         
         self._init_cache()
         
-        # Rate limiting
+        # Rate limiting timestamps
         self._last_pubmed_request = datetime.min
         self._last_openalex_request = datetime.min
+        self._last_s2_request = datetime.min
+        self._last_arxiv_request = datetime.min
+        self._last_crossref_request = datetime.min
+        self._last_biorxiv_request = datetime.min
+        
+        # Rate limits (time between requests)
         self._pubmed_rate_limit = timedelta(seconds=0.34)  # 3/sec without API key
         self._openalex_rate_limit = timedelta(seconds=0.1)  # 10/sec
+        self._s2_rate_limit = timedelta(seconds=1.0)  # 1/sec without API key (public)
+        self._arxiv_rate_limit = timedelta(seconds=3.0)  # Polite: 3 sec between requests
+        self._crossref_rate_limit = timedelta(seconds=0.05)  # ~20/sec with polite pool
+        self._biorxiv_rate_limit = timedelta(seconds=0.5)  # ~2/sec
     
     def _init_cache(self):
         """Initialize the local cache database."""
@@ -204,13 +242,15 @@ class PaperResolver:
             try:
                 conn.execute("""
                     INSERT OR REPLACE INTO papers
-                    (pmid, doi, openalex_id, title, abstract, authors, year,
-                     journal, mesh_terms, keywords, source, url, citation_count, fetched_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (pmid, doi, openalex_id, arxiv_id, s2_id, title, abstract, authors, year,
+                     journal, mesh_terms, keywords, source, url, pdf_url, citation_count, fetched_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     paper.pmid,
                     paper.doi,
                     paper.openalex_id,
+                    paper.arxiv_id,
+                    paper.s2_id,
                     paper.title,
                     paper.abstract,
                     json.dumps(paper.authors),
@@ -220,6 +260,7 @@ class PaperResolver:
                     json.dumps(paper.keywords),
                     paper.source,
                     paper.url,
+                    paper.pdf_url,
                     paper.citation_count,
                     datetime.now().isoformat(),
                 ))
