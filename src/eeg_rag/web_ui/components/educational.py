@@ -14,7 +14,7 @@ def render_educational_content():
     
     # PASTEL PEACH header
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+    <div style="background: #FFE0B2; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #FFCC80;">
         <p style="color: #000; margin: 0;">
             This section helps you understand how EEG-RAG works, master query strategies, 
@@ -55,7 +55,7 @@ def render_rag_basics():
     
     # PASTEL BLUE callout
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+    <div style="background: #BBDEFB; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #90CAF9;">
         <p style="color: #000; font-size: 1.1rem; line-height: 1.8; margin: 0;">
             <strong>RAG</strong> combines the power of large language models (LLMs) with 
@@ -112,7 +112,7 @@ def render_eeg_domain():
     
     # PASTEL MINT callout
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); 
+    <div style="background: #C8E6C9; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #A5D6A7;">
         <p style="color: #000; margin: 0;">
             EEG-RAG is built with deep understanding of EEG research terminology, concepts, 
@@ -241,7 +241,7 @@ def render_interpreting_results():
     
     # PASTEL LAVENDER callout
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); 
+    <div style="background: #E1BEE7; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #CE93D8;">
         <p style="color: #000; margin: 0;">
             EEG-RAG provides structured responses with confidence scores and citations. 
@@ -258,7 +258,7 @@ def render_interpreting_results():
     with col1:
         # PASTEL GREEN for high confidence
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #C8E6C9, #A5D6A7); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #81C784;">
+        <div style="background: #C8E6C9; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #81C784;">
             <div style="font-size: 1.5rem; font-weight: 700; color: #1B5E20;">80-100%</div>
             <div style="color: #2E7D32; font-size: 0.9rem;">High Confidence</div>
         </div>
@@ -272,7 +272,7 @@ def render_interpreting_results():
     with col2:
         # PASTEL YELLOW for medium confidence
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #FFF9C4, #FFF59D); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #FFEE58;">
+        <div style="background: #FFF9C4; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #FFEE58;">
             <div style="font-size: 1.5rem; font-weight: 700; color: #F57F17;">60-79%</div>
             <div style="color: #FF8F00; font-size: 0.9rem;">Medium Confidence</div>
         </div>
@@ -286,7 +286,7 @@ def render_interpreting_results():
     with col3:
         # PASTEL PINK for low confidence
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #FCE4EC, #F8BBD9); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #F48FB1;">
+        <div style="background: #FCE4EC; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #F48FB1;">
             <div style="font-size: 1.5rem; font-weight: 700; color: #C2185B;"><60%</div>
             <div style="color: #AD1457; font-size: 0.9rem;">Low Confidence</div>
         </div>
@@ -321,7 +321,7 @@ def render_limitations():
     
     # PASTEL CORAL/PEACH warning box
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%); 
+    <div style="background: #FFCCBC; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
                 border: 1px solid #FF8A65;">
         <h4 style="color: #BF360C; margin-bottom: 0.75rem;">⚠️ Important Limitations</h4>

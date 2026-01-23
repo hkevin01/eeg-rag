@@ -10,7 +10,7 @@ def render_header():
     """Render the application header with title and quick metrics."""
     
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    <div style="background: #c5cae9;
                 border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 1rem;
                 border: 1px solid #9fa8da;">
         <div style="display: flex; justify-content: space-between; align-items: center;">

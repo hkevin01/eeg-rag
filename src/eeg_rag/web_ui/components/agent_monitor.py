@@ -350,7 +350,7 @@ def render_pipeline_diagram():
             
             <!-- Orchestrator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 1rem; border-radius: 8px; 
+                <div style="background: #c5cae9; padding: 1rem; border-radius: 8px; 
                             border-left: 4px solid #6366F1; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🎯</div>
                     <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Orchestrator</div>
@@ -381,7 +381,7 @@ def render_pipeline_diagram():
             
             <!-- Aggregator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #e0f7fa, #b2ebf2); padding: 1rem; border-radius: 8px;
+                <div style="background: #b2ebf2; padding: 1rem; border-radius: 8px;
                             border-left: 4px solid #06B6D4; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🔄</div>
                     <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Aggregator</div>
@@ -392,7 +392,7 @@ def render_pipeline_diagram():
             
             <!-- Generator -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #fce4ec, #f8bbd0); padding: 1rem; border-radius: 8px;
+                <div style="background: #f8bbd0; padding: 1rem; border-radius: 8px;
                             border-left: 4px solid #EC4899; min-width: 120px;">
                     <div style="font-size: 1.5rem;">✍️</div>
                     <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Generator</div>
@@ -403,7 +403,7 @@ def render_pipeline_diagram():
             
             <!-- Response -->
             <div style="text-align: center;">
-                <div style="background: linear-gradient(135deg, #c8e6c9, #a5d6a7); padding: 1rem; border-radius: 8px; min-width: 120px;">
+                <div style="background: #a5d6a7; padding: 1rem; border-radius: 8px; min-width: 120px;">
                     <div style="font-size: 1.5rem;">📄</div>
                     <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Response</div>
                 </div>

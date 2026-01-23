@@ -50,6 +50,7 @@ st.markdown("""
     /* ============================================
        EASTER PASTEL THEME - Bright & Colorful
        Pink, Purple, Blue, Green, Yellow variety
+       SOLID COLORS - No gradients
        ============================================ */
     
     :root {
@@ -76,17 +77,17 @@ st.markdown("""
         max-width: 1400px;
     }
     
-    /* Light theme base - soft lavender tint */
+    /* Light theme base - solid lavender */
     .stApp {
-        background-color: #FAFAFA !important;
-        background-image: linear-gradient(135deg, #FAFAFA 0%, #F3E5F5 100%) !important;
+        background-color: #F3E5F5 !important;
+        background-image: none !important;
         color: #000000;
     }
     
-    /* Sidebar styling - pastel purple */
+    /* Sidebar styling - solid pastel purple */
     [data-testid="stSidebar"] {
-        background-color: #F3E5F5 !important;
-        background-image: linear-gradient(180deg, #F3E5F5 0%, #E1BEE7 100%) !important;
+        background-color: #E1BEE7 !important;
+        background-image: none !important;
     }
     
     [data-testid="stSidebar"] * {
@@ -127,21 +128,21 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Force light theme on ALL buttons - pastel blue */
+    /* Force light theme on ALL buttons - solid pastel blue */
     .stButton button,
     .stButton button[kind="secondary"],
     button[data-testid="stBaseButton-secondary"],
     button[data-testid="stBaseButton-primary"] {
-        background-color: #E3F2FD !important;
-        background-image: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%) !important;
+        background-color: #BBDEFB !important;
+        background-image: none !important;
         color: #000000 !important;
         border: 1px solid #90CAF9 !important;
         border-radius: 8px !important;
     }
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
-        background-color: #BBDEFB !important;
-        background-image: linear-gradient(135deg, #BBDEFB 0%, #90CAF9 100%) !important;
+        background-color: #90CAF9 !important;
+        background-image: none !important;
         border-color: #64B5F6 !important;
     }
     
@@ -201,8 +202,8 @@ st.markdown("""
     header[data-testid="stHeader"],
     .stAppHeader,
     [data-testid="stHeader"] {
-        background-color: #FFFDE7 !important;
-        background-image: linear-gradient(90deg, #FFFDE7 0%, #FFF9C4 100%) !important;
+        background-color: #FFF9C4 !important;
+        background-image: none !important;
     }
     .stAppToolbar,
     [data-testid="stToolbar"] {
@@ -225,7 +226,7 @@ st.markdown("""
 
     /* Info boxes for researchers */
     .researcher-tip {
-        background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 100%); /* Sunny yellow gradient */
+        background: #FFECB3; /* Sunny yellow solid */
         border-left: 4px solid #FFC107;
         border-radius: 8px;
         padding: 1rem 1.25rem;
@@ -250,7 +251,7 @@ st.markdown("""
     
     /* Educational callouts */
     .edu-callout {
-        background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%); /* Light sky blue */
+        background: #B3E5FC; /* Light sky blue solid */
         border: 1px solid #4FC3F7;
         border-radius: 12px;
         padding: 1.5rem;
@@ -314,7 +315,7 @@ st.markdown("""
     
     /* Agent status cards */
     .agent-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+        background: #f5f5f5;
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1rem;
@@ -340,7 +341,7 @@ st.markdown("""
     
     /* Metric displays */
     .metric-highlight {
-        background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        background: #c5cae9;
         border-radius: 8px;
         padding: 1rem;
         text-align: center;
@@ -383,9 +384,9 @@ st.markdown("""
         transition: width 0.5s ease;
     }
     
-    .confidence-fill.high { background: linear-gradient(90deg, #43a047, #66bb6a); }
-    .confidence-fill.medium { background: linear-gradient(90deg, #fb8c00, #ffa726); }
-    .confidence-fill.low { background: linear-gradient(90deg, #e53935, #ef5350); }
+    .confidence-fill.high { background: #66bb6a; }
+    .confidence-fill.medium { background: #ffa726; }
+    .confidence-fill.low { background: #ef5350; }
     
     /* Citation display */
     .citation-card {
@@ -503,7 +504,7 @@ def render_welcome_banner():
         
         with col1:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+            <div style="background: #bbdefb; 
                         border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
                         border: 1px solid #90caf9;">
                 <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>

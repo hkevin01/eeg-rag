@@ -62,7 +62,7 @@ def render_result_rating():
     
     # PASTEL PURPLE rating box
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #AB47BC;">
+    <div style="background: #E1BEE7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #AB47BC;">
         <div style="color: #4A148C; font-size: 0.8rem; font-weight: 500;">Rating results for:</div>
         <div style="color: #000; margin-top: 0.25rem;">"{latest_query.get('query', 'Unknown query')[:100]}..."</div>
     </div>

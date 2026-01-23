@@ -207,9 +207,9 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     st.markdown("### 📝 Response")
     
-    # Query analysis box - PASTEL BLUE
+    # Query analysis box - SOLID PASTEL BLUE
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #90CAF9;">
+    <div style="background: #BBDEFB; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #90CAF9;">
         <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
             <div>
                 <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Query Type:</span>
@@ -235,10 +235,10 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     </div>
     """, unsafe_allow_html=True)
     
-    # LLM Synthesized Answer - PASTEL PINK
+    # LLM Synthesized Answer - SOLID PASTEL PINK
     st.markdown("#### 🤖 AI-Synthesized Answer")
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #FCE4EC 0%, #F8BBD9 100%); 
+    <div style="background: #FCE4EC; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
                 border: 1px solid #F48FB1;">
         <p style="color: #000; line-height: 1.8; margin: 0;">
@@ -380,100 +380,53 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
         },
     ]
     
-    # Render detailed citation cards
+    # Render detailed citation cards using Streamlit native components
     for idx, cite in enumerate(mock_citations[:max_sources]):
-        # Calculate relevance bar color
+        # Calculate relevance indicator
         if cite['relevance_score'] >= 0.9:
-            rel_color = "#2E7D32"
-            rel_bg = "#C8E6C9"
+            rel_emoji = "🟢"
+            rel_text = "High"
         elif cite['relevance_score'] >= 0.8:
-            rel_color = "#1565C0"
-            rel_bg = "#BBDEFB"
+            rel_emoji = "🔵"
+            rel_text = "Good"
         else:
-            rel_color = "#F57F17"
-            rel_bg = "#FFF9C4"
+            rel_emoji = "🟡"
+            rel_text = "Moderate"
         
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border: 1px solid #A5D6A7; border-radius: 12px; 
-                    padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        with st.expander(f"📄 {cite['title'][:60]}... | PMID:{cite['pmid']} | {rel_emoji} {cite['relevance_score']:.0%}", expanded=True):
+            # Header info
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.markdown(f"**[🔗 PMID: {cite['pmid']}](https://pubmed.ncbi.nlm.nih.gov/{cite['pmid']})**")
+            with col2:
+                st.markdown(f"✅ **Verified** | 📊 {cite['citation_count']} citations")
+            with col3:
+                st.markdown(f"📈 Relevance: **{cite['relevance_score']:.0%}** {rel_emoji}")
             
-            <!-- Header Row -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <a href="https://pubmed.ncbi.nlm.nih.gov/{cite['pmid']}" target="_blank" 
-                       style="font-family: monospace; background: #DCEDC8; padding: 0.25rem 0.75rem; 
-                              border-radius: 4px; font-size: 0.9rem; color: #1B5E20; border: 1px solid #AED581;
-                              text-decoration: none; font-weight: 600;">
-                        🔗 PMID: {cite['pmid']}
-                    </a>
-                    <span style="background: #C8E6C9; color: #2E7D32; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500;">
-                        ✅ Verified
-                    </span>
-                    <span style="background: #E3F2FD; color: #1565C0; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
-                        📊 {cite['citation_count']} citations
-                    </span>
-                    <span style="background: #F3E5F5; color: #7B1FA2; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
-                        {cite['study_type']}
-                    </span>
-                </div>
-                
-                <!-- Relevance Score -->
-                <div style="text-align: right;">
-                    <div style="font-size: 0.75rem; color: #616161;">Relevance Score</div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 80px; height: 8px; background: #E0E0E0; border-radius: 4px; overflow: hidden;">
-                            <div style="width: {cite['relevance_score']*100}%; height: 100%; background: {rel_color}; border-radius: 4px;"></div>
-                        </div>
-                        <span style="font-weight: 700; color: {rel_color};">{cite['relevance_score']:.0%}</span>
-                    </div>
-                </div>
-            </div>
+            # Title and authors
+            st.markdown(f"### [{cite['title']}](https://doi.org/{cite['doi']})")
+            st.markdown(f"*{cite['authors']}*")
+            st.markdown(f"**{cite['journal']}** ({cite['year']}) {cite['volume']}{':' + cite['pages'] if cite['pages'] else ''}")
+            st.markdown(f"DOI: [{cite['doi']}](https://doi.org/{cite['doi']}) | Sample: {cite['sample_size']} | Type: {cite['study_type']}")
             
-            <!-- Title -->
-            <div style="margin-top: 0.75rem;">
-                <a href="https://doi.org/{cite['doi']}" target="_blank" style="color: #000; font-weight: 600; font-size: 1.05rem; text-decoration: none;">
-                    {cite['title']} ↗
-                </a>
-            </div>
+            st.divider()
             
-            <!-- Authors & Journal -->
-            <div style="color: #424242; font-size: 0.9rem; margin-top: 0.25rem;">
-                {cite['authors']}
-            </div>
-            <div style="color: #616161; font-size: 0.85rem; margin-top: 0.25rem;">
-                <em>{cite['journal']}</em> ({cite['year']}) {cite['volume']}{':' + cite['pages'] if cite['pages'] else ''} 
-                · DOI: <a href="https://doi.org/{cite['doi']}" target="_blank" style="color: #1565C0;">{cite['doi']}</a>
-                · Sample: {cite['sample_size']}
-            </div>
+            # Why Selected
+            st.markdown("**💡 Why Selected:**")
+            st.info(cite['selection_reason'])
             
-            <!-- Selection Reason - Why this was chosen -->
-            <div style="background: #FFF9C4; border-left: 3px solid #FBC02D; padding: 0.75rem; margin-top: 0.75rem; border-radius: 0 8px 8px 0;">
-                <div style="font-size: 0.8rem; color: #F57F17; font-weight: 600; margin-bottom: 0.25rem;">💡 Why Selected:</div>
-                <div style="color: #000; font-size: 0.9rem;">{cite['selection_reason']}</div>
-            </div>
+            # Matched Passage
+            st.markdown("**📄 Matched Passage:**")
+            st.success(f'"{cite["matched_passage"]}"')
             
-            <!-- Matched Passage -->
-            <div style="background: #E3F2FD; border-left: 3px solid #1976D2; padding: 0.75rem; margin-top: 0.5rem; border-radius: 0 8px 8px 0;">
-                <div style="font-size: 0.8rem; color: #1565C0; font-weight: 600; margin-bottom: 0.25rem;">📄 Matched Passage:</div>
-                <div style="color: #000; font-size: 0.9rem; font-style: italic;">"{cite['matched_passage']}"</div>
-            </div>
+            # MeSH Terms
+            mesh_str = " | ".join([f"`{term}`" for term in cite['mesh_terms']])
+            st.markdown(f"**🏷️ MeSH Terms:** {mesh_str}")
             
-            <!-- MeSH Terms -->
-            <div style="margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
-                {''.join([f'<span style="background: #F3E5F5; color: #7B1FA2; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem;">{term}</span>' for term in cite['mesh_terms']])}
-            </div>
-            
-            <!-- Abstract (collapsible hint) -->
-            <details style="margin-top: 0.75rem;">
-                <summary style="cursor: pointer; color: #1565C0; font-size: 0.9rem; font-weight: 500;">📋 View Abstract</summary>
-                <div style="background: #FAFAFA; padding: 0.75rem; margin-top: 0.5rem; border-radius: 8px; color: #000; font-size: 0.9rem; line-height: 1.6;">
-                    {cite['abstract']}
-                    <br/><br/>
-                    <span style="color: #616161; font-size: 0.8rem;">Funding: {cite['funding']}</span>
-                </div>
-            </details>
-        </div>
-        """, unsafe_allow_html=True)
+            # Abstract
+            with st.expander("📋 View Full Abstract"):
+                st.markdown(cite['abstract'])
+                st.caption(f"Funding: {cite['funding']}")
     
     # Citation Summary Statistics
     st.markdown("#### 📈 Citation Analysis Summary")
