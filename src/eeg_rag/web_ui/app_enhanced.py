@@ -47,12 +47,26 @@ st.set_page_config(
 # Enhanced CSS for researcher-friendly UI - Light Theme
 st.markdown("""
 <style>
-    /* Force light theme globally */
+    /* ============================================
+       EASTER PASTEL THEME - Bright & Colorful
+       Pink, Purple, Blue, Green, Yellow variety
+       ============================================ */
+    
     :root {
+        --pastel-pink: #FCE4EC;
+        --pastel-pink-dark: #F8BBD9;
+        --pastel-purple: #E1BEE7;
+        --pastel-purple-dark: #CE93D8;
+        --pastel-blue: #E3F2FD;
+        --pastel-blue-dark: #BBDEFB;
+        --pastel-green: #E8F5E9;
+        --pastel-green-dark: #C8E6C9;
+        --pastel-yellow: #FFFDE7;
+        --pastel-yellow-dark: #FFF9C4;
+        --pastel-peach: #FFF3E0;
+        --pastel-peach-dark: #FFE0B2;
         --background-color: #ffffff;
-        --secondary-background-color: #f5f5f5;
         --text-color: #000000;
-        --primary-color: #1976d2;
     }
     
     /* Global styling */
@@ -62,15 +76,17 @@ st.markdown("""
         max-width: 1400px;
     }
     
-    /* Light theme base */
+    /* Light theme base - soft lavender tint */
     .stApp {
-        background-color: #ffffff;
+        background-color: #FAFAFA !important;
+        background-image: linear-gradient(135deg, #FAFAFA 0%, #F3E5F5 100%) !important;
         color: #000000;
     }
     
-    /* Sidebar styling */
+    /* Sidebar styling - pastel purple */
     [data-testid="stSidebar"] {
-        background-color: #f5f5f5 !important;
+        background-color: #F3E5F5 !important;
+        background-image: linear-gradient(180deg, #F3E5F5 0%, #E1BEE7 100%) !important;
     }
     
     [data-testid="stSidebar"] * {
@@ -83,20 +99,20 @@ st.markdown("""
     [data-testid="stSidebar"] h4,
     [data-testid="stSidebar"] h5,
     [data-testid="stSidebar"] h6 {
-        color: #000000 !important;
+        color: #4A148C !important;
     }
     
     [data-testid="stSidebar"] .stMarkdown {
         color: #000000 !important;
     }
     
-    /* Sidebar widget styling */
+    /* Sidebar widget styling - pastel pink */
     [data-testid="stSidebar"] [data-baseweb="input"],
     [data-testid="stSidebar"] [data-baseweb="select"],
     [data-testid="stSidebar"] [data-baseweb="checkbox"],
     [data-testid="stSidebar"] .stButton button {
-        background-color: #ffffff !important;
-        border: 1px solid #e0e0e0 !important;
+        background-color: #FCE4EC !important;
+        border: 1px solid #F8BBD9 !important;
         color: #000000 !important;
     }
     
@@ -111,24 +127,25 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Force light theme on ALL buttons */
+    /* Force light theme on ALL buttons - pastel blue */
     .stButton button,
     .stButton button[kind="secondary"],
     button[data-testid="stBaseButton-secondary"],
     button[data-testid="stBaseButton-primary"] {
-        background-color: #FFF9C4 !important; /* Light pastel yellow */
-        background-image: none !important;
+        background-color: #E3F2FD !important;
+        background-image: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%) !important;
         color: #000000 !important;
-        border: 1px solid #FBC02D !important;
+        border: 1px solid #90CAF9 !important;
         border-radius: 8px !important;
     }
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
-        background-color: #FFECB3 !important;
-        border-color: #F9A825 !important;
+        background-color: #BBDEFB !important;
+        background-image: linear-gradient(135deg, #BBDEFB 0%, #90CAF9 100%) !important;
+        border-color: #64B5F6 !important;
     }
     
-    /* Force light theme on text areas and inputs */
+    /* Force light theme on text areas and inputs - pastel green */
     [data-baseweb="textarea"],
     [data-baseweb="input"],
     [data-baseweb="base-input"],
@@ -136,47 +153,56 @@ st.markdown("""
     input[type="text"],
     .stTextArea textarea,
     .stTextInput input {
-        background-color: #FFFDE7 !important; /* Very light yellow */
+        background-color: #E8F5E9 !important;
         background-image: none !important;
         color: #000000 !important;
-        border: 1px solid #FFF59D !important;
+        border: 1px solid #A5D6A7 !important;
         border-radius: 8px !important;
+        caret-color: #000000 !important;
     }
     [data-baseweb="textarea"]:focus-within,
     [data-baseweb="input"]:focus-within,
     textarea:focus,
     input:focus {
-        border-color: #FBC02D !important;
-        box-shadow: 0 0 0 2px rgba(251, 192, 45, 0.2) !important;
+        border-color: #66BB6A !important;
+        box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2) !important;
+        outline: 2px solid #66BB6A !important;
+        outline-offset: -2px;
+        caret-color: #000000 !important;
     }
     
-    /* Force light theme on select boxes */
+    /* Ensure cursor is visible in all inputs */
+    textarea, input {
+        caret-color: #000000 !important;
+    }
+    
+    /* Force light theme on select boxes - pastel peach */
     [data-baseweb="select"],
     .stSelectbox > div > div {
-        background-color: #FFFDE7 !important;
+        background-color: #FFF3E0 !important;
         color: #000000 !important;
-        border: 1px solid #FFF59D !important;
+        border: 1px solid #FFCC80 !important;
     }
     
-    /* Force light theme on expanders */
+    /* Force light theme on expanders - pastel pink */
     .streamlit-expanderHeader,
     [data-testid="stExpander"] summary {
-        background-color: #FFF9C4 !important;
+        background-color: #FCE4EC !important;
         color: #000000 !important;
         border-radius: 8px !important;
     }
     [data-testid="stExpander"] {
-        background-color: #FFFDE7 !important;
-        border: 1px solid #FFF59D !important;
+        background-color: #FFF0F5 !important;
+        border: 1px solid #F8BBD9 !important;
         border-radius: 8px !important;
     }
 
-    /* Force light theme on header */
+    /* Force light theme on header - pastel yellow */
     header[data-testid="stHeader"],
     .stAppHeader,
     [data-testid="stHeader"] {
         background-color: #FFFDE7 !important;
-        background-image: none !important;
+        background-image: linear-gradient(90deg, #FFFDE7 0%, #FFF9C4 100%) !important;
     }
     .stAppToolbar,
     [data-testid="stToolbar"] {
