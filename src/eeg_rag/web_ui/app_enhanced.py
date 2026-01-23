@@ -920,6 +920,7 @@ def main():
     # Main tabs with enhanced content
     tabs = st.tabs([
         "🔍 Query Research",
+        "📜 Search History",
         "🤖 Agent Pipeline",
         "📊 Results & Citations",
         "📈 Analytics",
@@ -930,19 +931,22 @@ def main():
     with tabs[0]:  # Query Research
         render_query_tab()
     
-    with tabs[1]:  # Agent Pipeline
+    with tabs[1]:  # Search History
+        render_search_history()
+    
+    with tabs[2]:  # Agent Pipeline
         render_agent_pipeline_tab()
     
-    with tabs[2]:  # Results & Citations
+    with tabs[3]:  # Results & Citations
         render_results_tab()
     
-    with tabs[3]:  # Analytics
+    with tabs[4]:  # Analytics
         render_analytics_tab()
     
-    with tabs[4]:  # Learn EEG-RAG
+    with tabs[5]:  # Learn EEG-RAG
         render_educational_content()
     
-    with tabs[5]:  # Feedback
+    with tabs[6]:  # Feedback
         render_feedback_panel()
     
     # Footer
