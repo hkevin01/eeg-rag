@@ -1,0 +1,117 @@
+# Kubernetes Deployment for EEG-RAG
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eeg-rag-api
+  labels:
+    app: eeg-rag
+    component: api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: eeg-rag
+      component: api
+  template:
+    metadata:
+      labels:
+        app: eeg-rag
+        component: api
+    spec:
+      containers:
+      - name: api
+        image: eeg-rag:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: eeg-rag-secrets
+              key: jwt-secret
+        - name: NCBI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: eeg-rag-secrets
+              key: ncbi-api-key
+        - name: S2_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: eeg-rag-secrets
+              key: s2-api-key
+        - name: RESEARCHER_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: eeg-rag-config
+              key: researcher-email
+        - name: CHROMA_HOST
+          value: "chromadb-service"
+        - name: CHROMA_PORT
+          value: "8000"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eeg-rag-api
+  labels:
+    app: eeg-rag
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: eeg-rag
+    component: api
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eeg-rag-config
+data:
+  researcher-email: "researcher@example.com"
+  log-level: "INFO"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eeg-rag-secrets
+type: Opaque
+stringData:
+  jwt-secret: "CHANGE-THIS-IN-PRODUCTION"
+  ncbi-api-key: ""
+  s2-api-key: ""

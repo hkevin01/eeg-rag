@@ -1,0 +1,27 @@
+# Kubernetes Ingress for EEG-RAG API
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eeg-rag-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - eeg-rag.example.com
+    secretName: eeg-rag-tls
+  rules:
+  - host: eeg-rag.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: eeg-rag-api
+            port:
+              number: 80

@@ -34,3 +34,16 @@ sse-starlette>=1.8.0,<2.0.0
 
 # Web UI (Optional)
 streamlit>=1.28.0,<2.0.0
+
+# New production dependencies for improvements
+# JWT authentication
+pyjwt>=2.8.0,<3.0.0
+
+# LLM providers (optional)
+anthropic>=0.18.0,<1.0.0  # Claude-3
+
+# EEG signal processing (already have scipy)
+# scipy>=1.7.0 is already included
+
+# Optional: for advanced network analysis
+networkx>=3.0,<4.0.0  # Citation network graphs
