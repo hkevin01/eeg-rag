@@ -5,13 +5,12 @@ Helps users understand RAG systems, EEG domain, and how to use EEG-RAG effective
 """
 
 import streamlit as st
-from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats
+from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
 
 
 def get_paper_count_formatted() -> str:
     """Get formatted paper count."""
-    stats = get_corpus_stats()
-    count = stats.get("total_papers", 0)
+    count, is_actual = get_display_paper_count()
     return f"{count:,}" if count > 0 else "0"
 
 

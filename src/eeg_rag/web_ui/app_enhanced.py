@@ -22,7 +22,7 @@ from eeg_rag.web_ui.components.query_interface import render_query_interface
 from eeg_rag.web_ui.components.feedback import render_feedback_panel
 from eeg_rag.web_ui.components.educational import render_educational_content
 from eeg_rag.web_ui.components.search_history import render_search_history, initialize_search_state
-from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats
+from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
 
 # Page configuration
 st.set_page_config(
@@ -563,8 +563,7 @@ def render_welcome_banner():
 
 def render_system_status_bar():
     """Render a compact system status bar with dynamic paper count."""
-    stats = get_corpus_stats()
-    paper_count = stats.get("total_papers", 0)
+    paper_count, is_actual = get_display_paper_count()
     paper_display = f"{paper_count:,}" if paper_count > 0 else "0"
     
     st.markdown(f"""
