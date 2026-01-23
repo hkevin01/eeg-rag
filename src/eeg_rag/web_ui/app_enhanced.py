@@ -111,6 +111,92 @@ st.markdown("""
         background-color: transparent !important;
     }
     
+    /* Force light theme on ALL buttons */
+    .stButton button,
+    .stButton button[kind="secondary"],
+    button[data-testid="stBaseButton-secondary"],
+    button[data-testid="stBaseButton-primary"] {
+        background-color: #FFF9C4 !important; /* Light pastel yellow */
+        background-image: none !important;
+        color: #000000 !important;
+        border: 1px solid #FBC02D !important;
+        border-radius: 8px !important;
+    }
+    .stButton button:hover,
+    button[data-testid="stBaseButton-secondary"]:hover {
+        background-color: #FFECB3 !important;
+        border-color: #F9A825 !important;
+    }
+    
+    /* Force light theme on text areas and inputs */
+    [data-baseweb="textarea"],
+    [data-baseweb="input"],
+    [data-baseweb="base-input"],
+    textarea,
+    input[type="text"],
+    .stTextArea textarea,
+    .stTextInput input {
+        background-color: #FFFDE7 !important; /* Very light yellow */
+        background-image: none !important;
+        color: #000000 !important;
+        border: 1px solid #FFF59D !important;
+        border-radius: 8px !important;
+    }
+    [data-baseweb="textarea"]:focus-within,
+    [data-baseweb="input"]:focus-within,
+    textarea:focus,
+    input:focus {
+        border-color: #FBC02D !important;
+        box-shadow: 0 0 0 2px rgba(251, 192, 45, 0.2) !important;
+    }
+    
+    /* Force light theme on select boxes */
+    [data-baseweb="select"],
+    .stSelectbox > div > div {
+        background-color: #FFFDE7 !important;
+        color: #000000 !important;
+        border: 1px solid #FFF59D !important;
+    }
+    
+    /* Force light theme on expanders */
+    .streamlit-expanderHeader,
+    [data-testid="stExpander"] summary {
+        background-color: #FFF9C4 !important;
+        color: #000000 !important;
+        border-radius: 8px !important;
+    }
+    [data-testid="stExpander"] {
+        background-color: #FFFDE7 !important;
+        border: 1px solid #FFF59D !important;
+        border-radius: 8px !important;
+    }
+
+    /* Force light theme on header */
+    header[data-testid="stHeader"],
+    .stAppHeader,
+    [data-testid="stHeader"] {
+        background-color: #FFFDE7 !important;
+        background-image: none !important;
+    }
+    .stAppToolbar,
+    [data-testid="stToolbar"] {
+        background-color: transparent !important;
+    }
+    header button,
+    [data-testid="stHeader"] button,
+    .stAppDeployButton button {
+        background-color: #FFF9C4 !important;
+        color: #000000 !important;
+        border: 1px solid #FBC02D !important;
+    }
+    [data-testid="stMainMenu"] button {
+        color: #000000 !important;
+    }
+    [data-testid="stMainMenu"] button svg {
+        fill: #000000 !important;
+        color: #000000 !important;
+    }
+
     /* Info boxes for researchers */
     .researcher-tip {
         background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 100%); /* Sunny yellow gradient */

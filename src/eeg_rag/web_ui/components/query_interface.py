@@ -209,19 +209,19 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     # Query analysis box
     st.markdown(f"""
-    <div style="background: #1a1a2e; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+    <div style="background: #FFF9C4; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #FFF59D;">
         <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
             <div>
-                <span style="color: #8b8bc0; font-size: 0.8rem;">Query Type:</span>
-                <span style="color: #fff; margin-left: 0.5rem;">{query_type.title()}</span>
+                <span style="color: #795548; font-size: 0.8rem;">Query Type:</span>
+                <span style="color: #000; margin-left: 0.5rem;">{query_type.title()}</span>
             </div>
             <div>
-                <span style="color: #8b8bc0; font-size: 0.8rem;">Entities Found:</span>
-                <span style="color: #fff; margin-left: 0.5rem;">{', '.join(entities) if entities else 'None detected'}</span>
+                <span style="color: #795548; font-size: 0.8rem;">Entities Found:</span>
+                <span style="color: #000; margin-left: 0.5rem;">{', '.join(entities) if entities else 'None detected'}</span>
             </div>
             <div>
-                <span style="color: #8b8bc0; font-size: 0.8rem;">Sources Retrieved:</span>
-                <span style="color: #fff; margin-left: 0.5rem;">{min(max_sources, 8)}</span>
+                <span style="color: #795548; font-size: 0.8rem;">Sources Retrieved:</span>
+                <span style="color: #000; margin-left: 0.5rem;">{min(max_sources, 8)}</span>
             </div>
         </div>
     </div>
@@ -229,10 +229,10 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     # Mock answer
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%); 
+    <div style="background: #FFFDE7; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
-                border: 1px solid #3d3d5c;">
-        <p style="color: #d0d0e0; line-height: 1.8; margin: 0;">
+                border: 1px solid #FFF59D;">
+        <p style="color: #000; line-height: 1.8; margin: 0;">
             Based on the available literature, this query would retrieve relevant passages from 
             the indexed EEG research corpus. In a production deployment, this response would 
             contain a synthesized answer with inline citations like [PMID:12345678] that you 
@@ -250,11 +250,11 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     st.markdown(f"""
     <div style="margin-bottom: 1rem;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-            <span style="color: #a0a0c0; font-size: 0.85rem;">Confidence Score</span>
-            <span style="color: #fff; font-weight: 600;">{confidence:.0%}</span>
+            <span style="color: #795548; font-size: 0.85rem;">Confidence Score</span>
+            <span style="color: #000; font-weight: 600;">{confidence:.0%}</span>
         </div>
-        <div style="height: 8px; background: #2d2d4d; border-radius: 4px; overflow: hidden;">
-            <div style="height: 100%; width: {confidence*100}%; background: linear-gradient(90deg, #10B981, #34d399); 
+        <div style="height: 8px; background: #E0E0E0; border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: {confidence*100}%; background: linear-gradient(90deg, #66BB6A, #81C784); 
                         border-radius: 4px;"></div>
         </div>
     </div>
@@ -274,21 +274,21 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     for cite in mock_citations[:max_sources]:
         st.markdown(f"""
-        <div style="background: #1a1a2e; border: 1px solid #2d2d4d; border-radius: 8px; 
+        <div style="background: #FFFFF0; border: 1px solid #F0E68C; border-radius: 8px; 
                     padding: 1rem; margin-bottom: 0.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <span style="font-family: monospace; background: #2d2d4d; padding: 0.125rem 0.5rem; 
-                                 border-radius: 4px; font-size: 0.85rem; color: #fff;">
+                    <span style="font-family: monospace; background: #F5F5DC; padding: 0.125rem 0.5rem; 
+                                 border-radius: 4px; font-size: 0.85rem; color: #000;">
                         PMID: {cite['pmid']}
                     </span>
-                    <span style="margin-left: 0.5rem; color: #34d399; font-size: 0.8rem;">✅ Verified</span>
+                    <span style="margin-left: 0.5rem; color: #388E3C; font-size: 0.8rem;">✅ Verified</span>
                 </div>
             </div>
             <div style="margin-top: 0.75rem;">
-                <div style="color: #fff; font-weight: 500;">{cite['title']}</div>
-                <div style="color: #888; font-size: 0.85rem; margin-top: 0.25rem;">{cite['authors']}</div>
-                <div style="color: #666; font-size: 0.85rem;">{cite['journal']} ({cite['year']})</div>
+                <div style="color: #000; font-weight: 500;">{cite['title']}</div>
+                <div style="color: #616161; font-size: 0.85rem; margin-top: 0.25rem;">{cite['authors']}</div>
+                <div style="color: #757575; font-size: 0.85rem;">{cite['journal']} ({cite['year']})</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
