@@ -5,6 +5,14 @@ Helps users understand RAG systems, EEG domain, and how to use EEG-RAG effective
 """
 
 import streamlit as st
+from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats
+
+
+def get_paper_count_formatted() -> str:
+    """Get formatted paper count."""
+    stats = get_corpus_stats()
+    count = stats.get("total_papers", 0)
+    return f"{count:,}" if count > 0 else "0"
 
 
 def render_educational_content():
@@ -14,9 +22,9 @@ def render_educational_content():
     
     # PASTEL PEACH header
     st.markdown("""
-    <div style="background: #FFE0B2; 
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #FFCC80;">
-        <p style="color: #000; margin: 0;">
+    <div style="background: #F5F7F9; 
+                border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #E8EAED;">
+        <p style="color: #1F2937; margin: 0;">
             This section helps you understand how EEG-RAG works, master query strategies, 
             and interpret results with confidence. Select a topic below to learn more.
         </p>
@@ -55,9 +63,9 @@ def render_rag_basics():
     
     # PASTEL BLUE callout
     st.markdown("""
-    <div style="background: #BBDEFB; 
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #90CAF9;">
-        <p style="color: #000; font-size: 1.1rem; line-height: 1.8; margin: 0;">
+    <div style="background: #E3F2FD; 
+                border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #BBDEFB;">
+        <p style="color: #1F2937; font-size: 1.1rem; line-height: 1.8; margin: 0;">
             <strong>RAG</strong> combines the power of large language models (LLMs) with 
             real-time document retrieval. Instead of relying solely on the model's training data,
             RAG systems <em>retrieve</em> relevant documents first, then <em>generate</em> 
@@ -110,11 +118,11 @@ def render_eeg_domain():
     
     st.markdown("### EEG Domain Knowledge in EEG-RAG")
     
-    # PASTEL MINT callout
+    # Professional callout
     st.markdown("""
-    <div style="background: #C8E6C9; 
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #A5D6A7;">
-        <p style="color: #000; margin: 0;">
+    <div style="background: #E8F5E9; 
+                border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #C8E6C9;">
+        <p style="color: #1F2937; margin: 0;">
             EEG-RAG is built with deep understanding of EEG research terminology, concepts, 
             and relationships. This domain knowledge improves retrieval accuracy and 
             response quality.
@@ -145,10 +153,11 @@ def render_eeg_domain():
     
     st.markdown("#### 📊 Literature Coverage")
     
+    paper_count = get_paper_count_formatted()
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("Indexed Papers", "52,431")
+        st.metric("Indexed Papers", paper_count)
         st.caption("Peer-reviewed EEG research")
     
     with col2:
@@ -239,11 +248,11 @@ def render_interpreting_results():
     
     st.markdown("### Understanding Your Results")
     
-    # PASTEL LAVENDER callout
+    # Professional gray callout
     st.markdown("""
-    <div style="background: #E1BEE7; 
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #CE93D8;">
-        <p style="color: #000; margin: 0;">
+    <div style="background: #F5F7F9; 
+                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #E8EAED;">
+        <p style="color: #1F2937; margin: 0;">
             EEG-RAG provides structured responses with confidence scores and citations. 
             Here's how to interpret each component of your results.
         </p>
@@ -256,11 +265,11 @@ def render_interpreting_results():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # PASTEL GREEN for high confidence
+        # Professional green for high confidence
         st.markdown("""
-        <div style="background: #C8E6C9; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #81C784;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #1B5E20;">80-100%</div>
-            <div style="color: #2E7D32; font-size: 0.9rem;">High Confidence</div>
+        <div style="background: #E8F5E9; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #C8E6C9;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #2E7D32;">80-100%</div>
+            <div style="color: #388E3C; font-size: 0.9rem;">High Confidence</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("""
@@ -270,11 +279,11 @@ def render_interpreting_results():
         """)
     
     with col2:
-        # PASTEL YELLOW for medium confidence
+        # Professional amber for medium confidence
         st.markdown("""
-        <div style="background: #FFF9C4; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #FFEE58;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #F57F17;">60-79%</div>
-            <div style="color: #FF8F00; font-size: 0.9rem;">Medium Confidence</div>
+        <div style="background: #FFF8E1; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #FFE082;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #E65100;">60-79%</div>
+            <div style="color: #F57C00; font-size: 0.9rem;">Medium Confidence</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("""
@@ -284,11 +293,11 @@ def render_interpreting_results():
         """)
     
     with col3:
-        # PASTEL PINK for low confidence
+        # Professional rose for low confidence
         st.markdown("""
-        <div style="background: #FCE4EC; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #F48FB1;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #C2185B;"><60%</div>
-            <div style="color: #AD1457; font-size: 0.9rem;">Low Confidence</div>
+        <div style="background: #FFEBEE; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #FFCDD2;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #C62828;"><60%</div>
+            <div style="color: #D32F2F; font-size: 0.9rem;">Low Confidence</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("""
@@ -319,12 +328,12 @@ def render_limitations():
     
     st.markdown("### System Limitations & Best Practices")
     
-    # PASTEL CORAL/PEACH warning box
+    # Professional amber warning box
     st.markdown("""
-    <div style="background: #FFCCBC; 
+    <div style="background: #FFF8E1; 
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
-                border: 1px solid #FF8A65;">
-        <h4 style="color: #BF360C; margin-bottom: 0.75rem;">⚠️ Important Limitations</h4>
+                border: 1px solid #FFE082;">
+        <h4 style="color: #E65100; margin-bottom: 0.75rem;">⚠️ Important Limitations</h4>
         <p style="color: #4E342E; margin: 0;">
             While EEG-RAG strives for accuracy, it's a research assistance tool - not a replacement 
             for expert judgment or primary literature review. Always verify critical information.

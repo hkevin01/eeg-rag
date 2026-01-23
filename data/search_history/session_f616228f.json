@@ -1,0 +1,318 @@
+{
+  "id": "f616228f",
+  "name": "Session Jan 23, 14:34",
+  "created_at": "2026-01-23T14:34:47.160744",
+  "updated_at": "2026-01-23T15:26:52.436535",
+  "queries": [
+    {
+      "id": "5db6e043-129a-4d9c-ae3a-930f37d15047",
+      "query": "Which electrode montages are best for detecting temporal lobe epilepsy?",
+      "timestamp": "2026-01-23T14:34:54.508732",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "temporal",
+        "epilepsy"
+      ]
+    },
+    {
+      "id": "985d4356-65fa-4fab-b6a3-1ff4ab4e99da",
+      "query": "Which electrode montages are best for detecting temporal lobe epilepsy?",
+      "timestamp": "2026-01-23T14:35:13.118877",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "temporal",
+        "epilepsy"
+      ]
+    },
+    {
+      "id": "6cc0ee1d-3cbc-420f-af43-9a65812c1e4e",
+      "query": "Which electrode montages are best for detecting temporal lobe epilepsy?",
+      "timestamp": "2026-01-23T14:41:53.094669",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "temporal",
+        "epilepsy"
+      ]
+    },
+    {
+      "id": "2a55c150-17dd-463b-809a-1865522f824b",
+      "query": "How do sleep spindles change in Parkinson's disease?",
+      "timestamp": "2026-01-23T14:42:30.861715",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "sleep"
+      ]
+    },
+    {
+      "id": "17abaa50-c185-49b8-91d0-2c86e0a56183",
+      "query": "How do sleep spindles change in Parkinson's disease?",
+      "timestamp": "2026-01-23T14:45:53.248026",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "sleep"
+      ]
+    },
+    {
+      "id": "a0b350b5-5d61-4709-ba88-59c7654a5651",
+      "query": "How do sleep spindles change in Parkinson's disease?",
+      "timestamp": "2026-01-23T14:48:52.621755",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "sleep"
+      ]
+    },
+    {
+      "id": "7e9cb6e6-8a02-445e-8895-76d0cbe4f11a",
+      "query": "How do sleep spindles change in Parkinson's disease?",
+      "timestamp": "2026-01-23T15:17:19.911713",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "sleep"
+      ]
+    },
+    {
+      "id": "d069b752-c07d-4300-b494-bc9263853e69",
+      "query": "What is the relationship between gamma oscillations and working memory?",
+      "timestamp": "2026-01-23T15:26:52.436522",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "gamma"
+      ]
+    }
+  ],
+  "tags": [],
+  "notes": "",
+  "is_favorite": false
+}

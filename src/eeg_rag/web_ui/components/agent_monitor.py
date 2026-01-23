@@ -10,6 +10,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 
+def get_paper_count_for_agent() -> str:
+    """Get formatted paper count for agent display."""
+    try:
+        from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats
+        stats = get_corpus_stats()
+        count = stats.get("total_papers", 0)
+        return f"{count:,}" if count > 0 else "0"
+    except:
+        return "0"
+
+
 class AgentStatus(Enum):
     """Agent execution status."""
     IDLE = "idle"
@@ -135,7 +146,7 @@ AGENTS = {
         """,
         capabilities=["Keyword search", "Semantic search", "Hybrid fusion", "Re-ranking"],
         typical_latency="50-150ms",
-        data_sources=["FAISS index (52,431 papers)", "BM25 index", "Metadata store"],
+        data_sources=["FAISS index", "BM25 index", "Metadata store"],
         metrics={"searches_performed": 89234, "avg_recall_at_10": 0.87}
     ),
     
@@ -350,10 +361,10 @@ def render_pipeline_diagram():
             
             <!-- Orchestrator -->
             <div style="text-align: center;">
-                <div style="background: #c5cae9; padding: 1rem; border-radius: 8px; 
-                            border-left: 4px solid #6366F1; min-width: 120px;">
+                <div style="background: #E8EEF4; padding: 1rem; border-radius: 8px; 
+                            border-left: 4px solid #5C7A99; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🎯</div>
-                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Orchestrator</div>
+                    <div style="color: #1F2937; font-weight: 600; margin-top: 0.5rem;">Orchestrator</div>
                 </div>
             </div>
             
@@ -361,16 +372,16 @@ def render_pipeline_diagram():
             
             <!-- Retrieval Agents (parallel) -->
             <div style="text-align: center;">
-                <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px; border: 1px dashed #bdbdbd;">
-                    <div style="color: #616161; font-size: 0.8rem; margin-bottom: 0.5rem;">Parallel Retrieval</div>
+                <div style="background: #F5F7F9; padding: 1rem; border-radius: 8px; border: 1px dashed #D1D5DB;">
+                    <div style="color: #6B7280; font-size: 0.8rem; margin-bottom: 0.5rem;">Parallel Retrieval</div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <div style="background: #e0f2f1; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #10B981; color: #000;">
+                        <div style="background: #E8F5E9; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #388E3C; color: #1F2937;">
                             💾 Local
                         </div>
-                        <div style="background: #e3f2fd; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #3B82F6; color: #000;">
+                        <div style="background: #E3F2FD; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #1565C0; color: #1F2937;">
                             🌐 Web
                         </div>
-                        <div style="background: #fff3e0; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #F59E0B; color: #000;">
+                        <div style="background: #FFF8E1; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #F57C00; color: #1F2937;">
                             🕸️ Graph
                         </div>
                     </div>
@@ -381,10 +392,10 @@ def render_pipeline_diagram():
             
             <!-- Aggregator -->
             <div style="text-align: center;">
-                <div style="background: #b2ebf2; padding: 1rem; border-radius: 8px;
-                            border-left: 4px solid #06B6D4; min-width: 120px;">
+                <div style="background: #E3F2FD; padding: 1rem; border-radius: 8px;
+                            border-left: 4px solid #1565C0; min-width: 120px;">
                     <div style="font-size: 1.5rem;">🔄</div>
-                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Aggregator</div>
+                    <div style="color: #1F2937; font-weight: 600; margin-top: 0.5rem;">Aggregator</div>
                 </div>
             </div>
             
@@ -392,10 +403,10 @@ def render_pipeline_diagram():
             
             <!-- Generator -->
             <div style="text-align: center;">
-                <div style="background: #f8bbd0; padding: 1rem; border-radius: 8px;
-                            border-left: 4px solid #EC4899; min-width: 120px;">
+                <div style="background: #F3E5F5; padding: 1rem; border-radius: 8px;
+                            border-left: 4px solid #7B1FA2; min-width: 120px;">
                     <div style="font-size: 1.5rem;">✍️</div>
-                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Generator</div>
+                    <div style="color: #1F2937; font-weight: 600; margin-top: 0.5rem;">Generator</div>
                 </div>
             </div>
             
@@ -403,9 +414,9 @@ def render_pipeline_diagram():
             
             <!-- Response -->
             <div style="text-align: center;">
-                <div style="background: #a5d6a7; padding: 1rem; border-radius: 8px; min-width: 120px;">
+                <div style="background: #E8F5E9; padding: 1rem; border-radius: 8px; min-width: 120px;">
                     <div style="font-size: 1.5rem;">📄</div>
-                    <div style="color: #000; font-weight: 600; margin-top: 0.5rem;">Response</div>
+                    <div style="color: #1F2937; font-weight: 600; margin-top: 0.5rem;">Response</div>
                 </div>
             </div>
         </div>

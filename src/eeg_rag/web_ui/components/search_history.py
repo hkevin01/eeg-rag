@@ -22,15 +22,26 @@ def initialize_search_state():
     if 'search_sessions' not in st.session_state:
         st.session_state.search_sessions = {}
     
-    if 'current_session_id' not in st.session_state:
-        # Create a new session on app load
-        st.session_state.current_session_id = create_new_session()
-    
     if 'query_history' not in st.session_state:
         st.session_state.query_history = []
     
-    # Load persisted history
+    # Load persisted history FIRST before creating new session
     load_persisted_history()
+    
+    # Only create new session if none exist or current_session_id is not set
+    if 'current_session_id' not in st.session_state:
+        # Check if we have any loaded sessions to use
+        if st.session_state.search_sessions:
+            # Use the most recently updated session
+            sorted_sessions = sorted(
+                st.session_state.search_sessions.values(),
+                key=lambda s: s.get('updated_at', ''),
+                reverse=True
+            )
+            st.session_state.current_session_id = sorted_sessions[0]['id']
+        else:
+            # No existing sessions, create a new one
+            st.session_state.current_session_id = create_new_session()
 
 
 def create_new_session(name: Optional[str] = None) -> str:
@@ -158,9 +169,9 @@ def render_search_history():
     
     st.markdown("## 📜 Search History & Sessions")
     st.markdown("""
-    <div style="background: #E3F2FD; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #90CAF9;">
-        <div style="color: #1565C0; font-weight: 600; margin-bottom: 0.5rem;">💡 About Search Sessions</div>
-        <div style="color: #000; font-size: 0.9rem;">
+    <div style="background: #F5F7F9; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; border: 1px solid #E8EAED;">
+        <div style="color: #5C7A99; font-weight: 600; margin-bottom: 0.5rem;">💡 About Search Sessions</div>
+        <div style="color: #1F2937; font-size: 0.9rem;">
             Sessions help you organize related searches together. Each session tracks your queries, 
             results, citations, and timing. You can create new sessions for different research topics,
             recall past searches, and export your research history.
@@ -245,9 +256,9 @@ def render_current_session_view():
     
     with col2:
         st.markdown(f"""
-        <div style="background: #C8E6C9; padding: 0.75rem; border-radius: 8px; text-align: center; margin-top: 1.5rem;">
-            <div style="color: #1B5E20; font-size: 1.5rem; font-weight: 700;">{len(session['queries'])}</div>
-            <div style="color: #2E7D32; font-size: 0.8rem;">Searches</div>
+        <div style="background: #E8EEF4; padding: 0.75rem; border-radius: 6px; text-align: center; margin-top: 1.5rem; border: 1px solid #D0DCE8;">
+            <div style="color: #5C7A99; font-size: 1.5rem; font-weight: 700;">{len(session['queries'])}</div>
+            <div style="color: #6B7280; font-size: 0.8rem;">Searches</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -294,14 +305,14 @@ def render_search_entry_card(query_entry: Dict[str, Any], idx: int, allow_recall
     
     with st.container():
         st.markdown(f"""
-        <div style="background: #FFFDE7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; 
-                    border-left: 4px solid {conf_color}; border: 1px solid #FFF59D;">
+        <div style="background: #FFFFFF; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; 
+                    border-left: 4px solid {conf_color}; border: 1px solid #E8EAED;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
-                    <div style="color: #000; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">
+                    <div style="color: #1F2937; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">
                         "{query_entry['query'][:100]}{'...' if len(query_entry['query']) > 100 else ''}"
                     </div>
-                    <div style="color: #666; font-size: 0.85rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="color: #6B7280; font-size: 0.85rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                         <span>🕐 {time_ago}</span>
                         <span>{conf_emoji} {confidence:.0%} confidence</span>
                         <span>📚 {query_entry.get('citation_count', 0)} citations</span>
@@ -372,28 +383,28 @@ def render_all_sessions_view():
     
     for session in sessions:
         is_current = session['id'] == st.session_state.current_session_id
-        bg_color = "#E8F5E9" if is_current else "#FAFAFA"
-        border_color = "#4CAF50" if is_current else "#E0E0E0"
+        bg_color = "#E8F4F8" if is_current else "#FFFFFF"
+        border_color = "#5C7A99" if is_current else "#E8EAED"
         
         created = datetime.fromisoformat(session['created_at'])
         updated = datetime.fromisoformat(session['updated_at'])
         
         with st.container():
             st.markdown(f"""
-            <div style="background: {bg_color}; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;
+            <div style="background: {bg_color}; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;
                         border: 2px solid {border_color};">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div style="color: #000; font-weight: 600; font-size: 1.1rem;">
+                        <div style="color: #1F2937; font-weight: 600; font-size: 1.1rem;">
                             {'⭐ ' if session.get('is_favorite') else ''}{session['name']}
                             {' (Active)' if is_current else ''}
                         </div>
-                        <div style="color: #666; font-size: 0.85rem; margin-top: 0.25rem;">
+                        <div style="color: #6B7280; font-size: 0.85rem; margin-top: 0.25rem;">
                             📅 Created: {created.strftime('%b %d, %Y %H:%M')} | 
                             📝 Updated: {get_time_ago(updated)} |
                             🔍 {len(session['queries'])} searches
                         </div>
-                        {f"<div style='color: #1976D2; font-size: 0.85rem; margin-top: 0.25rem;'>🏷️ {', '.join(session.get('tags', []))}</div>" if session.get('tags') else ''}
+                        {f"<div style='color: #5C7A99; font-size: 0.85rem; margin-top: 0.25rem;'>🏷️ {', '.join(session.get('tags', []))}</div>" if session.get('tags') else ''}
                     </div>
                 </div>
             </div>
@@ -471,12 +482,12 @@ def render_search_across_sessions():
                 entry = result['entry']
                 
                 st.markdown(f"""
-                <div style="background: #FFF3E0; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;
-                            border-left: 4px solid #FF9800;">
-                    <div style="color: #E65100; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                <div style="background: #FFFFFF; padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem;
+                            border-left: 4px solid #5C7A99; border: 1px solid #E8EAED;">
+                    <div style="color: #5C7A99; font-size: 0.8rem; margin-bottom: 0.25rem;">
                         📁 {session['name']} | Match: {result['match_type']}
                     </div>
-                    <div style="color: #000; font-weight: 500;">
+                    <div style="color: #1F2937; font-weight: 500;">
                         "{entry['query'][:80]}..."
                     </div>
                 </div>
@@ -504,35 +515,35 @@ def render_history_statistics():
     
     with col1:
         st.markdown(f"""
-        <div style="background: #E1BEE7; padding: 1rem; border-radius: 8px; text-align: center;">
-            <div style="color: #6A1B9A; font-size: 2rem; font-weight: 700;">{len(all_sessions)}</div>
-            <div style="color: #7B1FA2; font-size: 0.9rem;">Sessions</div>
+        <div style="background: #E8EEF4; padding: 1rem; border-radius: 6px; text-align: center; border: 1px solid #D0DCE8;">
+            <div style="color: #5C7A99; font-size: 2rem; font-weight: 700;">{len(all_sessions)}</div>
+            <div style="color: #6B7280; font-size: 0.9rem;">Sessions</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
-        <div style="background: #BBDEFB; padding: 1rem; border-radius: 8px; text-align: center;">
+        <div style="background: #E3F2FD; padding: 1rem; border-radius: 6px; text-align: center; border: 1px solid #BBDEFB;">
             <div style="color: #1565C0; font-size: 2rem; font-weight: 700;">{len(all_queries)}</div>
-            <div style="color: #1976D2; font-size: 0.9rem;">Total Searches</div>
+            <div style="color: #6B7280; font-size: 0.9rem;">Total Searches</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         total_citations = sum(q.get('citation_count', 0) for q in all_queries)
         st.markdown(f"""
-        <div style="background: #C8E6C9; padding: 1rem; border-radius: 8px; text-align: center;">
-            <div style="color: #2E7D32; font-size: 2rem; font-weight: 700;">{total_citations}</div>
-            <div style="color: #388E3C; font-size: 0.9rem;">Citations Found</div>
+        <div style="background: #E8F5E9; padding: 1rem; border-radius: 6px; text-align: center; border: 1px solid #C8E6C9;">
+            <div style="color: #388E3C; font-size: 2rem; font-weight: 700;">{total_citations}</div>
+            <div style="color: #6B7280; font-size: 0.9rem;">Citations Found</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         avg_conf = sum(q.get('confidence', 0) for q in all_queries) / len(all_queries) if all_queries else 0
         st.markdown(f"""
-        <div style="background: #FFE0B2; padding: 1rem; border-radius: 8px; text-align: center;">
-            <div style="color: #E65100; font-size: 2rem; font-weight: 700;">{avg_conf:.0%}</div>
-            <div style="color: #F57C00; font-size: 0.9rem;">Avg Confidence</div>
+        <div style="background: #FFF8E1; padding: 1rem; border-radius: 6px; text-align: center; border: 1px solid #FFECB3;">
+            <div style="color: #F57C00; font-size: 2rem; font-weight: 700;">{avg_conf:.0%}</div>
+            <div style="color: #6B7280; font-size: 0.9rem;">Avg Confidence</div>
         </div>
         """, unsafe_allow_html=True)
     

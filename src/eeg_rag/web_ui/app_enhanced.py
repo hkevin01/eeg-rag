@@ -22,6 +22,7 @@ from eeg_rag.web_ui.components.query_interface import render_query_interface
 from eeg_rag.web_ui.components.feedback import render_feedback_panel
 from eeg_rag.web_ui.components.educational import render_educational_content
 from eeg_rag.web_ui.components.search_history import render_search_history, initialize_search_state
+from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats
 
 # Page configuration
 st.set_page_config(
@@ -49,26 +50,26 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* ============================================
-       EASTER PASTEL THEME - Bright & Colorful
-       Pink, Purple, Blue, Green, Yellow variety
+       PROFESSIONAL LIGHT THEME
+       Clean, subdued colors for research UI
        SOLID COLORS - No gradients
        ============================================ */
     
     :root {
-        --pastel-pink: #FCE4EC;
-        --pastel-pink-dark: #F8BBD9;
-        --pastel-purple: #E1BEE7;
-        --pastel-purple-dark: #CE93D8;
-        --pastel-blue: #E3F2FD;
-        --pastel-blue-dark: #BBDEFB;
-        --pastel-green: #E8F5E9;
-        --pastel-green-dark: #C8E6C9;
-        --pastel-yellow: #FFFDE7;
-        --pastel-yellow-dark: #FFF9C4;
-        --pastel-peach: #FFF3E0;
-        --pastel-peach-dark: #FFE0B2;
-        --background-color: #ffffff;
-        --text-color: #000000;
+        --primary-blue: #E8EEF4;
+        --primary-blue-dark: #D0DCE8;
+        --accent-blue: #5C7A99;
+        --light-gray: #F5F7F9;
+        --medium-gray: #E8EAED;
+        --border-gray: #D1D5DB;
+        --success-green: #E8F5E9;
+        --success-green-dark: #C8E6C9;
+        --warning-amber: #FFF8E1;
+        --warning-amber-dark: #FFECB3;
+        --info-blue: #E3F2FD;
+        --background-color: #FAFBFC;
+        --text-color: #1F2937;
+        --text-muted: #6B7280;
     }
     
     /* Global styling */
@@ -78,21 +79,30 @@ st.markdown("""
         max-width: 1400px;
     }
     
-    /* Light theme base - solid lavender */
+    /* Light theme base - clean off-white */
     .stApp {
-        background-color: #F3E5F5 !important;
+        background-color: #FAFBFC !important;
         background-image: none !important;
-        color: #000000;
+        color: #1F2937;
     }
     
-    /* Sidebar styling - solid pastel purple */
+    /* Sidebar styling - subtle blue-gray, compact width */
     [data-testid="stSidebar"] {
-        background-color: #E1BEE7 !important;
+        background-color: #E8EEF4 !important;
         background-image: none !important;
+    }
+    
+    [data-testid="stSidebar"] > div:first-child {
+        width: 240px !important;
+    }
+    
+    section[data-testid="stSidebar"] {
+        width: 240px !important;
+        min-width: 240px !important;
     }
     
     [data-testid="stSidebar"] * {
-        color: #000000 !important;
+        color: #1F2937 !important;
     }
     
     [data-testid="stSidebar"] h1,
@@ -101,26 +111,26 @@ st.markdown("""
     [data-testid="stSidebar"] h4,
     [data-testid="stSidebar"] h5,
     [data-testid="stSidebar"] h6 {
-        color: #4A148C !important;
+        color: #374151 !important;
     }
     
     [data-testid="stSidebar"] .stMarkdown {
-        color: #000000 !important;
+        color: #1F2937 !important;
     }
     
-    /* Sidebar widget styling - pastel pink */
+    /* Sidebar widget styling - light blue-gray */
     [data-testid="stSidebar"] [data-baseweb="input"],
     [data-testid="stSidebar"] [data-baseweb="select"],
     [data-testid="stSidebar"] [data-baseweb="checkbox"],
     [data-testid="stSidebar"] .stButton button {
-        background-color: #FCE4EC !important;
-        border: 1px solid #F8BBD9 !important;
-        color: #000000 !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #D1D5DB !important;
+        color: #1F2937 !important;
     }
     
-    /* Ensure all text is black */
+    /* Ensure all text is dark gray */
     body, p, span, div, label, input, textarea, select {
-        color: #000000 !important;
+        color: #1F2937 !important;
     }
     
     /* Override any dark backgrounds */
@@ -129,25 +139,30 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Force light theme on ALL buttons - solid pastel blue */
+    /* Force light theme on ALL buttons - professional bright blue */
     .stButton button,
     .stButton button[kind="secondary"],
     button[data-testid="stBaseButton-secondary"],
     button[data-testid="stBaseButton-primary"] {
-        background-color: #BBDEFB !important;
+        background-color: #3B82F6 !important;
         background-image: none !important;
-        color: #000000 !important;
-        border: 1px solid #90CAF9 !important;
-        border-radius: 8px !important;
+        color: #FFFFFF !important;
+        border: 1px solid #2563EB !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        padding: 0.5rem 1rem !important;
+        min-width: fit-content !important;
     }
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
-        background-color: #90CAF9 !important;
+        background-color: #2563EB !important;
         background-image: none !important;
-        border-color: #64B5F6 !important;
+        border-color: #1D4ED8 !important;
     }
     
-    /* Force light theme on text areas and inputs - pastel green */
+    /* Force light theme on text areas and inputs - clean white */
     [data-baseweb="textarea"],
     [data-baseweb="input"],
     [data-baseweb="base-input"],
@@ -155,56 +170,57 @@ st.markdown("""
     input[type="text"],
     .stTextArea textarea,
     .stTextInput input {
-        background-color: #E8F5E9 !important;
+        background-color: #FFFFFF !important;
         background-image: none !important;
-        color: #000000 !important;
-        border: 1px solid #A5D6A7 !important;
-        border-radius: 8px !important;
-        caret-color: #000000 !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        border-radius: 6px !important;
+        caret-color: #1F2937 !important;
     }
     [data-baseweb="textarea"]:focus-within,
     [data-baseweb="input"]:focus-within,
     textarea:focus,
     input:focus {
-        border-color: #66BB6A !important;
-        box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2) !important;
-        outline: 2px solid #66BB6A !important;
+        border-color: #5C7A99 !important;
+        box-shadow: 0 0 0 2px rgba(92, 122, 153, 0.2) !important;
+        outline: 2px solid #5C7A99 !important;
         outline-offset: -2px;
-        caret-color: #000000 !important;
+        caret-color: #1F2937 !important;
     }
     
     /* Ensure cursor is visible in all inputs */
     textarea, input {
-        caret-color: #000000 !important;
+        caret-color: #1F2937 !important;
     }
     
-    /* Force light theme on select boxes - pastel peach */
+    /* Force light theme on select boxes - clean white */
     [data-baseweb="select"],
     .stSelectbox > div > div {
-        background-color: #FFF3E0 !important;
-        color: #000000 !important;
-        border: 1px solid #FFCC80 !important;
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
     }
     
-    /* Force light theme on expanders - pastel pink */
+    /* Force light theme on expanders - subtle gray */
     .streamlit-expanderHeader,
     [data-testid="stExpander"] summary {
-        background-color: #FCE4EC !important;
-        color: #000000 !important;
-        border-radius: 8px !important;
+        background-color: #F5F7F9 !important;
+        color: #1F2937 !important;
+        border-radius: 6px !important;
     }
     [data-testid="stExpander"] {
-        background-color: #FFF0F5 !important;
-        border: 1px solid #F8BBD9 !important;
-        border-radius: 8px !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #E8EAED !important;
+        border-radius: 6px !important;
     }
 
-    /* Force light theme on header - pastel yellow */
+    /* Force light theme on header - clean white */
     header[data-testid="stHeader"],
     .stAppHeader,
     [data-testid="stHeader"] {
-        background-color: #FFF9C4 !important;
+        background-color: #FFFFFF !important;
         background-image: none !important;
+        border-bottom: 1px solid #E8EAED !important;
     }
     .stAppToolbar,
     [data-testid="stToolbar"] {
@@ -213,26 +229,26 @@ st.markdown("""
     header button,
     [data-testid="stHeader"] button,
     .stAppDeployButton button {
-        background-color: #FFF9C4 !important;
-        color: #000000 !important;
-        border: 1px solid #FBC02D !important;
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
     }
     [data-testid="stMainMenu"] button {
-        color: #000000 !important;
+        color: #1F2937 !important;
     }
     [data-testid="stMainMenu"] button svg {
-        fill: #000000 !important;
-        color: #000000 !important;
+        fill: #1F2937 !important;
+        color: #1F2937 !important;
     }
 
-    /* Info boxes for researchers */
+    /* Info boxes for researchers - subtle amber */
     .researcher-tip {
-        background: #FFECB3; /* Sunny yellow solid */
-        border-left: 4px solid #FFC107;
-        border-radius: 8px;
+        background: #FFF8E1;
+        border-left: 4px solid #F9A825;
+        border-radius: 6px;
         padding: 1rem 1.25rem;
         margin: 1rem 0;
-        color: #000000;
+        color: #1F2937;
     }
     
     .researcher-tip .tip-header {
@@ -240,27 +256,27 @@ st.markdown("""
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: #795548; /* Brown text for contrast */
+        color: #6D4C41;
         margin-bottom: 0.5rem;
     }
     
     .researcher-tip .tip-content {
         font-size: 0.9rem;
         line-height: 1.6;
-        color: #000000;
+        color: #1F2937;
     }
     
-    /* Educational callouts */
+    /* Educational callouts - subtle blue */
     .edu-callout {
-        background: #B3E5FC; /* Light sky blue solid */
-        border: 1px solid #4FC3F7;
-        border-radius: 12px;
+        background: #E3F2FD;
+        border: 1px solid #90CAF9;
+        border-radius: 8px;
         padding: 1.5rem;
         margin: 1rem 0;
     }
     
     .edu-callout h4 {
-        color: #01579B;
+        color: #1565C0;
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
@@ -268,96 +284,96 @@ st.markdown("""
     }
     
     .edu-callout p {
-        color: #000000;
+        color: #1F2937;
     }
     
     /* System explanation boxes */
     .system-explanation {
-        background: #f5f5f5;
-        border: 1px dashed #9e9e9e;
-        border-radius: 8px;
+        background: #F5F7F9;
+        border: 1px dashed #D1D5DB;
+        border-radius: 6px;
         padding: 1rem;
         margin: 0.75rem 0;
         font-size: 0.85rem;
-        color: #000000;
+        color: #1F2937;
     }
     
     .system-explanation summary {
         cursor: pointer;
-        color: #000000;
+        color: #1F2937;
         font-weight: 500;
     }
     
     .system-explanation summary:hover {
-        color: #1976d2;
+        color: #5C7A99;
     }
 
     .response-summary-box {
-        background: #FFFDE7; /* Light sunny yellow */
-        border: 1px solid #FFF59D;
-        border-radius: 8px;
+        background: #FFFFFF;
+        border: 1px solid #E8EAED;
+        border-radius: 6px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        color: #000000;
+        color: #1F2937;
         line-height: 1.8;
     }
     
     .response-metadata {
-        background: #FFF9C4; /* Pastel yellow */
-        border-radius: 8px;
+        background: #F5F7F9;
+        border-radius: 6px;
         padding: 0.75rem 1.25rem;
         margin-bottom: 1rem;
-        color: #424242;
+        color: #6B7280;
         font-size: 0.9rem;
         display: flex;
         justify-content: space-around;
-        border: 1px solid #FFF59D;
+        border: 1px solid #E8EAED;
     }
     
     /* Agent status cards */
     .agent-card {
-        background: #f5f5f5;
-        border-radius: 12px;
+        background: #FFFFFF;
+        border-radius: 8px;
         padding: 1.25rem;
         margin-bottom: 1rem;
         border-left: 4px solid;
         transition: all 0.2s ease;
-        border: 1px solid #e0e0e0;
-        color: #000000;
+        border: 1px solid #E8EAED;
+        color: #1F2937;
     }
     
     .agent-card:hover {
         transform: translateX(4px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     
-    .agent-card.orchestrator { border-left-color: #6366F1; }
-    .agent-card.planner { border-left-color: #8B5CF6; }
-    .agent-card.local { border-left-color: #10B981; }
-    .agent-card.web { border-left-color: #3B82F6; }
-    .agent-card.graph { border-left-color: #F59E0B; }
-    .agent-card.citation { border-left-color: #EF4444; }
-    .agent-card.aggregator { border-left-color: #06B6D4; }
-    .agent-card.generator { border-left-color: #EC4899; }
+    .agent-card.orchestrator { border-left-color: #5C7A99; }
+    .agent-card.planner { border-left-color: #7C8DB5; }
+    .agent-card.local { border-left-color: #4CAF50; }
+    .agent-card.web { border-left-color: #2196F3; }
+    .agent-card.graph { border-left-color: #FF9800; }
+    .agent-card.citation { border-left-color: #F44336; }
+    .agent-card.aggregator { border-left-color: #00BCD4; }
+    .agent-card.generator { border-left-color: #E91E63; }
     
     /* Metric displays */
     .metric-highlight {
-        background: #c5cae9;
-        border-radius: 8px;
+        background: #E8EEF4;
+        border-radius: 6px;
         padding: 1rem;
         text-align: center;
-        border: 1px solid #9fa8da;
+        border: 1px solid #D0DCE8;
     }
     
     .metric-value {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #000000;
+        color: #1F2937;
     }
     
     .metric-label {
         font-size: 0.75rem;
-        color: #000000;
+        color: #6B7280;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-top: 0.25rem;
@@ -368,14 +384,14 @@ st.markdown("""
         margin-top: 0.25rem;
     }
     
-    .metric-delta.positive { color: #2e7d32; }
-    .metric-delta.negative { color: #c62828; }
+    .metric-delta.positive { color: #388E3C; }
+    .metric-delta.negative { color: #D32F2F; }
     
     /* Confidence bars */
     .confidence-bar {
         height: 8px;
         border-radius: 4px;
-        background: #e0e0e0;
+        background: #E8EAED;
         overflow: hidden;
     }
     
@@ -385,18 +401,18 @@ st.markdown("""
         transition: width 0.5s ease;
     }
     
-    .confidence-fill.high { background: #66bb6a; }
-    .confidence-fill.medium { background: #ffa726; }
-    .confidence-fill.low { background: #ef5350; }
+    .confidence-fill.high { background: #4CAF50; }
+    .confidence-fill.medium { background: #FF9800; }
+    .confidence-fill.low { background: #F44336; }
     
     /* Citation display */
     .citation-card {
-        background: #FFFFF0; /* Ivory */
-        border: 1px solid #F0E68C; /* Khaki */
-        border-radius: 8px;
+        background: #FFFFFF;
+        border: 1px solid #E8EAED;
+        border-radius: 6px;
         padding: 1rem;
         margin: 0.5rem 0;
-        color: #000000;
+        color: #1F2937;
     }
     
     .citation-header {
@@ -408,11 +424,11 @@ st.markdown("""
     
     .citation-pmid {
         font-family: monospace;
-        background: #F5F5DC; /* Beige */
+        background: #E8EEF4;
         padding: 0.125rem 0.5rem;
         border-radius: 4px;
         font-size: 0.85rem;
-        color: #000000;
+        color: #1F2937;
     }
 
     .verification-badge {
@@ -420,14 +436,14 @@ st.markdown("""
         font-size: 0.8rem;
     }
     .verification-badge.verified {
-        color: #388E3C; /* Darker green */
+        color: #388E3C;
     }
     .verification-badge.unverified {
-        color: #FBC02D; /* Amber */
+        color: #F9A825;
     }
 
     .relevance-score {
-        color: #616161;
+        color: #6B7280;
         font-size: 0.8rem;
     }
 
@@ -436,19 +452,19 @@ st.markdown("""
     }
 
     .citation-title {
-        color: #000;
+        color: #1F2937;
         font-weight: 500;
         margin-bottom: 0.25rem;
     }
 
     .citation-authors {
-        color: #616161;
+        color: #6B7280;
         font-size: 0.85rem;
         margin-bottom: 0.25rem;
     }
 
     .citation-journal {
-        color: #757575;
+        color: #9CA3AF;
         font-size: 0.85rem;
     }
 
@@ -458,8 +474,8 @@ st.markdown("""
     }
 
     .pubmed-link {
-        background: #E0F2F1; /* Light teal */
-        color: #00796B;
+        background: #E3F2FD;
+        color: #1565C0;
         padding: 0.25rem 0.75rem;
         border-radius: 4px;
         text-decoration: none;
@@ -467,7 +483,7 @@ st.markdown("""
         transition: background-color 0.2s;
     }
     .pubmed-link:hover {
-        background: #B2DFDB;
+        background: #BBDEFB;
     }
     
     /* Hide default Streamlit elements */
@@ -546,9 +562,12 @@ def render_welcome_banner():
 
 
 def render_system_status_bar():
-    """Render a compact system status bar."""
+    """Render a compact system status bar with dynamic paper count."""
+    stats = get_corpus_stats()
+    paper_count = stats.get("total_papers", 0)
+    paper_display = f"{paper_count:,}" if paper_count > 0 else "0"
     
-    st.markdown("""
+    st.markdown(f"""
     <div style="background: #f5f5f5; border-radius: 8px; padding: 0.75rem 1rem; 
                 margin-bottom: 1rem; display: flex; justify-content: space-between;
                 align-items: center; border: 1px solid #e0e0e0;">
@@ -558,7 +577,7 @@ def render_system_status_bar():
                 <span style="color: #424242; font-size: 0.85rem;">System Online</span>
             </div>
             <div style="color: #616161; font-size: 0.85rem;">
-                📚 <strong style="color: #000;">52,431</strong> papers indexed
+                📚 <strong style="color: #000;">{paper_display}</strong> papers indexed
             </div>
             <div style="color: #616161; font-size: 0.85rem;">
                 🔄 Last sync: <strong style="color: #000;">2h ago</strong>

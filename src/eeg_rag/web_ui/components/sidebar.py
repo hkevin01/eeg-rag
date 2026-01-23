@@ -4,117 +4,89 @@ Enhanced sidebar component for EEG-RAG application.
 """
 
 import streamlit as st
+from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
+
+
+def get_paper_count_short() -> str:
+    """Get short formatted paper count (e.g., '500K' or '10')."""
+    count, is_actual = get_display_paper_count()
+    if count >= 1000:
+        return f"{count // 1000}K"
+    return str(count)
 
 
 def render_sidebar():
-    """Render the application sidebar with navigation and settings."""
+    """Render a compact application sidebar."""
     
     with st.sidebar:
-        # Logo and branding
+        # Compact logo and branding
         st.markdown("""
-        <div style="text-align: center; padding: 1rem 0;">
-            <span style="font-size: 3rem;">🧠</span>
-            <h2 style="margin: 0.5rem 0 0 0; color: #000;">EEG-RAG</h2>
-            <p style="color: #616161; font-size: 0.85rem; margin: 0;">
-                AI Research Assistant
-            </p>
+        <div style="text-align: center; padding: 0.5rem 0;">
+            <span style="font-size: 2rem;">🧠</span>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #000; margin-top: 0.25rem;">EEG-RAG</div>
+            <div style="color: #616161; font-size: 0.75rem;">AI Research Assistant</div>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("---")
+        st.markdown("<hr style='margin: 0.5rem 0;'>", unsafe_allow_html=True)
         
-        # Display options
-        st.markdown("### ⚙️ Display Options")
+        # Compact display options
+        st.markdown("<div style='font-size: 0.85rem; font-weight: 600; color: #374151;'>⚙️ Options</div>", unsafe_allow_html=True)
         
-        show_tips = st.checkbox(
-            "Show Query Tips",
-            value=st.session_state.get('show_tips', True),
-            help="Display helpful tips for writing effective queries"
-        )
+        show_tips = st.checkbox("Query Tips", value=st.session_state.get('show_tips', True), key="tips_cb")
+        show_educational = st.checkbox("Edu Content", value=st.session_state.get('show_educational', True), key="edu_cb")
         
-        show_educational = st.checkbox(
-            "Show Educational Content",
-            value=st.session_state.get('show_educational', True),
-            help="Display explanations about how the system works"
-        )
+        st.markdown("<hr style='margin: 0.5rem 0;'>", unsafe_allow_html=True)
         
-        st.markdown("---")
-        
-        # Quick stats
-        st.markdown("### 📊 Quick Stats")
-        
+        # Compact quick stats - inline
         query_count = len(st.session_state.get('query_history', []))
         feedback_count = len(st.session_state.get('feedback_items', []))
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Queries", query_count)
-        with col2:
-            st.metric("Feedback", feedback_count)
-        
-        st.markdown("---")
-        
-        # Current Session Info
-        st.markdown("### 📁 Current Session")
-        
-        current_session_id = st.session_state.get('current_session_id', None)
-        sessions = st.session_state.get('search_sessions', {})
-        
-        if current_session_id and current_session_id in sessions:
-            session = sessions[current_session_id]
-            session_name = session.get('name', 'Unnamed Session')
-            query_count_session = len(session.get('queries', []))
-            
-            st.markdown(f"""
-            <div style="background: #E8F5E9; padding: 0.75rem; border-radius: 8px; border: 1px solid #A5D6A7;">
-                <div style="color: #1B5E20; font-weight: 600; font-size: 0.9rem;">{session_name}</div>
-                <div style="color: #2E7D32; font-size: 0.8rem; margin-top: 0.25rem;">
-                    🔍 {query_count_session} searches in session
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div style="background: #FFF3E0; padding: 0.75rem; border-radius: 8px; border: 1px solid #FFE0B2;">
-                <div style="color: #E65100; font-size: 0.85rem;">No active session</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # System Status
-        st.markdown("### 🔌 System Status")
-        
-        st.markdown("""
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="width: 8px; height: 8px; background: #2e7d32; border-radius: 50%;"></span>
-            <span style="color: #424242; font-size: 0.85rem;">All agents online</span>
-        </div>
-        <div style="color: #616161; font-size: 0.8rem;">
-            📚 52,431 papers indexed<br/>
-            🔄 Last sync: 2h ago<br/>
-            ⚡ Avg response: 2.3s
+        st.markdown(f"""
+        <div style="font-size: 0.85rem; font-weight: 600; color: #374151;">📊 Stats</div>
+        <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: #4B5563; margin-top: 0.25rem;">
+            <span>🔍 {query_count} queries</span>
+            <span>💬 {feedback_count} feedback</span>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("---")
+        st.markdown("<hr style='margin: 0.5rem 0;'>", unsafe_allow_html=True)
         
-        # Resources
-        st.markdown("### 📚 Resources")
+        # Compact session info
+        current_session_id = st.session_state.get('current_session_id', None)
+        sessions = st.session_state.get('search_sessions', {})
         
+        st.markdown("<div style='font-size: 0.85rem; font-weight: 600; color: #374151;'>📁 Session</div>", unsafe_allow_html=True)
+        
+        if current_session_id and current_session_id in sessions:
+            session = sessions[current_session_id]
+            session_name = session.get('name', 'Unnamed')[:20]
+            query_count_session = len(session.get('queries', []))
+            st.markdown(f"<div style='font-size: 0.75rem; color: #5C7A99;'>{session_name} ({query_count_session})</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='font-size: 0.75rem; color: #9CA3AF;'>No active session</div>", unsafe_allow_html=True)
+        
+        st.markdown("<hr style='margin: 0.5rem 0;'>", unsafe_allow_html=True)
+        
+        # Compact system status
+        paper_count = get_paper_count_short()
+        st.markdown(f"""
+        <div style="font-size: 0.85rem; font-weight: 600; color: #374151;">🔌 Status</div>
+        <div style="font-size: 0.75rem; color: #4B5563; margin-top: 0.25rem;">
+            <span style="color: #4CAF50;">●</span> Online · {paper_count} papers · 2.3s avg
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<hr style='margin: 0.5rem 0;'>", unsafe_allow_html=True)
+        
+        # Compact resources as icons
         st.markdown("""
-        - [Documentation](https://github.com/hkevin01/eeg-rag/wiki)
-        - [API Reference](https://github.com/hkevin01/eeg-rag/docs/api)
-        - [Report Issue](https://github.com/hkevin01/eeg-rag/issues/new)
-        """)
-        
-        st.markdown("---")
-        
-        # Version info
-        st.markdown("""
-        <div style="text-align: center; color: #616161; font-size: 0.8rem;">
-            EEG-RAG v0.5.0 Beta<br/>
-            © 2024 EEG Research Team
+        <div style="font-size: 0.75rem; text-align: center;">
+            <a href="https://github.com/hkevin01/eeg-rag" style="color: #5C7A99; text-decoration: none;">📖 Docs</a> · 
+            <a href="https://github.com/hkevin01/eeg-rag/issues" style="color: #5C7A99; text-decoration: none;">🐛 Issues</a>
+        </div>
+        <div style="text-align: center; color: #9CA3AF; font-size: 0.65rem; margin-top: 0.5rem;">
+            v0.5.0 · © 2024
         </div>
         """, unsafe_allow_html=True)
     

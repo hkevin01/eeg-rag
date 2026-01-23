@@ -60,11 +60,11 @@ def render_result_rating():
     
     latest_query = st.session_state.query_history[-1]
     
-    # PASTEL PURPLE rating box
+    # Professional rating box
     st.markdown(f"""
-    <div style="background: #E1BEE7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #AB47BC;">
-        <div style="color: #4A148C; font-size: 0.8rem; font-weight: 500;">Rating results for:</div>
-        <div style="color: #000; margin-top: 0.25rem;">"{latest_query.get('query', 'Unknown query')[:100]}..."</div>
+    <div style="background: #F5F7F9; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #E8EAED;">
+        <div style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Rating results for:</div>
+        <div style="color: #1F2937; margin-top: 0.25rem;">"{latest_query.get('query', 'Unknown query')[:100]}..."</div>
     </div>
     """, unsafe_allow_html=True)
     

@@ -210,41 +210,41 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     st.markdown("### 📝 Response")
     
-    # Query analysis box - SOLID PASTEL BLUE
+    # Query analysis box - Professional blue-gray
     st.markdown(f"""
-    <div style="background: #BBDEFB; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #90CAF9;">
+    <div style="background: #F5F7F9; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #E8EAED;">
         <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
             <div>
-                <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Query Type:</span>
-                <span style="color: #000; margin-left: 0.5rem;">{query_type.title()}</span>
+                <span style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Query Type:</span>
+                <span style="color: #1F2937; margin-left: 0.5rem;">{query_type.title()}</span>
             </div>
             <div>
-                <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Entities Found:</span>
-                <span style="color: #000; margin-left: 0.5rem;">{', '.join(entities) if entities else 'None detected'}</span>
+                <span style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Entities Found:</span>
+                <span style="color: #1F2937; margin-left: 0.5rem;">{', '.join(entities) if entities else 'None detected'}</span>
             </div>
             <div>
-                <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Sources Retrieved:</span>
-                <span style="color: #000; margin-left: 0.5rem;">{min(max_sources, 8)}</span>
+                <span style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Sources Retrieved:</span>
+                <span style="color: #1F2937; margin-left: 0.5rem;">{min(max_sources, 8)}</span>
             </div>
             <div>
-                <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Retrieval Time:</span>
-                <span style="color: #000; margin-left: 0.5rem;">127ms</span>
+                <span style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Retrieval Time:</span>
+                <span style="color: #1F2937; margin-left: 0.5rem;">127ms</span>
             </div>
             <div>
-                <span style="color: #1565C0; font-size: 0.8rem; font-weight: 500;">Agents Used:</span>
-                <span style="color: #000; margin-left: 0.5rem;">Local, PubMed, Knowledge Graph</span>
+                <span style="color: #5C7A99; font-size: 0.8rem; font-weight: 500;">Agents Used:</span>
+                <span style="color: #1F2937; margin-left: 0.5rem;">Local, PubMed, Knowledge Graph</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # LLM Synthesized Answer - SOLID PASTEL PINK
+    # LLM Synthesized Answer - Clean white with border
     st.markdown("#### 🤖 AI-Synthesized Answer")
     st.markdown(f"""
-    <div style="background: #FCE4EC; 
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
-                border: 1px solid #F48FB1;">
-        <p style="color: #000; line-height: 1.8; margin: 0;">
+    <div style="background: #FFFFFF; 
+                border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;
+                border: 1px solid #E8EAED; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <p style="color: #1F2937; line-height: 1.8; margin: 0;">
             Based on analysis of <strong>{min(max_sources, 8)} retrieved documents</strong> from the EEG research corpus, 
             here is a synthesized response to your query about <em>"{query[:100]}{'...' if len(query) > 100 else ''}"</em>:
             <br/><br/>
@@ -278,30 +278,30 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div style="background: #E1BEE7; padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid #CE93D8;">
-            <div style="color: #4A148C; font-size: 0.75rem; font-weight: 500;">Overall Confidence</div>
-            <div style="color: #000; font-size: 1.5rem; font-weight: 700;">{confidence:.0%}</div>
+        <div style="background: #E8EEF4; padding: 0.75rem; border-radius: 6px; text-align: center; border: 1px solid #D0DCE8;">
+            <div style="color: #5C7A99; font-size: 0.75rem; font-weight: 500;">Overall Confidence</div>
+            <div style="color: #1F2937; font-size: 1.5rem; font-weight: 700;">{confidence:.0%}</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div style="background: #C8E6C9; padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid #A5D6A7;">
-            <div style="color: #1B5E20; font-size: 0.75rem; font-weight: 500;">Source Agreement</div>
-            <div style="color: #000; font-size: 1.5rem; font-weight: 700;">{source_agreement:.0%}</div>
+        <div style="background: #E8F5E9; padding: 0.75rem; border-radius: 6px; text-align: center; border: 1px solid #C8E6C9;">
+            <div style="color: #388E3C; font-size: 0.75rem; font-weight: 500;">Source Agreement</div>
+            <div style="color: #1F2937; font-size: 1.5rem; font-weight: 700;">{source_agreement:.0%}</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div style="background: #BBDEFB; padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid #90CAF9;">
-            <div style="color: #0D47A1; font-size: 0.75rem; font-weight: 500;">Citation Coverage</div>
-            <div style="color: #000; font-size: 1.5rem; font-weight: 700;">{citation_coverage:.0%}</div>
+        <div style="background: #E3F2FD; padding: 0.75rem; border-radius: 6px; text-align: center; border: 1px solid #BBDEFB;">
+            <div style="color: #1565C0; font-size: 0.75rem; font-weight: 500;">Citation Coverage</div>
+            <div style="color: #1F2937; font-size: 1.5rem; font-weight: 700;">{citation_coverage:.0%}</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
-        <div style="background: #FFF9C4; padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid #FFF59D;">
-            <div style="color: #F57F17; font-size: 0.75rem; font-weight: 500;">Hallucination Risk</div>
-            <div style="color: #000; font-size: 1.5rem; font-weight: 700;">Low</div>
+        <div style="background: #FFF8E1; padding: 0.75rem; border-radius: 6px; text-align: center; border: 1px solid #FFECB3;">
+            <div style="color: #F57C00; font-size: 0.75rem; font-weight: 500;">Hallucination Risk</div>
+            <div style="color: #1F2937; font-size: 1.5rem; font-weight: 700;">Low</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -311,9 +311,9 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     st.markdown("### 📚 Source Citations & Evidence")
     
     st.markdown("""
-    <div style="background: #F3E5F5; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #CE93D8;">
-        <span style="color: #4A148C; font-weight: 500;">🔍 Selection Rationale:</span>
-        <span style="color: #000;"> Citations were selected based on semantic similarity to your query, 
+    <div style="background: #F5F7F9; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #E8EAED;">
+        <span style="color: #5C7A99; font-weight: 500;">🔍 Selection Rationale:</span>
+        <span style="color: #1F2937;"> Citations were selected based on semantic similarity to your query, 
         publication recency, citation count, and relevance to the identified entities. 
         All PMIDs have been validated against PubMed.</span>
     </div>
@@ -437,9 +437,9 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-        <div style="background: #E8F5E9; padding: 1rem; border-radius: 8px; border: 1px solid #A5D6A7;">
-            <div style="color: #1B5E20; font-weight: 600; margin-bottom: 0.5rem;">Source Distribution</div>
-            <div style="color: #000; font-size: 0.9rem;">
+        <div style="background: #F5F7F9; padding: 1rem; border-radius: 6px; border: 1px solid #E8EAED;">
+            <div style="color: #5C7A99; font-weight: 600; margin-bottom: 0.5rem;">Source Distribution</div>
+            <div style="color: #1F2937; font-size: 0.9rem;">
                 • <strong>Systematic Reviews:</strong> 2 papers (67%)<br/>
                 • <strong>Clinical Studies:</strong> 1 paper (33%)<br/>
                 • <strong>Publication Years:</strong> 2022-2023<br/>
@@ -450,9 +450,9 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
     
     with col2:
         st.markdown("""
-        <div style="background: #E3F2FD; padding: 1rem; border-radius: 8px; border: 1px solid #90CAF9;">
-            <div style="color: #0D47A1; font-weight: 600; margin-bottom: 0.5rem;">Evidence Quality</div>
-            <div style="color: #000; font-size: 0.9rem;">
+        <div style="background: #F5F7F9; padding: 1rem; border-radius: 6px; border: 1px solid #E8EAED;">
+            <div style="color: #5C7A99; font-weight: 600; margin-bottom: 0.5rem;">Evidence Quality</div>
+            <div style="color: #1F2937; font-size: 0.9rem;">
                 • <strong>Average Relevance:</strong> 90%<br/>
                 • <strong>All PMIDs Verified:</strong> ✅ Yes<br/>
                 • <strong>Recency Score:</strong> High (all ≤2 years)<br/>
