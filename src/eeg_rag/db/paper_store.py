@@ -23,7 +23,7 @@ class Paper:
     paper_id: str
     title: str
     abstract: str
-    authors: List[str]
+    authors: List[str] = field(default_factory=list)
     year: Optional[int] = None
     source: str = "unknown"  # pubmed, arxiv, semantic_scholar, openalex
     pmid: Optional[str] = None
@@ -32,7 +32,9 @@ class Paper:
     s2_id: Optional[str] = None  # Semantic Scholar ID
     openalex_id: Optional[str] = None
     url: Optional[str] = None
+    pdf_url: Optional[str] = None
     journal: Optional[str] = None
+    venue: Optional[str] = None
     keywords: List[str] = field(default_factory=list)
     mesh_terms: List[str] = field(default_factory=list)
     citation_count: int = 0
@@ -83,7 +85,9 @@ class Paper:
             s2_id=data.get('s2_id'),
             openalex_id=data.get('openalex_id'),
             url=data.get('url'),
+            pdf_url=data.get('pdf_url'),
             journal=data.get('journal'),
+            venue=data.get('venue'),
             keywords=keywords,
             mesh_terms=mesh_terms,
             citation_count=data.get('citation_count', 0),
@@ -418,6 +422,10 @@ class PaperStore:
                     last_ingestion = CURRENT_TIMESTAMP
             """, (source, added, updated, skipped))
     
+    def get_paper(self, paper_id: str) -> Optional[Paper]:
+        """Get a paper by its unique ID. Alias for get_paper_by_id."""
+        return self.get_paper_by_id(paper_id)
+    
     def get_paper_by_id(self, paper_id: str) -> Optional[Paper]:
         """Get a paper by its unique ID."""
         with self._get_connection() as conn:
@@ -425,6 +433,67 @@ class PaperStore:
             cursor.execute("SELECT * FROM papers WHERE paper_id = ?", (paper_id,))
             row = cursor.fetchone()
             return Paper.from_dict(dict(row)) if row else None
+    
+    def delete_paper(self, paper_id: str) -> bool:
+        """
+        Delete a paper by its unique ID.
+        
+        Args:
+            paper_id: The unique paper ID
+            
+        Returns:
+            True if paper was deleted, False if not found
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM papers WHERE paper_id = ?", (paper_id,))
+            return cursor.rowcount > 0
+    
+    def get_papers(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        source: Optional[str] = None,
+        year: Optional[int] = None
+    ) -> List[Paper]:
+        """
+        Get papers with pagination.
+        
+        Args:
+            limit: Maximum number of papers to return
+            offset: Number of papers to skip
+            source: Optional source filter
+            year: Optional year filter
+            
+        Returns:
+            List of Paper objects
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            
+            sql = "SELECT * FROM papers WHERE 1=1"
+            params: List[Any] = []
+            
+            if source:
+                sql += " AND source = ?"
+                params.append(source)
+            
+            if year:
+                sql += " AND year = ?"
+                params.append(year)
+            
+            sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+            
+            cursor.execute(sql, params)
+            return [Paper.from_dict(dict(row)) for row in cursor.fetchall()]
+    
+    def close(self):
+        """Close the paper store (releases any resources)."""
+        # SQLite connections are managed per-operation, but we reset singleton
+        global _paper_store
+        if _paper_store is self:
+            _paper_store = None
     
     def get_paper_by_pmid(self, pmid: str) -> Optional[Paper]:
         """Get a paper by its PubMed ID."""
@@ -465,35 +534,52 @@ class PaperStore:
         Returns:
             List of matching papers
         """
+        # Handle empty query
+        if not query or not query.strip():
+            return []
+        
+        # Clean query for FTS5 - escape special characters
+        # FTS5 special chars: AND OR NOT * - " ( )
+        clean_query = query.strip()
+        # Replace hyphens with spaces (common in terms like "EEG-based")
+        clean_query = clean_query.replace('-', ' ')
+        # Escape quotes
+        clean_query = clean_query.replace('"', ' ')
+        
         with self._get_connection() as conn:
             cursor = conn.cursor()
             
-            # Build the query
-            sql = """
-                SELECT papers.* FROM papers
-                JOIN papers_fts ON papers.id = papers_fts.rowid
-                WHERE papers_fts MATCH ?
-            """
-            params: List[Any] = [query]
-            
-            if year_from:
-                sql += " AND papers.year >= ?"
-                params.append(year_from)
-            
-            if year_to:
-                sql += " AND papers.year <= ?"
-                params.append(year_to)
-            
-            if sources:
-                placeholders = ','.join('?' * len(sources))
-                sql += f" AND papers.source IN ({placeholders})"
-                params.extend(sources)
-            
-            sql += " ORDER BY bm25(papers_fts) LIMIT ? OFFSET ?"
-            params.extend([limit, offset])
-            
-            cursor.execute(sql, params)
-            return [Paper.from_dict(dict(row)) for row in cursor.fetchall()]
+            try:
+                # Build the query
+                sql = """
+                    SELECT papers.* FROM papers
+                    JOIN papers_fts ON papers.id = papers_fts.rowid
+                    WHERE papers_fts MATCH ?
+                """
+                params: List[Any] = [clean_query]
+                
+                if year_from:
+                    sql += " AND papers.year >= ?"
+                    params.append(year_from)
+                
+                if year_to:
+                    sql += " AND papers.year <= ?"
+                    params.append(year_to)
+                
+                if sources:
+                    placeholders = ','.join('?' * len(sources))
+                    sql += f" AND papers.source IN ({placeholders})"
+                    params.extend(sources)
+                
+                sql += " ORDER BY bm25(papers_fts) LIMIT ? OFFSET ?"
+                params.extend([limit, offset])
+                
+                cursor.execute(sql, params)
+                return [Paper.from_dict(dict(row)) for row in cursor.fetchall()]
+            except sqlite3.OperationalError as e:
+                # Handle FTS5 syntax errors gracefully
+                logger.warning(f"FTS5 search error for query '{query}': {e}")
+                return []
     
     def get_total_count(self) -> int:
         """Get total number of papers in the store."""
