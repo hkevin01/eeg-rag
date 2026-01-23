@@ -907,6 +907,9 @@ def main():
     # Initialize session state
     initialize_session_state()
     
+    # Initialize search history and sessions
+    initialize_search_state()
+    
     # Render sidebar
     show_tips, show_edu = render_sidebar()
     st.session_state.show_tips = show_tips

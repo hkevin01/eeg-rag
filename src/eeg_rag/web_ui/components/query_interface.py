@@ -8,6 +8,7 @@ from datetime import datetime
 import uuid
 import time
 import re
+from eeg_rag.web_ui.components.search_history import add_search_to_session
 
 
 def render_query_interface():
@@ -161,8 +162,10 @@ def execute_query_with_monitoring(query: str, mode: str, max_sources: int,
     st.markdown("---")
     render_mock_response(query, query_id, max_sources)
     
-    # Save to history
-    save_query_to_history(query, query_id)
+    # Save to history with enhanced metadata
+    query_type = determine_query_type(query)
+    entities = extract_entities_preview(query)
+    save_query_to_history(query, query_id, query_type=query_type, entities=entities)
 
 
 def determine_query_type(query: str) -> str:
@@ -477,20 +480,28 @@ def render_mock_response(query: str, query_id: str, max_sources: int):
                 st.rerun()
 
 
-def save_query_to_history(query: str, query_id: str):
-    """Save query and results to session history."""
+def save_query_to_history(query: str, query_id: str, query_type: str = "factual", 
+                          entities: list = None, execution_time_ms: int = 127):
+    """Save query and results to session history using the new session-based system."""
     
-    if 'query_history' not in st.session_state:
-        st.session_state.query_history = []
+    # Mock citations for demo
+    mock_citations = [
+        {'pmid': '34567890', 'title': 'EEG biomarkers study', 'verified': True, 'relevance_score': 0.92},
+        {'pmid': '34567891', 'title': 'P300 amplitude research', 'verified': True, 'relevance_score': 0.88},
+        {'pmid': '34567892', 'title': 'Neural oscillation patterns', 'verified': True, 'relevance_score': 0.85},
+    ]
     
-    st.session_state.query_history.append({
-        'id': query_id,
-        'query': query,
-        'timestamp': datetime.now().isoformat(),
-        'confidence': 0.85,
-        'answer': 'Mock response for demonstration purposes.',
-        'citations': [
-            {'pmid': '34567890', 'title': 'EEG biomarkers study', 'verified': True, 'relevance_score': 0.92},
-            {'pmid': '34567891', 'title': 'P300 amplitude research', 'verified': True, 'relevance_score': 0.88},
-        ]
-    })
+    # Use the session-based history system
+    add_search_to_session(
+        query=query,
+        query_id=query_id,
+        results={
+            'summary': 'Mock response for demonstration purposes.',
+            'query_type': query_type,
+            'entities': entities or [],
+        },
+        confidence=0.85,
+        citations=mock_citations,
+        execution_time_ms=execution_time_ms,
+        agents_used=['Local', 'PubMed', 'Knowledge Graph']
+    )

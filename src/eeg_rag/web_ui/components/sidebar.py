@@ -54,6 +54,34 @@ def render_sidebar():
         
         st.markdown("---")
         
+        # Current Session Info
+        st.markdown("### 📁 Current Session")
+        
+        current_session_id = st.session_state.get('current_session_id', None)
+        sessions = st.session_state.get('search_sessions', {})
+        
+        if current_session_id and current_session_id in sessions:
+            session = sessions[current_session_id]
+            session_name = session.get('name', 'Unnamed Session')
+            query_count_session = len(session.get('queries', []))
+            
+            st.markdown(f"""
+            <div style="background: #E8F5E9; padding: 0.75rem; border-radius: 8px; border: 1px solid #A5D6A7;">
+                <div style="color: #1B5E20; font-weight: 600; font-size: 0.9rem;">{session_name}</div>
+                <div style="color: #2E7D32; font-size: 0.8rem; margin-top: 0.25rem;">
+                    🔍 {query_count_session} searches in session
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="background: #FFF3E0; padding: 0.75rem; border-radius: 8px; border: 1px solid #FFE0B2;">
+                <div style="color: #E65100; font-size: 0.85rem;">No active session</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
         # System Status
         st.markdown("### 🔌 System Status")
         
