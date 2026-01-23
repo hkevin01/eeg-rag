@@ -183,12 +183,22 @@ def get_target_paper_count() -> int:
 def get_display_paper_count() -> tuple[int, bool]:
     """
     Get the paper count to display and whether it's actual or target.
-    Uses StatsService for accurate counts when available.
+    Prioritizes: PaperStore database > StatsService > file counting
     
     Returns:
         (count, is_actual): The count and whether it's from actual data
     """
-    # Try StatsService first for most accurate count
+    # Try PaperStore database first (production mode)
+    if PAPER_STORE_AVAILABLE:
+        try:
+            store = get_paper_store()
+            db_count = store.get_total_count()
+            if db_count > 0:
+                return db_count, True
+        except Exception:
+            pass
+    
+    # Try StatsService next
     if STATS_SERVICE_AVAILABLE:
         try:
             service = get_stats_service()
