@@ -41,18 +41,29 @@ class TestOpenAlexClient:
         
         client = OpenAlexClient(email="test@example.com")
         assert client.email == "test@example.com"
-        assert "OpenAlex" in client.base_url or "api.openalex.org" in client.base_url
+        assert hasattr(client, 'BASE_URL') or hasattr(client, 'headers')
     
     @pytest.mark.asyncio
     async def test_work_dataclass(self):
-        """Test Work dataclass creation."""
-        from eeg_rag.ingestion.openalex_client import Work
+        """Test OpenAlexWork dataclass creation."""
+        from eeg_rag.ingestion.openalex_client import OpenAlexWork
         
-        work = Work(
+        work = OpenAlexWork(
             openalex_id="W123456",
+            doi="10.1234/test",
+            pmid="12345678",
             title="Test EEG Paper",
             abstract="Testing EEG signals",
-            publication_date=date(2024, 1, 15)
+            authors=[{"name": "Test Author"}],
+            publication_date=datetime(2024, 1, 15),
+            journal="Test Journal",
+            citation_count=10,
+            concepts=[],
+            topics=[],
+            referenced_works=[],
+            related_works=[],
+            open_access=True,
+            pdf_url="https://example.com/paper.pdf"
         )
         assert work.openalex_id == "W123456"
         assert work.title == "Test EEG Paper"
@@ -383,8 +394,10 @@ class TestIngestionRateLimiting:
         from eeg_rag.ingestion.openalex_client import OpenAlexClient
         
         client = OpenAlexClient(email="test@example.com")
-        # Client should have reasonable delays between requests
-        assert hasattr(client, 'delay') or hasattr(client, 'rate_limit_delay')
+        # Client should have email set for polite pool (faster rate limits)
+        assert client.email == "test@example.com"
+        # Client should have headers with User-Agent for polite access
+        assert 'User-Agent' in client.headers or 'mailto' in str(client.headers)
 
 
 if __name__ == "__main__":

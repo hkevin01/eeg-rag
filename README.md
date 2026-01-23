@@ -51,6 +51,7 @@ Automated structured data extraction from research papers with YAML-based schema
 - [Project Purpose](#-project-purpose)
 - [Project Status](#-project-status)
 - [Quick Start (Web API)](#-quick-start) ⚡ **NEW!**
+- [Paper Database (500K+ Papers)](#-paper-database-500k-papers) ⚡ **NEW!**
 - [Enhanced Web UI with 8 AI Agents](#-enhanced-web-ui-with-8-ai-agents-new) ⚡ **NEW!**
 - [Architecture Overview](#-architecture-overview)
 - [Technology Stack Explained](#-technology-stack-explained)
@@ -341,6 +342,85 @@ print(f"Found {result['total_found']} papers!")
 🌐 **API Documentation**: See [WEB_INTEGRATION_COMPLETE.md](WEB_INTEGRATION_COMPLETE.md)  
 🐳 **Docker Deployment**: See [docker/README.md](docker/README.md)  
 🎨 **Frontend Setup**: See artifacts for React UI
+
+---
+
+## 📚 Paper Database (500K+ Papers)
+
+EEG-RAG includes a **production-grade paper database** optimized for 500K+ EEG research papers with full-text search.
+
+### New User Setup
+
+Run the interactive setup script to populate your database:
+
+```bash
+# Interactive setup (recommended for new users)
+python scripts/setup_production.py
+
+# Quick start with 10,000 papers (~10 minutes)
+python scripts/setup_production.py --quick
+
+# Standard ingestion with 100,000 papers (~2 hours)
+python scripts/setup_production.py --standard
+
+# Full production with 500,000 papers (~10 hours)
+python scripts/setup_production.py --full
+
+# Check current database status
+python scripts/setup_production.py --status
+```
+
+### Database Features
+
+| Feature                   | Description                                                         |
+| ------------------------- | ------------------------------------------------------------------- |
+| **FTS5 Full-Text Search** | BM25-ranked search across titles, abstracts, keywords               |
+| **Deduplication**         | Automatic detection of duplicate papers via PMID, DOI, content hash |
+| **Multi-Source**          | Ingests from OpenAlex, PubMed, Semantic Scholar, arXiv              |
+| **Identifier Coverage**   | Track PMID, DOI, arXiv ID, OpenAlex ID, S2 ID                       |
+| **Statistics**            | Real-time stats on paper count, source distribution, coverage       |
+
+### Data Sources
+
+**OpenAlex** (Primary - No API Key Required):
+- 200M+ works with excellent EEG coverage
+- Includes PMIDs, DOIs, citations, concepts
+- 100K requests/day rate limit
+
+**PubMed** (Requires NCBI API Key):
+- Official NIH database for biomedical literature
+- MeSH terms and controlled vocabulary
+- Set `NCBI_API_KEY` in `.env`
+
+### Programmatic Usage
+
+```python
+from eeg_rag.db.paper_store import get_paper_store, Paper
+
+# Get the paper store singleton
+store = get_paper_store()
+
+# Search papers
+results = store.search_papers("EEG brain-computer interface P300")
+for paper in results[:5]:
+    print(f"{paper.title} ({paper.year})")
+
+# Get statistics
+stats = store.get_statistics()
+print(f"Total papers: {stats['total_papers']:,}")
+print(f"PMID coverage: {stats['pmid_coverage']:.1f}%")
+
+# Add custom papers
+paper = Paper(
+    paper_id="custom_001",
+    title="My EEG Study",
+    abstract="Investigation of neural oscillations...",
+    authors=["Author A", "Author B"],
+    year=2024,
+    source="local"
+)
+store.add_paper(paper)
+```
 
 ---
 

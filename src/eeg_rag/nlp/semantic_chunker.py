@@ -680,7 +680,4 @@ def chunk_medical_text(text: str,
         strategy=ChunkingStrategy.MEDICAL,
         target_chunk_size=target_size,
         min_chunk_size=max(50, target_size // 4)  # Dynamic min size
-        strategy=ChunkingStrategy.ADAPTIVE,
-        target_chunk_size=target_size,
-        min_chunk_size=max(50, target_size // 5)  # Dynamic min size
     )
