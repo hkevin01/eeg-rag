@@ -63,6 +63,25 @@ class OpenAlexClient:
         """
         self.email = email
         self.headers = {"User-Agent": f"EEG-RAG/1.0 (mailto:{email})"}
+        self._session: Optional[aiohttp.ClientSession] = None
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        self._session = aiohttp.ClientSession(headers=self.headers)
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        if self._session:
+            await self._session.close()
+            self._session = None
+        return False
+    
+    async def close(self):
+        """Close the client session."""
+        if self._session:
+            await self._session.close()
+            self._session = None
         
     async def _fetch(
         self,

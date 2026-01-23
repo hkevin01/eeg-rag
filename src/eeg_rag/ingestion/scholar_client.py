@@ -87,6 +87,25 @@ class SemanticScholarClient:
         self.window_start = time.time()
         self.max_requests = 100 if not api_key else 1000
         self.window_seconds = 300
+        self._session: Optional[aiohttp.ClientSession] = None
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        self._session = aiohttp.ClientSession(headers=self.headers)
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        if self._session:
+            await self._session.close()
+            self._session = None
+        return False
+    
+    async def close(self):
+        """Close the client session."""
+        if self._session:
+            await self._session.close()
+            self._session = None
         
     async def _rate_limit(self):
         """Enforce rate limiting."""

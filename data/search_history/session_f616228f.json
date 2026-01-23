@@ -2,7 +2,7 @@
   "id": "f616228f",
   "name": "Session Jan 23, 14:34",
   "created_at": "2026-01-23T14:34:47.160744",
-  "updated_at": "2026-01-23T15:28:24.707500",
+  "updated_at": "2026-01-23T15:41:17.278667",
   "queries": [
     {
       "id": "5db6e043-129a-4d9c-ae3a-930f37d15047",
@@ -347,6 +347,44 @@
       "query_type": "factual",
       "entities_found": [
         "gamma"
+      ]
+    },
+    {
+      "id": "d371b945-9de9-4cd0-92fc-48fdf122c680",
+      "query": "How do sleep spindles change in Parkinson's disease?",
+      "timestamp": "2026-01-23T15:41:17.278655",
+      "confidence": 0.85,
+      "execution_time_ms": 127,
+      "agents_used": [
+        "Local",
+        "PubMed",
+        "Knowledge Graph"
+      ],
+      "citation_count": 3,
+      "citations": [
+        {
+          "pmid": "34567890",
+          "title": "EEG biomarkers study",
+          "verified": true,
+          "relevance_score": 0.92
+        },
+        {
+          "pmid": "34567891",
+          "title": "P300 amplitude research",
+          "verified": true,
+          "relevance_score": 0.88
+        },
+        {
+          "pmid": "34567892",
+          "title": "Neural oscillation patterns",
+          "verified": true,
+          "relevance_score": 0.85
+        }
+      ],
+      "results_summary": "Mock response for demonstration purposes.",
+      "query_type": "factual",
+      "entities_found": [
+        "sleep"
       ]
     }
   ],

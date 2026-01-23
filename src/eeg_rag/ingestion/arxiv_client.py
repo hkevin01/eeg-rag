@@ -85,6 +85,25 @@ class ArxivClient:
         self._last_request_time = 0.0
         # arXiv asks for 3 second delay between requests
         self.delay = 3.0
+        self._session: Optional[aiohttp.ClientSession] = None
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        self._session = aiohttp.ClientSession()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        if self._session:
+            await self._session.close()
+            self._session = None
+        return False
+    
+    async def close(self):
+        """Close the client session."""
+        if self._session:
+            await self._session.close()
+            self._session = None
     
     async def _rate_limit(self):
         """Enforce arXiv's rate limit."""

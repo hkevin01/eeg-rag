@@ -1,9 +1,5 @@
-"""
-CLI module for EEG-RAG system.
+"""CLI module for EEG-RAG system."""
 
-Provides command-line interfaces for interacting with the EEG-RAG system.
-"""
+from eeg_rag.cli.history_cli import history_cli
 
-from .main import main, cli_main
-
-__all__ = ["main", "cli_main"]
+__all__ = ['history_cli']
