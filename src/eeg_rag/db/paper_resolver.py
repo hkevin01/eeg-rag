@@ -123,8 +123,6 @@ class PaperResolver:
         pmid TEXT PRIMARY KEY,
         doi TEXT,
         openalex_id TEXT,
-        arxiv_id TEXT,
-        s2_id TEXT,
         title TEXT,
         abstract TEXT,
         authors TEXT,  -- JSON array
@@ -134,15 +132,12 @@ class PaperResolver:
         keywords TEXT,  -- JSON array
         source TEXT,
         url TEXT,
-        pdf_url TEXT,
         citation_count INTEGER DEFAULT 0,
         fetched_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     
     CREATE INDEX IF NOT EXISTS idx_cache_doi ON papers(doi) WHERE doi IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_cache_openalex ON papers(openalex_id) WHERE openalex_id IS NOT NULL;
-    CREATE INDEX IF NOT EXISTS idx_cache_arxiv ON papers(arxiv_id) WHERE arxiv_id IS NOT NULL;
-    CREATE INDEX IF NOT EXISTS idx_cache_s2 ON papers(s2_id) WHERE s2_id IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_cache_fetched ON papers(fetched_at);
     
     -- Embeddings cache (optional, for vector search)
@@ -203,6 +198,33 @@ class PaperResolver:
         """Initialize the local cache database."""
         conn = sqlite3.connect(str(self.cache_db))
         conn.executescript(self.CACHE_SCHEMA)
+        
+        # Migration: Add new columns if they don't exist
+        cursor = conn.execute("PRAGMA table_info(papers)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        
+        migrations = [
+            ("arxiv_id", "ALTER TABLE papers ADD COLUMN arxiv_id TEXT"),
+            ("s2_id", "ALTER TABLE papers ADD COLUMN s2_id TEXT"),
+            ("pdf_url", "ALTER TABLE papers ADD COLUMN pdf_url TEXT"),
+        ]
+        
+        for col_name, sql in migrations:
+            if col_name not in existing_cols:
+                try:
+                    conn.execute(sql)
+                    logger.info(f"Added column {col_name} to cache")
+                except sqlite3.Error as e:
+                    logger.debug(f"Column {col_name} migration: {e}")
+        
+        # Add new indexes if they don't exist
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cache_arxiv ON papers(arxiv_id) WHERE arxiv_id IS NOT NULL")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cache_s2 ON papers(s2_id) WHERE s2_id IS NOT NULL")
+        except sqlite3.Error:
+            pass
+        
+        conn.commit()
         conn.close()
         logger.debug(f"Cache initialized at {self.cache_db}")
     
@@ -217,7 +239,7 @@ class PaperResolver:
         finally:
             conn.close()
     
-    def get_from_cache(self, pmid: Optional[str] = None, doi: Optional[str] = None) -> Optional[ResolvedPaper]:
+    def get_from_cache(self, pmid: Optional[str] = None, doi: Optional[str] = None, arxiv_id: Optional[str] = None) -> Optional[ResolvedPaper]:
         """Check if paper is in local cache."""
         with self._get_cache_connection() as conn:
             if pmid:
@@ -227,6 +249,10 @@ class PaperResolver:
             elif doi:
                 cursor = conn.execute(
                     "SELECT * FROM papers WHERE doi = ?", (doi,)
+                )
+            elif arxiv_id:
+                cursor = conn.execute(
+                    "SELECT * FROM papers WHERE arxiv_id = ?", (arxiv_id,)
                 )
             else:
                 return None
@@ -738,8 +764,642 @@ class PaperResolver:
             logger.error(f"Failed to parse OpenAlex work: {e}")
             return None
     
+    # ========================================================================
+    # Semantic Scholar API
+    # ========================================================================
+    
+    async def _rate_limit_s2(self):
+        """Enforce Semantic Scholar rate limiting."""
+        elapsed = datetime.now() - self._last_s2_request
+        if elapsed < self._s2_rate_limit:
+            await asyncio.sleep((self._s2_rate_limit - elapsed).total_seconds())
+        self._last_s2_request = datetime.now()
+    
+    async def resolve_from_semantic_scholar(
+        self, 
+        doi: Optional[str] = None,
+        pmid: Optional[str] = None,
+        arxiv_id: Optional[str] = None
+    ) -> Optional[ResolvedPaper]:
+        """
+        Resolve paper from Semantic Scholar API.
+        
+        Supports DOI, PMID, arXiv ID, and S2 paper ID lookups.
+        API docs: https://api.semanticscholar.org/api-docs/
+        """
+        # Build paper ID for S2 API
+        if doi:
+            paper_id = f"DOI:{doi}"
+        elif pmid:
+            paper_id = f"PMID:{pmid}"
+        elif arxiv_id:
+            paper_id = f"ARXIV:{arxiv_id}"
+        else:
+            return None
+        
+        try:
+            import aiohttp
+        except ImportError:
+            return self._fetch_from_s2_sync(paper_id)
+        
+        await self._rate_limit_s2()
+        
+        # Request fields we need
+        fields = "paperId,externalIds,title,abstract,authors,year,venue,citationCount,openAccessPdf,fieldsOfStudy"
+        url = f"https://api.semanticscholar.org/graph/v1/paper/{quote(paper_id, safe='')}?fields={fields}"
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=30) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return self._parse_s2_paper(data)
+                    elif resp.status == 404:
+                        logger.debug(f"Paper not found in S2: {paper_id}")
+                    else:
+                        logger.warning(f"S2 API returned {resp.status} for {paper_id}")
+        except Exception as e:
+            logger.error(f"Semantic Scholar fetch failed for {paper_id}: {e}")
+        
+        return None
+    
+    def _fetch_from_s2_sync(self, paper_id: str) -> Optional[ResolvedPaper]:
+        """Synchronous fallback for Semantic Scholar."""
+        import urllib.request
+        
+        fields = "paperId,externalIds,title,abstract,authors,year,venue,citationCount,openAccessPdf,fieldsOfStudy"
+        url = f"https://api.semanticscholar.org/graph/v1/paper/{quote(paper_id, safe='')}?fields={fields}"
+        
+        try:
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'EEG-RAG/1.0 (https://github.com/eeg-rag)')
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                return self._parse_s2_paper(data)
+        except Exception as e:
+            logger.error(f"S2 sync fetch failed for {paper_id}: {e}")
+        return None
+    
+    def _parse_s2_paper(self, data: Dict[str, Any]) -> Optional[ResolvedPaper]:
+        """Parse Semantic Scholar API response."""
+        try:
+            external_ids = data.get("externalIds", {}) or {}
+            
+            # Extract IDs
+            pmid = external_ids.get("PubMed")
+            doi = external_ids.get("DOI")
+            arxiv_id = external_ids.get("ArXiv")
+            s2_id = data.get("paperId")
+            
+            # Authors
+            authors = []
+            for author in data.get("authors", []):
+                name = author.get("name", "")
+                if name:
+                    authors.append(name)
+            
+            # Keywords from fields of study
+            keywords = data.get("fieldsOfStudy", []) or []
+            
+            # PDF URL
+            pdf_url = None
+            open_access = data.get("openAccessPdf")
+            if open_access and isinstance(open_access, dict):
+                pdf_url = open_access.get("url")
+            
+            return ResolvedPaper(
+                pmid=pmid,
+                doi=doi,
+                arxiv_id=arxiv_id,
+                s2_id=s2_id,
+                title=data.get("title", "") or "",
+                abstract=data.get("abstract", "") or "",
+                authors=authors,
+                year=data.get("year"),
+                journal=data.get("venue", ""),
+                keywords=keywords,
+                source="semantic_scholar",
+                url=f"https://www.semanticscholar.org/paper/{s2_id}" if s2_id else None,
+                pdf_url=pdf_url,
+                citation_count=data.get("citationCount", 0) or 0,
+                fetched_at=datetime.now().isoformat(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to parse S2 paper: {e}")
+            return None
+    
+    # ========================================================================
+    # arXiv API
+    # ========================================================================
+    
+    async def _rate_limit_arxiv(self):
+        """Enforce arXiv rate limiting (3 seconds between requests)."""
+        elapsed = datetime.now() - self._last_arxiv_request
+        if elapsed < self._arxiv_rate_limit:
+            await asyncio.sleep((self._arxiv_rate_limit - elapsed).total_seconds())
+        self._last_arxiv_request = datetime.now()
+    
+    async def resolve_arxiv(self, arxiv_id: str) -> Optional[ResolvedPaper]:
+        """
+        Resolve paper from arXiv API.
+        
+        Args:
+            arxiv_id: arXiv identifier (e.g., "2301.00001" or "hep-th/0601001")
+        
+        API docs: https://info.arxiv.org/help/api/basics.html
+        """
+        # Clean the ID (remove version if present)
+        clean_id = re.sub(r'v\d+$', '', arxiv_id)
+        
+        try:
+            import aiohttp
+        except ImportError:
+            return self._fetch_from_arxiv_sync(clean_id)
+        
+        await self._rate_limit_arxiv()
+        
+        url = f"http://export.arxiv.org/api/query?id_list={clean_id}&max_results=1"
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=30) as resp:
+                    if resp.status == 200:
+                        xml_text = await resp.text()
+                        return self._parse_arxiv_response(xml_text, clean_id)
+        except Exception as e:
+            logger.error(f"arXiv fetch failed for {arxiv_id}: {e}")
+        
+        return None
+    
+    def _fetch_from_arxiv_sync(self, arxiv_id: str) -> Optional[ResolvedPaper]:
+        """Synchronous fallback for arXiv."""
+        import urllib.request
+        
+        url = f"http://export.arxiv.org/api/query?id_list={arxiv_id}&max_results=1"
+        
+        try:
+            with urllib.request.urlopen(url, timeout=30) as resp:
+                xml_text = resp.read().decode('utf-8')
+                return self._parse_arxiv_response(xml_text, arxiv_id)
+        except Exception as e:
+            logger.error(f"arXiv sync fetch failed for {arxiv_id}: {e}")
+        return None
+    
+    def _parse_arxiv_response(self, xml_text: str, arxiv_id: str) -> Optional[ResolvedPaper]:
+        """Parse arXiv Atom API response."""
+        try:
+            # Define namespaces
+            ns = {
+                'atom': 'http://www.w3.org/2005/Atom',
+                'arxiv': 'http://arxiv.org/schemas/atom'
+            }
+            
+            root = ET.fromstring(xml_text)
+            entry = root.find('atom:entry', ns)
+            
+            if entry is None:
+                logger.debug(f"No entry found for arXiv ID {arxiv_id}")
+                return None
+            
+            # Title
+            title_elem = entry.find('atom:title', ns)
+            title = title_elem.text.strip().replace('\n', ' ') if title_elem is not None else ""
+            
+            # Abstract/Summary
+            summary_elem = entry.find('atom:summary', ns)
+            abstract = summary_elem.text.strip().replace('\n', ' ') if summary_elem is not None else ""
+            
+            # Authors
+            authors = []
+            for author in entry.findall('atom:author', ns):
+                name_elem = author.find('atom:name', ns)
+                if name_elem is not None and name_elem.text:
+                    authors.append(name_elem.text)
+            
+            # Publication date (year)
+            published_elem = entry.find('atom:published', ns)
+            year = None
+            if published_elem is not None and published_elem.text:
+                try:
+                    year = int(published_elem.text[:4])
+                except (ValueError, IndexError):
+                    pass
+            
+            # DOI if available
+            doi = None
+            doi_elem = entry.find('arxiv:doi', ns)
+            if doi_elem is not None:
+                doi = doi_elem.text
+            
+            # Categories as keywords
+            keywords = []
+            for cat in entry.findall('atom:category', ns):
+                term = cat.get('term')
+                if term:
+                    keywords.append(term)
+            
+            # Primary category as journal (sort of)
+            journal = None
+            primary_cat = entry.find('arxiv:primary_category', ns)
+            if primary_cat is not None:
+                journal = f"arXiv:{primary_cat.get('term', '')}"
+            
+            # PDF link
+            pdf_url = None
+            for link in entry.findall('atom:link', ns):
+                if link.get('title') == 'pdf':
+                    pdf_url = link.get('href')
+                    break
+            
+            return ResolvedPaper(
+                doi=doi,
+                arxiv_id=arxiv_id,
+                title=title,
+                abstract=abstract,
+                authors=authors,
+                year=year,
+                journal=journal,
+                keywords=keywords,
+                source="arxiv",
+                url=f"https://arxiv.org/abs/{arxiv_id}",
+                pdf_url=pdf_url or f"https://arxiv.org/pdf/{arxiv_id}.pdf",
+                fetched_at=datetime.now().isoformat(),
+            )
+        except ET.ParseError as e:
+            logger.error(f"Failed to parse arXiv XML: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to parse arXiv response: {e}")
+            return None
+    
+    # ========================================================================
+    # CrossRef API
+    # ========================================================================
+    
+    async def _rate_limit_crossref(self):
+        """Enforce CrossRef rate limiting."""
+        elapsed = datetime.now() - self._last_crossref_request
+        if elapsed < self._crossref_rate_limit:
+            await asyncio.sleep((self._crossref_rate_limit - elapsed).total_seconds())
+        self._last_crossref_request = datetime.now()
+    
+    async def resolve_from_crossref(self, doi: str) -> Optional[ResolvedPaper]:
+        """
+        Resolve paper metadata from CrossRef API.
+        
+        CrossRef is the authoritative source for DOI metadata.
+        API docs: https://api.crossref.org/swagger-ui/index.html
+        """
+        try:
+            import aiohttp
+        except ImportError:
+            return self._fetch_from_crossref_sync(doi)
+        
+        await self._rate_limit_crossref()
+        
+        # Use polite pool with mailto
+        url = f"https://api.crossref.org/works/{quote(doi, safe='')}"
+        headers = {
+            'User-Agent': 'EEG-RAG/1.0 (https://github.com/eeg-rag; mailto:eeg-rag@example.com)'
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers, timeout=30) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return self._parse_crossref_work(data.get("message", {}))
+                    elif resp.status == 404:
+                        logger.debug(f"DOI not found in CrossRef: {doi}")
+        except Exception as e:
+            logger.error(f"CrossRef fetch failed for {doi}: {e}")
+        
+        return None
+    
+    def _fetch_from_crossref_sync(self, doi: str) -> Optional[ResolvedPaper]:
+        """Synchronous fallback for CrossRef."""
+        import urllib.request
+        
+        url = f"https://api.crossref.org/works/{quote(doi, safe='')}"
+        
+        try:
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'EEG-RAG/1.0 (https://github.com/eeg-rag; mailto:eeg-rag@example.com)')
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                return self._parse_crossref_work(data.get("message", {}))
+        except Exception as e:
+            logger.error(f"CrossRef sync fetch failed for {doi}: {e}")
+        return None
+    
+    def _parse_crossref_work(self, data: Dict[str, Any]) -> Optional[ResolvedPaper]:
+        """Parse CrossRef API response."""
+        try:
+            doi = data.get("DOI", "")
+            
+            # Title (usually an array)
+            title_list = data.get("title", [])
+            title = title_list[0] if title_list else ""
+            
+            # Abstract (may be in HTML)
+            abstract = data.get("abstract", "")
+            if abstract:
+                # Strip HTML tags
+                abstract = re.sub(r'<[^>]+>', '', abstract)
+            
+            # Authors
+            authors = []
+            for author in data.get("author", []):
+                given = author.get("given", "")
+                family = author.get("family", "")
+                if family:
+                    name = f"{family}, {given}" if given else family
+                    authors.append(name)
+            
+            # Year from published-print or published-online
+            year = None
+            for date_field in ["published-print", "published-online", "created"]:
+                date_info = data.get(date_field)
+                if date_info and "date-parts" in date_info:
+                    parts = date_info["date-parts"]
+                    if parts and parts[0] and len(parts[0]) > 0:
+                        try:
+                            year = int(parts[0][0])
+                            break
+                        except (ValueError, TypeError):
+                            continue
+            
+            # Journal/container title
+            container = data.get("container-title", [])
+            journal = container[0] if container else None
+            
+            # Subject/keywords
+            keywords = data.get("subject", [])
+            
+            # URL
+            url = data.get("URL") or f"https://doi.org/{doi}"
+            
+            return ResolvedPaper(
+                doi=doi,
+                title=title,
+                abstract=abstract,
+                authors=authors,
+                year=year,
+                journal=journal,
+                keywords=keywords,
+                source="crossref",
+                url=url,
+                citation_count=data.get("is-referenced-by-count", 0),
+                fetched_at=datetime.now().isoformat(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to parse CrossRef work: {e}")
+            return None
+    
+    # ========================================================================
+    # bioRxiv / medRxiv API
+    # ========================================================================
+    
+    async def _rate_limit_biorxiv(self):
+        """Enforce bioRxiv rate limiting."""
+        elapsed = datetime.now() - self._last_biorxiv_request
+        if elapsed < self._biorxiv_rate_limit:
+            await asyncio.sleep((self._biorxiv_rate_limit - elapsed).total_seconds())
+        self._last_biorxiv_request = datetime.now()
+    
+    async def resolve_from_biorxiv(self, doi: str) -> Optional[ResolvedPaper]:
+        """
+        Resolve paper from bioRxiv/medRxiv API.
+        
+        Works for preprints with DOI prefix 10.1101
+        API docs: https://api.biorxiv.org/
+        """
+        # Determine server from DOI or try both
+        servers = ["biorxiv", "medrxiv"]
+        
+        try:
+            import aiohttp
+        except ImportError:
+            return self._fetch_from_biorxiv_sync(doi)
+        
+        await self._rate_limit_biorxiv()
+        
+        for server in servers:
+            url = f"https://api.biorxiv.org/details/{server}/{doi}"
+            
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=30) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            collection = data.get("collection", [])
+                            if collection:
+                                return self._parse_biorxiv_paper(collection[0], server)
+            except Exception as e:
+                logger.debug(f"bioRxiv fetch from {server} failed for {doi}: {e}")
+                continue
+        
+        return None
+    
+    def _fetch_from_biorxiv_sync(self, doi: str) -> Optional[ResolvedPaper]:
+        """Synchronous fallback for bioRxiv."""
+        import urllib.request
+        
+        servers = ["biorxiv", "medrxiv"]
+        
+        for server in servers:
+            url = f"https://api.biorxiv.org/details/{server}/{doi}"
+            
+            try:
+                with urllib.request.urlopen(url, timeout=30) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    collection = data.get("collection", [])
+                    if collection:
+                        return self._parse_biorxiv_paper(collection[0], server)
+            except Exception:
+                continue
+        
+        return None
+    
+    def _parse_biorxiv_paper(self, data: Dict[str, Any], server: str) -> Optional[ResolvedPaper]:
+        """Parse bioRxiv/medRxiv API response."""
+        try:
+            doi = data.get("doi", "")
+            
+            # Authors (string, need to split)
+            author_str = data.get("authors", "")
+            authors = [a.strip() for a in author_str.split(";") if a.strip()] if author_str else []
+            
+            # Year from date
+            year = None
+            date_str = data.get("date", "")
+            if date_str and len(date_str) >= 4:
+                try:
+                    year = int(date_str[:4])
+                except ValueError:
+                    pass
+            
+            # Category as keyword
+            keywords = []
+            category = data.get("category", "")
+            if category:
+                keywords.append(category)
+            
+            return ResolvedPaper(
+                doi=doi,
+                title=data.get("title", "") or "",
+                abstract=data.get("abstract", "") or "",
+                authors=authors,
+                year=year,
+                journal=f"{server} preprint",
+                keywords=keywords,
+                source=server,
+                url=f"https://www.{server}.org/content/{doi}",
+                pdf_url=f"https://www.{server}.org/content/{doi}.full.pdf",
+                fetched_at=datetime.now().isoformat(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to parse bioRxiv paper: {e}")
+            return None
+    
+    # ========================================================================
+    # Multi-Source Resolution with Fallback
+    # ========================================================================
+    
+    async def resolve_with_fallback(
+        self,
+        doi: Optional[str] = None,
+        pmid: Optional[str] = None,
+        arxiv_id: Optional[str] = None,
+        prefer_source: Optional[str] = None
+    ) -> Optional[ResolvedPaper]:
+        """
+        Resolve a paper using multiple sources with fallback.
+        
+        Tries sources in order based on identifier type and preference.
+        Caches the result from the first successful source.
+        
+        Args:
+            doi: DOI identifier
+            pmid: PubMed ID
+            arxiv_id: arXiv identifier
+            prefer_source: Preferred source ('pubmed', 'openalex', 's2', 'crossref', 'arxiv', 'biorxiv')
+        
+        Returns:
+            ResolvedPaper if found, None otherwise
+        """
+        # Check cache first
+        if pmid:
+            cached = self.get_from_cache(pmid=pmid)
+            if cached:
+                return cached
+        if doi:
+            cached = self.get_from_cache(doi=doi)
+            if cached:
+                return cached
+        
+        paper = None
+        
+        # PMID: Try PubMed first, then S2
+        if pmid:
+            paper = await self.resolve_pmid(pmid)
+            if not paper:
+                paper = await self.resolve_from_semantic_scholar(pmid=pmid)
+        
+        # arXiv: Try arXiv API first, then S2
+        elif arxiv_id:
+            paper = await self.resolve_arxiv(arxiv_id)
+            if not paper:
+                paper = await self.resolve_from_semantic_scholar(arxiv_id=arxiv_id)
+        
+        # DOI: Multiple fallback options
+        elif doi:
+            # Determine source order based on DOI prefix
+            sources = self._get_doi_source_order(doi, prefer_source)
+            
+            best_paper = None
+            for source in sources:
+                try:
+                    if source == "pubmed":
+                        # Try to get PMID from other source first
+                        continue
+                    elif source == "openalex":
+                        paper = await self.resolve_doi(doi)
+                    elif source == "s2":
+                        paper = await self.resolve_from_semantic_scholar(doi=doi)
+                    elif source == "crossref":
+                        paper = await self.resolve_from_crossref(doi)
+                    elif source == "biorxiv":
+                        paper = await self.resolve_from_biorxiv(doi)
+                    else:
+                        continue
+                except Exception as e:
+                    logger.debug(f"Source {source} failed for {doi}: {e}")
+                    continue
+                
+                if paper:
+                    if paper.abstract:  # Prefer sources with abstract
+                        best_paper = paper
+                        break
+                    elif not best_paper:
+                        best_paper = paper  # Keep first result as fallback
+            
+            paper = best_paper
+        
+        # Cache the result
+        if paper:
+            self.save_to_cache(paper)
+        
+        return paper
+    
+    def _get_doi_source_order(self, doi: str, prefer_source: Optional[str] = None) -> List[str]:
+        """Determine source order based on DOI prefix."""
+        # bioRxiv/medRxiv preprints
+        if doi.startswith("10.1101/"):
+            order = ["biorxiv", "s2", "crossref", "openalex"]
+        # arXiv (rare to have DOI)
+        elif "arxiv" in doi.lower():
+            order = ["s2", "openalex", "crossref"]
+        # Default: prefer S2 and OpenAlex for abstracts
+        else:
+            order = ["openalex", "s2", "crossref"]
+        
+        # Move preferred source to front
+        if prefer_source and prefer_source in order:
+            order.remove(prefer_source)
+            order.insert(0, prefer_source)
+        
+        return order
+    
+    def resolve_with_fallback_sync(
+        self,
+        doi: Optional[str] = None,
+        pmid: Optional[str] = None,
+        arxiv_id: Optional[str] = None
+    ) -> Optional[ResolvedPaper]:
+        """Synchronous wrapper for resolve_with_fallback."""
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # Create new event loop for sync call
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        self.resolve_with_fallback(doi=doi, pmid=pmid, arxiv_id=arxiv_id)
+                    )
+                    return future.result(timeout=60)
+            else:
+                return loop.run_until_complete(
+                    self.resolve_with_fallback(doi=doi, pmid=pmid, arxiv_id=arxiv_id)
+                )
+        except RuntimeError:
+            return asyncio.run(
+                self.resolve_with_fallback(doi=doi, pmid=pmid, arxiv_id=arxiv_id)
+            )
+    
     def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache statistics."""
+        """Get cache statistics including per-source breakdown."""
         with self._get_cache_connection() as conn:
             stats = {}
             
@@ -751,6 +1411,15 @@ class PaperResolver:
             
             cursor = conn.execute("SELECT COUNT(*) FROM chunks")
             stats["cached_chunks"] = cursor.fetchone()[0]
+            
+            # Per-source breakdown
+            cursor = conn.execute("""
+                SELECT source, COUNT(*) as count 
+                FROM papers 
+                GROUP BY source 
+                ORDER BY count DESC
+            """)
+            stats["by_source"] = {row["source"]: row["count"] for row in cursor.fetchall()}
             
             # Cache size
             if self.cache_db.exists():
