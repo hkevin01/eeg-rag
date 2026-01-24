@@ -615,23 +615,29 @@ def render_system_status_bar():
 def render_query_tab():
     """Render the main query interface with educational content."""
 
-    # Educational tip for researchers
+    # Educational tip for researchers with close button
     if st.session_state.show_tips:
-        st.markdown(
-            """
-        <div class="researcher-tip">
-            <div class="tip-header">💡 Query Tips for Best Results</div>
-            <div class="tip-content">
-                <ul style="margin: 0; padding-left: 1.25rem;">
-                    <li><strong>Be specific:</strong> "P300 amplitude in treatment-resistant depression" works better than "depression EEG"</li>
-                    <li><strong>Include context:</strong> Mention patient population, paradigm, or comparison if relevant</li>
-                    <li><strong>Ask comparisons:</strong> "How does X compare to Y" triggers multi-source retrieval</li>
-                </ul>
+        col1, col2 = st.columns([0.95, 0.05])
+        with col1:
+            st.markdown(
+                """
+            <div class="researcher-tip" style="margin-bottom: 0;">
+                <div class="tip-header">💡 Query Tips for Best Results</div>
+                <div class="tip-content">
+                    <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.6;">
+                        <li><strong>Be specific:</strong> "P300 amplitude in treatment-resistant depression" works better than "depression EEG"</li>
+                        <li><strong>Include context:</strong> Mention patient population, paradigm, or comparison if relevant</li>
+                        <li><strong>Ask comparisons:</strong> "How does X compare to Y" triggers multi-source retrieval</li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
+            """,
+                unsafe_allow_html=True,
+            )
+        with col2:
+            if st.button("✕", key="close_tips", help="Hide tips"):
+                st.session_state.show_tips = False
+                st.rerun()
 
     # Query interface
     render_query_interface()

@@ -11,19 +11,21 @@ from .search_history import HistoryManager, HistorySession
 
 def render_history_sidebar():
     """Render the conversation history sidebar."""
-    
+
     # Initialize history manager
-    if 'history_manager' not in st.session_state:
+    if "history_manager" not in st.session_state:
         st.session_state.history_manager = HistoryManager()
-    
+
     manager = st.session_state.history_manager
-    
+
     with st.sidebar:
         st.markdown("### 📚 Conversation History")
-        
+
         # Search history
-        search_query = st.text_input("🔍 Search history", placeholder="Search queries...")
-        
+        search_query = st.text_input(
+            "🔍 Search history", placeholder="Search queries..."
+        )
+
         if search_query:
             results = manager.search_history(search_query)
             if results:
@@ -33,33 +35,33 @@ def render_history_sidebar():
                         st.markdown(f"**Query:** {result['content'][:100]}...")
                         st.caption(f"📅 {result['timestamp']}")
                         if st.button("Load", key=f"load_{result['message_id']}"):
-                            st.session_state.active_session_id = result['session_id']
+                            st.session_state.active_session_id = result["session_id"]
                             st.rerun()
             else:
                 st.info("No results found")
-        
+
         # Statistics
         stats = manager.get_statistics()
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Sessions", stats['total_sessions'])
+            st.metric("Sessions", stats["total_sessions"])
         with col2:
-            st.metric("Queries", stats['total_queries'])
-        
+            st.metric("Queries", stats["total_queries"])
+
         st.divider()
-        
+
         # Session list
         st.markdown("**Recent Sessions**")
-        
+
         # New session button
         if st.button("➕ New Session", use_container_width=True):
             st.session_state.active_session_id = None
-            st.session_state.pop('current_filtered_papers', None)
-            st.session_state.pop('last_query_cache_key', None)
+            st.session_state.pop("current_filtered_papers", None)
+            st.session_state.pop("last_query_cache_key", None)
             st.rerun()
-        
+
         sessions = manager.get_sessions(limit=20)
-        
+
         if not sessions:
             st.info("No sessions yet. Start by asking a question!")
         else:
@@ -67,42 +69,74 @@ def render_history_sidebar():
                 # Format timestamp
                 created = datetime.fromisoformat(session.created_at)
                 time_str = created.strftime("%b %d, %H:%M")
-                
+
                 # Active session indicator
-                is_active = st.session_state.get('active_session_id') == session.id
-                prefix = "▶️ " if is_active else "  "
-                
-                # Session card
-                with st.container():
-                    col1, col2 = st.columns([4, 1])
-                    
-                    with col1:
-                        if st.button(
-                            f"{prefix}{session.title[:35]}...",
-                            key=f"session_{session.id}",
-                            use_container_width=True,
-                            type="primary" if is_active else "secondary"
-                        ):
-                            st.session_state.active_session_id = session.id
-                            _load_session_data(manager, session.id)
-                            st.rerun()
-                    
-                    with col2:
-                        if st.button("🗑️", key=f"delete_{session.id}"):
-                            manager.delete_session(session.id)
-                            if st.session_state.get('active_session_id') == session.id:
-                                st.session_state.active_session_id = None
-                            st.rerun()
-                    
-                    # Session metadata
-                    st.caption(f"📅 {time_str} • {session.query_count} queries")
-                    
-                    # Show tags if any
-                    if session.tags:
-                        st.caption(f"🏷️ {', '.join(session.tags)}")
-                
-                st.divider()
-        
+                is_active = st.session_state.get("active_session_id") == session.id
+
+                # Clean session card with custom styling
+                border_color = "#4A90E2" if is_active else "#E0E0E0"
+                bg_color = "#F8F9FB" if is_active else "#FFFFFF"
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        border-left: 3px solid {border_color};
+                        background-color: {bg_color};
+                        padding: 12px;
+                        margin-bottom: 8px;
+                        border-radius: 4px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    ">
+                        <div style="
+                            font-size: 14px;
+                            color: #2C3E50;
+                            font-weight: 500;
+                            margin-bottom: 6px;
+                            line-height: 1.4;
+                        ">{session.title}</div>
+                        <div style="
+                            font-size: 12px;
+                            color: #7F8C8D;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        ">
+                            <span>📅 {time_str}</span>
+                            <span>•</span>
+                            <span>{session.query_count} queries</span>
+                        </div>
+                        {f'<div style="font-size: 11px; color: #95A5A6; margin-top: 4px;">🏷️ {", ".join(session.tags)}</div>' if session.tags else ''}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                # Invisible button overlay for click handling
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    if st.button(
+                        "📂 Load" if not is_active else "✓ Active",
+                        key=f"session_{session.id}",
+                        use_container_width=True,
+                        disabled=is_active,
+                    ):
+                        st.session_state.active_session_id = session.id
+                        _load_session_data(manager, session.id)
+                        st.rerun()
+
+                with col2:
+                    if st.button(
+                        "🗑️", key=f"delete_{session.id}", help="Delete session"
+                    ):
+                        manager.delete_session(session.id)
+                        if st.session_state.get("active_session_id") == session.id:
+                            st.session_state.active_session_id = None
+                        st.rerun()
+
+                st.markdown(
+                    "<div style='margin-bottom: 4px;'></div>", unsafe_allow_html=True
+                )
+
         # Export options
         st.markdown("**Export**")
         col1, col2 = st.columns(2)
@@ -117,10 +151,10 @@ def render_history_sidebar():
 def _load_session_data(manager: HistoryManager, session_id: str):
     """Load session data into session state."""
     messages = manager.get_session_messages(session_id)
-    
+
     # Find the last query and its response
     for i, msg in enumerate(messages):
-        if msg.role == 'user' and i + 1 < len(messages):
+        if msg.role == "user" and i + 1 < len(messages):
             response = messages[i + 1]
             # Store in session state for display
             st.session_state.loaded_query = msg.content
@@ -131,26 +165,26 @@ def _load_session_data(manager: HistoryManager, session_id: str):
 
 def _export_session_markdown(manager: HistoryManager):
     """Export current session to Markdown."""
-    session_id = st.session_state.get('active_session_id')
+    session_id = st.session_state.get("active_session_id")
     if not session_id:
         st.warning("No active session to export")
         return
-    
+
     sessions = manager.get_sessions()
     session = next((s for s in sessions if s.id == session_id), None)
     if not session:
         st.error("Session not found")
         return
-    
+
     messages = manager.get_session_messages(session_id)
-    
+
     # Generate markdown
     md = f"# {session.title}\n\n"
     md += f"**Created:** {session.created_at}\n"
     md += f"**Last Updated:** {session.updated_at}\n"
     md += f"**Total Queries:** {session.query_count}\n\n"
     md += "---\n\n"
-    
+
     for msg in messages:
         role_emoji = "🙋" if msg.role == "user" else "🤖"
         md += f"## {role_emoji} {msg.role.title()}\n\n"
@@ -159,33 +193,33 @@ def _export_session_markdown(manager: HistoryManager):
         if msg.role == "assistant":
             md += f"*Papers: {msg.paper_count} | Time: {msg.execution_time:.2f}s*\n\n"
         md += "---\n\n"
-    
+
     # Download button
     st.download_button(
         label="📥 Download Markdown",
         data=md,
         file_name=f"session_{session_id}.md",
-        mime="text/markdown"
+        mime="text/markdown",
     )
 
 
 def _export_session_json(manager: HistoryManager):
     """Export current session to JSON."""
     import json
-    
-    session_id = st.session_state.get('active_session_id')
+
+    session_id = st.session_state.get("active_session_id")
     if not session_id:
         st.warning("No active session to export")
         return
-    
+
     sessions = manager.get_sessions()
     session = next((s for s in sessions if s.id == session_id), None)
     if not session:
         st.error("Session not found")
         return
-    
+
     messages = manager.get_session_messages(session_id)
-    
+
     # Build JSON structure
     data = {
         "session": {
@@ -194,7 +228,7 @@ def _export_session_json(manager: HistoryManager):
             "created_at": session.created_at,
             "updated_at": session.updated_at,
             "tags": session.tags,
-            "query_count": session.query_count
+            "query_count": session.query_count,
         },
         "messages": [
             {
@@ -204,31 +238,31 @@ def _export_session_json(manager: HistoryManager):
                 "timestamp": msg.timestamp,
                 "paper_count": msg.paper_count,
                 "execution_time": msg.execution_time,
-                "relevance_threshold": msg.relevance_threshold
+                "relevance_threshold": msg.relevance_threshold,
             }
             for msg in messages
-        ]
+        ],
     }
-    
+
     # Download button
     st.download_button(
         label="📥 Download JSON",
         data=json.dumps(data, indent=2),
         file_name=f"session_{session_id}.json",
-        mime="application/json"
+        mime="application/json",
     )
 
 
 def get_or_create_session(manager: HistoryManager, query: str) -> str:
     """Get active session or create new one based on query."""
-    
+
     # Check if we have an active session
-    if 'active_session_id' in st.session_state and st.session_state.active_session_id:
+    if "active_session_id" in st.session_state and st.session_state.active_session_id:
         return st.session_state.active_session_id
-    
+
     # Create new session with query as title
     title = query[:50] + "..." if len(query) > 50 else query
     session = manager.create_session(title)
     st.session_state.active_session_id = session.id
-    
+
     return session.id
