@@ -73,14 +73,12 @@ def render_history_sidebar():
                 # Active session indicator
                 is_active = st.session_state.get("active_session_id") == session.id
 
-                # Simple single button per session - no columns needed
-                button_label = (
-                    f"✓ {session.title[:30]}"
-                    if is_active
-                    else f"📂 {session.title[:30]}"
-                )
-                if len(session.title) > 30:
-                    button_label += "..."
+                # Shorter title to prevent cutoff (20 chars max)
+                short_title = session.title[:20]
+                if len(session.title) > 20:
+                    short_title += "..."
+                
+                button_label = f"✓ {short_title}" if is_active else f"📂 {short_title}"
 
                 # Single load button
                 if st.button(
