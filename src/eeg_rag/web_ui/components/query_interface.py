@@ -668,16 +668,21 @@ def render_comprehensive_response(
     manager = st.session_state.history_manager
 
     # Get or create session for this query
-    session_id = get_or_create_session(manager, query)
+    try:
+        session_id = get_or_create_session(manager, query)
 
-    # Save user query to history
-    start_time = time.time()
-    manager.add_message(
-        session_id=session_id,
-        role="user",
-        content=query,
-        relevance_threshold=relevance_threshold,
-    )
+        # Save user query to history
+        start_time = time.time()
+        manager.add_message(
+            session_id=session_id,
+            role="user",
+            content=query,
+            relevance_threshold=relevance_threshold,
+        )
+    except Exception as e:
+        st.warning(f"⚠️ Could not save query to history: {str(e)}")
+        session_id = None
+        start_time = time.time()
 
     query_type = determine_query_type(query)
     entities = extract_entities_preview(query)
@@ -785,35 +790,39 @@ def render_comprehensive_response(
     if (
         "last_saved_query" not in st.session_state
         or st.session_state.last_saved_query != query_id
-    ):
-        execution_time = time.time() - start_time
-        # Generate summary text for history
-        response_text = f"Found {total_papers} papers matching query about {', '.join(entities) if entities else 'EEG research'}. "
-        response_text += (
-            f"Query type: {query_type}. Relevance threshold: {relevance_threshold:.0%}."
-        )
+    ) and session_id is not None:
+        try:
+            execution_time = time.time() - start_time
+            # Generate summary text for history
+            response_text = f"Found {total_papers} papers matching query about {', '.join(entities) if entities else 'EEG research'}. "
+            response_text += f"Query type: {query_type}. Relevance threshold: {relevance_threshold:.0%}."
 
-        # Extract citations from papers
-        citations = [
-            {
-                "pmid": paper.get("pmid"),
-                "doi": paper.get("doi"),
-                "title": paper.get("title"),
-                "relevance_score": paper.get("relevance_score"),
-            }
-            for paper in filtered_papers[:10]  # Save top 10 citations
-        ]
+            # Extract citations from papers
+            citations = [
+                {
+                    "pmid": paper.get("pmid"),
+                    "doi": paper.get("doi"),
+                    "title": paper.get("title"),
+                    "relevance_score": paper.get("relevance_score"),
+                }
+                for paper in filtered_papers[:10]  # Save top 10 citations
+            ]
 
-        manager.add_message(
-            session_id=session_id,
-            role="assistant",
-            content=response_text,
-            paper_count=total_papers,
-            execution_time=execution_time,
-            relevance_threshold=relevance_threshold,
-            citations=citations,
-        )
-        st.session_state.last_saved_query = query_id
+            manager.add_message(
+                session_id=session_id,
+                role="assistant",
+                content=response_text,
+                paper_count=total_papers,
+                execution_time=execution_time,
+                relevance_threshold=relevance_threshold,
+                citations=citations,
+            )
+            st.session_state.last_saved_query = query_id
+
+            # Show success indicator (small, non-intrusive)
+            st.toast("✅ Conversation saved to history", icon="✅")
+        except Exception as e:
+            st.warning(f"⚠️ Could not save response to history: {str(e)}")
 
     # Quality metrics and follow-up
     render_quality_metrics()
