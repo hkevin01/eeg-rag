@@ -67,23 +67,30 @@ class ResolvedPaper:
             except (json.JSONDecodeError, TypeError):
                 return []
         
+        def safe_get(key: str, default: Any = None) -> Any:
+            """Safely get value from sqlite3.Row (doesn't support .get())."""
+            try:
+                return row[key]
+            except (KeyError, IndexError):
+                return default
+        
         return cls(
             pmid=row["pmid"],
             doi=row["doi"],
-            openalex_id=row.get("openalex_id"),
-            arxiv_id=row.get("arxiv_id"),
-            s2_id=row.get("s2_id"),
+            openalex_id=safe_get("openalex_id"),
+            arxiv_id=safe_get("arxiv_id"),
+            s2_id=safe_get("s2_id"),
             title=row["title"] or "",
             abstract=row["abstract"] or "",
             authors=parse_json_list(row["authors"]),
             year=row["year"],
             journal=row["journal"],
             mesh_terms=parse_json_list(row["mesh_terms"]),
-            keywords=parse_json_list(row.get("keywords", "[]")),
+            keywords=parse_json_list(safe_get("keywords", "[]")),
             source=row["source"] or "unknown",
-            url=row.get("url"),
-            pdf_url=row.get("pdf_url"),
-            citation_count=row.get("citation_count", 0),
+            url=safe_get("url"),
+            pdf_url=safe_get("pdf_url"),
+            citation_count=safe_get("citation_count", 0),
             fetched_at=row["fetched_at"],
         )
     
