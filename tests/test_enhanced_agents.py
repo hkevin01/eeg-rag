@@ -24,11 +24,12 @@ from src.eeg_rag.planning.query_planner import QueryPlan, QueryIntent, QueryComp
 class MockAgent:
     """Mock agent for testing"""
     
-    def __init__(self, name: str, agent_type: AgentType):
+    def __init__(self, name: str, agent_type: AgentType, success_rate: float = 1.0):
         self.name = name
         self.agent_type = agent_type
         self.total_executions = 0
         self.successful_executions = 0
+        self.success_rate = success_rate  # 1.0 = always succeed
         
     async def execute_with_monitoring(self, query: AgentQuery) -> AgentResult:
         """Mock execution"""
@@ -37,9 +38,9 @@ class MockAgent:
         # Simulate some execution time
         await asyncio.sleep(0.01)
         
-        # Simulate 80% success rate
+        # Deterministic success based on success_rate
         import random
-        success = random.random() > 0.2
+        success = random.random() < self.success_rate
         
         if success:
             self.successful_executions += 1
@@ -233,7 +234,7 @@ class TestAgentCoordinator:
     async def test_agent_coordinator_circuit_breaker_integration(self):
         """Test circuit breaker integration"""
         coordinator = AgentCoordinator()
-        agent = MockAgent("test_agent", AgentType.LOCAL_DATA)
+        agent = MockAgent("test_agent", AgentType.LOCAL_DATA, success_rate=1.0)  # Always succeed
         
         # Add circuit breaker
         coordinator.add_circuit_breaker("test_agent", failure_threshold=1)
@@ -244,7 +245,7 @@ class TestAgentCoordinator:
         result = await coordinator.execute_with_coordination(
             agent, query, use_circuit_breaker=True, use_retry=False
         )
-        assert result.success  # Assuming mock agent succeeds
+        assert result.success  # Agent always succeeds with success_rate=1.0
         
         # Force circuit breaker open
         coordinator.circuit_breakers["test_agent"].record_failure()
@@ -318,7 +319,7 @@ class TestEnhancedQueryPlanner:
         assert plan.intent in [QueryIntent.COMPARISON, QueryIntent.REVIEW]
         assert len(plan.actions) > 0
         assert plan.metadata['enhanced_planning'] == True
-        assert plan.estimated_time > 0
+        assert plan.estimated_latency > 0
     
     def test_pattern_caching(self, enhanced_planner):
         """Test pattern caching functionality"""
@@ -346,7 +347,7 @@ class TestEnhancedQueryPlanner:
             intent=QueryIntent.FACTUAL,
             complexity=QueryComplexity.SIMPLE,
             sub_queries=[],
-            chain_of_thought=[],
+            cot_reasoning=[],
             actions=[]
         )
         
@@ -379,11 +380,13 @@ class TestEnhancedOrchestrator:
         registry.get_by_type.return_value = [MockAgent("local_agent", AgentType.LOCAL_DATA)]
         registry.get.return_value = MockAgent("local_agent", AgentType.LOCAL_DATA)
         
-        # Mock memory manager
+        # Mock memory manager with proper config attribute
         memory_manager = Mock(spec=MemoryManager)
+        memory_manager.config = {}
         
-        # Mock planner
+        # Mock planner with proper config attribute
         planner = Mock(spec=EnhancedQueryPlanner)
+        planner.config = {}
         
         return registry, memory_manager, planner
     
@@ -462,7 +465,7 @@ class TestAgentIntegration:
         assert isinstance(plan, QueryPlan)
         assert len(plan.actions) > 0
         assert plan.intent != QueryIntent.UNKNOWN
-        assert plan.estimated_time > 0
+        assert plan.estimated_latency > 0
         
         # Test coordination components
         coordinator = AgentCoordinator()
@@ -488,7 +491,7 @@ class TestAgentIntegration:
             intent=QueryIntent.FACTUAL,
             complexity=QueryComplexity.SIMPLE,
             sub_queries=[],
-            chain_of_thought=[],
+            cot_reasoning=[],
             actions=[]
         )
         
@@ -509,7 +512,7 @@ class TestAgentIntegration:
                 intent=QueryIntent.FACTUAL,
                 complexity=QueryComplexity.SIMPLE,
                 sub_queries=[],
-                chain_of_thought=[],
+                cot_reasoning=[],
                 actions=[]
             )
             

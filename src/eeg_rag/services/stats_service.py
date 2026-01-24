@@ -497,7 +497,7 @@ class StatsService:
         """
         stats = self.get_full_stats()
         
-        # Format total papers
+        # Format total papers (locally cached metadata)
         total = stats.total_papers
         if total >= 1_000_000:
             papers_display = f"{total / 1_000_000:.1f}M"
@@ -510,9 +510,12 @@ class StatsService:
         citation_accuracy = self._calculate_citation_accuracy()
         
         return {
-            "papers_indexed": papers_display,
+            "papers_cached": papers_display,  # Locally cached metadata
+            "papers_cached_raw": total,
+            "papers_indexed": papers_display,  # Legacy compatibility
             "papers_indexed_raw": total,
-            "ai_agents": "8",  # Or dynamically count your agents
+            "search_coverage": "35M+ via PubMed",  # PubMed has ~35M biomedical papers
+            "ai_agents": "12",  # Local, Web, Graph, Citation + 8 specialized agents
             "citation_accuracy": f"{citation_accuracy:.1f}%",
             "sources": len(stats.papers_by_source),
             "last_updated": stats.last_updated.strftime("%Y-%m-%d %H:%M")

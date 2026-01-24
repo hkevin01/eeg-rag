@@ -138,6 +138,7 @@ class QueryPlan:
     estimated_latency: float = 0.0  # Estimated time in seconds
     confidence: float = 1.0
     timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)  # Extended metadata
     
     # REQ-PLAN-012: Track execution requirements
     requires_local_data: bool = False
@@ -157,6 +158,7 @@ class QueryPlan:
             "required_agents": list(self.required_agents),
             "estimated_latency": self.estimated_latency,
             "confidence": self.confidence,
+            "metadata": self.metadata,
             "requires_local_data": self.requires_local_data,
             "requires_web_search": self.requires_web_search,
             "requires_cloud_kb": self.requires_cloud_kb,
@@ -580,6 +582,50 @@ class QueryPlanner:
         
         # Add generation time (assume 2-3s)
         total_time += 2.5
+        
+        # Add overhead (10%)
+        total_time *= 1.1
+        
+        return round(total_time, 2)
+
+    def _estimate_execution_time(self, actions: List[ReActAction]) -> float:
+        """
+        Estimate execution time for a list of actions
+        
+        REQ-PLAN-024: Execution time estimation for action lists
+        
+        Args:
+            actions: List of ReActAction to estimate time for
+            
+        Returns:
+            Estimated execution time in seconds
+        """
+        base_times = {
+            "local": 0.1,   # 100ms for local search
+            "web": 1.5,     # 1.5s for web search
+            "cloud": 0.8,   # 800ms for cloud KB
+            "mcp": 0.5,     # 500ms for MCP tools
+            "graph": 0.3,   # 300ms for knowledge graph
+            "citation": 0.4 # 400ms for citation validation
+        }
+        
+        # Group actions by parallel group
+        parallel_groups = {}
+        for action in actions:
+            group = action.parallel_group
+            if group not in parallel_groups:
+                parallel_groups[group] = []
+            parallel_groups[group].append(action)
+        
+        # Sum max time per parallel group (parallel actions don't add time)
+        total_time = 0.0
+        for group_actions in parallel_groups.values():
+            max_group_time = 0.1  # Minimum time per group
+            for action in group_actions:
+                for key, time in base_times.items():
+                    if key in action.action_type.lower():
+                        max_group_time = max(max_group_time, time)
+            total_time += max_group_time
         
         # Add overhead (10%)
         total_time *= 1.1

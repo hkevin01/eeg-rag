@@ -21,6 +21,7 @@ from typing import List, Dict, Any, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from collections import deque
 
 # Import base agent framework
 from eeg_rag.agents.base_agent import (
@@ -29,7 +30,8 @@ from eeg_rag.agents.base_agent import (
     AgentStatus,
     AgentResult,
     AgentQuery,
-    AgentRegistry
+    AgentRegistry,
+    AgentCoordinator
 )
 
 # Import planning system
@@ -546,9 +548,19 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         planner: QueryPlanner,
         performance_monitor: Optional['PerformanceMonitor'] = None,
         enable_coordination: bool = True,
+        config: Optional[Dict[str, Any]] = None,
         **kwargs
     ):
-        super().__init__(registry, memory_manager, planner, **kwargs)
+        # Call parent with correct argument order
+        super().__init__(
+            memory_manager=memory_manager,
+            agent_registry=registry,
+            config=config,
+            **kwargs
+        )
+        
+        # Store enhanced planner (replacing parent's default planner)
+        self.planner = planner if planner else QueryPlanner(logger=self.logger)
         
         # Enhanced coordination
         if enable_coordination:
