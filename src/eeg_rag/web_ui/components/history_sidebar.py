@@ -77,7 +77,7 @@ def render_history_sidebar():
                 short_title = session.title[:20]
                 if len(session.title) > 20:
                     short_title += "..."
-                
+
                 button_label = f"✓ {short_title}" if is_active else f"📂 {short_title}"
 
                 # Single load button
