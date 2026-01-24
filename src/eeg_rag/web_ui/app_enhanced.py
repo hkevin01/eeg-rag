@@ -219,6 +219,30 @@ st.markdown(
         background-image: none !important;
     }
     
+    /* Ensure sidebar collapse/expand controls are always visible */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebar"] button[kind="header"] {
+        background-color: #E8EEF4 !important;
+        color: #1F2937 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 999 !important;
+    }
+    
+    /* Collapsed sidebar expand button */
+    [data-testid="collapsedControl"] {
+        position: fixed !important;
+        left: 0 !important;
+        top: 50% !important;
+        background-color: #E8EEF4 !important;
+        border: 1px solid #D1D5DB !important;
+        border-radius: 0 6px 6px 0 !important;
+        padding: 0.5rem !important;
+        z-index: 9999 !important;
+    }
+    
     /* Ensure all text is dark gray */
     body, p, span, div, label, input, textarea, select {
         color: #1F2937 !important;
@@ -937,7 +961,14 @@ def render_query_tab():
                 if st.button(
                     "Use", key=f"use_{ex['category']}", use_container_width=True
                 ):
+                    # Set the query directly in the input
+                    st.session_state.query_input = ex["query"]
                     st.session_state.example_query = ex["query"]
+                    # Show a message to go to Query tab
+                    st.toast(
+                        f"✅ Query loaded! Click the '🔍 Query Research' tab to search.",
+                        icon="📝",
+                    )
                     st.rerun()
 
 
