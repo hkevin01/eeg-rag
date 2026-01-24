@@ -174,6 +174,24 @@ st.markdown(
         color: #1F2937 !important;
     }
     
+    /* Remove white box backgrounds from sidebar columns */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"],
+    [data-testid="stSidebar"] [data-testid="column"],
+    [data-testid="stSidebar"] .element-container {
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    
+    /* Ensure sidebar has consistent background with no white boxes */
+    [data-testid="stSidebar"] > div,
+    [data-testid="stSidebar"] section {
+        background-color: #E8EEF4 !important;
+    }
+    
     /* Ensure all text is dark gray */
     body, p, span, div, label, input, textarea, select {
         color: #1F2937 !important;
@@ -532,11 +550,105 @@ st.markdown(
         background: #BBDEFB;
     }
     
+    /* ACCESSIBILITY: Streamlit tooltip override - light background with dark text */
+    .stTooltipContent,
+    [data-testid="stTooltipContent"],
+    div[class*="Tooltip"],
+    div[class*="tooltip"] {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        padding: 10px 14px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        line-height: 1.5 !important;
+        max-width: 300px !important;
+    }
+    
+    /* Force light tooltips on all elements */
+    [title]:hover::after,
+    [data-title]:hover::after {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Override Streamlit's default tooltip styling */
+    div[data-baseweb="tooltip"] {
+        background-color: #FFFFFF !important;
+    }
+    
+    div[data-baseweb="tooltip"] > div {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        padding: 10px 14px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+    }
+    
+    /* ACCESSIBILITY: Color-blind friendly palette adjustments */
+    /* Use blue/orange instead of red/green where possible */
+    .success-indicator {
+        color: #0066CC !important; /* Blue instead of green */
+        background-color: #E3F2FD !important;
+    }
+    
+    .error-indicator {
+        color: #D84315 !important; /* Orange-red */
+        background-color: #FFF3E0 !important;
+    }
+    
+    .warning-indicator {
+        color: #F57C00 !important; /* Orange */
+        background-color: #FFF8E1 !important;
+    }
+    
+    /* Ensure good contrast ratios (WCAG AAA) */
+    .high-contrast-text {
+        color: #1F2937 !important;
+        font-weight: 500 !important;
+    }
+    
     /* Hide default Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header [data-testid="stToolbar"] {visibility: hidden;}
 </style>
+
+<script>
+// Force light tooltips with JavaScript for dynamically generated elements
+(function() {
+    const styleTooltips = function() {
+        // Find all tooltip elements
+        const tooltips = document.querySelectorAll('[role="tooltip"], [data-testid*="tooltip"], div[class*="tooltip"]');
+        tooltips.forEach(tooltip => {
+            tooltip.style.backgroundColor = '#FFFFFF';
+            tooltip.style.color = '#1F2937';
+            tooltip.style.border = '1px solid #D1D5DB';
+            tooltip.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+            tooltip.style.padding = '10px 14px';
+            tooltip.style.borderRadius = '6px';
+            tooltip.style.fontSize = '14px';
+            tooltip.style.fontWeight = '400';
+        });
+    };
+    
+    // Run on page load
+    styleTooltips();
+    
+    // Watch for new tooltips being added
+    const observer = new MutationObserver(styleTooltips);
+    observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+    });
+})();
+</script>
 """,
     unsafe_allow_html=True,
 )
@@ -568,14 +680,18 @@ def render_welcome_banner():
         col1, col2 = st.columns([0.95, 0.05])
 
         with col1:
+            # Get actual paper count
+            paper_count, _ = get_display_paper_count()
+            paper_count_str = f"{paper_count:,}" if paper_count > 0 else "thousands of"
+
             st.markdown(
-                """
+                f"""
             <div style="background: #bbdefb; 
                         border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
                         border: 1px solid #90caf9;">
                 <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
                 <p style="color: #000000; margin-bottom: 1rem;">
-                    EEG-RAG helps you query <strong>50,000+ peer-reviewed EEG papers</strong> using natural language. 
+                    EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language. 
                     Every answer is grounded in evidence with verifiable citations.
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
@@ -594,10 +710,10 @@ def render_welcome_banner():
                         </div>
                     </div>
                     <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💬</div>
-                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Give Feedback</div>
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📧</div>
+                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Send Feedback</div>
                         <div style="font-size: 0.85rem; color: #424242;">
-                            Your input helps improve this research tool
+                            <a href="mailto:kevin.hildebrand@gmail.com" style="color: #1565C0; text-decoration: none;">kevin.hildebrand@gmail.com</a>
                         </div>
                     </div>
                 </div>

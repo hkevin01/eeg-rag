@@ -73,52 +73,25 @@ def render_history_sidebar():
                 # Active session indicator
                 is_active = st.session_state.get("active_session_id") == session.id
 
-                # Clean session card with custom styling
-                border_color = "#4A90E2" if is_active else "#E0E0E0"
-                bg_color = "#F8F9FB" if is_active else "#FFFFFF"
-
-                st.markdown(
-                    f"""
-                    <div style="
-                        border-left: 3px solid {border_color};
-                        background-color: {bg_color};
-                        padding: 12px;
-                        margin-bottom: 8px;
-                        border-radius: 4px;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    ">
-                        <div style="
-                            font-size: 14px;
-                            color: #2C3E50;
-                            font-weight: 500;
-                            margin-bottom: 6px;
-                            line-height: 1.4;
-                        ">{session.title}</div>
-                        <div style="
-                            font-size: 12px;
-                            color: #7F8C8D;
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        ">
-                            <span>📅 {time_str}</span>
-                            <span>•</span>
-                            <span>{session.query_count} queries</span>
-                        </div>
-                        {f'<div style="font-size: 11px; color: #95A5A6; margin-top: 4px;">🏷️ {", ".join(session.tags)}</div>' if session.tags else ''}
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+                # Simple button row with inline styling - no extra containers
+                button_label = (
+                    f"✓ {session.title[:35]}"
+                    if is_active
+                    else f"📂 {session.title[:35]}"
                 )
+                if len(session.title) > 35:
+                    button_label += "..."
 
-                # Invisible button overlay for click handling
-                col1, col2 = st.columns([5, 1])
+                # Use a container with no styling to avoid white boxes
+                col1, col2 = st.columns([5, 1], gap="small")
+
                 with col1:
                     if st.button(
-                        "📂 Load" if not is_active else "✓ Active",
+                        button_label,
                         key=f"session_{session.id}",
                         use_container_width=True,
                         disabled=is_active,
+                        help=f"{session.title}\n{time_str} • {session.query_count} queries",
                     ):
                         st.session_state.active_session_id = session.id
                         _load_session_data(manager, session.id)
@@ -126,16 +99,15 @@ def render_history_sidebar():
 
                 with col2:
                     if st.button(
-                        "🗑️", key=f"delete_{session.id}", help="Delete session"
+                        "🗑️", key=f"delete_{session.id}", help="Delete this session"
                     ):
                         manager.delete_session(session.id)
                         if st.session_state.get("active_session_id") == session.id:
                             st.session_state.active_session_id = None
                         st.rerun()
 
-                st.markdown(
-                    "<div style='margin-bottom: 4px;'></div>", unsafe_allow_html=True
-                )
+                # Metadata caption outside columns to avoid nesting
+                st.caption(f"📅 {time_str} • {session.query_count} queries")
 
         # Export options
         st.markdown("**Export**")
