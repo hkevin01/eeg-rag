@@ -223,24 +223,36 @@ st.markdown(
     [data-testid="stSidebarCollapseButton"],
     [data-testid="collapsedControl"],
     button[data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebar"] button[kind="header"] {
+    [data-testid="stSidebar"] button[kind="header"],
+    [data-testid="stSidebarNav"],
+    [data-testid="stSidebarNavLink"] {
         background-color: #E8EEF4 !important;
         color: #1F2937 !important;
         opacity: 1 !important;
         visibility: visible !important;
+        display: flex !important;
         z-index: 999 !important;
     }
     
-    /* Collapsed sidebar expand button */
+    /* Collapsed sidebar expand button - ensure it's clickable */
     [data-testid="collapsedControl"] {
-        position: fixed !important;
-        left: 0 !important;
-        top: 50% !important;
         background-color: #E8EEF4 !important;
         border: 1px solid #D1D5DB !important;
         border-radius: 0 6px 6px 0 !important;
         padding: 0.5rem !important;
-        z-index: 9999 !important;
+        z-index: 99999 !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+    
+    /* Make sure sidebar is properly visible when expanded */
+    section[data-testid="stSidebar"][aria-expanded="true"] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 240px !important;
+        min-width: 240px !important;
+        transform: translateX(0) !important;
     }
     
     /* Ensure all text is dark gray */
