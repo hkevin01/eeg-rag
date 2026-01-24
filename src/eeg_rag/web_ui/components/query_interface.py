@@ -119,12 +119,32 @@ def render_query_interface():
     # Execute query
     if submit and query.strip():
         st.session_state.current_page = 1  # Reset pagination
+        st.session_state.last_executed_query = query
+        st.session_state.last_execution_mode = execution_mode
+        st.session_state.last_max_sources = max_sources
+        st.session_state.last_include_trials = include_trials
+        st.session_state.last_validate = validate_citations
         execute_query_with_monitoring(
             query=query,
             mode=execution_mode,
             max_sources=max_sources,
             include_trials=include_trials,
             validate=validate_citations,
+            relevance_threshold=st.session_state.relevance_threshold,
+        )
+    elif (
+        "current_filtered_papers" in st.session_state
+        and "last_executed_query" in st.session_state
+    ):
+        # Display cached results (for pagination navigation)
+        st.markdown("---")
+        st.markdown("### 📝 Research Synthesis")
+
+        # Re-render comprehensive response with cached data
+        render_comprehensive_response(
+            query=st.session_state.last_executed_query,
+            query_id=st.session_state.get("current_query_id", ""),
+            max_sources=st.session_state.get("last_max_sources", 20),
             relevance_threshold=st.session_state.relevance_threshold,
         )
 
