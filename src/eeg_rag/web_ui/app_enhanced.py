@@ -21,6 +21,7 @@ from eeg_rag.web_ui.components.agent_monitor import render_agent_monitor
 from eeg_rag.web_ui.components.query_interface import render_query_interface
 from eeg_rag.web_ui.components.feedback import render_feedback_panel
 from eeg_rag.web_ui.components.educational import render_educational_content
+from eeg_rag.web_ui.components.history_sidebar import render_history_sidebar
 from eeg_rag.web_ui.components.search_history import (
     render_search_history,
     initialize_search_state,
@@ -1027,6 +1028,9 @@ def main():
     show_tips, show_edu = render_sidebar()
     st.session_state.show_tips = show_tips
     st.session_state.show_educational = show_edu
+
+    # Render history sidebar (conversation management)
+    render_history_sidebar()
 
     # Main content area
     render_header()

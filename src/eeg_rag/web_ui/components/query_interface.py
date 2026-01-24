@@ -10,7 +10,7 @@ import uuid
 import time
 import re
 import math
-from eeg_rag.web_ui.components.search_history import add_search_to_session
+from eeg_rag.web_ui.components.history_sidebar import get_or_create_session
 from eeg_rag.web_ui.components.agents_showcase import AI_AGENTS, get_agent_info
 
 
@@ -659,6 +659,26 @@ def render_comprehensive_response(
 ):
     """Render comprehensive response with detailed summaries and pagination."""
 
+    # Initialize history manager and get/create session
+    if "history_manager" not in st.session_state:
+        from eeg_rag.web_ui.components.search_history import HistoryManager
+
+        st.session_state.history_manager = HistoryManager()
+
+    manager = st.session_state.history_manager
+
+    # Get or create session for this query
+    session_id = get_or_create_session(manager, query)
+
+    # Save user query to history
+    start_time = time.time()
+    manager.add_message(
+        session_id=session_id,
+        role="user",
+        content=query,
+        relevance_threshold=relevance_threshold,
+    )
+
     query_type = determine_query_type(query)
     entities = extract_entities_preview(query)
 
@@ -760,6 +780,40 @@ def render_comprehensive_response(
     # Pagination controls
     if total_pages > 1:
         render_pagination(current_page, total_pages)
+
+    # Save assistant response to history (only once when results are generated)
+    if (
+        "last_saved_query" not in st.session_state
+        or st.session_state.last_saved_query != query_id
+    ):
+        execution_time = time.time() - start_time
+        # Generate summary text for history
+        response_text = f"Found {total_papers} papers matching query about {', '.join(entities) if entities else 'EEG research'}. "
+        response_text += (
+            f"Query type: {query_type}. Relevance threshold: {relevance_threshold:.0%}."
+        )
+
+        # Extract citations from papers
+        citations = [
+            {
+                "pmid": paper.get("pmid"),
+                "doi": paper.get("doi"),
+                "title": paper.get("title"),
+                "relevance_score": paper.get("relevance_score"),
+            }
+            for paper in filtered_papers[:10]  # Save top 10 citations
+        ]
+
+        manager.add_message(
+            session_id=session_id,
+            role="assistant",
+            content=response_text,
+            paper_count=total_papers,
+            execution_time=execution_time,
+            relevance_threshold=relevance_threshold,
+            citations=citations,
+        )
+        st.session_state.last_saved_query = query_id
 
     # Quality metrics and follow-up
     render_quality_metrics()
