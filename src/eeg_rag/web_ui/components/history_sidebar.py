@@ -93,15 +93,19 @@ def render_history_sidebar():
                     _load_session_data(manager, session.id)
                     st.rerun()
 
-                # Metadata caption with delete link using HTML (no columns)
-                st.caption(f"📅 {time_str} • {session.query_count}q")
-
-                # Delete as small link-style button without container
-                if st.button("Delete", key=f"del_{session.id}", type="secondary"):
-                    manager.delete_session(session.id)
-                    if st.session_state.get("active_session_id") == session.id:
-                        st.session_state.active_session_id = None
-                    st.rerun()
+                # Metadata with delete in expander
+                with st.expander(
+                    f"📅 {time_str} • {session.query_count}q", expanded=False
+                ):
+                    if st.button(
+                        "🗑️ Delete Session",
+                        key=f"del_{session.id}",
+                        use_container_width=True,
+                    ):
+                        manager.delete_session(session.id)
+                        if st.session_state.get("active_session_id") == session.id:
+                            st.session_state.active_session_id = None
+                        st.rerun()
 
         # Export options
         st.markdown("**Export**")

@@ -174,6 +174,24 @@ st.markdown(
         color: #1F2937 !important;
     }
     
+    /* Sidebar expanders - compact and clean */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0.25rem 0 !important;
+        font-size: 0.75rem !important;
+        color: #6B7280 !important;
+    }
+    [data-testid="stSidebar"] .streamlit-expanderContent {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0.25rem 0 !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stExpander"] {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    
     /* AGGRESSIVE: Remove ALL white box backgrounds from sidebar */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"],
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"],
