@@ -96,6 +96,7 @@ class MetadataIndex:
         pmid TEXT UNIQUE,
         doi TEXT,
         openalex_id TEXT,
+        arxiv_id TEXT,
         title TEXT NOT NULL,
         year INTEGER,
         source TEXT DEFAULT 'unknown',
@@ -107,6 +108,7 @@ class MetadataIndex:
     CREATE INDEX IF NOT EXISTS idx_pmid ON papers(pmid) WHERE pmid IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_doi ON papers(doi) WHERE doi IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_openalex ON papers(openalex_id) WHERE openalex_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_arxiv ON papers(arxiv_id) WHERE arxiv_id IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_year ON papers(year);
     CREATE INDEX IF NOT EXISTS idx_source ON papers(source);
     
@@ -196,7 +198,24 @@ class MetadataIndex:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._get_connection() as conn:
             conn.executescript(self.SCHEMA)
+            # Run migrations for existing databases
+            self._migrate(conn)
         logger.info(f"Initialized metadata index at {self.db_path}")
+    
+    def _migrate(self, conn: sqlite3.Connection):
+        """Run database migrations for schema updates."""
+        # Check existing columns
+        cursor = conn.execute("PRAGMA table_info(papers)")
+        columns = {row[1] for row in cursor.fetchall()}
+        
+        # Add arxiv_id column if missing
+        if "arxiv_id" not in columns:
+            try:
+                conn.execute("ALTER TABLE papers ADD COLUMN arxiv_id TEXT")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_arxiv ON papers(arxiv_id) WHERE arxiv_id IS NOT NULL")
+                logger.info("Added arxiv_id column to metadata index")
+            except sqlite3.OperationalError:
+                pass  # Column already exists
     
     def add_reference(
         self,
@@ -237,12 +256,13 @@ class MetadataIndex:
                 try:
                     conn.execute("""
                         INSERT OR IGNORE INTO papers 
-                        (pmid, doi, openalex_id, title, year, source, keywords)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        (pmid, doi, openalex_id, arxiv_id, title, year, source, keywords)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
                         ref.get("pmid"),
                         ref.get("doi"),
                         ref.get("openalex_id"),
+                        ref.get("arxiv_id"),
                         ref.get("title", ""),
                         ref.get("year"),
                         ref.get("source", "unknown"),
