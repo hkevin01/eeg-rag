@@ -136,6 +136,13 @@ st.markdown(
     [data-testid="stSidebar"] {
         background-color: #E8EEF4 !important;
         background-image: none !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        left: 0 !important;
+        width: 240px !important;
+        min-width: 240px !important;
     }
     
     [data-testid="stSidebar"] > div:first-child {
@@ -145,6 +152,8 @@ st.markdown(
     section[data-testid="stSidebar"] {
         width: 240px !important;
         min-width: 240px !important;
+        display: block !important;
+        visibility: visible !important;
     }
     
     [data-testid="stSidebar"] * {
