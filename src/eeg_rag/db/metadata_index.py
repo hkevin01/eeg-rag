@@ -197,9 +197,14 @@ class MetadataIndex:
         """Initialize the database schema (for building new index)."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._get_connection() as conn:
-            conn.executescript(self.SCHEMA)
-            # Run migrations for existing databases
-            self._migrate(conn)
+            # First run migrations if tables exist
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='papers'")
+            if cursor.fetchone():
+                # Table exists, run migrations first
+                self._migrate(conn)
+            else:
+                # Fresh database, create schema
+                conn.executescript(self.SCHEMA)
         logger.info(f"Initialized metadata index at {self.db_path}")
     
     def _migrate(self, conn: sqlite3.Connection):
