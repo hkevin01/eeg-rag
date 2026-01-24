@@ -81,6 +81,43 @@ st.markdown(
         --text-muted: #6B7280;
     }
     
+    /* ACCESSIBILITY: Light tooltips with high contrast - WCAG AAA compliant */
+    [data-testid="stTooltipIcon"],
+    [data-testid="stTooltipHoverTarget"],
+    div[data-testid*="tooltip"],
+    .stTooltipIcon,
+    [role="tooltip"] {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Tooltip content styling */
+    [role="tooltip"] *,
+    div[data-testid*="tooltip"] * {
+        background-color: transparent !important;
+        color: #1F2937 !important;
+    }
+    
+    /* Help icon tooltips - ensure light background */
+    button[title],
+    button[aria-label] {
+        position: relative;
+    }
+    
+    button[title]:hover::after,
+    button[aria-label]:hover::after {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+    
     /* Global styling */
     .main .block-container {
         padding-top: 1rem;
