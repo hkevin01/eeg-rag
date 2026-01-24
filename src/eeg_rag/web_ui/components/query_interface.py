@@ -124,6 +124,9 @@ def render_query_interface():
         st.session_state.last_max_sources = max_sources
         st.session_state.last_include_trials = include_trials
         st.session_state.last_validate = validate_citations
+        # Clear any loaded session data when executing new query
+        st.session_state.pop("loaded_query", None)
+        st.session_state.pop("loaded_response", None)
         execute_query_with_monitoring(
             query=query,
             mode=execution_mode,
@@ -132,6 +135,38 @@ def render_query_interface():
             validate=validate_citations,
             relevance_threshold=st.session_state.relevance_threshold,
         )
+    elif "loaded_response" in st.session_state and "loaded_query" in st.session_state:
+        # Display loaded session data
+        st.markdown("---")
+        st.markdown("### 📝 Loaded Session")
+
+        loaded_query = st.session_state.loaded_query
+        loaded_response = st.session_state.loaded_response
+        paper_count = st.session_state.get("loaded_paper_count", 0)
+        exec_time = st.session_state.get("loaded_execution_time", 0)
+
+        # Show the original query
+        st.info(f"**Original Query:** {loaded_query}")
+
+        # Show metrics if available
+        if paper_count or exec_time:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Papers Found", paper_count)
+            with col2:
+                st.metric("Execution Time", f"{exec_time:.2f}s" if exec_time else "N/A")
+
+        # Show the response
+        st.markdown("### 📄 Response")
+        st.markdown(loaded_response)
+
+        # Option to re-run this query
+        if st.button("🔄 Re-run this query", use_container_width=True):
+            st.session_state.query_input = loaded_query
+            st.session_state.pop("loaded_query", None)
+            st.session_state.pop("loaded_response", None)
+            st.rerun()
+
     elif (
         "current_filtered_papers" in st.session_state
         and "last_executed_query" in st.session_state

@@ -129,6 +129,11 @@ def _load_session_data(manager: HistoryManager, session_id: str):
             st.session_state.loaded_response = response.content
             st.session_state.loaded_paper_count = response.paper_count
             st.session_state.loaded_execution_time = response.execution_time
+            # Also pre-fill the query input
+            st.session_state.query_input = msg.content
+            # Clear any cached results from previous queries
+            st.session_state.pop("current_filtered_papers", None)
+            st.session_state.pop("last_executed_query", None)
 
 
 def _export_session_markdown(manager: HistoryManager):
