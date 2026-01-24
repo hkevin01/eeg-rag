@@ -295,11 +295,6 @@ def execute_query_with_monitoring(
     st.markdown("---")
     render_comprehensive_response(query, query_id, max_sources, relevance_threshold)
 
-    # Save to history
-    query_type = determine_query_type(query)
-    entities = extract_entities_preview(query)
-    save_query_to_history(query, query_id, query_type=query_type, entities=entities)
-
 
 def get_agent_processing_details(agent_id: str, query: str) -> str:
     """Get detailed processing status for each agent."""
@@ -840,7 +835,7 @@ def render_comprehensive_response(
             st.session_state.last_saved_query = query_id
 
             # Show success indicator (small, non-intrusive)
-            st.success("✅ Conversation saved to history sidebar", icon="✅")
+            st.success("Conversation saved to history sidebar", icon="✅")
         except Exception as e:
             st.warning(f"⚠️ Could not save response to history: {str(e)}")
 
@@ -1184,65 +1179,23 @@ def render_follow_up_suggestions(entities: list):
         "What sample sizes are typically used in these studies?",
         "How do these findings translate to clinical practice?",
         "What are the main limitations identified in the literature?",
+        "What are the most recent findings in this area?",
     ]
 
-    cols = st.columns(3)
-    for idx, followup in enumerate(follow_ups[:3]):
-        with cols[idx]:
-            if st.button(
-                followup[:45] + "...", key=f"followup_{idx}", use_container_width=True
-            ):
-                st.session_state.example_query = followup
-                st.rerun()
-
-
-def save_query_to_history(
-    query: str,
-    query_id: str,
-    query_type: str = "factual",
-    entities: list = None,
-    execution_time_ms: int = 127,
-):
-    """Save query and results to session history."""
-
-    mock_citations = [
-        {
-            "pmid": "34567890",
-            "title": "EEG biomarkers study",
-            "verified": True,
-            "relevance_score": 0.96,
-        },
-        {
-            "pmid": "34567891",
-            "title": "P300 amplitude research",
-            "verified": True,
-            "relevance_score": 0.93,
-        },
-        {
-            "pmid": "34567892",
-            "title": "ML for EEG analysis",
-            "verified": True,
-            "relevance_score": 0.91,
-        },
-    ]
-
-    add_search_to_session(
-        query=query,
-        query_id=query_id,
-        results={
-            "summary": "Comprehensive multi-paragraph research synthesis with cited evidence.",
-            "query_type": query_type,
-            "entities": entities or [],
-        },
-        confidence=0.87,
-        citations=mock_citations,
-        execution_time_ms=execution_time_ms,
-        agents_used=[
-            "Orchestrator",
-            "Query Planner",
-            "Local",
-            "PubMed",
-            "Citation Validator",
-            "Synthesis",
-        ],
-    )
+    # Display in 3 rows with 3 buttons each
+    for row in range(2):  # 2 rows of 3 buttons
+        cols = st.columns(3)
+        for col_idx in range(3):
+            question_idx = row * 3 + col_idx
+            if question_idx < len(follow_ups):
+                with cols[col_idx]:
+                    followup = follow_ups[question_idx]
+                    # Show full text with arrow
+                    button_text = f"{followup} →"
+                    if st.button(
+                        button_text,
+                        key=f"followup_{question_idx}",
+                        use_container_width=True,
+                    ):
+                        st.session_state.example_query = followup
+                        st.rerun()
