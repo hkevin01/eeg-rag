@@ -35,9 +35,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://github.com/your-org/eeg-rag/discussions',
-        'Report a bug': 'https://github.com/your-org/eeg-rag/issues',
-        'About': """
+        "Get Help": "https://github.com/your-org/eeg-rag/discussions",
+        "Report a bug": "https://github.com/your-org/eeg-rag/issues",
+        "About": """
         ## EEG-RAG Research Assistant v2.0
         
         **Multi-Agent Retrieval-Augmented Generation for EEG Research**
@@ -46,13 +46,14 @@ st.set_page_config(
         synthesize information from EEG research papers.
         
         All responses include verified citations with PMID links.
-        """
-    }
+        """,
+    },
 )
 
 
 # Enhanced CSS Styling
-st.markdown("""
+st.markdown(
+    """
 <style>
     /* Dark theme base */
     .stApp {
@@ -250,21 +251,23 @@ st.markdown("""
     footer {visibility: hidden;}
     header [data-testid="stToolbar"] {visibility: hidden;}
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 def initialize_session_state():
     """Initialize session state variables."""
-    
+
     defaults = {
-        'query_history': [],
-        'feedback_history': [],
-        'show_tips': True,
-        'show_educational': True,
-        'total_queries': 0,
-        'session_start': datetime.now().isoformat(),
+        "query_history": [],
+        "feedback_history": [],
+        "show_tips": True,
+        "show_educational": True,
+        "total_queries": 0,
+        "session_start": datetime.now().isoformat(),
     }
-    
+
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
@@ -272,9 +275,10 @@ def initialize_session_state():
 
 def render_welcome_banner():
     """Render welcome banner for first-time users."""
-    
-    if 'welcomed' not in st.session_state:
-        st.markdown("""
+
+    if "welcomed" not in st.session_state:
+        st.markdown(
+            """
         <div class="edu-callout" style="margin-bottom: 2rem;">
             <div class="edu-callout-title">
                 👋 Welcome to EEG-RAG Research Assistant
@@ -288,8 +292,10 @@ def render_welcome_banner():
                 the "Learn" tab to understand how the system works.
             </div>
         </div>
-        """, unsafe_allow_html=True)
-        
+        """,
+            unsafe_allow_html=True,
+        )
+
         col1, col2, col3 = st.columns([0.3, 0.4, 0.3])
         with col2:
             if st.button("✓ Got it!", use_container_width=True):
@@ -299,16 +305,17 @@ def render_welcome_banner():
 
 def render_system_status_bar():
     """Render real-time system status bar."""
-    
+
     # Get dynamic stats
     stats = get_header_display_stats()
     paper_count = stats.get("papers_indexed", "0")
     ai_agents = stats.get("ai_agents", "8")
-    
+
     col1, col2, col3, col4, col5 = st.columns(5)
-    
+
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
         <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%; 
                          animation: pulse 2s infinite;"></span>
@@ -320,46 +327,66 @@ def render_system_status_bar():
                 50% { opacity: 0.5; }
             }
         </style>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     with col2:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="color: #888; font-size: 0.8rem;">
-            📚 {paper_count} papers indexed
+            💾 {paper_count} cached | 🌐 200M+ searchable
         </div>
-        """, unsafe_allow_html=True)
-    
+        <div style="color: #999; font-size: 0.65rem;">
+            PubMed • Semantic Scholar • arXiv • OpenAlex • CrossRef
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
     with col3:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="color: #888; font-size: 0.8rem;">
             🤖 {ai_agents} agents ready
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     with col4:
-        queries = len(st.session_state.get('query_history', []))
-        st.markdown(f"""
+        queries = len(st.session_state.get("query_history", []))
+        st.markdown(
+            f"""
         <div style="color: #888; font-size: 0.8rem;">
             🔍 {queries} queries this session
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     with col5:
-        st.markdown("""
+        st.markdown(
+            """
         <div style="color: #888; font-size: 0.8rem;">
             ⚡ Avg. response: 2.3s
         </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("<hr style='margin: 0.75rem 0; border-color: #2d2d4d;'>", unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        "<hr style='margin: 0.75rem 0; border-color: #2d2d4d;'>", unsafe_allow_html=True
+    )
 
 
 def render_query_tab():
     """Render the main query tab content."""
-    
+
     # Show tip if enabled
-    if st.session_state.get('show_tips', True):
-        st.markdown("""
+    if st.session_state.get("show_tips", True):
+        st.markdown(
+            """
         <div class="researcher-tip">
             <span class="tip-icon">💡</span>
             <span class="tip-title">Research Tip</span>
@@ -370,17 +397,20 @@ def render_query_tab():
                 in adults vs children?"
             </div>
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     # Main query interface
     render_query_interface()
 
 
 def render_agent_pipeline_tab():
     """Render the agent pipeline visualization tab."""
-    
+
     # Introduction
-    st.markdown("""
+    st.markdown(
+        """
     <div class="edu-callout">
         <div class="edu-callout-title">
             🔄 Understanding the Agent Pipeline
@@ -391,116 +421,121 @@ def render_agent_pipeline_tab():
             information. This multi-agent approach ensures comprehensive and accurate results.
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # Agent monitor component
     render_agent_monitor()
 
 
 def render_results_tab():
     """Render the results history tab."""
-    
+
     st.markdown("### 📊 Your Query History")
-    
-    history = st.session_state.get('query_history', [])
-    
+
+    history = st.session_state.get("query_history", [])
+
     if not history:
         st.info("No queries yet. Start by asking a question in the 'Ask' tab!")
         return
-    
+
     # Summary stats
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("Total Queries", len(history))
-    
+
     with col2:
-        avg_time = sum(q.get('execution_time', 0) for q in history) / len(history)
+        avg_time = sum(q.get("execution_time", 0) for q in history) / len(history)
         st.metric("Avg. Time", f"{avg_time:.1f}s")
-    
+
     with col3:
-        avg_conf = sum(q.get('confidence', 0) for q in history) / len(history)
+        avg_conf = sum(q.get("confidence", 0) for q in history) / len(history)
         st.metric("Avg. Confidence", f"{avg_conf:.0%}")
-    
+
     with col4:
-        total_citations = sum(len(q.get('citations', [])) for q in history)
+        total_citations = sum(len(q.get("citations", [])) for q in history)
         st.metric("Total Citations", total_citations)
-    
+
     st.markdown("---")
-    
+
     # History list
     for i, query_item in enumerate(reversed(history)):
         with st.expander(f"🔍 {query_item['query'][:80]}...", expanded=i == 0):
             col1, col2 = st.columns([0.7, 0.3])
-            
+
             with col1:
                 st.markdown(f"**Query:** {query_item['query']}")
                 st.markdown(f"**Timestamp:** {query_item.get('timestamp', 'N/A')}")
-            
+
             with col2:
                 st.markdown(f"**Time:** {query_item.get('execution_time', 0):.1f}s")
                 st.markdown(f"**Confidence:** {query_item.get('confidence', 0):.0%}")
-            
+
             # Citations
-            citations = query_item.get('citations', [])
+            citations = query_item.get("citations", [])
             if citations:
                 st.markdown("**Citations:**")
                 for cite in citations:
-                    verified = "✅" if cite.get('verified') else "⚠️"
+                    verified = "✅" if cite.get("verified") else "⚠️"
                     st.markdown(f"- {verified} PMID: {cite.get('pmid', 'N/A')}")
 
 
 def render_analytics_tab():
     """Render analytics and insights tab."""
-    
+
     st.markdown("### 📈 Session Analytics")
-    
-    history = st.session_state.get('query_history', [])
-    
+
+    history = st.session_state.get("query_history", [])
+
     if len(history) < 2:
         st.info("Analytics become available after 2+ queries. Keep exploring!")
         return
-    
+
     # Query pattern analysis
     st.markdown("#### Query Patterns")
-    
+
     query_types = {}
     for q in history:
-        query = q.get('query', '').lower()
-        if 'compare' in query or 'vs' in query:
-            qtype = 'Comparative'
-        elif 'predict' in query or 'prognosis' in query:
-            qtype = 'Predictive'
-        elif 'mechanism' in query or 'how' in query:
-            qtype = 'Mechanistic'
+        query = q.get("query", "").lower()
+        if "compare" in query or "vs" in query:
+            qtype = "Comparative"
+        elif "predict" in query or "prognosis" in query:
+            qtype = "Predictive"
+        elif "mechanism" in query or "how" in query:
+            qtype = "Mechanistic"
         else:
-            qtype = 'General'
+            qtype = "General"
         query_types[qtype] = query_types.get(qtype, 0) + 1
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("**Your Query Distribution:**")
         for qtype, count in sorted(query_types.items(), key=lambda x: -x[1]):
             pct = count / len(history) * 100
             st.markdown(f"- {qtype}: {count} ({pct:.0f}%)")
-    
+
     with col2:
         st.markdown("**Performance Trends:**")
-        times = [q.get('execution_time', 0) for q in history]
-        confs = [q.get('confidence', 0) for q in history]
+        times = [q.get("execution_time", 0) for q in history]
+        confs = [q.get("confidence", 0) for q in history]
         st.markdown(f"- Fastest query: {min(times):.1f}s")
         st.markdown(f"- Slowest query: {max(times):.1f}s")
         st.markdown(f"- Highest confidence: {max(confs):.0%}")
 
 
-def render_citation_card(pmid: str, title: str, journal: str, year: int, verified: bool):
+def render_citation_card(
+    pmid: str, title: str, journal: str, year: int, verified: bool
+):
     """Render a citation card with verification status."""
-    
+
     ver_badge = "✅ Verified" if verified else "⚠️ Unverified"
     ver_color = "#10B981" if verified else "#F59E0B"
-    
-    st.markdown(f"""
+
+    st.markdown(
+        f"""
     <div style="background: #1a1a2e; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem;
                 border-left: 3px solid {ver_color};">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -511,66 +546,73 @@ def render_citation_card(pmid: str, title: str, journal: str, year: int, verifie
         <div style="margin-top: 0.5rem; color: #fff;">{title}</div>
         <div style="color: #888; font-size: 0.85rem;">{journal} ({year})</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def main():
     """Main application entry point."""
-    
+
     # Initialize state
     initialize_session_state()
-    
+
     # Render sidebar (with options and stats)
     show_tips, show_edu = render_sidebar()
     st.session_state.show_tips = show_tips
     st.session_state.show_educational = show_edu
-    
+
     # Render header
     render_header()
-    
+
     # System status bar
     render_system_status_bar()
-    
+
     # Welcome banner for new users
     render_welcome_banner()
-    
+
     # Main content tabs
-    tabs = st.tabs([
-        "🔍 Ask",
-        "🤖 Agent Pipeline", 
-        "📚 Results History",
-        "📈 Analytics",
-        "📖 Learn",
-        "💬 Feedback"
-    ])
-    
+    tabs = st.tabs(
+        [
+            "🔍 Ask",
+            "🤖 Agent Pipeline",
+            "📚 Results History",
+            "📈 Analytics",
+            "📖 Learn",
+            "💬 Feedback",
+        ]
+    )
+
     with tabs[0]:
         render_query_tab()
-    
+
     with tabs[1]:
         render_agent_pipeline_tab()
-    
+
     with tabs[2]:
         render_results_tab()
-    
+
     with tabs[3]:
         render_analytics_tab()
-    
+
     with tabs[4]:
         render_educational_content()
-    
+
     with tabs[5]:
         render_feedback_panel()
-    
+
     # Footer
-    st.markdown("""
+    st.markdown(
+        """
     <div style="margin-top: 3rem; padding: 1rem; text-align: center; color: #666; font-size: 0.8rem;">
         EEG-RAG Research Assistant v2.0 • 
         <a href="https://github.com/your-org/eeg-rag" style="color: #6366F1;">GitHub</a> • 
         <a href="#" style="color: #6366F1;">Documentation</a> • 
         <a href="#" style="color: #6366F1;">Privacy Policy</a>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 if __name__ == "__main__":
