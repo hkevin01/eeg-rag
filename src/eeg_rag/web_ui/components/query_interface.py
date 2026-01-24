@@ -821,6 +821,18 @@ def render_comprehensive_response(
 
             # Show success indicator (small, non-intrusive)
             st.success("✅ Conversation saved to history sidebar", icon="✅")
+        except Exception as e:
+            st.warning(f"⚠️ Could not save response to history: {str(e)}")
+
+    # Quality metrics and follow-up
+    render_quality_metrics()
+    render_follow_up_suggestions(entities)
+
+
+def render_comprehensive_summary(query: str, entities: list):
+    """Render a comprehensive multi-paragraph AI summary (minimum 3 paragraphs)."""
+
+    entities_str = ", ".join(entities) if entities else "EEG biomarkers"
     query_display = query[:150] + "..." if len(query) > 150 else query
     doc_count = len(entities) + 15
 
