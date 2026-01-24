@@ -73,41 +73,35 @@ def render_history_sidebar():
                 # Active session indicator
                 is_active = st.session_state.get("active_session_id") == session.id
 
-                # Simple button row with inline styling - no extra containers
+                # Simple single button per session - no columns needed
                 button_label = (
-                    f"✓ {session.title[:35]}"
+                    f"✓ {session.title[:30]}"
                     if is_active
-                    else f"📂 {session.title[:35]}"
+                    else f"📂 {session.title[:30]}"
                 )
-                if len(session.title) > 35:
+                if len(session.title) > 30:
                     button_label += "..."
 
-                # Use a container with no styling to avoid white boxes
-                col1, col2 = st.columns([5, 1], gap="small")
+                # Single load button
+                if st.button(
+                    button_label,
+                    key=f"session_{session.id}",
+                    use_container_width=True,
+                    disabled=is_active,
+                ):
+                    st.session_state.active_session_id = session.id
+                    _load_session_data(manager, session.id)
+                    st.rerun()
 
-                with col1:
-                    if st.button(
-                        button_label,
-                        key=f"session_{session.id}",
-                        use_container_width=True,
-                        disabled=is_active,
-                        help=f"{session.title}\n{time_str} • {session.query_count} queries",
-                    ):
-                        st.session_state.active_session_id = session.id
-                        _load_session_data(manager, session.id)
-                        st.rerun()
+                # Metadata caption with delete link using HTML (no columns)
+                st.caption(f"📅 {time_str} • {session.query_count}q")
 
-                with col2:
-                    if st.button(
-                        "🗑️", key=f"delete_{session.id}", help="Delete this session"
-                    ):
-                        manager.delete_session(session.id)
-                        if st.session_state.get("active_session_id") == session.id:
-                            st.session_state.active_session_id = None
-                        st.rerun()
-
-                # Metadata caption outside columns to avoid nesting
-                st.caption(f"📅 {time_str} • {session.query_count} queries")
+                # Delete as small link-style button without container
+                if st.button("Delete", key=f"del_{session.id}", type="secondary"):
+                    manager.delete_session(session.id)
+                    if st.session_state.get("active_session_id") == session.id:
+                        st.session_state.active_session_id = None
+                    st.rerun()
 
         # Export options
         st.markdown("**Export**")

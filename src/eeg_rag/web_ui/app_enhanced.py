@@ -174,22 +174,31 @@ st.markdown(
         color: #1F2937 !important;
     }
     
-    /* Remove white box backgrounds from sidebar columns */
+    /* AGGRESSIVE: Remove ALL white box backgrounds from sidebar */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"],
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"],
     [data-testid="stSidebar"] [data-testid="column"],
-    [data-testid="stSidebar"] .element-container {
+    [data-testid="stSidebar"] div[data-testid="column"],
+    [data-testid="stSidebar"] .element-container,
+    [data-testid="stSidebar"] .stVerticalBlock,
+    [data-testid="stSidebar"] .stHorizontalBlock,
+    [data-testid="stSidebar"] > div > div > div,
+    [data-testid="stSidebar"] section > div {
         background-color: transparent !important;
         background-image: none !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 0 !important;
+        outline: none !important;
     }
     
-    /* Ensure sidebar has consistent background with no white boxes */
+    /* Force sidebar to have clean background everywhere */
+    [data-testid="stSidebar"],
     [data-testid="stSidebar"] > div,
-    [data-testid="stSidebar"] section {
+    [data-testid="stSidebar"] section,
+    [data-testid="stSidebar"] > div > div {
         background-color: #E8EEF4 !important;
+        background-image: none !important;
     }
     
     /* Ensure all text is dark gray */
@@ -197,33 +206,91 @@ st.markdown(
         color: #1F2937 !important;
     }
     
-    /* Override any dark backgrounds */
+    /* Override any dark backgrounds and remove ALL container backgrounds */
     [data-testid="stVerticalBlock"],
-    [data-testid="stHorizontalBlock"] {
+    [data-testid="stHorizontalBlock"],
+    [data-testid="column"],
+    div[data-testid="column"],
+    .element-container {
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Force main area to have clean background */
+    .main [data-testid="stVerticalBlock"],
+    .main [data-testid="stHorizontalBlock"],
+    .main [data-testid="column"] {
         background-color: transparent !important;
     }
     
-    /* Force light theme on ALL buttons - professional bright blue */
+    /* ACCESSIBLE: Light gray buttons with dark text - WCAG compliant */
     .stButton button,
     .stButton button[kind="secondary"],
     button[data-testid="stBaseButton-secondary"],
     button[data-testid="stBaseButton-primary"] {
-        background-color: #3B82F6 !important;
+        background-color: #F3F4F6 !important;
         background-image: none !important;
-        color: #FFFFFF !important;
-        border: 1px solid #2563EB !important;
+        color: #1F2937 !important;
+        border: 1px solid #D1D5DB !important;
         border-radius: 6px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         padding: 0.5rem 1rem !important;
         min-width: fit-content !important;
+        font-weight: 500 !important;
     }
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
-        background-color: #2563EB !important;
+        background-color: #E5E7EB !important;
         background-image: none !important;
-        border-color: #1D4ED8 !important;
+        border-color: #9CA3AF !important;
+    }
+    
+    /* Primary action buttons - slightly more prominent */
+    .stButton button[kind="primary"],
+    button[data-testid="stBaseButton-primary"] {
+        background-color: #DBEAFE !important;
+        color: #1E40AF !important;
+        border: 1px solid #93C5FD !important;
+    }
+    .stButton button[kind="primary"]:hover,
+    button[data-testid="stBaseButton-primary"]:hover {
+        background-color: #BFDBFE !important;
+        border-color: #60A5FA !important;
+    }
+    
+    /* Delete buttons in sidebar - minimal styling, no visible container */
+    [data-testid="stSidebar"] button[kind="secondary"],
+    [data-testid="stSidebar"] .stButton button:has-text("Delete") {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #6B7280 !important;
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+        min-height: auto !important;
+    }
+    [data-testid="stSidebar"] button[kind="secondary"]:hover {
+        background-color: #FEE2E2 !important;
+        color: #DC2626 !important;
+    }
+    
+    /* Hide ALL container backgrounds in sidebar - nuclear option */
+    [data-testid="stSidebar"] .stButton,
+    [data-testid="stSidebar"] .stButton > div,
+    [data-testid="stSidebar"] .element-container,
+    [data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"],
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div,
+    [data-testid="stSidebar"] [class*="block-container"],
+    [data-testid="stSidebar"] div[data-testid="element-container"] {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
     
     /* Force light theme on text areas and inputs - clean white */
@@ -676,56 +743,47 @@ def render_welcome_banner():
     if st.session_state.get("hide_welcome", False):
         return
 
-    with st.container():
-        col1, col2 = st.columns([0.95, 0.05])
+    # Get actual paper count
+    paper_count, _ = get_display_paper_count()
+    paper_count_str = f"{paper_count:,}" if paper_count > 0 else "thousands of"
 
-        with col1:
-            # Get actual paper count
-            paper_count, _ = get_display_paper_count()
-            paper_count_str = f"{paper_count:,}" if paper_count > 0 else "thousands of"
-
-            st.markdown(
-                f"""
-            <div style="background: #bbdefb; 
-                        border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
-                        border: 1px solid #90caf9;">
-                <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
-                <p style="color: #000000; margin-bottom: 1rem;">
-                    EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language. 
-                    Every answer is grounded in evidence with verifiable citations.
-                </p>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
-                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
-                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Ask Anything</div>
-                        <div style="font-size: 0.85rem; color: #424242;">
-                            "What EEG biomarkers predict seizure recurrence?"
-                        </div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📚</div>
-                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Get Citations</div>
-                        <div style="font-size: 0.85rem; color: #424242;">
-                            Every claim includes PMID references you can verify
-                        </div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📧</div>
-                        <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Send Feedback</div>
-                        <div style="font-size: 0.85rem; color: #424242;">
-                            <a href="mailto:kevin.hildebrand@gmail.com" style="color: #1565C0; text-decoration: none;">kevin.hildebrand@gmail.com</a>
-                        </div>
-                    </div>
+    st.markdown(
+        f"""
+    <div style="background: #bbdefb; 
+                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+                border: 1px solid #90caf9;">
+        <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
+        <p style="color: #000000; margin-bottom: 1rem;">
+            EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language. 
+            Every answer is grounded in evidence with verifiable citations.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
+            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
+                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Ask Anything</div>
+                <div style="font-size: 0.85rem; color: #424242;">
+                    "What EEG biomarkers predict seizure recurrence?"
                 </div>
             </div>
-            """,
-                unsafe_allow_html=True,
-            )
-
-        with col2:
-            if st.button("✕", key="close_welcome", help="Hide this banner"):
-                st.session_state.hide_welcome = True
-                st.rerun()
+            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📚</div>
+                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Get Citations</div>
+                <div style="font-size: 0.85rem; color: #424242;">
+                    Every claim includes PMID references you can verify
+                </div>
+            </div>
+            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📧</div>
+                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Send Feedback</div>
+                <div style="font-size: 0.85rem; color: #424242;">
+                    <a href="mailto:kevin.hildebrand@gmail.com" style="color: #1565C0; text-decoration: none;">kevin.hildebrand@gmail.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_system_status_bar():
@@ -768,29 +826,23 @@ def render_system_status_bar():
 def render_query_tab():
     """Render the main query interface with educational content."""
 
-    # Educational tip for researchers with close button
+    # Educational tip for researchers
     if st.session_state.show_tips:
-        col1, col2 = st.columns([0.95, 0.05])
-        with col1:
-            st.markdown(
-                """
-            <div class="researcher-tip" style="margin-bottom: 0;">
-                <div class="tip-header">💡 Query Tips for Best Results</div>
-                <div class="tip-content">
-                    <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.6;">
-                        <li><strong>Be specific:</strong> "P300 amplitude in treatment-resistant depression" works better than "depression EEG"</li>
-                        <li><strong>Include context:</strong> Mention patient population, paradigm, or comparison if relevant</li>
-                        <li><strong>Ask comparisons:</strong> "How does X compare to Y" triggers multi-source retrieval</li>
-                    </ul>
-                </div>
+        st.markdown(
+            """
+        <div class="researcher-tip">
+            <div class="tip-header">💡 Query Tips for Best Results</div>
+            <div class="tip-content">
+                <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.6;">
+                    <li><strong>Be specific:</strong> "P300 amplitude in treatment-resistant depression" works better than "depression EEG"</li>
+                    <li><strong>Include context:</strong> Mention patient population, paradigm, or comparison if relevant</li>
+                    <li><strong>Ask comparisons:</strong> "How does X compare to Y" triggers multi-source retrieval</li>
+                </ul>
             </div>
-            """,
-                unsafe_allow_html=True,
-            )
-        with col2:
-            if st.button("✕", key="close_tips", help="Hide tips"):
-                st.session_state.show_tips = False
-                st.rerun()
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     # Query interface
     render_query_interface()
