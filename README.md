@@ -347,7 +347,20 @@ print(f"Found {result['total_found']} papers!")
 
 ## 📚 Paper Database (500K+ Papers)
 
-EEG-RAG uses a **lightweight metadata-first architecture** that keeps the repository small (~10 MB) while providing instant access to 500K+ EEG research papers. Full abstracts are fetched on-demand from PubMed/OpenAlex and cached locally.
+EEG-RAG uses a **lightweight metadata-first architecture** that keeps the repository small (~10 MB) while providing instant access to 500K+ EEG research papers. Full abstracts are fetched on-demand from multiple sources and cached locally.
+
+### Supported Data Sources
+
+| Source                 | ID Types         | Best For                       | Rate Limit   |
+| ---------------------- | ---------------- | ------------------------------ | ------------ |
+| ✅ **PubMed**           | PMID             | Medical/life sciences          | 3/sec (free) |
+| ✅ **OpenAlex**         | DOI, OpenAlex ID | Open metadata, broad coverage  | 10/sec       |
+| ✅ **Semantic Scholar** | DOI, PMID, arXiv | Citation data, CS/neuro        | 1/sec (free) |
+| ✅ **arXiv**            | arXiv ID         | Physics, CS, math preprints    | 3 sec delay  |
+| ✅ **CrossRef**         | DOI              | Authoritative DOI metadata     | 50/sec       |
+| ✅ **bioRxiv/medRxiv**  | DOI (10.1101/*)  | Life science preprints         | 2/sec        |
+| ⚠️ IEEE Xplore          | -                | Engineering (requires API key) | -            |
+| ⚠️ Google Scholar       | -                | No official API                | -            |
 
 ### How It Works
 
@@ -359,14 +372,14 @@ EEG-RAG uses a **lightweight metadata-first architecture** that keeps the reposi
 │  ┌──────────────────┐    ┌──────────────────────────────────┐  │
 │  │   Your Repo      │    │      External APIs (Live)         │  │
 │  │   (~10MB)        │    │                                    │  │
-│  │                  │    │  ┌─────────────┐ ┌─────────────┐  │  │
-│  │  data/metadata/  │───▶│  │  PubMed     │ │  OpenAlex   │  │  │
-│  │  └─ index.db.gz  │    │  │  E-utilities│ │  API        │  │  │
-│  │     (500K refs)  │    │  └─────────────┘ └─────────────┘  │  │
-│  │                  │    │                                    │  │
-│  └──────────────────┘    └──────────────────────────────────┘  │
-│           │                          │                          │
-│           │    On-Demand Fetch       │                          │
+│  │                  │    │  ┌─────────┐ ┌─────────┐ ┌──────┐ │  │
+│  │  data/metadata/  │───▶│  │ PubMed  │ │OpenAlex │ │  S2  │ │  │
+│  │  └─ index.db.gz  │    │  └─────────┘ └─────────┘ └──────┘ │  │
+│  │     (500K refs)  │    │  ┌─────────┐ ┌─────────┐ ┌──────┐ │  │
+│  │                  │    │  │CrossRef │ │ arXiv   │ │bioRxiv│ │  │
+│  └──────────────────┘    │  └─────────┘ └─────────┘ └──────┘ │  │
+│           │              └──────────────────────────────────┘  │
+│           │    On-Demand Fetch + Fallback                       │
 │           ▼                          ▼                          │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │                  Local Cache (~/.eeg_rag/cache/)          │  │
@@ -396,6 +409,25 @@ results = search_papers("P300 epilepsy", max_results=10)
 for r in results:
     print(f"{r.title} - PMID:{r.pmid}")
     print(f"  {r.abstract[:200]}...")
+```
+
+### Multi-Source Resolution with Fallback
+
+```python
+from eeg_rag.db import PaperResolver
+
+resolver = PaperResolver()
+
+# Resolve from any identifier with smart fallback
+paper = await resolver.resolve_with_fallback(doi="10.1016/j.clinph.2020.03.016")
+paper = await resolver.resolve_with_fallback(pmid="12345678")
+paper = await resolver.resolve_with_fallback(arxiv_id="2301.07041")
+
+# Individual source APIs
+paper = await resolver.resolve_from_semantic_scholar(doi="10.1234/example")
+paper = await resolver.resolve_from_crossref(doi="10.1234/example")
+paper = await resolver.resolve_arxiv("2301.07041")
+paper = await resolver.resolve_from_biorxiv("10.1101/2020.01.01.123456")
 ```
 
 ### For Maintainers (Building the Index)
