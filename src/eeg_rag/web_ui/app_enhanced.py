@@ -253,13 +253,23 @@ st.markdown(
         color: #1F2937 !important;
         border: 1px solid #D1D5DB !important;
         border-radius: 6px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        padding: 0.5rem 1rem !important;
-        min-width: fit-content !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        padding: 0.5rem 0.75rem !important;
+        min-width: auto !important;
         font-weight: 500 !important;
+        text-align: left !important;
+        word-wrap: break-word !important;
     }
+    
+    /* Sidebar buttons - ensure they fit within sidebar width */
+    [data-testid="stSidebar"] .stButton button {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.5rem !important;
+        line-height: 1.3 !important;
+    }
+    
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #E5E7EB !important;
