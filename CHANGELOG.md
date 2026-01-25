@@ -34,6 +34,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Garbage collection optimization (REQ-MEM-003)
   - Object pooling for resource efficiency
   - Memory health checks
+- Persistence utilities module (`src/eeg_rag/utils/persistence_utils.py`)
+  - Data persistence operations with retry logic (REQ-DAT-001)
+  - Database connection pooling (REQ-DAT-002)
+  - Backup and recovery mechanisms (REQ-DAT-003)
+  - Data integrity verification with checksums (REQ-REL-003)
+  - Atomic file writes
+  - Write-ahead logging for crash recovery
+  - JSON persistence with automatic backups
+- Resilience utilities module (`src/eeg_rag/utils/resilience_utils.py`)
+  - Circuit breaker pattern implementation (REQ-REL-001)
+  - Health check monitoring system (REQ-REL-002)
+  - Token bucket rate limiting (REQ-REL-004)
+  - Graceful degradation with feature gates (REQ-REL-005)
+  - Thread-safe implementations for all components
+  - State change callbacks for monitoring
+  - Decorator-based APIs for easy integration
 - CI/CD workflow (`.github/workflows/ci.yml`)
   - Automated testing with Python 3.9-3.12
   - Code quality checks (Ruff, Black, mypy)
@@ -44,7 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/test_time_utils.py` - 63 unit tests
   - `tests/test_error_handling.py` - 63 unit tests
   - `tests/test_memory_utils.py` - 39 unit tests
-  - Total: 165 tests for utility modules
+  - `tests/test_persistence_utils.py` - 44 unit tests
+  - `tests/test_resilience_utils.py` - 41 unit tests
+  - Total: 250 tests for utility modules
   - Tests follow requirement ID conventions
 
 ### Changed
