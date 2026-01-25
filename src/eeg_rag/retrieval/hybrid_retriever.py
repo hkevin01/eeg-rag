@@ -3,6 +3,11 @@ Hybrid Retriever for EEG-RAG.
 
 This module combines BM25 (sparse) and dense (semantic) retrieval using
 Reciprocal Rank Fusion (RRF) for optimal search results.
+
+Requirements Implemented:
+    - REQ-FUNC-010: Hybrid search combining BM25 and dense retrieval
+    - REQ-FUNC-011: RRF fusion for result combination
+    - REQ-PERF-001: Sub-100ms retrieval latency for 10K documents
 """
 
 import logging

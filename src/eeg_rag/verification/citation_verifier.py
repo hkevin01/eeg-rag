@@ -4,6 +4,12 @@ Citation Verification and Hallucination Detection
 
 Verifies citations and detects hallucinated claims in generated answers.
 Essential for medical/research applications where accuracy is critical.
+
+Requirements Implemented:
+    - REQ-FUNC-020: PMID extraction and validation
+    - REQ-FUNC-021: Citation verification against PubMed
+    - REQ-FUNC-022: Hallucination detection for medical content
+    - REQ-SEC-001: Safe handling of external API responses
 """
 
 import re
