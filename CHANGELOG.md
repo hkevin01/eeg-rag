@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-02-14
+- Bibliometric RAG integration module (`src/eeg_rag/bibliometrics/rag_integration.py`)
+  - `BibliometricEnhancer` class for integrating visualizations into RAG results
+  - Automatic chart generation for search results (trends, citations, collaborations)
+  - Base64 chart encoding for direct embedding in responses
+  - Lazy-loading of bibliometric components for performance
+  - `BibliometricInsight` and `EnhancedRAGResult` dataclasses
+- Advanced bibliometrics demo script (`examples/demo_bibliometrics_advanced.py`)
+  - Comprehensive showcase of visualization features
+  - NLP enhancement demonstrations (keyword extraction, topic categorization)
+  - Research export metrics and collaboration networks
+  - Integrated workflow example combining all components
+- Bibliometrics module exports (`src/eeg_rag/bibliometrics/__init__.py`)
+  - Export `EEGVisualization`, `ChartResult` from visualization module
+  - Export `EEGNLPEnhancer`, `ExtractedKeywords`, `TopicCluster` from NLP module
+  - Export `EEGResearchExporter`, `VenueMetrics`, `InstitutionMetrics`, `AuthorProductivity` from export module
+  - Export `BibliometricEnhancer`, `BibliometricInsight`, `EnhancedRAGResult` from RAG integration
+
+### Fixed - 2026-02-14
+- Test collection errors across multiple modules (7 files total):
+  - `cross_encoder_reranker.py`: Changed `log_time` to `PerformanceTimer` context manager
+  - `benchmarking.py`: Fixed `WebResearchAgent` import to `WebSearchAgent`
+  - `base_agent.py`: Re-exported `QueryComplexity` for backward compatibility
+  - `test_semantic_chunker.py`: Removed non-existent `chunk_eeg_paper` import
+  - `test_hybrid_retriever.py`: Added `RetrievalResult` alias for `HybridResult`
+  - `test_related_searches_integration.py`: Added conditional streamlit import with skipif marker
+  - `pyproject.toml`: Added "benchmark" marker definition
+- All 1358 tests now collect successfully with 0 errors
+
 ### Added
 - Comprehensive requirements specification (`docs/requirements/REQUIREMENTS.md`)
   - 40+ requirements with rationale statements

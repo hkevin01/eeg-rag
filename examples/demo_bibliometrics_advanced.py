@@ -10,9 +10,7 @@ Usage:
 """
 
 import asyncio
-import json
 from pathlib import Path
-from datetime import datetime
 
 # Import bibliometrics components
 from eeg_rag.bibliometrics import (
@@ -44,12 +42,12 @@ def create_sample_articles():
                      "seizure detection using EEG signals. Our method achieves "
                      "95% sensitivity and 98% specificity on the CHB-MIT dataset.",
             authors=["Smith J", "Jones A", "Williams R"],
-            year=2023,
+            publication_date="2023-06-15",
             venue="Journal of Neural Engineering",
             doi="10.1088/1741-2552/abc123",
-            citation_count=45,
-            concepts=["seizure detection", "deep learning", "EEG classification"],
-            references=["W9876543210", "W1111111111"],
+            cited_by_count=45,
+            topics=["seizure detection", "deep learning", "EEG classification"],
+            referenced_works=["W9876543210", "W1111111111"],
         ),
         EEGArticle(
             openalex_id="W1234567891",
@@ -59,12 +57,12 @@ def create_sample_articles():
                      "memory tasks. Results show increased alpha suppression under "
                      "high cognitive load conditions.",
             authors=["Brown M", "Davis K", "Smith J"],
-            year=2022,
+            publication_date="2022-03-20",
             venue="NeuroImage",
             doi="10.1016/j.neuroimage.2022.xyz",
-            citation_count=78,
-            concepts=["alpha oscillations", "working memory", "cognitive load"],
-            references=["W1234567890", "W2222222222"],
+            cited_by_count=78,
+            topics=["alpha oscillations", "working memory", "cognitive load"],
+            referenced_works=["W1234567890", "W2222222222"],
         ),
         EEGArticle(
             openalex_id="W1234567892",
@@ -74,12 +72,12 @@ def create_sample_articles():
                      "machine learning approaches. The optimal approach depends "
                      "on data quality and computational constraints.",
             authors=["Wilson T", "Johnson P", "Anderson L"],
-            year=2024,
+            publication_date="2024-01-10",
             venue="Sleep Medicine Reviews",
             doi="10.1016/j.smrv.2024.abc",
-            citation_count=12,
-            concepts=["sleep spindles", "signal processing", "machine learning"],
-            references=["W3333333333"],
+            cited_by_count=12,
+            topics=["sleep spindles", "signal processing", "machine learning"],
+            referenced_works=["W3333333333"],
         ),
         EEGArticle(
             openalex_id="W1234567893",
@@ -88,12 +86,12 @@ def create_sample_articles():
                      "patients with locked-in syndrome. The system achieves "
                      "reliable communication with minimal training.",
             authors=["Garcia E", "Lee C", "Kim H"],
-            year=2023,
+            publication_date="2023-09-05",
             venue="IEEE Transactions on Biomedical Engineering",
             doi="10.1109/tbme.2023.def",
-            citation_count=34,
-            concepts=["P300", "BCI", "locked-in syndrome", "communication"],
-            references=["W1234567890", "W4444444444"],
+            cited_by_count=34,
+            topics=["P300", "BCI", "locked-in syndrome", "communication"],
+            referenced_works=["W1234567890", "W4444444444"],
         ),
         EEGArticle(
             openalex_id="W1234567894",
@@ -103,12 +101,12 @@ def create_sample_articles():
                      "virtual reality environment. Strong theta synchronization "
                      "was observed in frontal-parietal networks.",
             authors=["Martinez R", "Smith J", "Thompson K"],
-            year=2022,
+            publication_date="2022-11-18",
             venue="Cerebral Cortex",
             doi="10.1093/cercor/2022",
-            citation_count=56,
-            concepts=["theta oscillations", "spatial navigation", "virtual reality"],
-            references=["W1234567891", "W5555555555"],
+            cited_by_count=56,
+            topics=["theta oscillations", "spatial navigation", "virtual reality"],
+            referenced_works=["W1234567891", "W5555555555"],
         ),
     ]
 
@@ -120,43 +118,28 @@ async def demo_visualization():
     print("="*60)
     
     articles = create_sample_articles()
-    viz = EEGVisualization(style="seaborn-v0_8-whitegrid")
+    viz = EEGVisualization()
     
     # 1. Publication Trends
     print("\n1. Creating publication trends chart...")
-    trends = viz.plot_publication_trends(
-        articles,
-        title="EEG Research Publication Trends"
-    )
+    trends = viz.plot_publication_trends(articles)
     print(f"   Chart type: {trends.chart_type}")
-    print(f"   Data points: {trends.metadata.get('year_count', 'N/A')}")
     
     # 2. Top Authors
     print("\n2. Creating top authors chart...")
-    authors = viz.plot_top_authors(
-        articles,
-        top_n=5,
-        title="Most Prolific EEG Researchers"
-    )
+    authors = viz.plot_top_authors(articles, top_n=5)
     print(f"   Chart type: {authors.chart_type}")
-    print(f"   Authors shown: {min(5, len(set(a for art in articles for a in art.authors)))}")
     
     # 3. Citation Distribution
     print("\n3. Creating citation distribution...")
-    citations = viz.plot_citation_distribution(
-        articles,
-        title="Citation Distribution in EEG Literature"
-    )
+    citations = viz.plot_citation_distribution(articles)
     print(f"   Chart type: {citations.chart_type}")
     print(f"   Total articles: {len(articles)}")
     
     # 4. Research Dashboard
     print("\n4. Creating research dashboard...")
-    dashboard = viz.create_research_dashboard(
-        articles,
-        title="EEG Research Overview Dashboard"
-    )
-    print(f"   Dashboard panels: {dashboard.metadata.get('num_panels', 4)}")
+    dashboard = viz.create_research_dashboard(articles)
+    print(f"   Dashboard created with {len(dashboard)} charts")
     
     print("\n✅ Visualization demo complete!")
     return viz
@@ -192,14 +175,14 @@ async def demo_nlp_enhancement():
     ]
     for query in queries:
         expanded = nlp.expand_query(query)
-        print(f"   '{query}' -> {expanded[:3]}...")
+        print(f"   '{query}' -> {expanded[:3] if expanded else []}")
     
     # 4. Topic Clustering
     print("\n4. Categorizing articles by topic...")
-    clusters = nlp.categorize_by_topic(articles, num_topics=3)
-    for cluster in clusters:
-        print(f"   Topic '{cluster.topic_label}': {len(cluster.article_ids)} articles")
-        print(f"      Keywords: {cluster.keywords[:3]}")
+    categorized = nlp.categorize_by_topic(articles)
+    for category, article_ids in categorized.items():
+        if article_ids:  # Only show categories with articles
+            print(f"   Category '{category}': {len(article_ids)} articles")
     
     # 5. Text Similarity
     print("\n5. Computing text similarity...")
@@ -207,13 +190,6 @@ async def demo_nlp_enhancement():
     text2 = articles[1].abstract
     similarity = nlp.compute_text_similarity(text1, text2)
     print(f"   Similarity between first two abstracts: {similarity:.3f}")
-    
-    # 6. Keyword Trends
-    print("\n6. Analyzing keyword trends...")
-    trends = nlp.get_keyword_trends(articles)
-    print(f"   Trending keywords by year:")
-    for year, words in list(trends.items())[:3]:
-        print(f"      {year}: {words[:3]}")
     
     print("\n✅ NLP Enhancement demo complete!")
     return nlp
@@ -226,20 +202,20 @@ async def demo_research_export():
     print("="*60)
     
     articles = create_sample_articles()
-    exporter = EEGResearchExporter()
+    exporter = EEGResearchExporter(articles)
     
     # 1. Compute Metrics
     print("\n1. Computing venue metrics...")
-    venue_metrics = exporter.compute_venue_metrics(articles)
-    for venue, metrics in list(venue_metrics.items())[:3]:
-        print(f"   {venue[:30]:30} - {metrics.total_articles} articles, "
-              f"avg citations: {metrics.avg_citations:.1f}")
+    venue_metrics = exporter.compute_venue_metrics(top_n=10)
+    for metrics in venue_metrics[:3]:
+        print(f"   {metrics.name[:40]:40} - {metrics.article_count} articles, "
+              f"avg citations: {metrics.mean_citations:.1f}")
     
     # 2. Author Productivity
     print("\n2. Computing author productivity...")
-    author_prod = exporter.compute_author_productivity(articles)
-    for author, prod in list(author_prod.items())[:3]:
-        print(f"   {author:20} - {prod.total_publications} pubs, "
+    author_prod = exporter.compute_author_productivity(top_n=10)
+    for prod in author_prod[:5]:
+        print(f"   {prod.name:30} - {prod.article_count} pubs, "
               f"h-index: {prod.h_index}")
     
     # 3. Export Options
@@ -252,9 +228,9 @@ async def demo_research_export():
     
     # 4. Collaboration Network
     print("\n4. Computing collaboration network data...")
-    collab_data = exporter.get_collaboration_network_data(articles)
-    print(f"   Nodes (authors): {collab_data['num_nodes']}")
-    print(f"   Edges (collaborations): {collab_data['num_edges']}")
+    collab_data = exporter.get_collaboration_network_data()
+    print(f"   Nodes (institutions): {len(collab_data['nodes'])}")
+    print(f"   Edges (collaborations): {len(collab_data['edges'])}")
     
     print("\n✅ Research Export demo complete!")
     return exporter
@@ -271,39 +247,40 @@ async def demo_integrated_workflow():
     # Initialize all components
     viz = EEGVisualization()
     nlp = EEGNLPEnhancer()
-    exporter = EEGResearchExporter()
+    exporter = EEGResearchExporter(articles)
     
     # Step 1: Analyze with NLP
     print("\n1. NLP Analysis...")
     keywords = nlp.extract_keywords_from_articles(articles)
-    clusters = nlp.categorize_by_topic(articles, num_topics=2)
+    categorized = nlp.categorize_by_topic(articles)
     
     # Step 2: Visualize Results
     print("2. Creating Visualizations...")
-    dashboard = viz.create_research_dashboard(articles, "EEG Research Analysis")
+    dashboard = viz.create_research_dashboard(articles)
     
     # Step 3: Compute Metrics
     print("3. Computing Research Metrics...")
-    metrics = exporter.compute_venue_metrics(articles)
-    productivity = exporter.compute_author_productivity(articles)
+    metrics = exporter.compute_venue_metrics(top_n=5)
+    productivity = exporter.compute_author_productivity(top_n=5)
     
     # Step 4: Generate Summary
     print("\n📋 ANALYSIS SUMMARY:")
     print(f"   Total articles analyzed: {len(articles)}")
     print(f"   Key research themes: {[kw for kw, _ in keywords.keywords[:3]]}")
-    print(f"   Topic clusters identified: {len(clusters)}")
+    print(f"   Topic categories with articles: {sum(1 for ids in categorized.values() if ids)}")
     print(f"   Unique venues: {len(metrics)}")
     print(f"   Active researchers: {len(productivity)}")
     
     # Most cited work
-    most_cited = max(articles, key=lambda a: a.citation_count)
+    most_cited = max(articles, key=lambda a: a.cited_by_count)
     print(f"\n   Most cited work: '{most_cited.title[:50]}...'")
-    print(f"   Citations: {most_cited.citation_count}")
+    print(f"   Citations: {most_cited.cited_by_count}")
     
     # Most prolific author
-    top_author = max(productivity.items(), key=lambda x: x[1].total_publications)
-    print(f"\n   Most prolific author: {top_author[0]}")
-    print(f"   Publications: {top_author[1].total_publications}")
+    if productivity:
+        top_author = productivity[0]  # Already sorted by article_count
+        print(f"\n   Most prolific author: {top_author.name}")
+        print(f"   Publications: {top_author.article_count}")
     
     print("\n✅ Integrated workflow demo complete!")
 
