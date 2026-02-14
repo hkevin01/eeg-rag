@@ -100,6 +100,18 @@ try:
 except ImportError:
     UTILS_AVAILABLE = False
 
+# Bibliometrics module
+try:
+    from .bibliometrics import (
+        EEGBiblioNet,
+        EEGArticle,
+        EEGAuthor,
+        NetworkMetrics,
+    )
+    BIBLIOMETRICS_AVAILABLE = True
+except ImportError:
+    BIBLIOMETRICS_AVAILABLE = False
+
 __all__ = [
     "__version__",
     "__author__",
@@ -120,3 +132,12 @@ if PRODUCTION_COMPONENTS_AVAILABLE:
 # Add utilities if available
 if UTILS_AVAILABLE:
     __all__.append('get_logger')
+
+# Add bibliometrics if available
+if BIBLIOMETRICS_AVAILABLE:
+    __all__.extend([
+        'EEGBiblioNet',
+        'EEGArticle',
+        'EEGAuthor',
+        'NetworkMetrics',
+    ])

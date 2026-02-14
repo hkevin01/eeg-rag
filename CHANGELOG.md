@@ -50,6 +50,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Thread-safe implementations for all components
   - State change callbacks for monitoring
   - Decorator-based APIs for easy integration
+- Bibliometrics integration module (`src/eeg_rag/bibliometrics/`)
+  - pyBiblioNet integration for network-based bibliometric analysis (REQ-BIB-001)
+  - OpenAlex API integration for EEG article retrieval
+  - Citation network construction and analysis (REQ-BIB-002)
+  - Co-authorship network analysis (REQ-BIB-003)
+  - Centrality metrics (PageRank, betweenness, eigenvector) (REQ-BIB-004)
+  - Community detection for research cluster identification
+  - Pre-defined EEG research domain query patterns (epilepsy, sleep, BCI, cognitive, clinical, signal processing)
+  - RAG integration with filtering and influence scoring (REQ-BIB-005)
+  - Article caching for efficient repeated queries
 - CI/CD workflow (`.github/workflows/ci.yml`)
   - Automated testing with Python 3.9-3.12
   - Code quality checks (Ruff, Black, mypy)
@@ -62,7 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/test_memory_utils.py` - 39 unit tests
   - `tests/test_persistence_utils.py` - 44 unit tests
   - `tests/test_resilience_utils.py` - 41 unit tests
-  - Total: 250 tests for utility modules
+  - `tests/test_bibliometrics.py` - 44 unit tests
+  - Total: 294 tests for utility and bibliometrics modules
   - Tests follow requirement ID conventions
 
 ### Changed

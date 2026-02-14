@@ -47,3 +47,6 @@ anthropic>=0.18.0,<1.0.0  # Claude-3
 
 # Optional: for advanced network analysis
 networkx>=3.0,<4.0.0  # Citation network graphs
+
+# Bibliometric network analysis (OpenAlex integration)
+pybiblionet>=1.0.5  # Network-based bibliometric analysis
