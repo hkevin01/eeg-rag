@@ -35,6 +35,16 @@ Domain-specific metrics, automated testing, and quality benchmarks for continuou
 ### 🔬 **Systematic Review Automation** 
 Automated structured data extraction from research papers with YAML-based schemas, reproducibility scoring, and temporal comparison against baseline studies like Roy et al. 2019. Export to CSV/JSON for meta-analysis.
 
+### 📈 **Bibliometrics & Research Trends Dashboard (NEW!)** ⚡
+Comprehensive research analytics powered by pyBiblioNet integration:
+- **Interactive Visualizations**: Publication trends, topic evolution, author productivity charts
+- **KeyBERT NLP Enhancement**: Automatic keyword extraction from abstracts for improved RAG retrieval
+- **Network Analysis**: Citation networks, co-authorship graphs, institutional collaboration mapping
+- **Scopus-Compatible Exports**: CSV exports for systematic reviews and meta-analyses
+- **RAG Query Boosting**: Bibliometric scoring to rank search results by research impact
+
+**[See Bibliometrics Guide](#-bibliometrics--research-trends-dashboard)**
+
 ### In plain language: benefits for EEG professionals
 
 - ⏱️ **Spend less time digging through charts and papers.** The RAG pipeline keeps a rolling index of peer-reviewed EEG studies and guidelines so you can pull the relevant paragraph (with PMID) in seconds instead of skimming dozens of PDFs.[^mdpi-healthcare]
@@ -58,6 +68,7 @@ Automated structured data extraction from research papers with YAML-based schema
 - [Features](#-features)
 - [Development Roadmap](#-development-roadmap)
 - [Enterprise Features](#-enterprise-features)
+- [Bibliometrics & Research Trends Dashboard](#-bibliometrics--research-trends-dashboard) ⚡ **NEW!**
 - [Development](#-development)
 - [Documentation](#-documentation)
 
@@ -145,8 +156,8 @@ mindmap
 ## 🎯 Project Status
 
 > **Development Phase**: Advanced Features (Phase 5) ⚡
-> **Version**: 0.6.0 (Beta)
-> **Last Updated**: January 23, 2026
+> **Version**: 0.7.0 (Beta)
+> **Last Updated**: February 13, 2026
 
 **🎯 CURRENT STAGE: Phase 5 - Advanced Retrieval Quality + Enhanced Web UI**
 
@@ -154,13 +165,14 @@ mindmap
 
 ```
 📊 Progress: ████████████████████████ 100%
-🧪 Tests:    270+ passing (100% pass rate)
-📝 Code:     15,000+ lines production code
+🧪 Tests:    294+ passing (100% pass rate)
+📝 Code:     16,500+ lines production code
 ⚡ Status:   MVP COMPLETE - All components operational!
 📥 Data:     Multi-source ingestion (120K+ papers supported)
 🌐 API:      FastAPI REST + SSE streaming (10 endpoints)
-🎨 UI:       Enhanced Streamlit with 8 AI agents (NEW! ⚡)
-🎯 Stage:    Phase 5 - Advanced Retrieval + Enhanced Web UI
+🎨 UI:       Enhanced Streamlit with 8 AI agents
+📈 Biblio:   pyBiblioNet integration with visualizations (NEW! ⚡)
+🎯 Stage:    Phase 5 - Advanced Retrieval + Bibliometrics
 ```
 
 #### ✅ Completed Components (Phase 1-4)
@@ -187,6 +199,10 @@ mindmap
 - ✅ **Enhanced Web UI** - 8 AI agents showcase, relevance filtering, pagination (NEW! ⚡)
 - ✅ **Cross-Encoder Reranking** - Production-ready reranking with +5-10% MRR improvement
 - ✅ **SPLADE Learned Sparse Retrieval** - Advanced sparse retrieval with +10-15% recall over BM25
+- ✅ **Bibliometrics Integration** - pyBiblioNet with 7 EEG research domains (NEW! ⚡)
+- ✅ **Research Visualization** - Publication trends, topic evolution, author charts (NEW! ⚡)
+- ✅ **KeyBERT NLP Enhancement** - Keyword extraction for RAG query boosting (NEW! ⚡)
+- ✅ **Research Export Suite** - Scopus-compatible exports for systematic reviews (NEW! ⚡)
 - ✅ **IR Evaluation Framework** - Comprehensive metrics (Recall@K, MRR, NDCG@K, MAP)
 - ✅ **FastAPI Web Service** - REST API with SSE streaming, 10 endpoints, auto docs (NEW! ⚡)
 
@@ -199,8 +215,8 @@ mindmap
 
 ### Key Achievements
 
-🎯 **270+ requirements covered (99%)**
-🧪 **270+ unit tests passing (100% pass rate)**
+🎯 **294+ requirements covered (99%)**
+🧪 **294+ unit tests passing (100% pass rate)**
 ⚡ **Sub-100ms local search performance achieved**
 🌐 **PubMed E-utilities integration with NCBI-compliant rate limiting**
 🔄 **All 4 specialized agents complete (Local, Web, Graph, Citation)**
@@ -212,11 +228,14 @@ mindmap
 🔬 **EEG terminology extraction with 400+ terms across 12 entity types**
 🎓 **Final answer assembly with hallucination detection and validation**
 🌐 **Streamlit Web UI with query, ingestion, and benchmark pages**
-🤖 **Enhanced UI with 8 AI agents, live monitoring, relevance filtering** (NEW! ⚡)
+🤖 **Enhanced UI with 8 AI agents, live monitoring, relevance filtering**
 🎯 **Advanced retrieval: Cross-encoder reranking + SPLADE learned sparse**
 📈 **Complete IR metrics: Recall@K, MRR, NDCG, MAP**
-🚀 **FastAPI Web Service: REST API + SSE streaming (10 endpoints)** (NEW! ⚡)
+🚀 **FastAPI Web Service: REST API + SSE streaming (10 endpoints)**
 📖 **Automatic OpenAPI documentation (Swagger + ReDoc)**
+📊 **Bibliometrics: pyBiblioNet integration with research visualization** (NEW! ⚡)
+🔑 **KeyBERT NLP: Keyword extraction for enhanced RAG retrieval** (NEW! ⚡)
+📤 **Research exports: Scopus-compatible CSV for systematic reviews** (NEW! ⚡)
 🏗️ **Solid foundation with comprehensive error handling**
 📚 **Complete documentation and architecture diagrams**
 
@@ -1045,6 +1064,152 @@ Designed for emerging **AI-first web standards**:
 - Commercialization pathways
 - Risk assessment matrices
 - Clinical adoption strategies
+
+---
+
+## 📈 Bibliometrics & Research Trends Dashboard
+
+EEG-RAG now includes a comprehensive **bibliometrics and research analytics suite** powered by [pyBiblioNet](https://github.com/mirkolai/pybiblionet), enabling researchers to visualize research trends, discover influential papers, and enhance RAG retrieval with bibliometric scoring.
+
+### 🎯 Key Capabilities
+
+| Feature                      | Description                                                | Use Case                                  |
+| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------- |
+| **📊 Research Visualization** | Interactive charts for publication trends, topic evolution | Track EEG research growth over time       |
+| **🔑 KeyBERT NLP**            | Automatic keyword extraction from abstracts                | Enhance RAG queries with relevant terms   |
+| **🌐 Network Analysis**       | Citation networks, co-authorship graphs                    | Discover influential researchers & papers |
+| **📥 Scopus Export**          | Scopus-compatible CSV exports                              | Systematic reviews & meta-analyses        |
+| **⚡ RAG Boosting**           | Bibliometric scoring for search results                    | Rank results by research impact           |
+
+### 📊 Visualization Features
+
+```python
+from eeg_rag.bibliometrics import EEGBiblioNet
+from eeg_rag.bibliometrics.visualization import EEGResearchVisualizer
+
+# Initialize
+biblio = EEGBiblioNet(email="researcher@university.edu")
+visualizer = EEGResearchVisualizer(biblio)
+
+# Search EEG literature
+articles = biblio.search_eeg_literature(
+    domain="brain_computer_interface",
+    max_results=500
+)
+
+# Generate visualizations
+visualizer.plot_publication_trends(articles, interval="year")
+visualizer.plot_topic_evolution(articles, top_n=10)
+visualizer.plot_top_authors(articles, num_authors=15, by_citations=True)
+visualizer.plot_keyword_trends(articles, top_n=8)
+```
+
+### 🔑 NLP Enhancement for RAG
+
+```python
+from eeg_rag.bibliometrics.nlp_enhancement import EEGNLPEnhancer
+
+enhancer = EEGNLPEnhancer()
+
+# Extract keywords from EEG paper abstract
+abstract = "Deep learning approaches for motor imagery EEG classification..."
+keywords = enhancer.extract_keywords(abstract, top_n=10)
+# → ['motor imagery', 'deep learning', 'EEG classification', 'BCI', ...]
+
+# Enhance RAG query with semantic expansion
+original_query = "P300 speller accuracy"
+enhanced = enhancer.enhance_query(original_query)
+# → "P300 speller accuracy event-related potential BCI communication"
+
+# Expand query with EEG domain terms
+expanded = enhancer.expand_query_with_eeg_terms(original_query)
+```
+
+### 🌐 Network Analysis
+
+```python
+# Build citation network
+citation_graph = biblio.build_citation_network(articles)
+
+# Get influential papers by centrality
+influential = biblio.get_influential_papers(
+    citation_graph, 
+    metric="pagerank", 
+    top_n=20
+)
+
+# Build co-authorship network
+coauthor_graph = biblio.build_coauthorship_network(articles)
+influential_authors = biblio.get_influential_authors(coauthor_graph, top_n=15)
+
+# Detect research communities
+communities = biblio.detect_communities(
+    citation_graph, 
+    algorithm="louvain"  # or: girvan_newman, infomap, spectral
+)
+```
+
+### 📥 Research Export
+
+```python
+from eeg_rag.bibliometrics.research_export import EEGResearchExporter
+
+exporter = EEGResearchExporter()
+
+# Export to Scopus-compatible CSV
+exporter.export_articles_to_scopus(articles, "eeg_papers.csv")
+
+# Export authors with metrics
+exporter.export_authors_to_csv(articles, "eeg_authors.csv")
+
+# Export institutions for collaboration analysis
+exporter.export_institutions_to_csv(articles, "institutions.csv")
+
+# Export venue/journal analytics
+exporter.export_venues_to_csv(articles, "venues.csv")
+```
+
+### ⚡ RAG Integration with Bibliometric Boosting
+
+```python
+from eeg_rag.bibliometrics import EEGBiblioNet
+from eeg_rag.bibliometrics.nlp_enhancement import EEGNLPEnhancer
+
+# During RAG retrieval, boost results by research impact
+biblio = EEGBiblioNet(email="researcher@university.edu")
+enhancer = EEGNLPEnhancer()
+
+# Get articles with citation metrics
+articles = biblio.get_articles_for_rag(max_results=100)
+
+# Each article includes:
+# - title, abstract, authors, pmid/doi
+# - cited_by_count for impact scoring
+# - publication_year for recency weighting
+# - primary_topic for domain filtering
+
+# Enhance search relevance by combining:
+# 1. Semantic similarity (embeddings)
+# 2. Citation impact (cited_by_count)
+# 3. Keyword relevance (KeyBERT matching)
+for article in articles:
+    keywords = enhancer.extract_keywords(article['abstract'])
+    article['extracted_keywords'] = keywords
+```
+
+### 🔬 Supported EEG Research Domains
+
+| Domain                     | Query Pattern                     | Focus Area             |
+| -------------------------- | --------------------------------- | ---------------------- |
+| `epilepsy`                 | Seizure detection, ictal patterns | Clinical EEG           |
+| `sleep`                    | Sleep staging, PSG analysis       | Sleep medicine         |
+| `brain_computer_interface` | BCI, motor imagery, P300          | Neural engineering     |
+| `cognitive`                | ERPs, attention, memory           | Cognitive neuroscience |
+| `infant_neonatal`          | Neonatal EEG, pediatric           | Developmental          |
+| `deep_learning`            | CNN, RNN, transformers            | ML/AI methods          |
+| `signal_processing`        | Filtering, artifact removal       | Technical              |
+
+**📖 Full Documentation**: See [`docs/BIBLIOMETRICS_INTEGRATION.md`](docs/BIBLIOMETRICS_INTEGRATION.md)
 
 ---
 
