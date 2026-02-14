@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 
 from src.eeg_rag.nlp.semantic_chunker import (
     SemanticChunker, ChunkingStrategy, ChunkResult,
-    chunk_medical_text, chunk_eeg_paper
+    chunk_medical_text
 )
 
 

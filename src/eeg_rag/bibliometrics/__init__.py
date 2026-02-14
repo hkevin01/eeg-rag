@@ -30,7 +30,36 @@ from .eeg_biblionet import (
     get_influential_authors,
 )
 
+# Visualization module
+from .visualization import (
+    EEGVisualization,
+    ChartResult,
+)
+
+# NLP Enhancement module
+from .nlp_enhancement import (
+    EEGNLPEnhancer,
+    ExtractedKeywords,
+    TopicCluster,
+)
+
+# Research Export module
+from .research_export import (
+    EEGResearchExporter,
+    VenueMetrics,
+    InstitutionMetrics,
+    AuthorProductivity,
+)
+
+# RAG Integration module
+from .rag_integration import (
+    BibliometricEnhancer,
+    BibliometricInsight,
+    EnhancedRAGResult,
+)
+
 __all__ = [
+    # Core bibliometrics
     "EEGBiblioNet",
     "EEGArticle", 
     "EEGAuthor",
@@ -40,4 +69,20 @@ __all__ = [
     "build_eeg_coauthorship_network",
     "get_influential_papers",
     "get_influential_authors",
+    # Visualization
+    "EEGVisualization",
+    "ChartResult",
+    # NLP Enhancement
+    "EEGNLPEnhancer",
+    "ExtractedKeywords",
+    "TopicCluster",
+    # Research Export
+    "EEGResearchExporter",
+    "VenueMetrics",
+    "InstitutionMetrics",
+    "AuthorProductivity",
+    # RAG Integration
+    "BibliometricEnhancer",
+    "BibliometricInsight",
+    "EnhancedRAGResult",
 ]

@@ -36,6 +36,9 @@ from eeg_rag.utils.common_utils import (
     SECOND
 )
 
+# Re-export QueryComplexity for backward compatibility
+from eeg_rag.planning.query_planner import QueryComplexity
+
 
 # REQ-AGT-006: Define agent types for routing and identification
 class AgentType(Enum):

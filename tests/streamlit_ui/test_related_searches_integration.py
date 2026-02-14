@@ -7,7 +7,18 @@ The key insights for this to work:
 """
 
 import pytest
-from streamlit.testing.v1 import AppTest
+
+try:
+    from streamlit.testing.v1 import AppTest
+    STREAMLIT_AVAILABLE = True
+except ImportError:
+    STREAMLIT_AVAILABLE = False
+    AppTest = None
+
+pytestmark = pytest.mark.skipif(
+    not STREAMLIT_AVAILABLE,
+    reason="Streamlit not installed"
+)
 
 
 # Test script that matches our fixed implementation pattern

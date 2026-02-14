@@ -25,7 +25,7 @@ from collections import defaultdict
 from ..agents.base_agent import AgentQuery, QueryComplexity
 from ..agents.orchestrator.orchestrator_agent import OrchestratorAgent
 from ..agents.local_agent.local_data_agent import LocalDataAgent
-from ..agents.web_agent.web_research_agent import WebResearchAgent
+from ..agents.web_agent.web_search_agent import WebSearchAgent
 from ..verification.citation_verifier import CitationVerifier
 from ..monitoring import PerformanceMonitor, monitor_performance
 
@@ -105,7 +105,7 @@ class EEGRAGBenchmark:
         self,
         orchestrator: OrchestratorAgent,
         local_agent: Optional[LocalDataAgent] = None,
-        web_agent: Optional[WebResearchAgent] = None
+        web_agent: Optional[WebSearchAgent] = None
     ):
         """Initialize benchmarking suite.
         

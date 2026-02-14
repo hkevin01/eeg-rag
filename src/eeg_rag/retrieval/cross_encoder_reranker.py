@@ -21,8 +21,7 @@ except ImportError:
     CROSS_ENCODER_AVAILABLE = False
     CrossEncoder = None
 
-from ..utils.logging_utils import log_time
-from ..utils.config import get_config
+from ..utils.logging_utils import PerformanceTimer
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +140,7 @@ class CrossEncoderReranker:
         
         start_time = time.time()
         
-        with log_time(logger, f"Cross-encoder reranking {len(documents)} documents"):
+        with PerformanceTimer(f"Cross-encoder reranking {len(documents)} documents", logger=logger):
             # Prepare query-document pairs
             query_doc_pairs = self._prepare_pairs(query, documents)
             

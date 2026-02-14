@@ -7,8 +7,11 @@ import pytest
 import numpy as np
 from unittest.mock import Mock, patch
 from src.eeg_rag.retrieval.hybrid_retriever import (
-    HybridRetriever, RetrievalResult
+    HybridRetriever, HybridResult
 )
+
+# Alias for backward compatibility in tests
+RetrievalResult = HybridResult
 
 
 class TestRetrievalResult:
