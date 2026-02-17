@@ -46,7 +46,7 @@ from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 
-from ..utils.logging_utils import get_logger
+from .logging_utils import get_logger
 
 logger = get_logger(__name__)
 

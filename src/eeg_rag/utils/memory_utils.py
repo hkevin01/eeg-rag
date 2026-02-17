@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, TypeVar
 
-from ..utils.logging_utils import get_logger
+from .logging_utils import get_logger
 
 logger = get_logger(__name__)
 
