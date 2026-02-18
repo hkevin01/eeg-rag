@@ -19,6 +19,8 @@ import re
 import time
 import hashlib
 import urllib.parse
+import base64
+import io
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, Callable
 from dataclasses import dataclass, field, asdict
@@ -35,6 +37,10 @@ from utils import (
     generate_citations,
     get_all_badges,
     get_quality_score,
+)
+from bibliometrics import (
+    BibliometricEnhancer,
+    EEGArticle,
 )
 
 # Configure logging
@@ -1589,6 +1595,155 @@ def render_query_page():
             )
 
         st.markdown(result.response)
+
+        # Bibliometric Visualizations Section
+        if result.sources and len(result.sources) >= 3:
+            st.markdown("---")
+            st.markdown("### 📊 Bibliometric Analysis")
+            st.caption("Visual analytics of the retrieved research papers")
+            
+            with st.spinner("Generating bibliometric visualizations..."):
+                try:
+                    # Convert sources to EEGArticle format
+                    articles = []
+                    for idx, source in enumerate(result.sources):
+                        try:
+                            # Extract authors
+                            authors = source.get('authors', [])
+                            if isinstance(authors, str):
+                                authors = [a.strip() for a in authors.split(',') if a.strip()]
+                            elif not isinstance(authors, list):
+                                authors = []
+                            
+                            # Generate openalex_id from available IDs or index
+                            openalex_id = source.get('openalex_id', '')
+                            if not openalex_id:
+                                pmid = source.get('pmid', source.get('PMID', ''))
+                                doi = source.get('doi', source.get('DOI', ''))
+                                openalex_id = f"W{pmid}" if pmid else f"W{doi}" if doi else f"W{idx}"
+                            
+                            # Create article
+                            article = EEGArticle(
+                                openalex_id=openalex_id,
+                                title=source.get('title', 'Unknown'),
+                                authors=authors,
+                                publication_date=f"{source.get('year', '2020')}-01-01",
+                                cited_by_count=source.get('citation_count', source.get('citations', 0)),
+                                abstract=source.get('results', source.get('Results', source.get('abstract', '')))[:500],
+                                venue=source.get('journal', source.get('venue', source.get('source', ''))),
+                                pmid=source.get('pmid', source.get('PMID', '')),
+                                doi=source.get('doi', source.get('DOI', '')),
+                                topics=[],
+                                referenced_works=[],
+                            )
+                            articles.append(article)
+                        except Exception as e:
+                            logger.warning(f"Failed to convert source to article: {e}")
+                            continue
+                    
+                    if articles:
+                        st.info(f"Converted {len(articles)} papers for visualization")
+                        
+                        # Create tabs for different visualizations
+                        viz_tabs = st.tabs(["📈 Trends", "🎓 Authors", "📚 Citations", "🔗 Networks"])
+                        
+                        # Tab 1: Publication Trends
+                        with viz_tabs[0]:
+                            try:
+                                from bibliometrics import EEGVisualization
+                                viz = EEGVisualization()
+                                trend_chart = viz.plot_publication_trends(articles)
+                                if trend_chart.png_base64:
+                                    # Decode base64 and display
+                                    img_data = base64.b64decode(trend_chart.png_base64)
+                                    st.image(img_data, use_container_width=True)
+                                    st.caption(f"Publication timeline: {trend_chart.metadata.get('date_range', 'N/A')}")
+                                else:
+                                    st.warning("No publication trend data generated")
+                            except Exception as e:
+                                st.error(f"Failed to generate trends chart: {str(e)}")
+                                logger.error(f"Trends visualization error: {e}", exc_info=True)
+                        
+                        # Tab 2: Top Authors
+                        with viz_tabs[1]:
+                            try:
+                                from bibliometrics import EEGVisualization
+                                viz = EEGVisualization()
+                                author_chart = viz.plot_top_authors(articles, top_n=8)
+                                if author_chart.png_base64:
+                                    img_data = base64.b64decode(author_chart.png_base64)
+                                    st.image(img_data, use_container_width=True)
+                                    st.caption("Most prolific authors in the retrieved papers")
+                                else:
+                                    st.warning("No author data generated")
+                            except Exception as e:
+                                st.error(f"Failed to generate authors chart: {str(e)}")
+                                logger.error(f"Authors visualization error: {e}", exc_info=True)
+                        
+                        # Tab 3: Citation Distribution
+                        with viz_tabs[2]:
+                            try:
+                                from bibliometrics import EEGVisualization
+                                viz = EEGVisualization()
+                                citation_chart = viz.plot_citation_distribution(articles)
+                                if citation_chart.png_base64:
+                                    img_data = base64.b64decode(citation_chart.png_base64)
+                                    st.image(img_data, use_container_width=True)
+                                else:
+                                    st.warning("No citation data generated")
+                            except Exception as e:
+                                st.error(f"Failed to generate citations chart: {str(e)}")
+                                logger.error(f"Citations visualization error: {e}", exc_info=True)
+                            
+                            # Citation metrics
+                            try:
+                                total_citations = sum(a.cited_by_count for a in articles)
+                                avg_citations = total_citations / len(articles) if articles else 0
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.metric("Total Citations", f"{total_citations:,}")
+                                with col2:
+                                    st.metric("Avg per Paper", f"{avg_citations:.1f}")
+                                with col3:
+                                    most_cited = max(articles, key=lambda a: a.cited_by_count)
+                                    st.metric("Most Cited", most_cited.cited_by_count)
+                            except Exception as e:
+                                logger.error(f"Citation metrics error: {e}")
+                        
+                        # Tab 4: Collaboration Networks
+                        with viz_tabs[3]:
+                            try:
+                                from bibliometrics import EEGResearchExporter
+                                exporter = EEGResearchExporter(articles)
+                                collab_data = exporter.get_collaboration_network_data()
+                                
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.metric("Authors/Institutions", len(collab_data['nodes']))
+                                with col2:
+                                    st.metric("Collaborations", len(collab_data['edges']))
+                                
+                                if collab_data['nodes']:
+                                    st.markdown("**Key Institutions/Authors:**")
+                                    # Show top nodes by article count
+                                    sorted_nodes = sorted(
+                                        collab_data['nodes'], 
+                                        key=lambda x: x.get('article_count', 0), 
+                                        reverse=True
+                                    )[:5]
+                                    for node in sorted_nodes:
+                                        st.write(f"• {node['label']}: {node.get('article_count', 0)} articles, {node.get('citations', 0)} citations")
+                                else:
+                                    st.info("No collaboration network data available (requires institution metadata)")
+                            except Exception as e:
+                                st.warning(f"Collaboration network not available: {str(e)}")
+                                logger.error(f"Collaboration network error: {e}", exc_info=True)
+                    else:
+                        st.warning("Could not convert papers to article format for visualization")
+                        
+                except Exception as e:
+                    logger.error(f"Bibliometric visualization error: {e}", exc_info=True)
+                    st.error(f"Bibliometric visualizations temporarily unavailable: {str(e)}")
 
         # Related queries section - use URL links for reliable scroll-to-top
         if result.related_queries:

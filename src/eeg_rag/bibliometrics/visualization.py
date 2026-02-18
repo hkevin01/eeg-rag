@@ -98,6 +98,8 @@ class EEGVisualization:
     def _check_dependencies(self) -> bool:
         """Check if visualization dependencies are available."""
         try:
+            import matplotlib
+            matplotlib.use('Agg')  # Use non-interactive backend for server/web apps
             import matplotlib.pyplot as plt
             import numpy as np
             self._plt = plt
