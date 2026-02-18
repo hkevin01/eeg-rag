@@ -93,6 +93,8 @@ class EEGVisualization:
             style: Matplotlib style to use
         """
         self.style = style
+        self._plt = None
+        self._np = None
         self._check_dependencies()
     
     def _check_dependencies(self) -> bool:
@@ -105,8 +107,11 @@ class EEGVisualization:
             self._plt = plt
             self._np = np
             return True
-        except ImportError:
-            logger.warning("matplotlib not available for visualization")
+        except ImportError as e:
+            logger.warning(f"matplotlib not available for visualization: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error setting up matplotlib: {e}")
             return False
     
     def _figure_to_base64(self, fig) -> str:
@@ -155,6 +160,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         np = self._np
         
@@ -273,6 +281,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         np = self._np
         
@@ -389,6 +400,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         
         # Count author publications/citations
@@ -485,6 +499,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         np = self._np
         
@@ -557,6 +574,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         
         # Count venues
@@ -636,6 +656,9 @@ class EEGVisualization:
         Returns:
             ChartResult with the generated chart
         """
+        if self._plt is None or self._np is None:
+            raise RuntimeError("Matplotlib and numpy are required for visualization. Please install: pip install matplotlib numpy")
+        
         plt = self._plt
         np = self._np
         

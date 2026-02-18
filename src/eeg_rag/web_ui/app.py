@@ -1645,7 +1645,7 @@ def render_query_page():
                         st.info(f"Converted {len(articles)} papers for visualization")
                         
                         # Create tabs for different visualizations
-                        viz_tabs = st.tabs(["📈 Trends", "🎓 Authors", "📚 Citations", "🔗 Networks"])
+                        viz_tabs = st.tabs(["📈 Timeline & Trends", "🎓 Key Researchers", "📚 Citation Impact", "🔗 Research Networks"])
                         
                         # Tab 1: Publication Trends
                         with viz_tabs[0]:
@@ -1653,11 +1653,53 @@ def render_query_page():
                                 from bibliometrics import EEGVisualization
                                 viz = EEGVisualization()
                                 trend_chart = viz.plot_publication_trends(articles)
-                                if trend_chart.png_base64:
-                                    # Decode base64 and display
-                                    img_data = base64.b64decode(trend_chart.png_base64)
-                                    st.image(img_data, use_container_width=True)
-                                    st.caption(f"Publication timeline: {trend_chart.metadata.get('date_range', 'N/A')}")
+                                
+                                # Extract year data for insights
+                                years = []
+                                for a in articles:
+                                    try:
+                                        year = int(a.publication_date[:4]) if a.publication_date else None
+                                        if year:
+                                            years.append(year)
+                                    except:
+                                        pass
+                                
+                                if years:
+                                    # Calculate insights
+                                    min_year, max_year = min(years), max(years)
+                                    year_range = max_year - min_year + 1
+                                    avg_per_year = len(years) / year_range if year_range > 0 else 0
+                                    recent_papers = sum(1 for y in years if y >= 2020)
+                                    recent_pct = (recent_papers / len(years) * 100) if years else 0
+                                    
+                                    # Display insights first
+                                    st.markdown("**📊 Publication Timeline Insights:**")
+                                    col1, col2, col3, col4 = st.columns(4)
+                                    with col1:
+                                        st.metric("Time Span", f"{min_year}-{max_year}")
+                                    with col2:
+                                        st.metric("Avg/Year", f"{avg_per_year:.1f}")
+                                    with col3:
+                                        st.metric("Since 2020", f"{recent_papers}")
+                                    with col4:
+                                        st.metric("Recent %", f"{recent_pct:.0f}%")
+                                    
+                                    # Show visualization
+                                    if trend_chart.png_base64:
+                                        img_data = base64.b64decode(trend_chart.png_base64)
+                                        st.image(img_data, use_container_width=True)
+                                    
+                                    # Narrative insights
+                                    st.markdown("**💡 Key Findings:**")
+                                    if recent_pct > 60:
+                                        st.info(f"✓ **Recent Focus**: {recent_pct:.0f}% of papers are from 2020 onwards, indicating active current research")
+                                    elif recent_pct < 30:
+                                        st.info(f"ℹ️ **Historical Context**: Most papers ({100-recent_pct:.0f}%) are from before 2020, providing foundational knowledge")
+                                    
+                                    if year_range < 5:
+                                        st.info("✓ **Focused Period**: All papers from a narrow time window, showing targeted query results")
+                                    elif year_range > 10:
+                                        st.info(f"✓ **Broad Coverage**: Spanning {year_range} years, showing evolution of the field")
                                 else:
                                     st.warning("No publication trend data generated")
                             except Exception as e:
@@ -1668,12 +1710,48 @@ def render_query_page():
                         with viz_tabs[1]:
                             try:
                                 from bibliometrics import EEGVisualization
+                                from collections import Counter
                                 viz = EEGVisualization()
+                                
+                                # Count authors and their papers
+                                author_papers = Counter()
+                                author_citations = {}
+                                for a in articles:
+                                    for author in a.authors[:5]:  # Limit to first 5 to avoid inflating counts
+                                        author_papers[author] += 1
+                                        if author not in author_citations:
+                                            author_citations[author] = 0
+                                        author_citations[author] += a.cited_by_count
+                                
+                                # Display insights
+                                if author_papers:
+                                    top_3 = author_papers.most_common(3)
+                                    total_unique_authors = len(author_papers)
+                                    multi_paper_authors = sum(1 for count in author_papers.values() if count > 1)
+                                    
+                                    st.markdown("**👥 Author Analysis:**")
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("Unique Authors", total_unique_authors)
+                                    with col2:
+                                        st.metric("Multi-Paper", multi_paper_authors)
+                                    with col3:
+                                        top_author_name = top_3[0][0] if top_3 else "N/A"
+                                        top_author_papers = top_3[0][1] if top_3 else 0
+                                        st.metric("Most Prolific", f"{top_author_papers} papers")
+                                
                                 author_chart = viz.plot_top_authors(articles, top_n=8)
                                 if author_chart.png_base64:
                                     img_data = base64.b64decode(author_chart.png_base64)
                                     st.image(img_data, use_container_width=True)
-                                    st.caption("Most prolific authors in the retrieved papers")
+                                    
+                                    # Show top authors with their impact
+                                    if top_3:
+                                        st.markdown("**🌟 Key Researchers:**")
+                                        for i, (author, papers) in enumerate(top_3, 1):
+                                            cites = author_citations.get(author, 0)
+                                            avg_cites = cites / papers if papers > 0 else 0
+                                            st.write(f"{i}. **{author}** - {papers} papers, {cites:,} total citations (avg: {avg_cites:.0f} per paper)")
                                 else:
                                     st.warning("No author data generated")
                             except Exception as e:
@@ -1685,58 +1763,136 @@ def render_query_page():
                             try:
                                 from bibliometrics import EEGVisualization
                                 viz = EEGVisualization()
+                                
+                                # Calculate comprehensive citation metrics
+                                citation_counts = [a.cited_by_count for a in articles]
+                                total_citations = sum(citation_counts)
+                                avg_citations = total_citations / len(articles) if articles else 0
+                                median_citations = sorted(citation_counts)[len(citation_counts)//2] if citation_counts else 0
+                                max_citations = max(citation_counts) if citation_counts else 0
+                                highly_cited = sum(1 for c in citation_counts if c >= 50)
+                                uncited = sum(1 for c in citation_counts if c == 0)
+                                
+                                # Display comprehensive citation metrics
+                                st.markdown("**📚 Citation Impact Analysis:**")
+                                col1, col2, col3, col4 = st.columns(4)
+                                with col1:
+                                    st.metric("Total Citations", f"{total_citations:,}")
+                                with col2:
+                                    st.metric("Avg per Paper", f"{avg_citations:.1f}")
+                                with col3:
+                                    st.metric("Median", f"{median_citations}")
+                                with col4:
+                                    st.metric("Most Cited", max_citations)
+                                
                                 citation_chart = viz.plot_citation_distribution(articles)
                                 if citation_chart.png_base64:
                                     img_data = base64.b64decode(citation_chart.png_base64)
                                     st.image(img_data, use_container_width=True)
                                 else:
                                     st.warning("No citation data generated")
+                                
+                                # Impact tiers
+                                st.markdown("**🎯 Impact Distribution:**")
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    highly_cited_pct = (highly_cited / len(articles) * 100) if articles else 0
+                                    st.metric("Highly Cited (50+)", f"{highly_cited} ({highly_cited_pct:.0f}%)")
+                                with col2:
+                                    moderate = sum(1 for c in citation_counts if 10 <= c < 50)
+                                    moderate_pct = (moderate / len(articles) * 100) if articles else 0
+                                    st.metric("Moderately Cited (10-49)", f"{moderate} ({moderate_pct:.0f}%)")
+                                with col3:
+                                    uncited_pct = (uncited / len(articles) * 100) if articles else 0
+                                    st.metric("Uncited/Low (<10)", f"{uncited + sum(1 for c in citation_counts if 0 < c < 10)} ({100 - highly_cited_pct - moderate_pct:.0f}%)")
+                                
+                                # Key insights
+                                st.markdown("**💡 Citation Insights:**")
+                                most_cited = max(articles, key=lambda a: a.cited_by_count)
+                                st.info(f"🏆 **Top Paper**: \"{most_cited.title[:80]}...\" ({most_cited.cited_by_count:,} citations)")
+                                
+                                if highly_cited_pct > 30:
+                                    st.success(f"✓ **High Impact Set**: {highly_cited_pct:.0f}% are highly cited (50+ citations), indicating influential research")
+                                elif avg_citations > 20:
+                                    st.success(f"✓ **Strong Impact**: Average of {avg_citations:.0f} citations per paper shows solid research influence")
+                                
+                                if uncited_pct > 40:
+                                    st.info(f"ℹ️ **Emerging Research**: {uncited_pct:.0f}% have fewer than 10 citations, possibly recent publications building citation history")
+                                    
                             except Exception as e:
                                 st.error(f"Failed to generate citations chart: {str(e)}")
                                 logger.error(f"Citations visualization error: {e}", exc_info=True)
-                            
-                            # Citation metrics
-                            try:
-                                total_citations = sum(a.cited_by_count for a in articles)
-                                avg_citations = total_citations / len(articles) if articles else 0
-                                col1, col2, col3 = st.columns(3)
-                                with col1:
-                                    st.metric("Total Citations", f"{total_citations:,}")
-                                with col2:
-                                    st.metric("Avg per Paper", f"{avg_citations:.1f}")
-                                with col3:
-                                    most_cited = max(articles, key=lambda a: a.cited_by_count)
-                                    st.metric("Most Cited", most_cited.cited_by_count)
-                            except Exception as e:
-                                logger.error(f"Citation metrics error: {e}")
                         
                         # Tab 4: Collaboration Networks
                         with viz_tabs[3]:
                             try:
-                                from bibliometrics import EEGResearchExporter
-                                exporter = EEGResearchExporter(articles)
-                                collab_data = exporter.get_collaboration_network_data()
+                                from collections import defaultdict, Counter
                                 
-                                col1, col2 = st.columns(2)
+                                st.markdown("**🔗 Author Collaboration Network:**")
+                                
+                                # Build co-authorship network
+                                collaborations = defaultdict(set)
+                                author_paper_count = Counter()
+                                author_total_citations = Counter()
+                                
+                                for article in articles:
+                                    authors = article.authors[:10]  # Limit to avoid noise
+                                    for author in authors:
+                                        author_paper_count[author] += 1
+                                        author_total_citations[author] += article.cited_by_count
+                                        # Add co-authors
+                                        for co_author in authors:
+                                            if author != co_author:
+                                                collaborations[author].add(co_author)
+                                
+                                # Calculate network metrics
+                                total_authors = len(author_paper_count)
+                                total_edges = sum(len(co_authors) for co_authors in collaborations.values()) // 2
+                                authors_with_collabs = sum(1 for co_authors in collaborations.values() if co_authors)
+                                avg_collabs = sum(len(co_authors) for co_authors in collaborations.values()) / total_authors if total_authors > 0 else 0
+                                
+                                # Display network metrics
+                                col1, col2, col3, col4 = st.columns(4)
                                 with col1:
-                                    st.metric("Authors/Institutions", len(collab_data['nodes']))
+                                    st.metric("Total Authors", total_authors)
                                 with col2:
-                                    st.metric("Collaborations", len(collab_data['edges']))
+                                    st.metric("Co-authorships", total_edges)
+                                with col3:
+                                    st.metric("Avg Collaborators", f"{avg_collabs:.1f}")
+                                with col4:
+                                    collab_rate = (authors_with_collabs / total_authors * 100) if total_authors > 0 else 0
+                                    st.metric("Collaboration Rate", f"{collab_rate:.0f}%")
                                 
-                                if collab_data['nodes']:
-                                    st.markdown("**Key Institutions/Authors:**")
-                                    # Show top nodes by article count
-                                    sorted_nodes = sorted(
-                                        collab_data['nodes'], 
-                                        key=lambda x: x.get('article_count', 0), 
-                                        reverse=True
-                                    )[:5]
-                                    for node in sorted_nodes:
-                                        st.write(f"• {node['label']}: {node.get('article_count', 0)} articles, {node.get('citations', 0)} citations")
-                                else:
-                                    st.info("No collaboration network data available (requires institution metadata)")
+                                # Find most collaborative authors
+                                most_collaborative = sorted(
+                                    [(author, len(co_authors)) for author, co_authors in collaborations.items()],
+                                    key=lambda x: x[1],
+                                    reverse=True
+                                )[:5]
+                                
+                                if most_collaborative:
+                                    st.markdown("**🤝 Most Collaborative Researchers:**")
+                                    for i, (author, collab_count) in enumerate(most_collaborative, 1):
+                                        papers = author_paper_count[author]
+                                        citations = author_total_citations[author]
+                                        st.write(f"{i}. **{author}** - {collab_count} collaborators, {papers} papers, {citations:,} citations")
+                                
+                                # Insights
+                                st.markdown("**💡 Network Insights:**")
+                                if collab_rate > 80:
+                                    st.success(f"✓ **Highly Collaborative Field**: {collab_rate:.0f}% of authors work in teams, typical of active research areas")
+                                elif collab_rate < 50:
+                                    st.info(f"ℹ️ **Mixed Collaboration**: {collab_rate:.0f}% collaboration rate suggests a mix of solo and team research")
+                                
+                                if avg_collabs > 5:
+                                    st.success(f"✓ **Strong Networks**: Average of {avg_collabs:.1f} collaborators per author indicates well-connected research community")
+                                
+                                # Research clusters
+                                if total_authors > 10:
+                                    st.info(f"ℹ️ **Research Community**: {total_authors} unique authors with {total_edges} connections suggest an active research network")
+                                    
                             except Exception as e:
-                                st.warning(f"Collaboration network not available: {str(e)}")
+                                st.warning(f"Collaboration network analysis unavailable: {str(e)}")
                                 logger.error(f"Collaboration network error: {e}", exc_info=True)
                     else:
                         st.warning("Could not convert papers to article format for visualization")
