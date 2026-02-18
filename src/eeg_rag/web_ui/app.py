@@ -853,7 +853,7 @@ question, acknowledge the limitations.
         return " ".join(parts)
 
     def _simple_search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-        """Simple keyword-based search over papers."""
+        """Simple keyword-based search over papers with diversity boosting."""
         if self.papers_df is None or self.papers_df.empty:
             return []
 
@@ -873,12 +873,35 @@ question, acknowledge the limitations.
             # Boost for title matches
             title = str(row.get("Title", "")).lower()
             score += sum(2 for term in query_terms if term in title)
+            
+            # Boost recent papers for diversity (papers from 2018+)
+            year = row.get("Year", 0)
+            if pd.notna(year) and int(year) >= 2018:
+                score += 0.5
+            
+            # Boost papers with citations (quality signal)
+            citation_count = row.get("_citation_count", 0)
+            if pd.notna(citation_count) and citation_count > 0:
+                score += min(2, citation_count / 50)  # Cap at +2
 
             if score > 0:
                 scores.append((idx, score, row))
 
-        # Sort by score descending
+        # Sort by score descending, then add slight randomization for top results
         scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Add diversity: for top 20 candidates, add small random noise to avoid always same order
+        import random
+        if len(scores) > top_k:
+            top_candidates = scores[:min(20, len(scores))]
+            # Add random noise to scores (±10% of max score)
+            max_score = top_candidates[0][1] if top_candidates else 1
+            noise_range = max_score * 0.1
+            noisy_scores = [(idx, score + random.uniform(-noise_range, noise_range), row) 
+                          for idx, score, row in top_candidates]
+            noisy_scores.sort(key=lambda x: x[1], reverse=True)
+            # Replace top candidates with reranked ones
+            scores = noisy_scores + scores[20:]
 
         results = []
         for idx, score, row in scores[:top_k]:
@@ -1974,6 +1997,30 @@ def render_query_page():
                     f"📄 [{i}] {source.get('title', 'Unknown')[:80]}... ({source.get('year', 'N/A')}){badge_suffix}{citation_suffix}",
                     expanded=(i <= 2),
                 ):
+                    # PROMINENT SUMMARY BOX AT TOP
+                    summary_parts = []
+                    
+                    # Architecture
+                    arch = source.get('architecture', source.get('Architecture (clean)', ''))
+                    if arch and str(arch) != 'nan' and str(arch).strip():
+                        summary_parts.append(f"**Architecture:** {arch}")
+                    
+                    # Domain
+                    domain = source.get('domain', source.get('Domain 1', ''))
+                    if domain and str(domain) != 'nan' and str(domain).strip():
+                        summary_parts.append(f"**Domain:** {domain}")
+                    
+                    # Results/Abstract summary (first 200 chars)
+                    results_text = source.get('results', source.get('Results', source.get('abstract', '')))
+                    if results_text and str(results_text) != 'nan' and str(results_text).strip():
+                        preview = str(results_text)[:200].strip()
+                        if preview:
+                            summary_parts.append(f"**Key Findings:** {preview}...")
+                    
+                    # Show summary box if we have content
+                    if summary_parts:
+                        st.info("\n\n".join(summary_parts))
+                    
                     col1, col2 = st.columns([3, 1])
 
                     with col1:
@@ -1998,13 +2045,6 @@ def render_query_page():
                         # Show quality badges prominently
                         if badges:
                             st.markdown(f"**Quality:** {badges}")
-
-                        if source.get("domain"):
-                            st.markdown(f"**Domain:** {source.get('domain')}")
-                        if source.get("architecture"):
-                            st.markdown(
-                                f"**Architecture:** {source.get('architecture')}"
-                            )
 
                     with col2:
                         relevance = source.get("relevance", source.get("score", 0))
