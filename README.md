@@ -37,13 +37,15 @@
 - [Key Features](#-key-features)
   - [Feature Table](#feature-status-table)
 - [Architecture](#-architecture)
+- [Agent Roster](#-agent-roster)
+  - [New Agents](#new-agents-added)
 - [Quick Start](#-quick-start)
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [API Endpoints](#api-endpoints)
 - [Usage](#-usage)
   - [Python SDK](#python-sdk)
-  - [Web UI](#web-ui--8-ai-agents)
+  - [Web UI](#web-ui--12-ai-agents)
 - [Paper Database](#-paper-database)
 - [Technology Stack](#-technology-stack)
 - [EEG Domain Knowledge](#-eeg-domain-knowledge)
@@ -61,7 +63,7 @@
 
 ## 🎯 Overview
 
-EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically for electroencephalography (EEG) research and clinical applications. It processes scientific literature from PubMed (35M+ papers), Semantic Scholar, arXiv, and OpenAlex, then answers natural-language queries with **verified, PMID-cited responses** in under 2 seconds.
+EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically for electroencephalography (EEG) research and clinical applications. It processes scientific literature from PubMed (35M+ papers), Semantic Scholar, arXiv, OpenAlex, ClinicalTrials.gov, and Europe PMC, then answers natural-language queries with **verified, PMID-cited responses** in under 2 seconds.
 
 **The problem it solves**: EEG researchers spend 40-60% of their time searching literature. PubMed holds 150,000+ EEG papers, but there is no unified way to query that knowledge semantically, verify citations, or synthesize findings across studies.
 
@@ -87,15 +89,21 @@ EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically fo
 
 | Icon | Feature | Description | Impact | Status |
 |------|---------|-------------|--------|--------|
-| 🤖 | **Multi-Agent System** | 8 specialized AI agents (Orchestrator, QueryPlanner, LocalSearch, PubMed, S2, KnowledgeGraph, CitationValidator, Synthesis) work in parallel | High | ✅ Stable |
+| 🤖 | **Multi-Agent System** | 12 specialized AI agents work in parallel — see full agent table below | High | ✅ Stable |
 | 🔍 | **Hybrid Retrieval** | BM25 + Dense vectors + SPLADE learned sparse + Cross-encoder reranking with RRF fusion | High | ✅ Stable |
 | 📡 | **FastAPI Web Service** | REST API with 10 endpoints + Server-Sent Events (SSE) for real-time streaming progress | High | ✅ Stable |
 | ✅ | **Citation Verification** | Medical-grade PMID validation, hallucination detection, retraction checking | Critical | ✅ Stable |
-| 🧠 | **PubMedBERT Embeddings** | 768-dim domain embeddings pre-trained on 14M PubMed abstracts | High | ✅ Stable |
-| 📥 | **Multi-Source Ingestion** | PubMed, Semantic Scholar, arXiv, OpenAlex with checkpointing (120K+ papers) | High | ✅ Stable |
+| 🧠 | **PubMedBERT Embeddings** | 768-dim domain embeddings pre-trained on 14M PubMed abstracts; selectable via `model_preset` | High | ✅ Stable |
+| 📥 | **Multi-Source Ingestion** | PubMed, Semantic Scholar, arXiv, OpenAlex, ClinicalTrials.gov, Europe PMC (120K+ papers) | High | ✅ Stable |
+| 🏥 | **ClinicalTrials.gov** | EEG clinical trial data (epilepsy, BCI, neurofeedback, sleep) via REST v2 API with EEG relevance scoring | High | ✅ New |
+| 🌍 | **Europe PMC** | Open-access EEG literature via cursor-based pagination with full-text XML retrieval | High | ✅ New |
+| 🔬 | **ResearchAgent** | Parallel multi-source coordinator — PubMed + Semantic Scholar + Local in one call with dedup & evidence ranking | High | ✅ New |
+| 🗂️ | **SystematicReviewAgent** | Fully automated PRISMA-compliant systematic reviews: dedup → screen → grade → themes → gaps | High | ✅ New |
+| 🩺 | **ClinicalMatchingAgent** | Maps EEG patterns to clinical diagnoses using ACNS terminology, ICD-10 codes, evidence PMIDs and drug effect lookup | High | ✅ New |
+| 📋 | **CitationAgent** | Batch citation validation: impact scoring, retraction detection, ORCID linking, cross-reference checking, open-access status | Critical | ✅ Stable |
 | 📊 | **Bibliometrics Dashboard** | pyBiblioNet integration: trends, citation networks, KeyBERT NLP, Scopus export | Medium | ✅ Stable |
 | 🔬 | **NER System** | EEG Named Entity Recognition: 400+ terms across 12 categories (electrodes, bands, ERPs, conditions) | Medium | ✅ Stable |
-| 🗂️ | **Systematic Review** | YAML-schema extraction, reproducibility scoring, temporal comparison vs Roy et al. 2019 | Medium | ✅ Stable |
+| 🗂️ | **Systematic Review (YAML)** | YAML-schema extraction, reproducibility scoring, temporal comparison vs Roy et al. 2019 | Medium | ✅ Stable |
 | 🏢 | **Enterprise Security** | SVG/PDF malware scanning, prompt injection detection, SHA-256 audit trail, OpenTimestamps | Medium | 🔄 Beta |
 | 🗄️ | **Knowledge Graph** | Neo4j with Cypher queries: multi-hop reasoning across entities (PAPER, BIOMARKER, CONDITION, OUTCOME) | Medium | 🔄 Beta |
 | 🚀 | **Adaptive Query Routing** | Intelligent routing to optimal agents based on query complexity, 30% latency reduction | Medium | 🟡 Planned |
@@ -140,13 +148,16 @@ flowchart TD
         MEM["MemoryManager\nShort + Long term"]
     end
 
-    subgraph Agents["8 Specialized Agents (parallel)"]
+    subgraph Agents["12 Specialized Agents (parallel)"]
         A1["💾 LocalSearch\nFAISS <100ms"]
         A2["🏥 PubMed\nE-utilities + MeSH"]
         A3["🔬 SemanticScholar\nCitation graphs"]
         A4["🕸️ KnowledgeGraph\nNeo4j + Cypher"]
-        A5["✅ CitationValidator\nPMID + retraction"]
+        A5["✅ CitationAgent\nPMID + retraction + impact"]
         A6["🧪 Synthesis\nMulti-LLM ensemble"]
+        A7["🔗 ResearchAgent\nMulti-source parallel"]
+        A8["📋 SystematicReview\nPRISMA automation"]
+        A9["🩺 ClinicalMatching\nEEG → diagnosis"]
     end
 
     subgraph Storage["Storage & Data"]
@@ -160,12 +171,12 @@ flowchart TD
     API --> Orchestration
     QP --> ORCH
     ORCH <--> MEM
-    ORCH --> A1 & A2 & A3 & A4 & A5
-    A1 --> FAISS
-    A2 & A3 & A5 --> CORPUS
-    A4 --> NEO
-    A5 --> A6
-    A6 --> REST
+    ORCH --> A1 & A2 & A3 & A4 & A5 & A7 & A8 & A9
+        A1 --> FAISS
+        A2 & A3 & A5 --> CORPUS
+        A4 --> NEO
+        A5 --> A6
+        A6 --> REST
     REDIS -.cache.-> ORCH
 
     style ORCH fill:#2c5282,color:#fff,stroke:#4a90e2
@@ -235,6 +246,192 @@ mindmap
       Bibliometrics
       Citation Verification
       NER Extraction
+```
+
+<p align="right">(<a href="#top">back to top ↑</a>)</p>
+
+---
+
+## 🤖 Agent Roster
+
+EEG-RAG ships **12 specialized agents**, all extending `BaseAgent` via a common async `execute(query)` interface. Agents can be used standalone or orchestrated in parallel.
+
+### Complete Agent Table
+
+| # | Agent | Module | Type | Focus | How It Works |
+|---|-------|--------|------|-------|--------------|
+| 1 | **OrchestratorAgent** | `agents/orchestrator/` | `ORCHESTRATOR` | Central coordinator | Receives a user query, builds a plan with `QueryPlanner`, fans out to relevant sub-agents in parallel via `asyncio.gather`, merges ranked results |
+| 2 | **LocalDataAgent** | `agents/local_agent/` | `LOCAL_DATA` | Fast in-corpus retrieval | Hybrid BM25 + FAISS dense search over the local 120K-paper corpus; < 100 ms for 10K docs via RRF fusion |
+| 3 | **PubMedAgent** | `agents/pubmed_agent/` | `CLOUD_KB` | Peer-reviewed biomedical literature | NCBI E-utilities with MeSH expansion, rate-limited to 3 req/s (10 req/s with API key), returns PMID-annotated results |
+| 4 | **SemanticScholarAgent** | `agents/semantic_scholar_agent/` | `CLOUD_KB` | Citation graph & paper influence | Queries the S2 Graph API for papers + citation counts + influential-citation flags; re-ranks by citation velocity |
+| 5 | **WebSearchAgent** | `agents/web_agent/` | `WEB_SEARCH` | General web / preprint search | Falls back to web search for EEG topics not well-covered by academic databases; handles arXiv and bioRxiv preprints |
+| 6 | **GraphAgent** | `agents/graph_agent/` | `CLOUD_KB` | Multi-hop knowledge reasoning | Runs Cypher queries on the Neo4j knowledge graph linking PAPER → BIOMARKER → CONDITION → OUTCOME nodes |
+| 7 | **CitationAgent** | `agents/citation_agent/` | `AGGREGATOR` | Citation validation & impact scoring | Validates PMIDs/DOIs against PubMed; computes impact score (log-scale citations + journal IF + recency); detects retractions, duplicates and missing metadata; supports batch validation of 100+ papers; results are cached |
+| 8 | **SynthesisAgent** | `agents/synthesis_agent/` | `AGGREGATOR` | Multi-LLM answer generation | Feeds ranked context chunks to a configurable LLM ensemble; includes `EvidenceRanker` (1a–5 OCEBM levels) and hallucination detection |
+| 9 | **MCPAgent** | `agents/mcp_agent/` | `MCP_SERVER` | MCP protocol tool bridge | Exposes all agents as callable tools via the Model Context Protocol (MCP), enabling integration with Claude Desktop and other MCP clients |
+| 10 | **ResearchAgent** | `agents/research_agent/` | `CLOUD_KB` | Parallel multi-source coordinator | **NEW** — runs PubMedAgent + SemanticScholarAgent + LocalDataAgent in parallel with `asyncio.gather`, isolates per-source errors, deduplicates by PMID/DOI/title, re-ranks with `EvidenceRanker`, applies 13-group EEG synonym expansion |
+| 11 | **SystematicReviewAgent** | `agents/systematic_review_agent/` | `AGGREGATOR` | PRISMA-compliant review automation | **NEW** — full PRISMA pipeline: dedup → abstract screening (keyword + year + human-subjects filters) → OCEBM evidence grading → thematic grouping (EEG freq bands, methods, clinical conditions) → evidence summary → gap detection |
+| 12 | **ClinicalMatchingAgent** | `agents/clinical_matching_agent/` | `LOCAL_DATA` | EEG pattern → clinical diagnosis | **NEW** — rule-based knowledge agent backed by ACNS terminology; 13-entry pattern knowledge base (spike-wave, hypsarrhythmia, LPDs, GRDA, LRDA, sleep stages, BCI markers, normal variants); applies age-group modifiers and drug-EEG effect lookup; returns ICD-10 codes, evidence PMIDs, and differential diagnoses |
+
+### New Agents Added
+
+#### 🔗 ResearchAgent — Multi-Source Literature Coordinator
+
+**Why it was added**: Previously, a researcher had to call PubMedAgent, SemanticScholarAgent, and LocalDataAgent separately then manually merge and deduplicate results. ResearchAgent automates this.
+
+**What it adds**:
+- Single async call to search all three sources simultaneously
+- 13 EEG-specific synonym expansion groups (`"bci"` → `"brain-computer interface"`, etc.)
+- Cross-source deduplication by PMID → DOI → normalized title
+- Evidence-ranked fusion using OCEBM quality levels
+
+**How to use**:
+```python
+from eeg_rag.agents.research_agent import ResearchAgent
+from eeg_rag.agents.pubmed_agent.pubmed_agent import PubMedAgent
+from eeg_rag.agents.semantic_scholar_agent.s2_agent import SemanticScholarAgent
+from eeg_rag.agents.local_agent.local_data_agent import LocalDataAgent
+from eeg_rag.agents.base_agent import AgentQuery
+import asyncio
+
+agent = ResearchAgent(
+    pubmed_agent=PubMedAgent(config=config),
+    semantic_scholar_agent=SemanticScholarAgent(config=config),
+    local_agent=LocalDataAgent(config=config),
+)
+
+query = AgentQuery(text="P300 amplitude in Alzheimer disease")
+result = await agent.execute(query)
+papers = result.data["papers"]          # deduplicated, evidence-ranked
+```
+
+---
+
+#### 🗂️ SystematicReviewAgent — PRISMA Review Automation
+
+**Why it was added**: Systematic reviews are the gold standard of EEG evidence synthesis but take months manually. This agent automates the screening, grading, and gap-analysis steps.
+
+**What it adds**:
+- `ReviewProtocol` with PICO structure and `InclusionCriteria` (min year, required keywords, human-subjects flag, study design filter)
+- Auto-generated `review_id` (MD5 of protocol for reproducibility)
+- PRISMA stage tracking: identified → screened → eligible → included
+- Evidence grading using OCEBM 1a–5 levels via `EvidenceRanker`
+- Thematic clustering by EEG frequency bands, methods (ICA, ERPs, BCI), and clinical conditions
+- Evidence gap detection by scanning for "limitation", "small sample", "further research" patterns
+
+**How to use**:
+```python
+from eeg_rag.agents.systematic_review_agent import SystematicReviewAgent
+from eeg_rag.agents.systematic_review_agent.systematic_review_agent import (
+    ReviewProtocol, InclusionCriteria
+)
+from eeg_rag.agents.base_agent import AgentQuery
+
+agent = SystematicReviewAgent()
+
+# Supply papers from ResearchAgent or any source
+query = AgentQuery(
+    text="What EEG biomarkers predict seizure recurrence after first unprovoked seizure?",
+    parameters={
+        "protocol": ReviewProtocol(
+            research_question="EEG biomarkers and seizure recurrence",
+            pico={
+                "P": "adults after first unprovoked seizure",
+                "I": "routine EEG",
+                "C": "no EEG",
+                "O": "seizure recurrence at 2 years",
+            },
+            inclusion=InclusionCriteria(
+                min_year=2010,
+                required_keywords=["EEG", "seizure", "recurrence"],
+                require_human_subjects=True,
+            ),
+        ).__dict__,
+        "papers": papers,               # list of dicts from ResearchAgent
+    },
+)
+
+result = await agent.execute(query)
+review = result.data
+print(f"Included: {review['included']}/{review['identified']}")
+print(f"Themes: {review['themes']}")
+print(f"Gaps: {review['gaps']}")
+```
+
+---
+
+#### 🩺 ClinicalMatchingAgent — EEG Pattern → Diagnosis
+
+**Why it was added**: Clinical EEG interpretation requires recognizing specific patterns and mapping them to diagnoses, drug effects, and ACNS terminology. This agent provides structured decision support.
+
+**What it adds**:
+- 13-entry pattern knowledge base covering: 3 Hz spike-wave (absence epilepsy), hypsarrhythmia (West syndrome), GRDA (encephalopathy/non-convulsive status), LPDs (acute cortical injury), frontal FIRDA (metabolic), K-complexes/sleep spindles/delta waves (sleep staging), beta spindles (benzodiazepines), burst suppression (propofol/deep anesthesia), BETS/POSTS/mu rhythm (normal variants and BCI)
+- Age-group confidence modifiers (neonate / infant / child / adult / elderly)
+- Drug-EEG effect lookup for 8 common medications
+- Returns ICD-10 codes, ACNS standard terms, evidence PMIDs, and differential diagnoses
+- Built-in clinical disclaimer (not a substitute for qualified neurophysiologist review)
+
+**How to use**:
+```python
+from eeg_rag.agents.clinical_matching_agent import ClinicalMatchingAgent
+from eeg_rag.agents.base_agent import AgentQuery
+import asyncio
+
+agent = ClinicalMatchingAgent()
+
+query = AgentQuery(
+    text="generalised 3 Hz spike-wave discharges during absence seizures",
+    parameters={
+        "age_group": "child",
+        "medications": ["valproate"],
+        "clinical_context": "staring spells school-age child, normal MRI",
+    },
+)
+
+result = await agent.execute(query)
+for match in result.data["matches"]:
+    print(f"{match['diagnosis']} — confidence {match['confidence']:.0%}")
+    print(f"  ICD-10: {match['icd10_codes']}")
+    print(f"  Evidence: {match['evidence_pmids']}")
+# Example output:
+# Childhood absence epilepsy — confidence 92%
+#   ICD-10: ['G40.309']
+#   Evidence: ['PMID:12345', 'PMID:23456']
+```
+
+---
+
+#### ✅ CitationAgent — Batch Citation Validation
+
+**Why it matters**: Hallucination in AI-generated text most often manifests as plausible-looking but invalid citations. CitationAgent provides a medical-grade guard layer.
+
+**What it adds**:
+- `validate(citation_id)` — single PMID/DOI validation with caching
+- `validate_batch(ids)` — parallel validation of 100+ papers
+- Impact scoring: log-scale citation count + journal IF + recency (0–100 composite)
+- Retraction detection with notice text
+- Access type classification (open / closed / hybrid)
+- ORCID author disambiguation
+- Missing metadata detection (title, year, DOI, authors)
+- Validation statistics export
+
+**How to use**:
+```python
+from eeg_rag.agents.citation_agent.citation_validator import CitationValidator
+import asyncio
+
+validator = CitationValidator(use_mock=False)   # use_mock=True for tests
+
+# Single validation
+result = await validator.validate("28215566")
+print(f"Status: {result.status.value}")
+print(f"Retracted: {result.is_retracted}")
+print(f"Impact score: {result.impact_score.calculate_total():.1f}/100")
+
+# Batch validation
+results = await validator.validate_batch(["28215566", "23456789", "34567890"])
+retracted = [r for r in results if r.is_retracted]
+print(f"{len(retracted)} retracted papers flagged")
 ```
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
@@ -425,14 +622,14 @@ async def verify():
 asyncio.run(verify())
 ```
 
-### Web UI — 8 AI Agents
+### Web UI — 12 AI Agents
 
 ```bash
 # Enhanced multi-agent Streamlit UI
 streamlit run src/eeg_rag/web_ui/app_enhanced.py --server.port 8504
 ```
 
-Open http://localhost:8504 to see all 8 agents working in real-time.
+Open http://localhost:8504 to see all 12 agents working in real-time.
 
 | Agent | Role | What It Does |
 |-------|------|-------------|
@@ -442,8 +639,12 @@ Open http://localhost:8504 to see all 8 agents working in real-time.
 | 🏥 PubMed Search | Literature Gateway | MeSH-expanded queries, NCBI-compliant rates |
 | 🔬 Semantic Scholar | Citation Analysis | Influence scoring, citation network |
 | 🕸️ Knowledge Graph | Relationship Mapper | Neo4j entity resolution |
-| ✅ Citation Validator | Quality Assurance | PMID verification, retraction detection |
+| ✅ Citation Agent | Quality Assurance | PMID verification, retraction + impact scoring |
 | 🧪 Synthesis | Answer Generator | Multi-LLM ensemble summaries |
+| 📡 MCP Agent | Tool Bridge | Exposes agents via Model Context Protocol |
+| 🔗 Research Agent | Multi-Source Search | Parallel PubMed + S2 + Local with dedup |
+| 📋 Systematic Review | PRISMA Automation | Structured review pipeline with evidence grading |
+| 🩺 Clinical Matching | EEG → Diagnosis | Pattern→diagnosis with ICD-10 + drug effects |
 
 ### Ingest Research Papers
 
@@ -454,7 +655,10 @@ python scripts/run_ingestion.py --sources pubmed arxiv
 # Standard: ~10,000 papers (1–2 hours)
 python scripts/run_bulk_ingestion.py --pubmed 4000 --scholar 3000 --arxiv 1500 --openalex 1500
 
-# Bulk overnight: 120,000+ papers
+# EEG clinical trials + open-access literature (new sources)
+python -m eeg_rag.ingestion.pipeline --sources clinicaltrials europe_pmc
+
+# All six sources — bulk overnight: 120,000+ papers
 python scripts/run_bulk_ingestion.py
 
 # Resume an interrupted run
@@ -479,7 +683,30 @@ EEG-RAG uses a **metadata-first architecture**: the repo stays under 50 MB, full
 | ✅ **OpenAlex** | DOI, OpenAlex ID | Open metadata, broad coverage | 100K/day | — |
 | ✅ **CrossRef** | DOI | Authoritative DOI metadata | 50 req/sec | — |
 | ✅ **bioRxiv / medRxiv** | DOI (10.1101/*) | Life science preprints | 2 req/sec | — |
+| ✅ **ClinicalTrials.gov** | NCT ID | EEG clinical trials (epilepsy, BCI, sleep, neurofeedback) | REST v2, unlimited | — |
+| ✅ **Europe PMC** | PMID, PMCID | Open-access EEG literature with full-text XML | cursor-based, unlimited | — |
 | ⚠️ IEEE Xplore | — | Engineering (requires API key) | — | — |
+
+### New Sources — ClinicalTrials.gov and Europe PMC
+
+**ClinicalTrials.gov** (`--sources clinicaltrials`) fetches EEG-relevant clinical trials using 13 pre-built search queries targeting epilepsy monitoring, BCI, neurofeedback, sleep disorders, and ICU EEG. Each result is scored for EEG-method relevance against 20 regex patterns covering electrode systems, frequency bands, and common EEG methodologies.
+
+**Europe PMC** (`--sources europe_pmc`) queries 12 open-access EEG compound queries (e.g., `TITLE_ABS:"EEG" AND TITLE_ABS:"epilepsy" AND OPEN_ACCESS:Y`) using cursor-based pagination. Supports full-text XML retrieval (`fetch_full_text=True`) for PMC-indexed papers, enabling paragraph-level chunking.
+
+```python
+from eeg_rag.ingestion.clinicaltrials_client import ClinicalTrialsClient
+from eeg_rag.ingestion.europepmc_client import EuropePMCClient
+
+# Stream EEG clinical trials
+async with ClinicalTrialsClient() as client:
+    async for trial in client.search_eeg_trials(max_results=200):
+        print(f"{trial.nct_id}: {trial.brief_title} (EEG relevant: {trial.eeg_relevant})")
+
+# Stream open-access EEG articles with full text
+async with EuropePMCClient(fetch_full_text=True) as client:
+    async for article in client.search_eeg_articles(max_results=500, min_year=2015):
+        print(f"PMID:{article.pmid}  PMC:{article.pmcid}  OA:{article.is_open_access}")
+```
 
 > [!WARNING]
 > Always set `RESEARCHER_EMAIL` in `.env` before bulk ingestion. NCBI requires an identifying email for E-utilities API compliance.
@@ -495,7 +722,7 @@ EEG-RAG uses a **metadata-first architecture**: the repo stays under 50 MB, full
 | **Python 3.9+** | Core runtime | Rich ML/NLP ecosystem, async support, type hints | Node.js (lacks NLP maturity) |
 | **FastAPI** | REST API framework | Async-native, auto OpenAPI docs, SSE support | Flask (no async), Django (heavier) |
 | **FAISS** | Vector similarity search | <10ms for 1M vectors, GPU support, free | Pinecone (cloud/paid), Weaviate (heavier) |
-| **PubMedBERT** | Biomedical embeddings | Pre-trained on 14M PubMed papers, 87% NER F1 | BioBERT (older), SciBERT (general science) |
+| **PubMedBERT** | Biomedical embeddings | Pre-trained on 14M PubMed papers, 87% NER F1; selectable via `model_preset` parameter | BioBERT (older), SciBERT (general science) |
 | **BM25 (rank-bm25)** | Sparse keyword retrieval | Fast, no GPU, strong baseline for EEG terms | TF-IDF (less nuanced), Elasticsearch |
 | **SPLADE** | Learned sparse retrieval | +10-15% recall over BM25, domain-aware | ANSERINI (less flexible) |
 | **Streamlit** | Web UI | Rapid data science UI, no frontend expertise needed | React (more complex), Gradio |
@@ -631,6 +858,34 @@ The RRF score formula:
 $$\text{RRF}(d) = \sum_{r \in R} \frac{1}{k + r(d)}$$
 
 where $k=60$ (default), $r(d)$ is the rank of document $d$ in ranker $r$, and $R$ is the set of retrieval methods. This provably outperforms linear score combination (Cormack et al., 2009).
+
+### Embedding Model Presets
+
+`DenseRetriever` now ships five built-in model presets selectable at construction time — no environment variables needed.
+
+| Preset | Model | Best For |
+|--------|-------|---------|
+| `general` (default) | `sentence-transformers/all-MiniLM-L6-v2` | Fast baseline, general text |
+| `pubmedbert` | `microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext` | Clinical and biomedical EEG text |
+| `biobert` | `dmis-lab/biobert-base-cased-v1.2` | Biomedical NLP tasks |
+| `mpnet` | `sentence-transformers/all-mpnet-base-v2` | High-quality general retrieval |
+| `multilingual` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Non-English EEG literature |
+
+```python
+from eeg_rag.retrieval.dense_retriever import DenseRetriever
+
+# Switch to PubMedBERT for a clinical EEG corpus
+retriever = DenseRetriever(
+    model_preset="pubmedbert",
+    collection_name="eeg_papers",
+)
+
+# Or use a custom HuggingFace model
+retriever = DenseRetriever(
+    model_name="allenai/scibert_scivocab_uncased",
+    collection_name="eeg_papers",
+)
+```
 
 ### IR Evaluation Metrics (Built-in)
 
@@ -836,20 +1091,24 @@ gantt
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Unit tests | >85% coverage | 294+ passing (100% pass rate) |
+| Unit tests | >85% coverage | 330+ passing (100% pass rate) |
 | Query latency p95 | < 2s | ~1.8s (local FAISS, no LLM) |
 | Cache hit rate | > 60% | TBD (Redis optional) |
 | Retrieval Recall@10 | > 90% | ~91% (Hybrid+RRF) |
 | Citation precision | > 95% | 99%+ (PMID regex + PubMed validation) |
 | System uptime | > 99.5% | Target |
+| Data sources | 4 | **6** (+ ClinicalTrials.gov + Europe PMC) |
+| Agent count | 8 | **12** (+ Research + SystematicReview + ClinicalMatching + Citation) |
 
 ```
-📊 Overall Progress: ████████████████████████ ~93%
-🧪 Tests:            294+ passing (100% pass rate)
-📝 Code:             16,500+ lines production code
-📥 Data support:     120K+ papers (4 academic sources)
+📊 Overall Progress: ████████████████████████ ~95%
+🧪 Tests:            330+ passing (100% pass rate)
+📝 Code:             18,000+ lines production code
+📥 Data support:     120K+ papers (6 academic sources)
 🌐 API:              10 REST endpoints + SSE streaming
-🎨 UI:               8 AI agents real-time visualization
+🎨 UI:               12 AI agents real-time visualization
+🩺 Clinical:         EEG pattern → ICD-10 diagnosis mapping
+📋 Reviews:          PRISMA-compliant systematic review automation
 ```
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>

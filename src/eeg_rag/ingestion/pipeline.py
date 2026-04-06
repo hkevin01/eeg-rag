@@ -498,16 +498,44 @@ class IngestionPipeline:
                     self._mark_seen(doc)
                     yield doc
 
+    async def run_full_ingestion(
+        self,
+        sources: list[str] = None,
+        save_interval: int = 1000,
+    ) -> dict:
+        """
+        Run full ingestion from all sources.
+
+        Args:
+            sources: List of sources to use.
+                     Options: pubmed, semantic_scholar, arxiv, openalex,
+                              clinicaltrials, europe_pmc.
+                     Default: all six sources.
+            save_interval: Save progress every N documents.
+
+        Returns:
+            Statistics about ingestion.
+        """
+        if sources is None:
+            sources = [
+                "pubmed", "semantic_scholar", "arxiv", "openalex",
+                "clinicaltrials", "europe_pmc",
+            ]
+
+        stats = {source: 0 for source in sources}
+        all_docs: list[UnifiedDocument] = []
+        output_file = self.output_dir / f"eeg_corpus_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+
+        async def process_source(source: str, iterator: AsyncIterator[UnifiedDocument]):
+            nonlocal all_docs
             async for doc in iterator:
                 all_docs.append(doc)
                 stats[source] += 1
-
-                # Periodic save
                 if len(all_docs) % save_interval == 0:
                     self._save_documents(all_docs, output_file)
-                    logger.info(f"Progress: {stats}")
+                    logger.info("Progress: %s", stats)
 
-        # Process sources sequentially to avoid rate limit issues
+        # Process sources sequentially to respect per-source rate limits
         if "pubmed" in sources:
             await process_source("pubmed", self.ingest_pubmed())
 
@@ -520,13 +548,19 @@ class IngestionPipeline:
         if "openalex" in sources:
             await process_source("openalex", self.ingest_openalex())
 
+        if "clinicaltrials" in sources:
+            await process_source("clinicaltrials", self.ingest_clinicaltrials())
+
+        if "europe_pmc" in sources:
+            await process_source("europe_pmc", self.ingest_europepmc())
+
         # Final save
         self._save_documents(all_docs, output_file)
 
         stats["total"] = sum(v for k, v in stats.items() if k != "total")
         stats["output_file"] = str(output_file)
 
-        logger.info(f"Ingestion complete: {stats}")
+        logger.info("Ingestion complete: %s", stats)
         return stats
 
     def _save_documents(self, docs: list[UnifiedDocument], output_file: Path):
@@ -550,7 +584,7 @@ async def main():
     import os
 
     parser = argparse.ArgumentParser(description="EEG-RAG Data Ingestion")
-    parser.add_argument("--sources", nargs="+", default=["pubmed", "semantic_scholar", "arxiv", "openalex"])
+    parser.add_argument("--sources", nargs="+", default=["pubmed", "semantic_scholar", "arxiv", "openalex", "clinicaltrials", "europe_pmc"])
     parser.add_argument("--output-dir", default="data/raw")
     parser.add_argument("--pubmed-api-key", default=os.environ.get("PUBMED_API_KEY"))
     parser.add_argument("--s2-api-key", default=os.environ.get("SEMANTIC_SCHOLAR_API_KEY"))
