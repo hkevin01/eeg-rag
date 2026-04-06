@@ -15,6 +15,8 @@ from .pubmed_client import PubMedClient, PubMedArticle
 from .scholar_client import SemanticScholarClient, ScholarArticle
 from .arxiv_client import ArxivClient, ArxivPaper
 from .openalex_client import OpenAlexClient, OpenAlexWork
+from .clinicaltrials_client import ClinicalTrialsClient, ClinicalTrial
+from .europepmc_client import EuropePMCClient, EuropePMCArticle
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class UnifiedDocument:
     # Core identifiers
     doc_id: str
     source: str  # pubmed, semantic_scholar, arxiv, openalex
-    
+
     # External IDs (for deduplication and linking)
     pmid: Optional[str] = None
     doi: Optional[str] = None
@@ -36,55 +38,55 @@ class UnifiedDocument:
     arxiv_id: Optional[str] = None
     semantic_scholar_id: Optional[str] = None
     openalex_id: Optional[str] = None
-    
+
     # Content
     title: str = ""
     abstract: str = ""
     full_text: Optional[str] = None
-    
+
     # Metadata
     authors: list[str] = field(default_factory=list)
     journal: str = ""
     publication_date: Optional[str] = None
     publication_year: Optional[int] = None
-    
+
     # Academic metrics
     citation_count: int = 0
     reference_count: int = 0
-    
+
     # Classification
     mesh_terms: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
     concepts: list[str] = field(default_factory=list)
     fields_of_study: list[str] = field(default_factory=list)
-    
+
     # EEG-specific metadata
     frequency_bands: list[str] = field(default_factory=list)
     erp_components: list[str] = field(default_factory=list)
     clinical_conditions: list[str] = field(default_factory=list)
     electrode_systems: list[str] = field(default_factory=list)
     sample_size: Optional[int] = None
-    
+
     # Relationships
     references: list[str] = field(default_factory=list)  # IDs of cited papers
     citations: list[str] = field(default_factory=list)   # IDs of citing papers
     related_works: list[str] = field(default_factory=list)
-    
+
     # Access info
     open_access: bool = False
     pdf_url: Optional[str] = None
-    
+
     # Ingestion metadata
     ingested_at: str = ""
-    
+
     def __post_init__(self):
         if not self.ingested_at:
             self.ingested_at = datetime.now().isoformat()
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return asdict(self)
-    
+
     def get_embedding_text(self) -> str:
         """Get text for embedding generation."""
         parts = [self.title]
@@ -102,7 +104,7 @@ class IngestionPipeline:
     Master pipeline for collecting data from all sources.
     Handles deduplication, normalization, and storage.
     """
-    
+
     def __init__(
         self,
         output_dir: str = "data/raw",
@@ -112,7 +114,7 @@ class IngestionPipeline:
     ):
         """
         Initialize ingestion pipeline.
-        
+
         Args:
             output_dir: Directory for storing raw ingested data
             pubmed_api_key: NCBI API key for higher rate limits
@@ -121,18 +123,20 @@ class IngestionPipeline:
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize clients
         self.pubmed = PubMedClient(api_key=pubmed_api_key, email=email)
         self.semantic_scholar = SemanticScholarClient(api_key=semantic_scholar_api_key)
         self.arxiv = ArxivClient()
         self.openalex = OpenAlexClient(email=email)
-        
+        self.clinicaltrials = ClinicalTrialsClient()
+        self.europepmc = EuropePMCClient()
+
         # Deduplication tracking
         self.seen_dois: set[str] = set()
         self.seen_pmids: set[str] = set()
         self.seen_titles: set[str] = set()  # Normalized titles for fuzzy matching
-    
+
     def _normalize_title(self, title: str) -> str:
         """Normalize title for deduplication."""
         import re
@@ -141,7 +145,7 @@ class IngestionPipeline:
         title = re.sub(r'[^\w\s]', '', title)
         title = ' '.join(title.split())
         return title
-    
+
     def _generate_doc_id(self, doc: UnifiedDocument) -> str:
         """Generate unique document ID."""
         # Prefer stable IDs
@@ -155,24 +159,24 @@ class IngestionPipeline:
             return f"s2:{doc.semantic_scholar_id}"
         if doc.openalex_id:
             return f"oa:{doc.openalex_id}"
-        
+
         # Fallback to title hash
         title_hash = hashlib.md5(doc.title.encode()).hexdigest()[:12]
         return f"hash:{title_hash}"
-    
+
     def _is_duplicate(self, doc: UnifiedDocument) -> bool:
         """Check if document is a duplicate."""
         if doc.doi and doc.doi in self.seen_dois:
             return True
         if doc.pmid and doc.pmid in self.seen_pmids:
             return True
-        
+
         norm_title = self._normalize_title(doc.title)
         if norm_title in self.seen_titles:
             return True
-        
+
         return False
-    
+
     def _mark_seen(self, doc: UnifiedDocument):
         """Mark document as seen for deduplication."""
         if doc.doi:
@@ -180,7 +184,7 @@ class IngestionPipeline:
         if doc.pmid:
             self.seen_pmids.add(doc.pmid)
         self.seen_titles.add(self._normalize_title(doc.title))
-    
+
     def _convert_pubmed(self, article: PubMedArticle) -> UnifiedDocument:
         """Convert PubMed article to unified format."""
         doc = UnifiedDocument(
@@ -209,7 +213,7 @@ class IngestionPipeline:
         )
         doc.doc_id = self._generate_doc_id(doc)
         return doc
-    
+
     def _convert_scholar(self, article: ScholarArticle) -> UnifiedDocument:
         """Convert Semantic Scholar article to unified format."""
         doc = UnifiedDocument(
@@ -234,7 +238,7 @@ class IngestionPipeline:
         )
         doc.doc_id = self._generate_doc_id(doc)
         return doc
-    
+
     def _convert_arxiv(self, paper: ArxivPaper) -> UnifiedDocument:
         """Convert arXiv paper to unified format."""
         doc = UnifiedDocument(
@@ -254,7 +258,7 @@ class IngestionPipeline:
         )
         doc.doc_id = self._generate_doc_id(doc)
         return doc
-    
+
     def _convert_openalex(self, work: OpenAlexWork) -> UnifiedDocument:
         """Convert OpenAlex work to unified format."""
         doc = UnifiedDocument(
@@ -280,6 +284,54 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    def _convert_clinicaltrial(self, trial: ClinicalTrial) -> UnifiedDocument:
+        """Convert ClinicalTrials.gov record to unified format."""
+        # Build a rich abstract-like field from available text
+        combined_text = " ".join(filter(None, [
+            trial.brief_summary,
+            trial.eligibility_criteria[:500] if trial.eligibility_criteria else "",
+            "Conditions: " + "; ".join(trial.conditions) if trial.conditions else "",
+        ]))
+        doc = UnifiedDocument(
+            doc_id="",
+            source="clinicaltrials",
+            title=trial.title,
+            abstract=combined_text,
+            keywords=trial.keywords + trial.conditions,
+            mesh_terms=trial.mesh_terms,
+            publication_date=trial.start_date.isoformat() if trial.start_date else None,
+            publication_year=trial.start_date.year if trial.start_date else None,
+            authors=trial.sponsors,
+            journal="ClinicalTrials.gov",
+            open_access=True,
+        )
+        # Store NCT ID as a custom metadata reference via openalex_id slot
+        doc.openalex_id = trial.nct_id
+        doc.doc_id = f"nct:{trial.nct_id}"
+        return doc
+
+    def _convert_europepmc(self, article: EuropePMCArticle) -> UnifiedDocument:
+        """Convert Europe PMC article to unified format."""
+        doc = UnifiedDocument(
+            doc_id="",
+            source="europe_pmc",
+            pmid=article.pmid,
+            pmc_id=article.pmcid,
+            doi=article.doi,
+            title=article.title,
+            abstract=article.abstract,
+            full_text=article.full_text,
+            authors=article.authors,
+            journal=article.journal,
+            publication_year=article.year,
+            citation_count=article.citation_count,
+            mesh_terms=article.mesh_terms,
+            keywords=article.keywords,
+            open_access=article.is_open_access,
+        )
+        doc.doc_id = self._generate_doc_id(doc)
+        return doc
+
     async def ingest_pubmed(
         self,
         years_back: int = 10,
@@ -288,24 +340,24 @@ class IngestionPipeline:
     ) -> AsyncIterator[UnifiedDocument]:
         """
         Ingest from PubMed.
-        
+
         Args:
             years_back: Years of literature to collect
             max_per_query: Maximum articles per search query
             include_full_text: Whether to fetch PMC full text
-            
+
         Yields:
             UnifiedDocument objects
         """
         logger.info("Starting PubMed ingestion...")
-        
+
         async for article in self.pubmed.collect_eeg_corpus(
             years_back=years_back,
             max_per_query=max_per_query,
             include_full_text=include_full_text
         ):
             doc = self._convert_pubmed(article)
-            
+
             if not self._is_duplicate(doc):
                 self._mark_seen(doc)
                 yield doc
@@ -317,22 +369,22 @@ class IngestionPipeline:
     ) -> AsyncIterator[UnifiedDocument]:
         """
         Ingest from Semantic Scholar.
-        
+
         Args:
             max_per_query: Maximum papers per query
             year_start: Earliest publication year
-            
+
         Yields:
             UnifiedDocument objects
         """
         logger.info("Starting Semantic Scholar ingestion...")
-        
+
         async for article in self.semantic_scholar.collect_eeg_corpus(
             max_per_query=max_per_query,
             year_start=year_start
         ):
             doc = self._convert_scholar(article)
-            
+
             if not self._is_duplicate(doc):
                 self._mark_seen(doc)
                 yield doc
@@ -344,22 +396,22 @@ class IngestionPipeline:
     ) -> AsyncIterator[UnifiedDocument]:
         """
         Ingest from arXiv.
-        
+
         Args:
             max_results: Maximum total papers
             years_back: Years of papers to collect
-            
+
         Yields:
             UnifiedDocument objects
         """
         logger.info("Starting arXiv ingestion...")
-        
+
         async for paper in self.arxiv.collect_eeg_papers(
             max_results=max_results,
             years_back=years_back
         ):
             doc = self._convert_arxiv(paper)
-            
+
             if not self._is_duplicate(doc):
                 self._mark_seen(doc)
                 yield doc
@@ -371,83 +423,112 @@ class IngestionPipeline:
     ) -> AsyncIterator[UnifiedDocument]:
         """
         Ingest from OpenAlex.
-        
+
         Args:
             from_year: Earliest publication year
             max_results: Maximum works to collect
-            
+
         Yields:
             UnifiedDocument objects
         """
         logger.info("Starting OpenAlex ingestion...")
-        
+
         async for work in self.openalex.collect_eeg_corpus(
             from_year=from_year,
             max_results=max_results
         ):
             doc = self._convert_openalex(work)
-            
+
             if not self._is_duplicate(doc):
                 self._mark_seen(doc)
                 yield doc
 
-    async def run_full_ingestion(
+    async def ingest_clinicaltrials(
         self,
-        sources: list[str] = None,
-        save_interval: int = 1000
-    ) -> dict:
+        max_results: int = 500,
+        status_filter: Optional[list[str]] = None,
+    ) -> AsyncIterator[UnifiedDocument]:
         """
-        Run full ingestion from all sources.
-        
+        Ingest EEG-relevant clinical trials from ClinicalTrials.gov.
+
         Args:
-            sources: List of sources to use (default: all)
-            save_interval: Save progress every N documents
-            
-        Returns:
-            Statistics about ingestion
+            max_results: Maximum trials to collect.
+            status_filter: Restrict to status values like ["RECRUITING", "COMPLETED"].
+
+        Yields:
+            UnifiedDocument objects.
         """
-        if sources is None:
-            sources = ["pubmed", "semantic_scholar", "arxiv", "openalex"]
-        
-        stats = {source: 0 for source in sources}
-        all_docs: list[UnifiedDocument] = []
-        
-        output_file = self.output_dir / f"eeg_corpus_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-        
-        async def process_source(source: str, iterator: AsyncIterator[UnifiedDocument]):
-            nonlocal all_docs
-            
+        logger.info("Starting ClinicalTrials.gov ingestion...")
+        async with self.clinicaltrials as ct:
+            async for trial in ct.search_eeg_trials(
+                max_results=max_results,
+                status_filter=status_filter,
+            ):
+                doc = self._convert_clinicaltrial(trial)
+                if not self._is_duplicate(doc):
+                    self._mark_seen(doc)
+                    yield doc
+
+    async def ingest_europepmc(
+        self,
+        max_results: int = 1000,
+        min_year: int = 2010,
+        fetch_full_text: bool = False,
+    ) -> AsyncIterator[UnifiedDocument]:
+        """
+        Ingest EEG open-access articles from Europe PMC.
+
+        Args:
+            max_results: Maximum articles to collect.
+            min_year: Exclude articles before this year.
+            fetch_full_text: Whether to download full-text XML (slow).
+
+        Yields:
+            UnifiedDocument objects.
+        """
+        logger.info("Starting Europe PMC ingestion...")
+        epmc = EuropePMCClient(fetch_full_text=fetch_full_text)
+        async with epmc:
+            async for article in epmc.search_eeg_articles(
+                max_results=max_results,
+                min_year=min_year,
+            ):
+                doc = self._convert_europepmc(article)
+                if not self._is_duplicate(doc):
+                    self._mark_seen(doc)
+                    yield doc
+
             async for doc in iterator:
                 all_docs.append(doc)
                 stats[source] += 1
-                
+
                 # Periodic save
                 if len(all_docs) % save_interval == 0:
                     self._save_documents(all_docs, output_file)
                     logger.info(f"Progress: {stats}")
-        
+
         # Process sources sequentially to avoid rate limit issues
         if "pubmed" in sources:
             await process_source("pubmed", self.ingest_pubmed())
-        
+
         if "semantic_scholar" in sources:
             await process_source("semantic_scholar", self.ingest_semantic_scholar())
-        
+
         if "arxiv" in sources:
             await process_source("arxiv", self.ingest_arxiv())
-        
+
         if "openalex" in sources:
             await process_source("openalex", self.ingest_openalex())
-        
+
         # Final save
         self._save_documents(all_docs, output_file)
-        
+
         stats["total"] = sum(v for k, v in stats.items() if k != "total")
         stats["output_file"] = str(output_file)
-        
+
         logger.info(f"Ingestion complete: {stats}")
         return stats
-    
+
     def _save_documents(self, docs: list[UnifiedDocument], output_file: Path):
         """Save documents to JSONL file."""
         with open(output_file, "w") as f:
@@ -467,23 +548,23 @@ async def main():
     """CLI entry point for ingestion pipeline."""
     import argparse
     import os
-    
+
     parser = argparse.ArgumentParser(description="EEG-RAG Data Ingestion")
     parser.add_argument("--sources", nargs="+", default=["pubmed", "semantic_scholar", "arxiv", "openalex"])
     parser.add_argument("--output-dir", default="data/raw")
     parser.add_argument("--pubmed-api-key", default=os.environ.get("PUBMED_API_KEY"))
     parser.add_argument("--s2-api-key", default=os.environ.get("SEMANTIC_SCHOLAR_API_KEY"))
     parser.add_argument("--email", default=os.environ.get("CONTACT_EMAIL", "your-email@example.com"))
-    
+
     args = parser.parse_args()
-    
+
     pipeline = IngestionPipeline(
         output_dir=args.output_dir,
         pubmed_api_key=args.pubmed_api_key,
         semantic_scholar_api_key=args.s2_api_key,
         email=args.email
     )
-    
+
     stats = await pipeline.run_full_ingestion(sources=args.sources)
     print(f"\nIngestion complete!\n{json.dumps(stats, indent=2)}")
 

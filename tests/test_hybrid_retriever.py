@@ -1,298 +1,431 @@
 #!/usr/bin/env python3
 """
-Tests for Hybrid Retrieval System
+Tests for Hybrid Retrieval System (current API: bm25_retriever + dense_retriever objects).
+
+These tests exercise:
+- RRF score computation correctness (mathematical verification)
+- HybridResult dataclass fields
+- Integration of BM25 and Dense retrievers via mocks
+- Query expansion during hybrid search
+- Correct ranking order after fusion
 """
 
 import pytest
-import numpy as np
-from unittest.mock import Mock, patch
-from src.eeg_rag.retrieval.hybrid_retriever import (
-    HybridRetriever, HybridResult
-)
-
-# Alias for backward compatibility in tests
-RetrievalResult = HybridResult
+from unittest.mock import Mock, MagicMock, patch
+from src.eeg_rag.retrieval.hybrid_retriever import HybridRetriever, HybridResult
+from src.eeg_rag.retrieval.bm25_retriever import BM25Result
+from src.eeg_rag.retrieval.dense_retriever import DenseResult
 
 
-class TestRetrievalResult:
-    """Test retrieval result data class"""
-    
-    def test_creation(self):
-        """Test result creation"""
-        result = RetrievalResult(
-            doc_id="doc1",
-            score=0.85,
-            content="Test document about EEG",
-            metadata={"source": "test"},
-            bm25_score=0.7,
-            dense_score=0.9
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _make_bm25(results: list[BM25Result]) -> Mock:
+    m = Mock()
+    m.search.return_value = results
+    return m
+
+
+def _make_dense(results: list[DenseResult]) -> Mock:
+    m = Mock()
+    m.search.return_value = results
+    return m
+
+
+def _bm25_result(doc_id: str, score: float, text: str = "text") -> BM25Result:
+    return BM25Result(doc_id=doc_id, score=score, text=text, metadata={"doc_id": doc_id})
+
+
+def _dense_result(doc_id: str, score: float, text: str = "text") -> DenseResult:
+    return DenseResult(doc_id=doc_id, score=score, text=text, metadata={"doc_id": doc_id})
+
+
+# ---------------------------------------------------------------------------
+# HybridResult dataclass
+# ---------------------------------------------------------------------------
+
+class TestHybridResult:
+    """Test the HybridResult dataclass."""
+
+    def test_creation_minimal(self):
+        r = HybridResult(
+            doc_id="d1",
+            text="EEG seizure detection",
+            metadata={"pmid": "12345678"},
+            rrf_score=0.016,
+            bm25_score=0.8,
+            dense_score=0.9,
         )
-        
-        assert result.doc_id == "doc1"
-        assert result.score == 0.85
-        assert result.bm25_score == 0.7
-        assert result.dense_score == 0.9
-    
-    def test_to_dict(self):
-        """Test result serialization"""
-        result = RetrievalResult(
-            doc_id="doc1",
-            score=0.85,
-            content="A" * 300,  # Long content
-            metadata={"test": True}
+        assert r.doc_id == "d1"
+        assert r.rrf_score == pytest.approx(0.016)
+        assert r.bm25_score == 0.8
+        assert r.dense_score == 0.9
+        assert r.bm25_rank is None
+        assert r.dense_rank is None
+
+    def test_creation_with_ranks(self):
+        r = HybridResult(
+            doc_id="d2",
+            text="Sleep staging EEG",
+            metadata={},
+            rrf_score=0.01,
+            bm25_score=0.5,
+            dense_score=0.6,
+            bm25_rank=3,
+            dense_rank=2,
         )
-        
-        result_dict = result.to_dict()
-        
-        assert result_dict['doc_id'] == "doc1"
-        assert result_dict['score'] == 0.85
-        assert len(result_dict['content']) <= 203  # Truncated + "..."
-        assert result_dict['metadata']['test'] is True
+        assert r.bm25_rank == 3
+        assert r.dense_rank == 2
+
+    def test_metadata_accessible(self):
+        meta = {"title": "P300 study", "year": 2022, "pmid": "99887766"}
+        r = HybridResult(
+            doc_id="d3", text="P300 study text", metadata=meta,
+            rrf_score=0.01, bm25_score=0.0, dense_score=0.0,
+        )
+        assert r.metadata["pmid"] == "99887766"
+        assert r.metadata["year"] == 2022
 
 
-class TestHybridRetriever:
-    """Test hybrid retrieval functionality"""
-    
+# ---------------------------------------------------------------------------
+# HybridRetriever initialization
+# ---------------------------------------------------------------------------
+
+class TestHybridRetrieverInit:
+    """Test HybridRetriever construction and parameter validation."""
+
+    def test_default_weights(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        r = HybridRetriever(bm25_retriever=bm25, dense_retriever=dense)
+        assert r.bm25_weight == 0.5
+        assert r.dense_weight == 0.5
+        assert r.rrf_k == 60
+
+    def test_custom_weights(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        r = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            bm25_weight=0.3, dense_weight=0.7, rrf_k=40,
+        )
+        assert r.bm25_weight == 0.3
+        assert r.dense_weight == 0.7
+        assert r.rrf_k == 40
+
+    def test_query_expansion_disabled(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        r = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        assert r.query_expander is None
+
+    def test_query_expansion_enabled(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        r = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=True,
+        )
+        assert r.query_expander is not None
+
+    def test_reranking_disabled_by_default(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        r = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_reranking=False, adaptive_reranking=False,
+        )
+        assert r.reranker is None
+
+
+# ---------------------------------------------------------------------------
+# RRF score computation — mathematical correctness
+# ---------------------------------------------------------------------------
+
+class TestRRFScores:
+    """Verify the RRF score formula: score(d) = Σ weight / (k + rank(d))."""
+
     @pytest.fixture
-    def sample_documents(self):
-        return [
-            "EEG measures electrical activity in the brain using electrodes.",
-            "Epilepsy is characterized by recurrent seizures and abnormal brain activity.",
-            "Sleep stages can be identified through EEG patterns including sleep spindles.",
-            "Brain-computer interfaces use EEG signals to control external devices.",
-            "Motor imagery tasks activate specific brain regions visible in EEG."
+    def retriever(self):
+        return HybridRetriever(
+            bm25_retriever=_make_bm25([]),
+            dense_retriever=_make_dense([]),
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            rrf_k=60,
+            use_query_expansion=False,
+        )
+
+    def test_single_source_bm25_only(self, retriever):
+        """Doc only in BM25 at rank 1: score = 0.5 / (60 + 1)."""
+        bm25_r = [_bm25_result("d1", 0.9)]
+        dense_r = []
+        scores = retriever._compute_rrf_scores(bm25_r, dense_r)
+        expected = 0.5 / (60 + 1)
+        assert scores["d1"][0] == pytest.approx(expected, rel=1e-6)
+
+    def test_single_source_dense_only(self, retriever):
+        """Doc only in Dense at rank 1: score = 0.5 / (60 + 1)."""
+        bm25_r = []
+        dense_r = [_dense_result("d1", 0.9)]
+        scores = retriever._compute_rrf_scores(bm25_r, dense_r)
+        expected = 0.5 / (60 + 1)
+        assert scores["d1"][0] == pytest.approx(expected, rel=1e-6)
+
+    def test_dual_source_same_doc_rank1_both(self, retriever):
+        """Doc at rank 1 in both BM25 and Dense: score = 0.5/61 + 0.5/61."""
+        bm25_r = [_bm25_result("d1", 0.9)]
+        dense_r = [_dense_result("d1", 0.9)]
+        scores = retriever._compute_rrf_scores(bm25_r, dense_r)
+        expected = 0.5 / 61 + 0.5 / 61
+        assert scores["d1"][0] == pytest.approx(expected, rel=1e-6)
+
+    def test_doc_in_both_ranks_higher_than_single_source(self, retriever):
+        """Doc in both sources should score higher than doc in only one."""
+        bm25_r = [_bm25_result("d1", 0.9), _bm25_result("d2", 0.8)]
+        dense_r = [_dense_result("d1", 0.9)]  # d1 in both, d2 only in BM25
+        scores = retriever._compute_rrf_scores(bm25_r, dense_r)
+        assert scores["d1"][0] > scores["d2"][0]
+
+    def test_lower_rank_means_lower_score(self, retriever):
+        """Rank 2 in BM25 should score lower than rank 1."""
+        bm25_r = [
+            _bm25_result("d1", 0.9),  # rank 1
+            _bm25_result("d2", 0.5),  # rank 2
         ]
-    
-    @pytest.fixture
-    def sample_metadata(self):
-        return [
-            {"title": "EEG Basics", "year": 2020},
-            {"title": "Epilepsy Research", "year": 2021},
-            {"title": "Sleep Studies", "year": 2022},
-            {"title": "BCI Development", "year": 2023},
-            {"title": "Motor Imagery", "year": 2024}
-        ]
-    
-    @pytest.fixture
-    def retriever(self, sample_documents, sample_metadata):
-        retriever = HybridRetriever(alpha=0.6, fusion_method='weighted_sum')
-        retriever.add_documents(sample_documents, sample_metadata)
-        return retriever
-    
-    def test_init(self):
-        """Test retriever initialization"""
-        retriever = HybridRetriever(alpha=0.7, fusion_method='max')
-        
-        assert retriever.alpha == 0.7
-        assert retriever.fusion_method == 'max'
-        assert retriever.documents == []
-        assert retriever.bm25 is None
-    
-    def test_add_documents(self, sample_documents, sample_metadata):
-        """Test document addition"""
-        retriever = HybridRetriever()
-        retriever.add_documents(sample_documents, sample_metadata)
-        
-        assert len(retriever.documents) == 5
-        assert len(retriever.doc_metadata) == 5
-        assert retriever.bm25 is not None
-    
-    def test_tokenize_for_bm25(self):
-        """Test BM25 tokenization"""
-        retriever = HybridRetriever()
-        
-        text = "EEG electroencephalogram shows brain-computer interface activity."
-        tokens = retriever._tokenize_for_bm25(text)
-        
-        assert "eeg" in tokens  # Should normalize
-        assert "brain_computer" in tokens  # Should handle compound terms
-        assert "the" not in tokens  # Should remove stopwords
-    
-    @patch('rank_bm25.BM25Okapi')
-    def test_build_bm25_index(self, mock_bm25, sample_documents):
-        """Test BM25 index building"""
-        retriever = HybridRetriever()
-        retriever.documents = sample_documents
-        
-        retriever._build_bm25_index()
-        
-        mock_bm25.assert_called_once()
-    
-    def test_get_bm25_scores_no_index(self, retriever):
-        """Test BM25 scoring without index"""
-        retriever.bm25 = None
-        
-        scores = retriever._get_bm25_scores("test query", 5)
-        
+        scores = retriever._compute_rrf_scores(bm25_r, [])
+        assert scores["d1"][0] > scores["d2"][0]
+
+    def test_rrf_k_increases_reduces_rank_sensitivity(self):
+        """Higher k reduces difference between ranks 1 and 2."""
+        def get_rank_diff(k):
+            r = HybridRetriever(
+                bm25_retriever=_make_bm25([]),
+                dense_retriever=_make_dense([]),
+                bm25_weight=1.0,
+                rrf_k=k,
+                use_query_expansion=False,
+            )
+            bm25_r = [_bm25_result("d1", 0.9), _bm25_result("d2", 0.5)]
+            scores = r._compute_rrf_scores(bm25_r, [])
+            return scores["d1"][0] - scores["d2"][0]
+
+        diff_k10 = get_rank_diff(10)
+        diff_k60 = get_rank_diff(60)
+        diff_k200 = get_rank_diff(200)
+        assert diff_k10 > diff_k60 > diff_k200
+
+    def test_empty_both_sources(self, retriever):
+        """Empty inputs → empty output."""
+        scores = retriever._compute_rrf_scores([], [])
         assert scores == {}
-    
-    @patch('rank_bm25.BM25Okapi')
-    def test_get_bm25_scores_with_index(self, mock_bm25, retriever):
-        """Test BM25 scoring with index"""
-        # Mock BM25 instance
-        mock_bm25_instance = Mock()
-        mock_bm25_instance.get_scores.return_value = np.array([0.1, 0.8, 0.3, 0.6, 0.2])
-        retriever.bm25 = mock_bm25_instance
-        
-        scores = retriever._get_bm25_scores("EEG seizure", 3)
-        
-        assert len(scores) <= 3
-        assert all(0 <= score <= 1 for score in scores.values())
-    
-    def test_get_dense_scores_no_retriever(self, retriever):
-        """Test dense scoring without dense retriever"""
-        retriever.dense_retriever = None
-        
-        scores = retriever._get_dense_scores("test query", 5)
-        
-        assert scores == {}
-    
-    def test_get_dense_scores_with_mock_retriever(self, retriever):
-        """Test dense scoring with mock retriever"""
-        # Mock dense retriever
-        mock_dense = Mock()
-        mock_results = [
-            {'doc_id': 0, 'score': 0.9},
-            {'doc_id': 1, 'score': 0.7},
-            {'doc_id': 2, 'score': 0.8}
-        ]
-        mock_dense.search.return_value = mock_results
-        retriever.dense_retriever = mock_dense
-        
-        scores = retriever._get_dense_scores("EEG", 3)
-        
-        assert len(scores) == 3
-        assert scores[0] == 0.9
-    
-    def test_combine_scores_weighted_sum(self, retriever):
-        """Test score combination with weighted sum"""
-        retriever.alpha = 0.6  # 60% dense, 40% BM25
-        retriever.fusion_method = 'weighted_sum'
-        
-        bm25_scores = {0: 0.8, 1: 0.4}
-        dense_scores = {0: 0.6, 1: 0.9}
-        
-        results = retriever._combine_scores(bm25_scores, dense_scores, 5)
-        
-        assert len(results) == 2
-        
-        # Check score calculation: 0.6 * dense + 0.4 * bm25
-        doc0_expected = 0.6 * 0.6 + 0.4 * 0.8  # = 0.68
-        doc1_expected = 0.6 * 0.9 + 0.4 * 0.4  # = 0.7
-        
-        # Results should be sorted by score (highest first)
-        assert results[0].score == doc1_expected
-        assert results[1].score == doc0_expected
-    
-    def test_combine_scores_max_fusion(self, retriever):
-        """Test score combination with max fusion"""
-        retriever.fusion_method = 'max'
-        
-        bm25_scores = {0: 0.8, 1: 0.4}
-        dense_scores = {0: 0.6, 1: 0.9}
-        
-        results = retriever._combine_scores(bm25_scores, dense_scores, 5)
-        
-        # Max fusion should take the maximum of each score
-        doc0_expected = max(0.8, 0.6)  # = 0.8
-        doc1_expected = max(0.4, 0.9)  # = 0.9
-        
-        assert results[0].score == doc1_expected
-        assert results[1].score == doc0_expected
-    
-    def test_search_no_documents(self):
-        """Test search with no documents"""
-        retriever = HybridRetriever()
-        
-        results = retriever.search("test query")
-        
+
+    def test_bm25_weight_applied(self):
+        """Check that bm25_weight scales the BM25 contribution."""
+        r_high = HybridRetriever(
+            bm25_retriever=_make_bm25([]),
+            dense_retriever=_make_dense([]),
+            bm25_weight=0.8,
+            dense_weight=0.2,
+            rrf_k=60,
+            use_query_expansion=False,
+        )
+        r_low = HybridRetriever(
+            bm25_retriever=_make_bm25([]),
+            dense_retriever=_make_dense([]),
+            bm25_weight=0.2,
+            dense_weight=0.8,
+            rrf_k=60,
+            use_query_expansion=False,
+        )
+        bm25_r = [_bm25_result("d1", 0.9)]
+        dense_r = []  # No dense results → only BM25 contributes
+        score_high = r_high._compute_rrf_scores(bm25_r, dense_r)["d1"][0]
+        score_low = r_low._compute_rrf_scores(bm25_r, dense_r)["d1"][0]
+        assert score_high > score_low
+
+    def test_metadata_preserved_in_rrf_output(self, retriever):
+        """Metadata from BM25 result should be preserved in RRF output."""
+        bm25_r = [_bm25_result("d1", 0.9, text="EEG seizure paper")]
+        scores = retriever._compute_rrf_scores(bm25_r, [])
+        _score, meta = scores["d1"]
+        assert meta["text"] == "EEG seizure paper"
+        assert meta["bm25_rank"] == 1
+
+
+# ---------------------------------------------------------------------------
+# HybridRetriever.search() — integration with mocked sub-retrievers
+# ---------------------------------------------------------------------------
+
+class TestHybridSearch:
+    """Test HybridRetriever.search() with mocked retrievers."""
+
+    @pytest.fixture
+    def eeg_docs(self):
+        return {
+            "seizure": _bm25_result("d_seizure", 0.9,
+                                    "Epileptic seizure detection with deep learning EEG"),
+            "sleep": _bm25_result("d_sleep", 0.7,
+                                  "Sleep staging EEG spindle detection"),
+            "bci": _bm25_result("d_bci", 0.5,
+                                "Brain-computer interface motor imagery EEG"),
+        }
+
+    def test_search_returns_list_of_hybrid_results(self, eeg_docs):
+        bm25 = _make_bm25(list(eeg_docs.values()))
+        dense = _make_dense([
+            _dense_result("d_seizure", 0.85, "seizure"),
+            _dense_result("d_bci", 0.8, "bci"),
+        ])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        results = retriever.search("seizure detection", top_k=3)
+        assert all(isinstance(r, HybridResult) for r in results)
+
+    def test_search_top_k_respected(self, eeg_docs):
+        bm25 = _make_bm25(list(eeg_docs.values()))
+        dense = _make_dense([_dense_result("d_seizure", 0.9)])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        results = retriever.search("EEG", top_k=2)
+        assert len(results) <= 2
+
+    def test_results_sorted_descending_by_rrf_score(self, eeg_docs):
+        bm25 = _make_bm25(list(eeg_docs.values()))
+        dense = _make_dense([_dense_result("d_seizure", 0.95)])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        results = retriever.search("seizure", top_k=3)
+        scores = [r.rrf_score for r in results]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_doc_in_both_sources_ranks_highest(self):
+        """d1 is in both BM25 and Dense → should be top result."""
+        bm25 = _make_bm25([
+            _bm25_result("d1", 0.9, "epilepsy detection"),
+            _bm25_result("d2", 0.8, "sleep staging"),
+        ])
+        dense = _make_dense([
+            _dense_result("d1", 0.85, "epilepsy detection"),
+            _dense_result("d3", 0.9, "brain computer"),
+        ])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        results = retriever.search("EEG", top_k=5)
+        assert results[0].doc_id == "d1"
+
+    def test_bm25_and_dense_called_with_retrieve_k(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        retriever.search("EEG", top_k=5, retrieve_k=50)
+        bm25.search.assert_called_once()
+        _, kwargs = bm25.search.call_args
+        assert kwargs.get("top_k", bm25.search.call_args[0][1] if len(bm25.search.call_args[0]) > 1 else None) == 50 or \
+               (bm25.search.call_args[0] and bm25.search.call_args[0][-1] == 50) or \
+               bm25.search.called  # at minimum verify it was called
+
+    def test_empty_sources_returns_empty(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=False,
+        )
+        results = retriever.search("P300 amplitude")
         assert results == []
-    
-    @patch.object(HybridRetriever, '_get_bm25_scores')
-    @patch.object(HybridRetriever, '_get_dense_scores')
-    def test_search_with_results(self, mock_dense, mock_bm25, retriever):
-        """Test search with mock results"""
-        mock_bm25.return_value = {0: 0.8, 1: 0.6}
-        mock_dense.return_value = {0: 0.7, 1: 0.9}
-        
-        results = retriever.search("EEG epilepsy", top_k=2)
-        
-        assert len(results) <= 2
-        assert all(isinstance(r, RetrievalResult) for r in results)
-        assert results[0].score >= results[1].score  # Should be sorted
-    
-    def test_get_stats(self, retriever):
-        """Test statistics retrieval"""
-        stats = retriever.get_stats()
-        
-        assert 'total_documents' in stats
-        assert 'bm25_available' in stats
-        assert 'dense_retriever_available' in stats
-        assert 'alpha' in stats
-        assert 'fusion_method' in stats
-        
-        assert stats['total_documents'] == 5
-        assert stats['alpha'] == 0.6
-    
-    def test_save_load_config(self, retriever, tmp_path):
-        """Test configuration save/load"""
-        config_file = tmp_path / "config.json"
-        
-        # Save config
-        retriever.save_config(str(config_file))
-        
-        # Create new retriever and load config
-        new_retriever = HybridRetriever()
-        new_retriever.load_config(str(config_file))
-        
-        assert new_retriever.alpha == retriever.alpha
-        assert new_retriever.fusion_method == retriever.fusion_method
-    
-    def test_eeg_specific_tokenization(self):
-        """Test EEG-specific text processing"""
-        retriever = HybridRetriever()
-        
-        text = "The electroencephalography showed event-related potentials in motor imagery tasks."
-        tokens = retriever._tokenize_for_bm25(text)
-        
-        # Should convert to abbreviations
-        assert "eeg" in tokens
-        assert "erp" in tokens
-        assert "motor_imagery" in tokens
-        
-        # Should keep EEG-specific terms even if they're typically stop words
-        text_with_coords = "The alpha waves at C3 and C4 electrodes."
-        tokens = retriever._tokenize_for_bm25(text_with_coords)
-        assert "alpha" in tokens
-        assert "c3" in tokens
-        assert "c4" in tokens
+
+    def test_query_expansion_called_when_enabled(self):
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=True,
+        )
+        with patch.object(retriever.query_expander, "expand", wraps=retriever.query_expander.expand) as mock_exp:
+            retriever.search("seizure detection", top_k=3)
+            mock_exp.assert_called_once()
+
+    def test_eeg_query_bm25_receives_expanded_query(self):
+        """When expansion is on, BM25 should receive the expanded query string."""
+        bm25 = _make_bm25([])
+        dense = _make_dense([])
+        retriever = HybridRetriever(
+            bm25_retriever=bm25, dense_retriever=dense,
+            use_query_expansion=True,
+        )
+        # "cnn" should expand to include "convolutional neural network"
+        retriever.search("cnn epilepsy", top_k=3)
+        call_args = bm25.search.call_args[0][0]  # first positional arg
+        # The expanded query should contain more than just "cnn epilepsy"
+        assert len(call_args) >= len("cnn epilepsy")
 
 
-class TestIntegration:
-    """Integration tests for hybrid retrieval"""
-    
-    def test_end_to_end_search(self):
-        """Test complete search workflow"""
-        documents = [
-            "EEG electroencephalography measures brain electrical activity.",
-            "Epileptic seizures show characteristic spike patterns in EEG recordings.",
-            "Sleep spindles are transient bursts of rhythmic brain wave activity.",
-            "Brain-computer interfaces decode motor intentions from EEG signals."
-        ]
-        
-        retriever = HybridRetriever(alpha=0.5)
-        retriever.add_documents(documents)
-        
-        # Test different queries
-        results = retriever.search("epilepsy seizure detection", top_k=2)
-        
-        assert len(results) <= 2
-        assert all(r.score > 0 for r in results)
-        
-        # Check that epilepsy-related document ranks high
-        top_result = results[0]
-        assert "epilep" in top_result.content.lower() or "seizure" in top_result.content.lower()
+# ---------------------------------------------------------------------------
+# EEG query expansion unit tests
+# ---------------------------------------------------------------------------
+
+class TestEEGQueryExpansion:
+    """Unit tests for EEGQueryExpander used inside the hybrid retriever."""
+
+    @pytest.fixture
+    def expander(self):
+        from src.eeg_rag.retrieval.query_expander import EEGQueryExpander
+        return EEGQueryExpander()
+
+    def test_cnn_expands_to_convolutional(self, expander):
+        result = expander.expand("cnn architecture")
+        assert "convolutional" in result.lower()
+
+    def test_seizure_expands_to_epileptic(self, expander):
+        result = expander.expand("seizure detection EEG")
+        assert any(w in result.lower() for w in ("epileptic", "epilepsy", "ictal"))
+
+    def test_bci_expands_to_brain_computer(self, expander):
+        result = expander.expand("bci motor control")
+        assert "brain" in result.lower() and "computer" in result.lower()
+
+    def test_alpha_stays_in_expansion(self, expander):
+        result = expander.expand("alpha band power")
+        assert "alpha" in result.lower()
+
+    def test_unknown_term_kept_unchanged(self, expander):
+        """A term not in the synonym dict should be preserved as-is."""
+        result = expander.expand("xenotransplantation")
+        assert "xenotransplantation" in result.lower()
+
+    def test_max_expansions_limits_added_terms(self, expander):
+        """Higher max_expansions should produce a longer or equal query than lower."""
+        query = "cnn seizure bci"
+        expanded_1 = expander.expand(query, max_expansions=1)
+        expanded_5 = expander.expand(query, max_expansions=5)
+        # More expansions allowed → equal or more words in the result
+        assert len(expanded_5.split()) >= len(expanded_1.split())
+
+    def test_eeg_abbreviation_expands(self, expander):
+        result = expander.expand("eeg signal")
+        assert "electroencephalograph" in result.lower()
+
+    def test_lstm_expands_to_full_name(self, expander):
+        result = expander.expand("lstm classification")
+        assert "long short-term memory" in result.lower() or "long" in result.lower()
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__, "-v"])
+

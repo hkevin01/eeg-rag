@@ -27,11 +27,11 @@ class DenseResult:
 class DenseRetriever:
     """
     Dense retrieval using semantic embeddings.
-    
+
     This retriever uses sentence-transformers to convert queries and documents
     into dense vectors, then performs similarity search in vector space.
     Particularly effective for semantic/conceptual queries.
-    
+
     Example:
         >>> retriever = DenseRetriever(
         ...     url="http://localhost:6333",
@@ -40,32 +40,76 @@ class DenseRetriever:
         >>> results = retriever.search("neural networks for seizure prediction", top_k=5)
         >>> print(results[0].doc_id, results[0].score)
     """
-    
+
+    # Model presets for quick configuration
+    MODEL_PRESETS: Dict[str, str] = {
+        # General-purpose (fast, good quality)
+        "general": "sentence-transformers/all-MiniLM-L6-v2",
+        # Biomedical domain — best for EEG/neuroscience literature
+        "pubmedbert": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+        # Biomedical, smaller / faster variant
+        "biobert": "dmis-lab/biobert-base-cased-v1.2",
+        # High-quality general (larger)
+        "mpnet": "sentence-transformers/all-mpnet-base-v2",
+        # Multi-lingual for non-English EEG literature
+        "multilingual": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    }
+
     def __init__(
         self,
         url: str = "http://localhost:6333",
         collection_name: str = "eeg_papers",
-        model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+        model_preset: Optional[str] = None,
     ):
         """
         Initialize dense retriever.
-        
+
         Args:
             url: Qdrant server URL
             collection_name: Name of Qdrant collection
-            model_name: Sentence-transformers model name
+            model_name: Sentence-transformers model name or HuggingFace ID.
+                Use ``model_preset`` for convenience aliases.
+            model_preset: Shortcut key from ``MODEL_PRESETS`` dict.
+                Overrides ``model_name`` when provided.
+                Options: "general", "pubmedbert", "biobert", "mpnet",
+                "multilingual".  Use "pubmedbert" for best EEG/biomedical
+                retrieval quality.
+
+        Example::
+
+            # Use PubMedBERT for domain-optimal biomedical retrieval
+            retriever = DenseRetriever(
+                model_preset="pubmedbert",
+                collection_name="eeg_papers",
+            )
         """
+        if model_preset:
+            resolved_model = self.MODEL_PRESETS.get(model_preset, model_name)
+            if model_preset not in self.MODEL_PRESETS:
+                logger.warning(
+                    "Unknown model_preset '%s'; valid options: %s. "
+                    "Falling back to model_name='%s'.",
+                    model_preset,
+                    list(self.MODEL_PRESETS.keys()),
+                    model_name,
+                )
+            model_name = resolved_model
+
+        self.model_name = model_name
+        self.model_preset = model_preset
+
         self.vector_db = VectorDB(
             qdrant_url=url,
             collection_name=collection_name,
             embedding_model=model_name
         )
-        
-        logger.info(f"Initialized DenseRetriever")
-        logger.info(f"  URL: {url}")
-        logger.info(f"  Collection: {collection_name}")
-        logger.info(f"  Model: {model_name}")
-    
+
+        logger.info("Initialized DenseRetriever")
+        logger.info("  URL: %s", url)
+        logger.info("  Collection: %s", collection_name)
+        logger.info("  Model: %s", model_name)
+
     def search(
         self,
         query: str,
@@ -74,15 +118,15 @@ class DenseRetriever:
     ) -> List[DenseResult]:
         """
         Search documents using semantic similarity.
-        
+
         Args:
             query: Search query
             top_k: Number of results to return
             filters: Optional Qdrant filters (e.g., {"year": 2020})
-            
+
         Returns:
             List of DenseResult objects sorted by similarity (descending)
-            
+
         Example:
             >>> results = retriever.search("deep learning EEG classification", top_k=5)
             >>> for r in results:
@@ -94,7 +138,7 @@ class DenseRetriever:
             limit=top_k,
             filter_conditions=filters
         )
-        
+
         # Convert to DenseResult
         results = []
         for sr in search_results:
@@ -105,17 +149,17 @@ class DenseRetriever:
                 metadata=sr.payload.get("metadata", {}),
                 chunk_id=sr.chunk_id
             ))
-        
+
         logger.info(f"Dense search for '{query}' returned {len(results)} results")
         if results:
             logger.info(f"  Top result: {results[0].doc_id} (score: {results[0].score:.3f})")
-        
+
         return results
-    
+
     def get_collection_info(self) -> Dict[str, Any]:
         """
         Get information about the vector collection.
-        
+
         Returns:
             Dictionary with collection statistics
         """
@@ -125,21 +169,21 @@ class DenseRetriever:
 if __name__ == "__main__":
     # Simple test
     logging.basicConfig(level=logging.INFO)
-    
+
     # Create retriever (assumes Qdrant is running with eeg_papers collection)
     retriever = DenseRetriever(
         url="http://localhost:6333",
         collection_name="eeg_papers"
     )
-    
+
     # Test search
     results = retriever.search("epilepsy seizure detection CNN", top_k=3)
-    
+
     print("\n🔍 Dense Search Results:")
     for i, result in enumerate(results, 1):
         print(f"{i}. Doc {result.doc_id}: {result.score:.3f}")
         print(f"   {result.text[:80]}...")
-        
+
     # Show collection info
     info = retriever.get_collection_info()
     print(f"\n📊 Collection Info: {info}")

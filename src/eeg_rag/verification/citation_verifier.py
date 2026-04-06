@@ -119,6 +119,7 @@ class VerificationResult:
     title_match: float  # 0-1 similarity score
     claim_supported: bool
     is_retracted: bool = False
+    claim_support_score: float = 0.0  # Raw semantic similarity score (0-1)
     original_abstract: Optional[str] = None
     error_message: Optional[str] = None
     verification_timestamp: Optional[float] = None
@@ -153,6 +154,7 @@ class VerificationResult:
             'is_retracted': self.is_retracted,
             'title_match': round(self.title_match, 3),
             'claim_supported': self.claim_supported,
+            'claim_support_score': round(self.claim_support_score, 3),
             'has_abstract': self.original_abstract is not None,
             'abstract_length': len(self.original_abstract) if self.original_abstract else 0,
             'error_message': self.error_message,
@@ -286,8 +288,11 @@ class CitationVerifier:
 
             # Check if claimed finding is supported
             claim_supported = True
+            claim_support_score = 0.0
             if claimed_finding and self.sentence_model:
-                claim_supported = self._check_claim_support(claimed_finding, abstract)
+                claim_supported, claim_support_score = self._check_claim_support(
+                    claimed_finding, abstract
+                )
 
             # Check retraction status
             is_retracted = False
@@ -299,6 +304,7 @@ class CitationVerifier:
                 exists=True,
                 title_match=1.0,
                 claim_supported=claim_supported,
+                claim_support_score=claim_support_score,
                 is_retracted=is_retracted,
                 original_abstract=abstract,
                 title=title,
@@ -393,27 +399,34 @@ class CitationVerifier:
             logger.warning(f"Failed to parse XML: {e}")
             return None
 
-    def _check_claim_support(self, claim: str, abstract: str) -> bool:
-        """Check if claim is supported by abstract using semantic similarity"""
+    def _check_claim_support(self, claim: str, abstract: str) -> Tuple[bool, float]:
+        """Check if claim is supported by abstract using semantic similarity.
+
+        Returns:
+            Tuple of (is_supported: bool, similarity_score: float 0-1)
+        """
         if not self.sentence_model or not claim.strip() or not abstract.strip():
-            return True  # Default to supported if we can't check
+            return True, 0.0  # Default to supported if we can't check
 
         try:
             # Encode claim and abstract
             claim_emb = self.sentence_model.encode(claim, convert_to_tensor=True)
             abstract_emb = self.sentence_model.encode(abstract, convert_to_tensor=True)
 
-            # Calculate cosine similarity
-            similarity = cos_sim(claim_emb, abstract_emb).item()
+            # Calculate cosine similarity and clamp to [0, 1]
+            similarity = float(max(0.0, min(1.0, cos_sim(claim_emb, abstract_emb).item())))
 
-            return similarity > self.similarity_threshold
+            return similarity > self.similarity_threshold, similarity
 
         except Exception as e:
             logger.warning(f"Error checking claim support: {e}")
-            return True  # Default to supported if error
+            return True, 0.0  # Default to supported if error
 
     async def _fetch_paper_data(self, pmid: str) -> Optional[Dict[str, Any]]:
         """Fetch complete paper data including title, journal, DOI from PubMed.
+
+        Results are cached to avoid redundant network calls for the same PMID
+        within the same session.
 
         Args:
             pmid: PubMed ID to fetch
@@ -421,8 +434,15 @@ class CitationVerifier:
         Returns:
             Dictionary with paper metadata or None if not found
         """
+        # Check cache first
+        cache_key = f"paper_data:{pmid}"
+        if self.cache is not None and cache_key in self.cache:
+            self._cache_hits += 1
+            logger.debug(f"Cache hit for PMID {pmid}")
+            return self.cache[cache_key]
+
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
                 url = f"{self.pubmed_base}/efetch.fcgi"
                 params = {
                     'db': 'pubmed',
@@ -431,13 +451,19 @@ class CitationVerifier:
                     'email': self.email
                 }
 
+                self._request_count += 1
                 response = await client.get(url, params=params)
 
                 if response.status_code != 200:
                     logger.warning(f"Failed to fetch PMID {pmid}: HTTP {response.status_code}")
                     return None
 
-                return self._parse_paper_data_from_xml(response.text)
+                data = self._parse_paper_data_from_xml(response.text)
+                # Cache successful results
+                if data and self.cache is not None:
+                    self.cache[cache_key] = data
+
+                return data
 
         except Exception as e:
             logger.error(f"Error fetching paper data for {pmid}: {e}")
