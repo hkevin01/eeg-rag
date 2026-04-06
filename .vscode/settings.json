@@ -1,11 +1,25 @@
 {
   "workbench.colorTheme": "Dracula",
   "workbench.colorCustomizations": {
-    "activityBar.background": "#21222c",
+    "activityBar.background": "#153c70",
     "sideBar.background": "#21222c",
     "editor.background": "#282a36",
-    "statusBar.background": "#bd93f9",
-    "titleBar.activeBackground": "#21222c"
+    "statusBar.background": "#0d2545",
+    "titleBar.activeBackground": "#0d2545",
+    "activityBar.activeBackground": "#153c70",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#d72873",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#153c70",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#153c70",
+    "statusBarItem.remoteBackground": "#0d2545",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#0d254599",
+    "titleBar.inactiveForeground": "#e7e7e799"
   },
   "workbench.iconTheme": "material-icon-theme",
   "material-icon-theme.folders.theme": "specific",
@@ -30,5 +44,6 @@
   "github.copilot.advanced": {
     "debug.overrideEngine": "gpt-4o",
     "debug.useNodeRuntime": false
-  }
+  },
+  "peacock.color": "#0d2545"
 }
