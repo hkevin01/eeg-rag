@@ -16,7 +16,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?style=flat-square&logo=streamlit)](https://streamlit.io)
 [![PubMed](https://img.shields.io/badge/PubMed-35M%2B%20papers-326699?style=flat-square)](https://pubmed.ncbi.nlm.nih.gov)
-[![Tests](https://img.shields.io/badge/tests-294%2B%20passing-brightgreen?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/tests-330%2B%20passing-brightgreen?style=flat-square)](tests/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 </div>
@@ -109,14 +109,15 @@ EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically fo
 | 🚀 | **Adaptive Query Routing** | Intelligent routing to optimal agents based on query complexity, 30% latency reduction | Medium | 🟡 Planned |
 
 <details>
-<summary>📋 All 294+ Requirements Covered — Click to Expand</summary>
+<summary>📋 All 330+ Requirements Covered — Click to Expand</summary>
 
 - **Phase 1 (Foundation)**: Architecture, BaseAgent (30 req), QueryPlanner (24 req), MemoryManager (23 req), Orchestrator (18 req)
 - **Phase 2 (Agents)**: LocalDataAgent (15 req), WebSearchAgent (15 req), GraphAgent (15 req), CitationValidator (15 req)
 - **Phase 3 (Aggregation)**: ContextAggregator (15 req), GenerationEnsemble (20 req), FinalAggregator (15 req)
 - **Phase 4 (Pipeline)**: TextChunker (10), EEGCorpus (8), PubMedBERT (10), NER (12 entity types), DataIngestion
 - **Phase 5 (Advanced)**: SPLADE (10), Reranker (10), IRMetrics (10), FastAPI (10), Bibliometrics (10)
-- **Total: 294+ requirements, 100% tested**
+- **Phase 6 (New)**: ResearchAgent (4 req), SystematicReviewAgent (8 req), ClinicalMatchingAgent (6 req), ClinicalTrialsClient (5 req), EuropePMCClient (5 req), PubMedBERT presets (3 req)
+- **Total: 330+ requirements, 100% tested**
 
 </details>
 
@@ -606,6 +607,18 @@ async def search():
 asyncio.run(search())
 ```
 
+**Multi-source parallel search (ResearchAgent):**
+```python
+from eeg_rag.agents.research_agent import ResearchAgent
+from eeg_rag.agents.base_agent import AgentQuery
+import asyncio
+
+agent = ResearchAgent()
+query = AgentQuery(text="theta oscillations memory encoding hippocampus")
+result = await agent.execute(query)
+print(f"Found {len(result.data['papers'])} unique papers across all sources")
+```
+
 **Verify citations:**
 ```python
 from eeg_rag.verification.citation_verifier import CitationVerifier
@@ -1065,11 +1078,19 @@ gantt
     Bibliometrics + KeyBERT        :done,   p5b, 2025-12-15, 3d
     Systematic Review Automation   :done,   p5c, 2025-12-18, 3d
 
-    section Phase 6 — Production 🟡
-    Full LLM Integration           :active, p6a, 2026-01-01, 14d
-    Performance Tuning (<2s p95)   :        p6b, 2026-01-15, 14d
-    Docker Production Build        :        p6c, 2026-02-01, 7d
-    K8s Deployment                 :        p6d, 2026-02-08, 14d
+    section Phase 6 — New Agents & Sources ✅
+    ClinicalTrials.gov client        :done,   p6x, 2026-01-01, 3d
+    Europe PMC client                :done,   p6y, 2026-01-04, 3d
+    ResearchAgent (multi-source)     :done,   p6z, 2026-01-08, 3d
+    SystematicReviewAgent (PRISMA)   :done,   p6w, 2026-01-12, 3d
+    ClinicalMatchingAgent (ICD-10)   :done,   p6v, 2026-01-16, 3d
+    PubMedBERT model presets         :done,   p6u, 2026-01-20, 2d
+
+    section Phase 7 — Production 🟡
+    Full LLM Integration             :active, p7a, 2026-02-01, 14d
+    Performance Tuning (<2s p95)     :        p7b, 2026-02-15, 14d
+    Docker Production Build          :        p7c, 2026-03-01, 7d
+    K8s Deployment                   :        p7d, 2026-03-08, 14d
 ```
 
 ### Milestone Summary
@@ -1081,7 +1102,8 @@ gantt
 | **Phase 3** — Pipeline | Chunking, NER, Corpus, Embeddings, FinalAggregator | ✅ 100% |
 | **Phase 4** — Ingestion | Multi-source 120K papers, Streamlit UI, FastAPI | ✅ 100% |
 | **Phase 5** — Advanced | SPLADE, Reranker, IR Metrics, Bibliometrics, Systematic Review | ✅ 100% |
-| **Phase 6** — Production | Full LLM, <2s p95 target, Docker prod, K8s | 🟡 33% |
+| **Phase 6** — New Agents & Sources | ClinicalTrials.gov, Europe PMC, ResearchAgent, SystematicReviewAgent, ClinicalMatchingAgent, PubMedBERT presets | ✅ 100% |
+| **Phase 7** — Production | Full LLM, <2s p95 target, Docker prod, K8s | 🟡 10% |
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 
