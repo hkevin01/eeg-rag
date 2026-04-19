@@ -133,52 +133,61 @@ EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically fo
 ```mermaid
 flowchart TD
     subgraph Client["Client Layer"]
-        WEB["🌐 Web Browser"]
-        CLI["💻 CLI / curl"]
-        SDK["🐍 Python SDK"]
+        WEB["Web Browser"]
+        CLI["CLI / curl"]
+        SDK["Python SDK"]
     end
 
-    subgraph API["FastAPI Service (10 endpoints + SSE)"]
-        REST["/search · /paper · /suggest"]
-        STREAM["/search/stream (SSE)"]
-        HEALTH["/health · /metrics"]
+    subgraph API["FastAPI Service"]
+        REST["/search /paper /suggest"]
+        STREAM["/search/stream SSE"]
+        HEALTH["/health /metrics"]
     end
 
     subgraph Orchestration["Orchestration Layer"]
-        QP["QueryPlanner\nCoT + ReAct"]
-        ORCH["Orchestrator\nParallel Coordination"]
-        MEM["MemoryManager\nShort + Long term"]
+        QP["QueryPlanner<br/>CoT + ReAct"]
+        ORCH["Orchestrator<br/>Parallel Coordination"]
+        MEM["MemoryManager<br/>Short + Long term"]
     end
 
-    subgraph Agents["12 Specialized Agents (parallel)"]
-        A1["💾 LocalSearch\nFAISS <100ms"]
-        A2["🏥 PubMed\nE-utilities + MeSH"]
-        A3["🔬 SemanticScholar\nCitation graphs"]
-        A4["🕸️ KnowledgeGraph\nNeo4j + Cypher"]
-        A5["✅ CitationAgent\nPMID + retraction + impact"]
-        A6["🧪 Synthesis\nMulti-LLM ensemble"]
-        A7["🔗 ResearchAgent\nMulti-source parallel"]
-        A8["📋 SystematicReview\nPRISMA automation"]
-        A9["🩺 ClinicalMatching\nEEG → diagnosis"]
+    subgraph Agents["12 Specialized Agents"]
+        A1["LocalSearch<br/>FAISS under 100ms"]
+        A2["PubMed<br/>E-utilities + MeSH"]
+        A3["SemanticScholar<br/>Citation graphs"]
+        A4["KnowledgeGraph<br/>Neo4j + Cypher"]
+        A5["CitationAgent<br/>PMID + retraction"]
+        A6["Synthesis<br/>Multi-LLM ensemble"]
+        A7["ResearchAgent<br/>Multi-source"]
+        A8["SystematicReview<br/>PRISMA automation"]
+        A9["ClinicalMatching<br/>EEG to diagnosis"]
     end
 
-    subgraph Storage["Storage & Data"]
-        FAISS["FAISS\n768-dim vectors"]
-        NEO["Neo4j\nKnowledge Graph"]
-        REDIS["Redis\nQuery cache 1h TTL"]
-        CORPUS["Local Corpus\n120K+ papers"]
+    subgraph Storage["Storage and Data"]
+        FAISS["FAISS<br/>768-dim vectors"]
+        NEO["Neo4j<br/>Knowledge Graph"]
+        REDIS["Redis<br/>Query cache 1h TTL"]
+        CORPUS["Local Corpus<br/>120K+ papers"]
     end
 
     Client --> API
     API --> Orchestration
     QP --> ORCH
     ORCH <--> MEM
-    ORCH --> A1 & A2 & A3 & A4 & A5 & A7 & A8 & A9
-        A1 --> FAISS
-        A2 & A3 & A5 --> CORPUS
-        A4 --> NEO
-        A5 --> A6
-        A6 --> REST
+    ORCH --> A1
+    ORCH --> A2
+    ORCH --> A3
+    ORCH --> A4
+    ORCH --> A5
+    ORCH --> A7
+    ORCH --> A8
+    ORCH --> A9
+    A1 --> FAISS
+    A2 --> CORPUS
+    A3 --> CORPUS
+    A5 --> CORPUS
+    A4 --> NEO
+    A5 --> A6
+    A6 --> REST
     REDIS -.cache.-> ORCH
 
     style ORCH fill:#2c5282,color:#fff,stroke:#4a90e2
@@ -194,20 +203,20 @@ sequenceDiagram
     participant API as FastAPI
     participant QP as QueryPlanner
     participant ORCH as Orchestrator
-    participant AGENTS as Agents (parallel)
+    participant AGENTS as Agents
     participant CTX as ContextAggregator
     participant LLM as Synthesis
 
-    U->>API: POST /search {"query": "P300 in depression"}
+    U->>API: POST /search query P300 in depression
     API->>QP: Decompose query
     QP->>ORCH: Execute plan
-    ORCH->>AGENTS: Dispatch (LocalSearch + PubMed + S2 simultaneously)
+    ORCH->>AGENTS: Dispatch LocalSearch + PubMed + S2 simultaneously
     AGENTS-->>ORCH: Results from each source
-    ORCH->>CTX: Merge + deduplicate
+    ORCH->>CTX: Merge and deduplicate
     CTX->>LLM: Top-20 unified context
     LLM-->>API: Answer + PMID citations
-    API-->>U: 200 OK (< 2s total)
-    Note over U,LLM: Cache hit: 0.05s (36x faster)
+    API-->>U: 200 OK under 2s total
+    Note over U,LLM: Cache hit 0.05s is 36x faster
 ```
 
 ### EEG Domain Taxonomy
@@ -230,15 +239,15 @@ mindmap
         Treatment response
     Neuroscience
       ERPs
-        P300 · N400
-        N170 · MMN
+        P300 N400
+        N170 MMN
       Frequency Bands
-        Delta · Theta
-        Alpha · Beta · Gamma
+        Delta Theta
+        Alpha Beta Gamma
       Connectivity
         Resting state
         Functional networks
-    BCI & ML
+    BCI and ML
       Motor Imagery
       P300 Speller
       Seizure Prediction
