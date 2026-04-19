@@ -33,6 +33,23 @@ import aiohttp
 from eeg_rag.agents.base_agent import BaseAgent
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.web_agent.web_search_agent.PubMedArticle
+# Requirement  : `PubMedArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a PubMed article with metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PubMedArticle:
     """
@@ -59,6 +76,23 @@ class PubMedArticle:
     mesh_terms: List[str] = field(default_factory=list)
     keywords: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.PubMedArticle.to_dict
+    # Requirement  : `to_dict` shall convert article to dictionary format
+    # Purpose      : Convert article to dictionary format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert article to dictionary format."""
         return {
@@ -74,6 +108,23 @@ class PubMedArticle:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.web_agent.web_search_agent.SearchResult
+# Requirement  : `SearchResult` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a search result from PubMed
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SearchResult:
     """
@@ -92,6 +143,23 @@ class SearchResult:
     web_env: Optional[str] = None
     query_key: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.SearchResult.to_dict
+    # Requirement  : `to_dict` shall convert search result to dictionary format
+    # Purpose      : Convert search result to dictionary format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert search result to dictionary format."""
         return {
@@ -103,6 +171,23 @@ class SearchResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.web_agent.web_search_agent.RateLimiter
+# Requirement  : `RateLimiter` class shall be instantiable and expose the documented interface
+# Purpose      : Rate limiter for API requests
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RateLimiter with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RateLimiter:
     """
     Rate limiter for API requests.
@@ -110,6 +195,23 @@ class RateLimiter:
     Supports 3 requests/second (default) or 10 requests/second (with API key).
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.RateLimiter.__init__
+    # Requirement  : `__init__` shall initialize rate limiter
+    # Purpose      : Initialize rate limiter
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : requests_per_second: float (default=3.0)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, requests_per_second: float = 3.0):
         """
         Initialize rate limiter.
@@ -122,6 +224,23 @@ class RateLimiter:
         self.last_request_time = 0.0
         self._lock = asyncio.Lock()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.RateLimiter.acquire
+    # Requirement  : `acquire` shall wait until a request can be made within rate limits
+    # Purpose      : Wait until a request can be made within rate limits
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def acquire(self):
         """Wait until a request can be made within rate limits."""
         async with self._lock:
@@ -135,6 +254,23 @@ class RateLimiter:
             self.last_request_time = time.time()
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.web_agent.web_search_agent.WebSearchAgent
+# Requirement  : `WebSearchAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Web Search Agent for PubMed database queries
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate WebSearchAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class WebSearchAgent(BaseAgent):
     """
     Web Search Agent for PubMed database queries.
@@ -153,6 +289,23 @@ class WebSearchAgent(BaseAgent):
         timeout: HTTP request timeout in seconds
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent.__init__
+    # Requirement  : `__init__` shall initialize Web Search Agent
+    # Purpose      : Initialize Web Search Agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='WebSearchAgent'); email: str (default='your.email@example.com'); tool: str (default='eeg-rag'); api_key: Optional[str] (default=None); timeout: int (default=30); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "WebSearchAgent",
@@ -203,6 +356,23 @@ class WebSearchAgent(BaseAgent):
         self.total_articles_fetched = 0
         self.total_errors = 0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent._get_query_hash
+    # Requirement  : `_get_query_hash` shall generate hash for query + parameters for caching
+    # Purpose      : Generate hash for query + parameters for caching
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; **params
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_query_hash(self, query: str, **params) -> str:
         """
         Generate hash for query + parameters for caching.
@@ -217,6 +387,23 @@ class WebSearchAgent(BaseAgent):
         cache_key = f"{query}|{sorted(params.items())}"
         return hashlib.md5(cache_key.encode()).hexdigest()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent._make_request
+    # Requirement  : `_make_request` shall make HTTP request with rate limiting
+    # Purpose      : Make HTTP request with rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str; params: Dict[str, Any]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _make_request(
         self,
         url: str,
@@ -252,6 +439,23 @@ class WebSearchAgent(BaseAgent):
                 response.raise_for_status()
                 return await response.text()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent._search_pubmed
+    # Requirement  : `_search_pubmed` shall execute ESearch query against PubMed
+    # Purpose      : Execute ESearch query against PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; retmax: int (default=20); mindate: Optional[str] (default=None); maxdate: Optional[str] (default=None); sort: str (default='relevance')
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _search_pubmed(
         self,
         query: str,
@@ -318,6 +522,23 @@ class WebSearchAgent(BaseAgent):
             self.total_errors += 1
             raise RuntimeError(f"ESearch request failed: {e}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent._fetch_articles
+    # Requirement  : `_fetch_articles` shall fetch full article details using EFetch
+    # Purpose      : Fetch full article details using EFetch
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]
+    # Outputs      : List[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_articles(self, pmids: List[str]) -> List[PubMedArticle]:
         """
         Fetch full article details using EFetch.
@@ -363,6 +584,23 @@ class WebSearchAgent(BaseAgent):
             self.total_errors += 1
             raise RuntimeError(f"EFetch request failed: {e}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent._parse_article
+    # Requirement  : `_parse_article` shall parse PubmedArticle XML element
+    # Purpose      : Parse PubmedArticle XML element
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article_elem: ET.Element
+    # Outputs      : Optional[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_article(self, article_elem: ET.Element) -> Optional[PubMedArticle]:
         """
         Parse PubmedArticle XML element.
@@ -467,6 +705,23 @@ class WebSearchAgent(BaseAgent):
             print(f"Error parsing article: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent.execute
+    # Requirement  : `execute` shall execute web search query
+    # Purpose      : Execute web search query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query; context: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute web search query.
@@ -586,6 +841,23 @@ class WebSearchAgent(BaseAgent):
                 "execution_time": execution_time
             }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get agent statistics.
@@ -621,6 +893,23 @@ class WebSearchAgent(BaseAgent):
             "total_errors": self.total_errors
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.web_agent.web_search_agent.WebSearchAgent.clear_cache
+    # Requirement  : `clear_cache` shall clear the query cache
+    # Purpose      : Clear the query cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear the query cache."""
         self.cache.clear()

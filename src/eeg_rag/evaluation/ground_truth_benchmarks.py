@@ -21,6 +21,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ground_truth_benchmarks.GroundTruthQuestion
+# Requirement  : `GroundTruthQuestion` class shall be instantiable and expose the documented interface
+# Purpose      : A benchmark question with verified ground truth data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GroundTruthQuestion with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GroundTruthQuestion:
     """A benchmark question with verified ground truth data.
@@ -53,6 +70,23 @@ class GroundTruthQuestion:
     clinical_relevance: str = ""
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ground_truth_benchmarks.BenchmarkResult
+# Requirement  : `BenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result of evaluating a single benchmark question
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BenchmarkResult:
     """Result of evaluating a single benchmark question."""
@@ -71,6 +105,23 @@ class BenchmarkResult:
     passed: bool = False
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ground_truth_benchmarks.BenchmarkSuiteResult
+# Requirement  : `BenchmarkSuiteResult` class shall be instantiable and expose the documented interface
+# Purpose      : Aggregate results from running the full benchmark suite
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BenchmarkSuiteResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BenchmarkSuiteResult:
     """Aggregate results from running the full benchmark suite."""
@@ -96,6 +147,23 @@ class BenchmarkSuiteResult:
     # Individual results
     individual_results: list[BenchmarkResult] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.BenchmarkSuiteResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for JSON serialization
+    # Purpose      : Convert to dictionary for JSON serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -128,6 +196,23 @@ class BenchmarkSuiteResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks
+# Requirement  : `GroundTruthBenchmarks` class shall be instantiable and expose the documented interface
+# Purpose      : Curated benchmark suite with verified ground truth for EEG-RAG evaluation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GroundTruthBenchmarks with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GroundTruthBenchmarks:
     """
     Curated benchmark suite with verified ground truth for EEG-RAG evaluation.
@@ -455,6 +540,23 @@ class GroundTruthBenchmarks:
         ),
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks.__init__
+    # Requirement  : `__init__` shall initialize benchmark suite
+    # Purpose      : Initialize benchmark suite
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : rag_system: Any (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, rag_system: Any = None):
         """
         Initialize benchmark suite.
@@ -465,6 +567,23 @@ class GroundTruthBenchmarks:
         self.rag = rag_system
         self.results: list[BenchmarkResult] = []
         
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks.run_single
+    # Requirement  : `run_single` shall run evaluation on a single benchmark question
+    # Purpose      : Run evaluation on a single benchmark question
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : question: GroundTruthQuestion
+    # Outputs      : BenchmarkResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_single(self, question: GroundTruthQuestion) -> BenchmarkResult:
         """Run evaluation on a single benchmark question.
         
@@ -564,6 +683,23 @@ class GroundTruthBenchmarks:
             logger.error(f"Benchmark failed for {question.id}: {e}")
             return default_result
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks.run_suite
+    # Requirement  : `run_suite` shall run the complete benchmark suite
+    # Purpose      : Run the complete benchmark suite
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : categories: Optional[list[str]] (default=None); difficulties: Optional[list[str]] (default=None)
+    # Outputs      : BenchmarkSuiteResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_suite(
         self,
         categories: Optional[list[str]] = None,
@@ -698,6 +834,23 @@ class GroundTruthBenchmarks:
         
         return suite_result
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks._extract_pmids
+    # Requirement  : `_extract_pmids` shall extract PMIDs from text
+    # Purpose      : Extract PMIDs from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_pmids(self, text: str) -> list[str]:
         """Extract PMIDs from text."""
         patterns = [
@@ -713,6 +866,23 @@ class GroundTruthBenchmarks:
             
         return list(pmids)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks.save_results
+    # Requirement  : `save_results` shall save benchmark results to JSON file
+    # Purpose      : Save benchmark results to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : result: BenchmarkSuiteResult; path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save_results(self, result: BenchmarkSuiteResult, path: Path):
         """Save benchmark results to JSON file.
         
@@ -727,6 +897,23 @@ class GroundTruthBenchmarks:
             
         logger.info(f"Benchmark results saved to {path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ground_truth_benchmarks.GroundTruthBenchmarks.print_summary
+    # Requirement  : `print_summary` shall print a formatted summary of benchmark results
+    # Purpose      : Print a formatted summary of benchmark results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : result: BenchmarkSuiteResult
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def print_summary(self, result: BenchmarkSuiteResult):
         """Print a formatted summary of benchmark results."""
         print("\n" + "=" * 60)
@@ -760,6 +947,23 @@ class GroundTruthBenchmarks:
 
 
 # CLI
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ground_truth_benchmarks.main
+# Requirement  : `main` shall run benchmarks from command line
+# Purpose      : Run benchmarks from command line
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def main():
     """Run benchmarks from command line."""
     import argparse

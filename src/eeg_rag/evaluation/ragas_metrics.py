@@ -149,6 +149,23 @@ class EvaluationMode(Enum):
     AUTO = "auto"
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.LLMProvider
+# Requirement  : `LLMProvider` class shall be instantiable and expose the documented interface
+# Purpose      : LLM providers available for the judge step
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LLMProvider with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LLMProvider(Enum):
     """LLM providers available for the judge step."""
 
@@ -178,6 +195,23 @@ class ContextDocument:
     metadata: Dict[str, Any] = field(default_factory=dict)
     pmid: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.ContextDocument.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self) -> None:
         if self.pmid is None:
             self.pmid = (
@@ -186,6 +220,23 @@ class ContextDocument:
             )
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.RAGASInput
+# Requirement  : `RAGASInput` class shall be instantiable and expose the documented interface
+# Purpose      : All inputs required to compute the four RAGAS metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RAGASInput with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RAGASInput:
     """All inputs required to compute the four RAGAS metrics.
@@ -208,6 +259,23 @@ class RAGASInput:
     ground_truth_doc_ids: Optional[Set[str]] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.FaithfulnessDetail
+# Requirement  : `FaithfulnessDetail` class shall be instantiable and expose the documented interface
+# Purpose      : Per-claim faithfulness result
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate FaithfulnessDetail with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class FaithfulnessDetail:
     """Per-claim faithfulness result.
@@ -225,6 +293,23 @@ class FaithfulnessDetail:
     confidence: float = 1.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.ContextChunkScore
+# Requirement  : `ContextChunkScore` class shall be instantiable and expose the documented interface
+# Purpose      : Relevance verdict for a single retrieved context chunk
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ContextChunkScore with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ContextChunkScore:
     """Relevance verdict for a single retrieved context chunk.
@@ -242,6 +327,23 @@ class ContextChunkScore:
     rank: int
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.RAGASScores
+# Requirement  : `RAGASScores` class shall be instantiable and expose the documented interface
+# Purpose      : All four RAGAS metric scores plus a composite
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RAGASScores with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RAGASScores:
     """All four RAGAS metric scores plus a composite.
@@ -274,6 +376,23 @@ class RAGASScores:
     chunk_scores: List[ContextChunkScore] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASScores.to_dict
+    # Requirement  : `to_dict` shall serialise to a plain dictionary for logging or JSON export
+    # Purpose      : Serialise to a plain dictionary for logging or JSON export
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Serialise to a plain dictionary for logging or JSON export."""
         return {
@@ -322,6 +441,23 @@ class _EmbeddingEvaluator:
         model_name: Sentence-transformer model to load.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._EmbeddingEvaluator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default=_DEFAULT_EMBED_MODEL)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, model_name: str = _DEFAULT_EMBED_MODEL) -> None:
         if not _ST_AVAILABLE:
             raise RuntimeError(
@@ -633,6 +769,23 @@ No markdown, no commentary.
 """
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics._LLMJudge
+# Requirement  : `_LLMJudge` class shall be instantiable and expose the documented interface
+# Purpose      : Calls an LLM provider to act as evaluation judge
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate _LLMJudge with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class _LLMJudge:
     """Calls an LLM provider to act as evaluation judge.
 
@@ -643,6 +796,23 @@ class _LLMJudge:
         timeout: HTTP request timeout in seconds.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : provider: LLMProvider; model: Optional[str] (default=None); temperature: float (default=0.0); timeout: float (default=30.0)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         provider: LLMProvider,
@@ -655,6 +825,23 @@ class _LLMJudge:
         self._timeout = timeout
         self._model = model or self._default_model(provider)
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge._default_model
+    # Requirement  : `_default_model` shall execute as specified
+    # Purpose      :  default model
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : provider: LLMProvider
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _default_model(provider: LLMProvider) -> str:
         defaults = {
@@ -664,6 +851,23 @@ class _LLMJudge:
         }
         return defaults[provider]
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge.call
+    # Requirement  : `call` shall call the LLM and return raw text response
+    # Purpose      : Call the LLM and return raw text response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : system: str; user: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def call(self, system: str, user: str) -> str:
         """Call the LLM and return raw text response.
 
@@ -686,6 +890,23 @@ class _LLMJudge:
             return await self._call_ollama(system, user)
         raise RuntimeError(f"Unknown provider: {self._provider}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge._call_openai
+    # Requirement  : `_call_openai` shall execute as specified
+    # Purpose      :  call openai
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : system: str; user: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _call_openai(self, system: str, user: str) -> str:
         if not _OPENAI_AVAILABLE:
             raise RuntimeError("openai package not installed.")
@@ -704,6 +925,23 @@ class _LLMJudge:
         )
         return resp.choices[0].message.content or ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge._call_anthropic
+    # Requirement  : `_call_anthropic` shall execute as specified
+    # Purpose      :  call anthropic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : system: str; user: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _call_anthropic(self, system: str, user: str) -> str:
         if not _ANTHROPIC_AVAILABLE:
             raise RuntimeError("anthropic package not installed.")
@@ -720,6 +958,23 @@ class _LLMJudge:
         )
         return msg.content[0].text if msg.content else ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge._call_ollama
+    # Requirement  : `_call_ollama` shall execute as specified
+    # Purpose      :  call ollama
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : system: str; user: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _call_ollama(self, system: str, user: str) -> str:
         if not _HTTPX_AVAILABLE:
             raise RuntimeError("httpx package not installed.")
@@ -738,6 +993,23 @@ class _LLMJudge:
             resp.raise_for_status()
             return resp.json().get("response", "")
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMJudge._parse_json
+    # Requirement  : `_parse_json` shall parse JSON from LLM output, stripping markdown fences
+    # Purpose      : Parse JSON from LLM output, stripping markdown fences
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; fallback: Any
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _parse_json(text: str, fallback: Any) -> Any:
         """Parse JSON from LLM output, stripping markdown fences."""
@@ -749,6 +1021,23 @@ class _LLMJudge:
             return fallback
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics._LLMEvaluator
+# Requirement  : `_LLMEvaluator` class shall be instantiable and expose the documented interface
+# Purpose      : Computes RAGAS metrics using an LLM as the verification judge
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate _LLMEvaluator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class _LLMEvaluator:
     """Computes RAGAS metrics using an LLM as the verification judge.
 
@@ -760,6 +1049,23 @@ class _LLMEvaluator:
             similarity in the Answer Relevance step.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMEvaluator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : judge: _LLMJudge; n_relevance_questions: int (default=3); embed_model_name: str (default=_DEFAULT_EMBED_MODEL)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         judge: _LLMJudge,
@@ -979,6 +1285,23 @@ class _LLMEvaluator:
         score = precision_sum / total_relevant if total_relevant else 0.0
         return score, chunk_scores
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMEvaluator._judge_chunk_relevance
+    # Requirement  : `_judge_chunk_relevance` shall ask the LLM whether a single chunk is relevant to the query
+    # Purpose      : Ask the LLM whether a single chunk is relevant to the query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; doc: ContextDocument; rank: int
+    # Outputs      : ContextChunkScore
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _judge_chunk_relevance(
         self, query: str, doc: ContextDocument, rank: int
     ) -> ContextChunkScore:
@@ -1040,6 +1363,23 @@ class _LLMEvaluator:
         attributable_count = sum(results)
         return attributable_count / len(gt_sentences[:10])
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics._LLMEvaluator._judge_statement_attributable
+    # Requirement  : `_judge_statement_attributable` shall ask LLM if a ground-truth statement is attributable to context
+    # Purpose      : Ask LLM if a ground-truth statement is attributable to context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : statement: str; context_block: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _judge_statement_attributable(
         self, statement: str, context_block: str
     ) -> bool:
@@ -1086,6 +1426,23 @@ class HumanEvalRecord:
     human_context_recall: Optional[float] = None
     annotator_notes: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.HumanEvalRecord.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "record_id": self.record_id,
@@ -1103,6 +1460,23 @@ class HumanEvalRecord:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.ragas_metrics.export_for_human_eval
+# Requirement  : `export_for_human_eval` shall build :class:`HumanEvalRecord` list ready for annotation tooling
+# Purpose      : Build :class:`HumanEvalRecord` list ready for annotation tooling
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : inputs: List[RAGASInput]; scores: List[RAGASScores]; context_excerpt_chars: int (default=300)
+# Outputs      : List[HumanEvalRecord]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def export_for_human_eval(
     inputs: List[RAGASInput],
     scores: List[RAGASScores],
@@ -1192,6 +1566,23 @@ class RAGASEvaluator:
         print(score.ragas_score)
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : mode: EvaluationMode (default=EvaluationMode.AUTO); llm_provider: LLMProvider (default=LLMProvider.OPENAI); llm_model: Optional[str] (default=None); embed_model: str (default=_DEFAULT_EMBED_MODEL); n_relevance_questions: int (default=3)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         mode: EvaluationMode = EvaluationMode.AUTO,
@@ -1218,6 +1609,23 @@ class RAGASEvaluator:
             self._embed_eval = _EmbeddingEvaluator(self._embed_model_name)
         return self._embed_eval
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator._get_llm_eval
+    # Requirement  : `_get_llm_eval` shall execute as specified
+    # Purpose      :  get llm eval
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : _LLMEvaluator
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_llm_eval(self) -> _LLMEvaluator:
         if self._llm_eval is None:
             judge = _LLMJudge(
@@ -1231,6 +1639,23 @@ class RAGASEvaluator:
             )
         return self._llm_eval
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator._resolve_mode
+    # Requirement  : `_resolve_mode` shall resolve AUTO to a concrete mode based on available credentials
+    # Purpose      : Resolve AUTO to a concrete mode based on available credentials
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : EvaluationMode
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _resolve_mode(self) -> EvaluationMode:
         """Resolve AUTO to a concrete mode based on available credentials."""
         if self._mode == EvaluationMode.AUTO:
@@ -1279,6 +1704,23 @@ class RAGASEvaluator:
         scores.warnings.extend(warnings)
         return scores
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator.evaluate_batch
+    # Requirement  : `evaluate_batch` shall evaluate a list of query–answer pairs concurrently
+    # Purpose      : Evaluate a list of query–answer pairs concurrently
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : inputs: List[RAGASInput]
+    # Outputs      : List[RAGASScores]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def evaluate_batch(
         self, inputs: List[RAGASInput]
     ) -> List[RAGASScores]:
@@ -1293,6 +1735,23 @@ class RAGASEvaluator:
         tasks = [self.evaluate(inp) for inp in inputs]
         return list(await asyncio.gather(*tasks))
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator.summary
+    # Requirement  : `summary` shall compute mean scores over a collection of :class:`RAGASScores`
+    # Purpose      : Compute mean scores over a collection of :class:`RAGASScores`
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : scores: Sequence[RAGASScores]
+    # Outputs      : Dict[str, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def summary(self, scores: Sequence[RAGASScores]) -> Dict[str, float]:
         """Compute mean scores over a collection of :class:`RAGASScores`.
 
@@ -1356,6 +1815,23 @@ class RAGASEvaluator:
             chunk_scores=chunk_scores,
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.ragas_metrics.RAGASEvaluator._evaluate_llm
+    # Requirement  : `_evaluate_llm` shall run all four metrics in LLM-as-judge mode (concurrent async calls)
+    # Purpose      : Run all four metrics in LLM-as-judge mode (concurrent async calls)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : inp: RAGASInput
+    # Outputs      : RAGASScores
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _evaluate_llm(self, inp: RAGASInput) -> RAGASScores:
         """Run all four metrics in LLM-as-judge mode (concurrent async calls)."""
         ev = self._get_llm_eval()

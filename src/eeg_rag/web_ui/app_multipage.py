@@ -17,6 +17,23 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_multipage.main
+# Requirement  : `main` shall main application entry point
+# Purpose      : Main application entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main application entry point."""
     st.set_page_config(

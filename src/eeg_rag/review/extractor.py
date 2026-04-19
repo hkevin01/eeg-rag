@@ -19,6 +19,23 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.extractor.ExtractionField
+# Requirement  : `ExtractionField` class shall be instantiable and expose the documented interface
+# Purpose      : Definition of a field to extract from papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExtractionField with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExtractionField:
     """Definition of a field to extract from papers."""
@@ -31,6 +48,23 @@ class ExtractionField:
     extraction_prompt: Optional[str] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.extractor.ExtractedData
+# Requirement  : `ExtractedData` class shall be instantiable and expose the documented interface
+# Purpose      : Container for extracted data from a single paper
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExtractedData with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExtractedData:
     """Container for extracted data from a single paper."""
@@ -53,6 +87,23 @@ class ExtractedData:
     extraction_errors: List[str] = field(default_factory=list)
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.extractor.SystematicReviewExtractor
+# Requirement  : `SystematicReviewExtractor` class shall be instantiable and expose the documented interface
+# Purpose      : Extracts structured data from papers for systematic reviews
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystematicReviewExtractor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystematicReviewExtractor:
     """
     Extracts structured data from papers for systematic reviews.
@@ -67,6 +118,23 @@ class SystematicReviewExtractor:
         results.to_csv("dl_eeg_papers.csv")
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.__init__
+    # Requirement  : `__init__` shall initialize systematic review extractor
+    # Purpose      : Initialize systematic review extractor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : protocol: Union[str, Path, Dict]; date_range: Optional[Tuple[str, str]] (default=None); query: Optional[str] (default=None); llm_backend: str (default='ollama'); model_name: str (default='mistral'); confidence_threshold: float (default=0.7)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         protocol: Union[str, Path, Dict],
@@ -105,6 +173,23 @@ class SystematicReviewExtractor:
 
         logger.info(f"Initialized SystematicReviewExtractor with {len(self.fields)} fields")
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._parse_protocol
+    # Requirement  : `_parse_protocol` shall parse protocol definition into ExtractionField objects
+    # Purpose      : Parse protocol definition into ExtractionField objects
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[ExtractionField]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_protocol(self) -> List[ExtractionField]:
         """Parse protocol definition into ExtractionField objects."""
         fields = []
@@ -119,6 +204,23 @@ class SystematicReviewExtractor:
             ))
         return fields
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._build_extraction_prompt
+    # Requirement  : `_build_extraction_prompt` shall build extraction prompt for a specific field
+    # Purpose      : Build extraction prompt for a specific field
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]; field: ExtractionField
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_extraction_prompt(
         self,
         paper: Dict[str, Any],
@@ -185,6 +287,23 @@ JSON:"""
             logger.warning(f"LLM call ({self.llm_backend}) failed: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._call_ollama
+    # Requirement  : `_call_ollama` shall call a local Ollama instance via its REST API
+    # Purpose      : Call a local Ollama instance via its REST API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _call_ollama(self, prompt: str) -> Optional[str]:
         """Call a local Ollama instance via its REST API."""
         import os
@@ -203,6 +322,23 @@ JSON:"""
             data = json.loads(resp.read())
         return data.get("response", "").strip() or None
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._call_openai
+    # Requirement  : `_call_openai` shall call OpenAI chat completions API
+    # Purpose      : Call OpenAI chat completions API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _call_openai(self, prompt: str) -> Optional[str]:
         """Call OpenAI chat completions API."""
         import os
@@ -235,6 +371,23 @@ JSON:"""
         )
         return resp.choices[0].message.content.strip() or None
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._call_anthropic
+    # Requirement  : `_call_anthropic` shall call Anthropic Messages API
+    # Purpose      : Call Anthropic Messages API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _call_anthropic(self, prompt: str) -> Optional[str]:
         """Call Anthropic Messages API."""
         import os
@@ -257,6 +410,23 @@ JSON:"""
         )
         return msg.content[0].text.strip() or None
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._parse_llm_response
+    # Requirement  : `_parse_llm_response` shall parse a JSON LLM response into (value, confidence, note)
+    # Purpose      : Parse a JSON LLM response into (value, confidence, note)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : raw: str; field: ExtractionField
+    # Outputs      : Tuple[Any, float, str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _parse_llm_response(
         raw: str, field: ExtractionField
@@ -300,6 +470,23 @@ JSON:"""
 
         return value, confidence, note
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._extract_field_llm
+    # Requirement  : `_extract_field_llm` shall extract a single field using LLM
+    # Purpose      : Extract a single field using LLM
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]; field: ExtractionField
+    # Outputs      : Tuple[Any, float, str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_field_llm(
         self,
         paper: Dict[str, Any],
@@ -327,6 +514,23 @@ JSON:"""
             logger.error(f"LLM extraction failed for field {field.name}: {e}")
             return None, 0.0, f"Extraction error: {str(e)}"
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._rule_based_extraction
+    # Requirement  : `_rule_based_extraction` shall fallback rule-based extraction for common fields
+    # Purpose      : Fallback rule-based extraction for common fields
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]; field: ExtractionField
+    # Outputs      : Tuple[Any, float, str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _rule_based_extraction(
         self,
         paper: Dict[str, Any],
@@ -421,6 +625,23 @@ JSON:"""
         # Default
         return None, 0.0, "Field not supported by rule-based extraction"
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.extract_from_paper
+    # Requirement  : `extract_from_paper` shall extract all fields from a single paper
+    # Purpose      : Extract all fields from a single paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : ExtractedData
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_from_paper(self, paper: Dict[str, Any]) -> ExtractedData:
         """Extract all fields from a single paper."""
         result = ExtractedData(
@@ -454,6 +675,23 @@ JSON:"""
 
         return result
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.run
+    # Requirement  : `run` shall run extraction on papers
+    # Purpose      : Run extraction on papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: Optional[List[Dict]] (default=None); max_papers: int (default=500)
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def run(self, papers: Optional[List[Dict]] = None, max_papers: int = 500) -> pd.DataFrame:
         """
         Run extraction on papers.
@@ -488,6 +726,23 @@ JSON:"""
 
         return self.to_dataframe()
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor._retrieve_papers_for_query
+    # Requirement  : `_retrieve_papers_for_query` shall retrieve papers using PubMed E-utilities when no papers are provided
+    # Purpose      : Retrieve papers using PubMed E-utilities when no papers are provided
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_papers: int
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _retrieve_papers_for_query(
         self, query: str, max_papers: int
     ) -> List[Dict[str, Any]]:
@@ -603,6 +858,23 @@ JSON:"""
 
         return papers[:max_papers]
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.to_dataframe
+    # Requirement  : `to_dataframe` shall convert extraction results to DataFrame
+    # Purpose      : Convert extraction results to DataFrame
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dataframe(self) -> pd.DataFrame:
         """Convert extraction results to DataFrame."""
         rows = []
@@ -627,6 +899,23 @@ JSON:"""
 
         return pd.DataFrame(rows)
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.export
+    # Requirement  : `export` shall export results to file
+    # Purpose      : Export results to file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Union[str, Path]; format: str (default='csv')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export(self, output_path: Union[str, Path], format: str = "csv"):
         """Export results to file."""
         df = self.to_dataframe()
@@ -642,6 +931,23 @@ JSON:"""
 
         logger.info(f"Exported results to {output_path}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : review.extractor.SystematicReviewExtractor.get_low_confidence_extractions
+    # Requirement  : `get_low_confidence_extractions` shall get papers with low-confidence extractions for manual review
+    # Purpose      : Get papers with low-confidence extractions for manual review
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : threshold: float (default=0.6)
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_low_confidence_extractions(self, threshold: float = 0.6) -> pd.DataFrame:
         """Get papers with low-confidence extractions for manual review."""
         df = self.to_dataframe()

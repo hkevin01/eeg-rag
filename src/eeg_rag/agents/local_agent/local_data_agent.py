@@ -50,6 +50,23 @@ from eeg_rag.agents.base_agent import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.local_agent.local_data_agent.Citation
+# Requirement  : `Citation` class shall be instantiable and expose the documented interface
+# Purpose      : Citation information for a document
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Citation with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Citation:
     """
@@ -66,6 +83,23 @@ class Citation:
     url: Optional[str] = None
     abstract: str = ""
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.Citation.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -79,6 +113,23 @@ class Citation:
             "abstract": self.abstract
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.Citation.format_citation
+    # Requirement  : `format_citation` shall format citation in standard format
+    # Purpose      : Format citation in standard format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def format_citation(self) -> str:
         """
         Format citation in standard format
@@ -102,6 +153,23 @@ class Citation:
         return citation
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.local_agent.local_data_agent.SearchResult
+# Requirement  : `SearchResult` class shall be instantiable and expose the documented interface
+# Purpose      : Single search result with relevance score
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SearchResult:
     """
@@ -115,6 +183,23 @@ class SearchResult:
     relevance_score: float
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.SearchResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -126,6 +211,23 @@ class SearchResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.local_agent.local_data_agent.FAISSVectorStore
+# Requirement  : `FAISSVectorStore` class shall be instantiable and expose the documented interface
+# Purpose      : FAISS-based vector store for document embeddings
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate FAISSVectorStore with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class FAISSVectorStore:
     """
     FAISS-based vector store for document embeddings
@@ -133,6 +235,23 @@ class FAISSVectorStore:
     REQ-AGT1-009: Vector store implementation
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.__init__
+    # Requirement  : `__init__` shall initialize FAISS vector store
+    # Purpose      : Initialize FAISS vector store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : dimension: int (default=768); index_type: str (default='Flat'); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         dimension: int = 768,
@@ -165,6 +284,23 @@ class FAISSVectorStore:
         
         self.logger.info(f"FAISSVectorStore initialized (dim={dimension}, type={index_type})")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore._create_index
+    # Requirement  : `_create_index` shall create FAISS index based on type
+    # Purpose      : Create FAISS index based on type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'faiss.Index'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_index(self) -> 'faiss.Index':
         """
         Create FAISS index based on type
@@ -190,6 +326,23 @@ class FAISSVectorStore:
         self.logger.debug(f"Created FAISS index: {self.index_type}")
         return index
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.add_documents
+    # Requirement  : `add_documents` shall add documents to the vector store
+    # Purpose      : Add documents to the vector store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : embeddings: np.ndarray; documents: List[Dict[str, Any]]
+    # Outputs      : List[int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_documents(
         self,
         embeddings: np.ndarray,
@@ -228,6 +381,23 @@ class FAISSVectorStore:
         self.logger.info(f"Added {len(documents)} documents to index")
         return doc_ids
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.search
+    # Requirement  : `search` shall search for similar documents
+    # Purpose      : Search for similar documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_embedding: np.ndarray; k: int (default=5)
+    # Outputs      : List[Tuple[int, float]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query_embedding: np.ndarray,
@@ -260,6 +430,23 @@ class FAISSVectorStore:
             # Fallback: simple cosine similarity
             return self._fallback_search(query_embedding, k)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore._fallback_search
+    # Requirement  : `_fallback_search` shall fallback search without FAISS
+    # Purpose      : Fallback search without FAISS
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_embedding: np.ndarray; k: int
+    # Outputs      : List[Tuple[int, float]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fallback_search(
         self,
         query_embedding: np.ndarray,
@@ -286,6 +473,23 @@ class FAISSVectorStore:
         
         return similarities[:k]
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.save
+    # Requirement  : `save` shall save index and metadata to disk
+    # Purpose      : Save index and metadata to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save(self, path: Path) -> None:
         """
         Save index and metadata to disk
@@ -316,6 +520,23 @@ class FAISSVectorStore:
         
         self.logger.info(f"Saved vector store to {path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.load
+    # Requirement  : `load` shall load index and metadata from disk
+    # Purpose      : Load index and metadata from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def load(self, path: Path) -> None:
         """
         Load index and metadata from disk
@@ -347,6 +568,23 @@ class FAISSVectorStore:
         
         self.logger.info(f"Loaded vector store from {path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.FAISSVectorStore.get_statistics
+    # Requirement  : `get_statistics` shall get vector store statistics
+    # Purpose      : Get vector store statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get vector store statistics"""
         if FAISS_AVAILABLE and self.index is not None:
@@ -367,6 +605,23 @@ class FAISSVectorStore:
             }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.local_agent.local_data_agent.LocalDataAgent
+# Requirement  : `LocalDataAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Local data agent for fast hybrid retrieval
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LocalDataAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LocalDataAgent(BaseAgent):
     """
     Local data agent for fast hybrid retrieval
@@ -374,6 +629,23 @@ class LocalDataAgent(BaseAgent):
     REQ-AGT1-015: Main agent implementation with hybrid search
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.__init__
+    # Requirement  : `__init__` shall initialize local data agent
+    # Purpose      : Initialize local data agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : vector_store_path: Optional[Path] (default=None); embedding_dimension: int (default=768); config: Optional[Dict[str, Any]] (default=None); logger: Optional[logging.Logger] (default=None); use_hybrid_retrieval: bool (default=True); use_reranking: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         vector_store_path: Optional[Path] = None,
@@ -427,6 +699,23 @@ class LocalDataAgent(BaseAgent):
         
         self.logger.info(f"LocalDataAgent initialized (hybrid={self.use_hybrid_retrieval})")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent._init_hybrid_retrieval
+    # Requirement  : `_init_hybrid_retrieval` shall initialize hybrid retrieval system with BM25, Dense, and Query Expansion
+    # Purpose      : Initialize hybrid retrieval system with BM25, Dense, and Query Expansion
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: Dict[str, Any]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _init_hybrid_retrieval(self, config: Dict[str, Any]) -> None:
         """
         Initialize hybrid retrieval system with BM25, Dense, and Query Expansion
@@ -483,6 +772,23 @@ class LocalDataAgent(BaseAgent):
             self.use_hybrid_retrieval = False
             raise
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.execute
+    # Requirement  : `execute` shall execute local search using hybrid retrieval or legacy FAISS
+    # Purpose      : Execute local search using hybrid retrieval or legacy FAISS
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute local search using hybrid retrieval or legacy FAISS
@@ -536,6 +842,23 @@ class LocalDataAgent(BaseAgent):
                 agent_type=AgentType.LOCAL_DATA
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent._hybrid_search
+    # Requirement  : `_hybrid_search` shall perform hybrid search using BM25 + Dense + RRF fusion
+    # Purpose      : Perform hybrid search using BM25 + Dense + RRF fusion
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : List[SearchResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _hybrid_search(self, query_text: str) -> List[SearchResult]:
         """
         Perform hybrid search using BM25 + Dense + RRF fusion
@@ -592,6 +915,23 @@ class LocalDataAgent(BaseAgent):
         
         return search_results
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent._faiss_search
+    # Requirement  : `_faiss_search` shall legacy FAISS search (for backward compatibility)
+    # Purpose      : Legacy FAISS search (for backward compatibility)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : List[SearchResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _faiss_search(self, query_text: str) -> List[SearchResult]:
         """
         Legacy FAISS search (for backward compatibility)
@@ -632,6 +972,23 @@ class LocalDataAgent(BaseAgent):
         
         return search_results
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.execute_old
+    # Requirement  : `execute_old` shall execute local search
+    # Purpose      : Execute local search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_old(self, query: AgentQuery) -> AgentResult:
         """
         Execute local search
@@ -707,6 +1064,23 @@ class LocalDataAgent(BaseAgent):
                 agent_type=AgentType.LOCAL_DATA
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent._generate_mock_embedding
+    # Requirement  : `_generate_mock_embedding` shall generate mock embedding for testing
+    # Purpose      : Generate mock embedding for testing
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : np.ndarray
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_mock_embedding(self, text: str) -> np.ndarray:
         """
         Generate mock embedding for testing
@@ -729,6 +1103,23 @@ class LocalDataAgent(BaseAgent):
         embedding = embedding / np.linalg.norm(embedding)
         return embedding
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.add_documents
+    # Requirement  : `add_documents` shall add documents to the local store
+    # Purpose      : Add documents to the local store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict[str, Any]]; embeddings: Optional[np.ndarray] (default=None)
+    # Outputs      : List[int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_documents(
         self,
         documents: List[Dict[str, Any]],
@@ -755,10 +1146,44 @@ class LocalDataAgent(BaseAgent):
         self.logger.info(f"Added {len(documents)} documents")
         return doc_ids
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.save_index
+    # Requirement  : `save_index` shall save vector store to disk
+    # Purpose      : Save vector store to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save_index(self, path: Path) -> None:
         """Save vector store to disk"""
         self.vector_store.save(path)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.local_agent.local_data_agent.LocalDataAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         base_stats = super().get_statistics()

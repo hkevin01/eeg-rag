@@ -26,6 +26,23 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.RefreshSource
+# Requirement  : `RefreshSource` class shall be instantiable and expose the documented interface
+# Purpose      : Configuration for a paper source
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RefreshSource with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RefreshSource:
     """Configuration for a paper source."""
@@ -36,6 +53,23 @@ class RefreshSource:
     papers_fetched: int = 0
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.RefreshResult
+# Requirement  : `RefreshResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result of a refresh operation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RefreshResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RefreshResult:
     """Result of a refresh operation."""
@@ -46,6 +80,23 @@ class RefreshResult:
     duration_seconds: float
     errors: list[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.RefreshResult.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> dict:
         return {
             "source": self.source,
@@ -57,6 +108,23 @@ class RefreshResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.PubMedCrawler
+# Requirement  : `PubMedCrawler` class shall be instantiable and expose the documented interface
+# Purpose      : Fetch new EEG papers from PubMed with full metadata extraction
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedCrawler with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedCrawler:
     """Fetch new EEG papers from PubMed with full metadata extraction."""
     
@@ -76,6 +144,23 @@ class PubMedCrawler:
     AND (english[Language])
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.PubMedCrawler.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : api_key: Optional[str] (default=None); email: str (default='eeg-rag@research.org')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -85,6 +170,23 @@ class PubMedCrawler:
         self.email = email
         self.client = httpx.AsyncClient(timeout=30.0)
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.PubMedCrawler.search_recent
+    # Requirement  : `search_recent` shall search for EEG papers published in the last N days
+    # Purpose      : Search for EEG papers published in the last N days
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=7); max_results: int (default=500)
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search_recent(
         self, 
         days_back: int = 7,
@@ -138,6 +240,23 @@ class PubMedCrawler:
             logger.error(f"PubMed search failed: {e}")
             return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.PubMedCrawler.fetch_paper_details
+    # Requirement  : `fetch_paper_details` shall fetch full details for a list of PMIDs
+    # Purpose      : Fetch full details for a list of PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: list[str]
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_paper_details(self, pmids: list[str]) -> list[dict]:
         """Fetch full details for a list of PMIDs.
         
@@ -188,6 +307,23 @@ class PubMedCrawler:
         logger.info(f"Fetched {len(all_papers)} paper details from PubMed")
         return all_papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.PubMedCrawler._parse_pubmed_xml
+    # Requirement  : `_parse_pubmed_xml` shall parse PubMed XML response into structured paper data
+    # Purpose      : Parse PubMed XML response into structured paper data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_content: str
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_pubmed_xml(self, xml_content: str) -> list[dict]:
         """Parse PubMed XML response into structured paper data."""
         papers = []
@@ -296,11 +432,45 @@ class PubMedCrawler:
                 
         return papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.PubMedCrawler.close
+    # Requirement  : `close` shall cleanup HTTP client
+    # Purpose      : Cleanup HTTP client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Cleanup HTTP client."""
         await self.client.aclose()
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.ClinicalTrialsCrawler
+# Requirement  : `ClinicalTrialsCrawler` class shall be instantiable and expose the documented interface
+# Purpose      : Fetch EEG-related clinical trials from ClinicalTrials.gov
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalTrialsCrawler with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ClinicalTrialsCrawler:
     """Fetch EEG-related clinical trials from ClinicalTrials.gov."""
     
@@ -316,9 +486,43 @@ class ClinicalTrialsCrawler:
         "evoked potentials",
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ClinicalTrialsCrawler.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=30.0)
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ClinicalTrialsCrawler.search_recent_trials
+    # Requirement  : `search_recent_trials` shall search for recently updated EEG-related clinical trials
+    # Purpose      : Search for recently updated EEG-related clinical trials
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=30); max_results: int (default=100)
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search_recent_trials(
         self,
         days_back: int = 30,
@@ -374,6 +578,23 @@ class ClinicalTrialsCrawler:
         logger.info(f"Found {len(unique_trials)} unique clinical trials")
         return unique_trials
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ClinicalTrialsCrawler._parse_trial
+    # Requirement  : `_parse_trial` shall parse a clinical trial into structured data
+    # Purpose      : Parse a clinical trial into structured data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : study: dict
+    # Outputs      : Optional[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_trial(self, study: dict) -> Optional[dict]:
         """Parse a clinical trial into structured data."""
         try:
@@ -401,10 +622,44 @@ class ClinicalTrialsCrawler:
             logger.warning(f"Error parsing trial: {e}")
             return None
             
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ClinicalTrialsCrawler.close
+    # Requirement  : `close` shall execute as specified
+    # Purpose      : Close
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         await self.client.aclose()
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.ArxivCrawler
+# Requirement  : `ArxivCrawler` class shall be instantiable and expose the documented interface
+# Purpose      : Fetch EEG-related preprints from arXiv
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ArxivCrawler with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ArxivCrawler:
     """Fetch EEG-related preprints from arXiv."""
     
@@ -419,9 +674,43 @@ class ArxivCrawler:
         "all:event-related potentials",
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ArxivCrawler.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=30.0)
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ArxivCrawler.search_recent
+    # Requirement  : `search_recent` shall search for recent EEG-related arXiv papers
+    # Purpose      : Search for recent EEG-related arXiv papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=30); max_results: int (default=100)
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search_recent(
         self,
         days_back: int = 30,
@@ -463,6 +752,23 @@ class ArxivCrawler:
         logger.info(f"Found {len(unique)} unique arXiv papers")
         return unique
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ArxivCrawler._parse_arxiv_response
+    # Requirement  : `_parse_arxiv_response` shall parse arXiv Atom feed response
+    # Purpose      : Parse arXiv Atom feed response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_content: str
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_arxiv_response(self, xml_content: str) -> list[dict]:
         """Parse arXiv Atom feed response."""
         papers = []
@@ -515,10 +821,44 @@ class ArxivCrawler:
             
         return papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.ArxivCrawler.close
+    # Requirement  : `close` shall execute as specified
+    # Purpose      : Close
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         await self.client.aclose()
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.KnowledgeBaseRefresher
+# Requirement  : `KnowledgeBaseRefresher` class shall be instantiable and expose the documented interface
+# Purpose      : Orchestrates automatic refresh of the EEG knowledge base
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate KnowledgeBaseRefresher with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class KnowledgeBaseRefresher:
     """
     Orchestrates automatic refresh of the EEG knowledge base.
@@ -527,6 +867,23 @@ class KnowledgeBaseRefresher:
     handles deduplication, and updates the vector store and knowledge graph.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.__init__
+    # Requirement  : `__init__` shall initialize the refresher
+    # Purpose      : Initialize the refresher
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : vector_store: Any (default=None); graph_store: Any (default=None); state_file: Path (default=Path('data/refresh_state.json')); pubmed_api_key: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         vector_store: Any = None,
@@ -554,6 +911,23 @@ class KnowledgeBaseRefresher:
         self.scheduler = None
         self._load_state()
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._load_state
+    # Requirement  : `_load_state` shall load refresh state from disk
+    # Purpose      : Load refresh state from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_state(self):
         """Load refresh state from disk."""
         if self.state_file.exists():
@@ -566,6 +940,23 @@ class KnowledgeBaseRefresher:
         else:
             self.state = self._default_state()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._default_state
+    # Requirement  : `_default_state` shall return default state structure
+    # Purpose      : Return default state structure
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _default_state(self) -> dict:
         """Return default state structure."""
         return {
@@ -580,6 +971,23 @@ class KnowledgeBaseRefresher:
             "indexed_arxiv_ids": [],
         }
             
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._save_state
+    # Requirement  : `_save_state` shall persist refresh state to disk
+    # Purpose      : Persist refresh state to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _save_state(self):
         """Persist refresh state to disk."""
         try:
@@ -589,6 +997,23 @@ class KnowledgeBaseRefresher:
         except Exception as e:
             logger.error(f"Failed to save state: {e}")
             
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.refresh_pubmed
+    # Requirement  : `refresh_pubmed` shall refresh PubMed papers
+    # Purpose      : Refresh PubMed papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=7)
+    # Outputs      : RefreshResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def refresh_pubmed(self, days_back: int = 7) -> RefreshResult:
         """Refresh PubMed papers.
         
@@ -652,6 +1077,23 @@ class KnowledgeBaseRefresher:
         self._log_refresh_result(result)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.refresh_trials
+    # Requirement  : `refresh_trials` shall refresh clinical trials
+    # Purpose      : Refresh clinical trials
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=30)
+    # Outputs      : RefreshResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def refresh_trials(self, days_back: int = 30) -> RefreshResult:
         """Refresh clinical trials."""
         start_time = datetime.now()
@@ -693,6 +1135,23 @@ class KnowledgeBaseRefresher:
             errors=errors,
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.refresh_arxiv
+    # Requirement  : `refresh_arxiv` shall refresh arXiv preprints
+    # Purpose      : Refresh arXiv preprints
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days_back: int (default=30)
+    # Outputs      : RefreshResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def refresh_arxiv(self, days_back: int = 30) -> RefreshResult:
         """Refresh arXiv preprints."""
         start_time = datetime.now()
@@ -733,6 +1192,23 @@ class KnowledgeBaseRefresher:
             errors=errors,
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._index_paper
+    # Requirement  : `_index_paper` shall index a paper into vector store and knowledge graph
+    # Purpose      : Index a paper into vector store and knowledge graph
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: dict
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _index_paper(self, paper: dict):
         """Index a paper into vector store and knowledge graph."""
         # Create document text
@@ -768,6 +1244,23 @@ class KnowledgeBaseRefresher:
         
         logger.debug(f"Indexed paper PMID:{paper['pmid']}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._index_trial
+    # Requirement  : `_index_trial` shall index a clinical trial
+    # Purpose      : Index a clinical trial
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : trial: dict
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _index_trial(self, trial: dict):
         """Index a clinical trial."""
         text = f"{trial['title']}\n\n{trial['description']}\n\n{trial.get('detailed_description', '')}"
@@ -787,6 +1280,23 @@ class KnowledgeBaseRefresher:
                 ids=[f"nct_{trial['nct_id']}"]
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._index_arxiv_paper
+    # Requirement  : `_index_arxiv_paper` shall index an arXiv paper
+    # Purpose      : Index an arXiv paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: dict
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _index_arxiv_paper(self, paper: dict):
         """Index an arXiv paper."""
         text = f"{paper['title']}\n\n{paper['abstract']}"
@@ -806,6 +1316,23 @@ class KnowledgeBaseRefresher:
                 ids=[f"arxiv_{paper['arxiv_id']}"]
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._add_paper_to_graph
+    # Requirement  : `_add_paper_to_graph` shall add paper and relationships to knowledge graph
+    # Purpose      : Add paper and relationships to knowledge graph
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: dict
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _add_paper_to_graph(self, paper: dict):
         """Add paper and relationships to knowledge graph."""
         if self.graph_store is None:
@@ -845,6 +1372,23 @@ class KnowledgeBaseRefresher:
         except Exception as e:
             logger.warning(f"Failed to add paper to graph: {e}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher._log_refresh_result
+    # Requirement  : `_log_refresh_result` shall log refresh result to history
+    # Purpose      : Log refresh result to history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : result: RefreshResult
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _log_refresh_result(self, result: RefreshResult):
         """Log refresh result to history."""
         self.state["refresh_history"].append({
@@ -859,6 +1403,23 @@ class KnowledgeBaseRefresher:
         self.state["refresh_history"] = self.state["refresh_history"][-100:]
         self._save_state()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.start_scheduler
+    # Requirement  : `start_scheduler` shall start the automatic refresh scheduler using APScheduler
+    # Purpose      : Start the automatic refresh scheduler using APScheduler
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def start_scheduler(self):
         """Start the automatic refresh scheduler using APScheduler."""
         try:
@@ -898,6 +1459,23 @@ class KnowledgeBaseRefresher:
         except ImportError:
             logger.warning("APScheduler not installed. Auto-refresh scheduling disabled.")
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.run_full_refresh
+    # Requirement  : `run_full_refresh` shall run a full refresh of all sources
+    # Purpose      : Run a full refresh of all sources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict[str, RefreshResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_full_refresh(self) -> dict[str, RefreshResult]:
         """Run a full refresh of all sources.
         
@@ -921,6 +1499,23 @@ class KnowledgeBaseRefresher:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.get_refresh_stats
+    # Requirement  : `get_refresh_stats` shall get current refresh statistics
+    # Purpose      : Get current refresh statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_refresh_stats(self) -> dict:
         """Get current refresh statistics.
         
@@ -939,6 +1534,23 @@ class KnowledgeBaseRefresher:
             "recent_history": self.state.get("refresh_history", [])[-10:],
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.auto_refresh.KnowledgeBaseRefresher.close
+    # Requirement  : `close` shall cleanup resources
+    # Purpose      : Cleanup resources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Cleanup resources."""
         if self.scheduler is not None:
@@ -949,6 +1561,23 @@ class KnowledgeBaseRefresher:
 
 
 # CLI for manual refresh
+# ---------------------------------------------------------------------------
+# ID           : ingestion.auto_refresh.main
+# Requirement  : `main` shall run a manual refresh from command line
+# Purpose      : Run a manual refresh from command line
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def main():
     """Run a manual refresh from command line."""
     import argparse

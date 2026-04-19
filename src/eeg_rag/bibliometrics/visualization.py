@@ -26,6 +26,23 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.visualization.ChartResult
+# Requirement  : `ChartResult` class shall be instantiable and expose the documented interface
+# Purpose      : Container for chart output with multiple formats
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ChartResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ChartResult:
     """
@@ -42,12 +59,46 @@ class ChartResult:
     figure: Any = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.ChartResult.to_html_img
+    # Requirement  : `to_html_img` shall return HTML img tag for embedding
+    # Purpose      : Return HTML img tag for embedding
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_html_img(self) -> str:
         """Return HTML img tag for embedding."""
         if self.png_base64:
             return f'<img src="data:image/png;base64,{self.png_base64}" alt="{self.title}" />'
         return ""
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.ChartResult.save
+    # Requirement  : `save` shall save chart to file
+    # Purpose      : Save chart to file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Union[str, Path]; format: str (default='png')
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save(self, path: Union[str, Path], format: str = "png") -> None:
         """Save chart to file."""
         path = Path(path)
@@ -58,6 +109,23 @@ class ChartResult:
                 f.write(base64.b64decode(self.png_base64))
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.visualization.EEGVisualization
+# Requirement  : `EEGVisualization` class shall be instantiable and expose the documented interface
+# Purpose      : Visualization engine for EEG bibliometric data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGVisualization with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGVisualization:
     """
     Visualization engine for EEG bibliometric data.
@@ -85,6 +153,23 @@ class EEGVisualization:
         "#17becf",  # Cyan - BCI
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.__init__
+    # Requirement  : `__init__` shall initialize visualization engine
+    # Purpose      : Initialize visualization engine
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : style: str (default='seaborn-v0_8-whitegrid')
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, style: str = "seaborn-v0_8-whitegrid") -> None:
         """
         Initialize visualization engine.
@@ -97,6 +182,23 @@ class EEGVisualization:
         self._np = None
         self._check_dependencies()
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization._check_dependencies
+    # Requirement  : `_check_dependencies` shall check if visualization dependencies are available
+    # Purpose      : Check if visualization dependencies are available
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_dependencies(self) -> bool:
         """Check if visualization dependencies are available."""
         try:
@@ -114,6 +216,23 @@ class EEGVisualization:
             logger.error(f"Error setting up matplotlib: {e}")
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization._figure_to_base64
+    # Requirement  : `_figure_to_base64` shall convert matplotlib figure to base64 PNG string
+    # Purpose      : Convert matplotlib figure to base64 PNG string
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : fig
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _figure_to_base64(self, fig) -> str:
         """Convert matplotlib figure to base64 PNG string."""
         buf = io.BytesIO()
@@ -121,6 +240,23 @@ class EEGVisualization:
         buf.seek(0)
         return base64.b64encode(buf.read()).decode('utf-8')
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization._parse_date
+    # Requirement  : `_parse_date` shall parse publication date string
+    # Purpose      : Parse publication date string
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : date_str: Optional[str]
+    # Outputs      : Optional[datetime]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
         """Parse publication date string."""
         if not date_str:
@@ -133,6 +269,23 @@ class EEGVisualization:
             except (ValueError, TypeError):
                 return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_publication_trends
+    # Requirement  : `plot_publication_trends` shall plot publication trends over time
+    # Purpose      : Plot publication trends over time
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; interval: str (default='year'); date_from: Optional[datetime] (default=None); date_to: Optional[datetime] (default=None); color_root: str (default='#1f77b4'); color_base: str (default='#a6cee3'); show_cumulative: bool (default=False)
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_publication_trends(
         self,
         articles: List[Any],
@@ -256,6 +409,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_topic_evolution
+    # Requirement  : `plot_topic_evolution` shall plot topic/domain evolution over time
+    # Purpose      : Plot topic/domain evolution over time
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; field_key: str (default='domain'); interval: str (default='year'); top_n: int (default=8); date_from: Optional[datetime] (default=None); date_to: Optional[datetime] (default=None)
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_topic_evolution(
         self,
         articles: List[Any],
@@ -377,6 +547,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_top_authors
+    # Requirement  : `plot_top_authors` shall plot top authors by publications or citations
+    # Purpose      : Plot top authors by publications or citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; top_n: int (default=10); by_citations: bool (default=False); date_from: Optional[datetime] (default=None); date_to: Optional[datetime] (default=None)
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_top_authors(
         self,
         articles: List[Any],
@@ -482,6 +669,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_citation_distribution
+    # Requirement  : `plot_citation_distribution` shall plot citation count distribution
+    # Purpose      : Plot citation count distribution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; bins: int (default=30); log_scale: bool (default=True)
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_citation_distribution(
         self,
         articles: List[Any],
@@ -559,6 +763,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_venue_distribution
+    # Requirement  : `plot_venue_distribution` shall plot publication venue distribution
+    # Purpose      : Plot publication venue distribution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; top_n: int (default=15)
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_venue_distribution(
         self,
         articles: List[Any],
@@ -631,6 +852,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.plot_network_graph
+    # Requirement  : `plot_network_graph` shall plot network graph visualization
+    # Purpose      : Plot network graph visualization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : graph: Any; node_size_attr: Optional[str] (default=None); node_color_attr: Optional[str] (default=None); max_nodes: int (default=100); layout: str (default='spring'); title: str (default='Network Graph')
+    # Outputs      : ChartResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plot_network_graph(
         self,
         graph: Any,
@@ -719,6 +957,23 @@ class EEGVisualization:
         plt.close(fig)
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.visualization.EEGVisualization.create_research_dashboard
+    # Requirement  : `create_research_dashboard` shall create a comprehensive research dashboard with multiple charts
+    # Purpose      : Create a comprehensive research dashboard with multiple charts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; graph: Optional[Any] (default=None)
+    # Outputs      : Dict[str, ChartResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def create_research_dashboard(
         self,
         articles: List[Any],

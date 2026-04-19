@@ -25,6 +25,23 @@ from eeg_rag.review import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.render
+# Requirement  : `render` shall render systematic review extraction page
+# Purpose      : Render systematic review extraction page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render():
     """Render systematic review extraction page."""
     st.header("🔬 Systematic Review Extraction")
@@ -60,6 +77,23 @@ def render():
         render_analysis_export()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.render_schema_setup
+# Requirement  : `render_schema_setup` shall render schema setup interface
+# Purpose      : Render schema setup interface
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_schema_setup():
     """Render schema setup interface."""
     st.subheader("Extraction Schema Configuration")
@@ -105,6 +139,23 @@ def render_schema_setup():
             st.info("Load a schema to preview fields")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.render_extraction_interface
+# Requirement  : `render_extraction_interface` shall render paper extraction interface
+# Purpose      : Render paper extraction interface
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_extraction_interface():
     """Render paper extraction interface."""
     st.subheader("Extract Structured Data from Papers")
@@ -185,6 +236,23 @@ def render_extraction_interface():
                     st.code(traceback.format_exc())
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.render_results_viewer
+# Requirement  : `render_results_viewer` shall render results viewer
+# Purpose      : Render results viewer
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_results_viewer():
     """Render results viewer."""
     st.subheader("Extraction Results")
@@ -250,6 +318,23 @@ def render_results_viewer():
     st.dataframe(df, use_container_width=True, height=400)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.render_analysis_export
+# Requirement  : `render_analysis_export` shall render analysis and export interface
+# Purpose      : Render analysis and export interface
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_analysis_export():
     """Render analysis and export interface."""
     st.subheader("Analysis & Export")
@@ -327,6 +412,23 @@ def render_analysis_export():
                 st.error("Excel export requires openpyxl. Install with: pip install openpyxl")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.systematic_review_page.get_demo_papers
+# Requirement  : `get_demo_papers` shall get demo papers for testing
+# Purpose      : Get demo papers for testing
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_demo_papers():
     """Get demo papers for testing."""
     return [

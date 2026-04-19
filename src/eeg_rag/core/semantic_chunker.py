@@ -17,6 +17,23 @@ from ..utils.logging_utils import get_logger
 logger = get_logger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : core.semantic_chunker.Chunk
+# Requirement  : `Chunk` class shall be instantiable and expose the documented interface
+# Purpose      : A semantic chunk of text
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Chunk with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Chunk:
     """A semantic chunk of text"""
@@ -29,6 +46,23 @@ class Chunk:
     tokens: int = 0
     sentences: int = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.Chunk.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             'chunk_id': self.chunk_id,
@@ -43,9 +77,43 @@ class Chunk:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : core.semantic_chunker.SemanticChunker
+# Requirement  : `SemanticChunker` class shall be instantiable and expose the documented interface
+# Purpose      : Creates semantically coherent chunks with boundary detection
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SemanticChunker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SemanticChunker:
     """Creates semantically coherent chunks with boundary detection"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker.__init__
+    # Requirement  : `__init__` shall initialize semantic chunker
+    # Purpose      : Initialize semantic chunker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default='all-MiniLM-L6-v2'); chunk_size: int (default=512); overlap: int (default=50); similarity_threshold: float (default=0.6); min_chunk_size: int (default=100)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, 
                  model_name: str = 'all-MiniLM-L6-v2',
                  chunk_size: int = 512,
@@ -74,6 +142,23 @@ class SemanticChunker:
             logger.warning(f"Could not load sentence transformer: {e}")
             self.sentence_model = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker.chunk_text
+    # Requirement  : `chunk_text` shall main chunking method
+    # Purpose      : Main chunking method
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; doc_id: str (default='doc'); metadata: Dict[str, Any] (default=None)
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_text(self, text: str, doc_id: str = "doc", 
                    metadata: Dict[str, Any] = None) -> List[Chunk]:
         """Main chunking method"""
@@ -96,6 +181,23 @@ class SemanticChunker:
         
         return final_chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker.chunk_document
+    # Requirement  : `chunk_document` shall chunk a document with structure preservation
+    # Purpose      : Chunk a document with structure preservation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : document: str; doc_id: str (default='doc'); preserve_structure: bool (default=True)
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_document(self, document: str, doc_id: str = "doc",
                       preserve_structure: bool = True) -> List[Chunk]:
         """Chunk a document with structure preservation"""
@@ -104,6 +206,23 @@ class SemanticChunker:
         else:
             return self.chunk_text(document, doc_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._split_into_sentences
+    # Requirement  : `_split_into_sentences` shall split text into sentences with positions
+    # Purpose      : Split text into sentences with positions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[Tuple[str, int, int]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _split_into_sentences(self, text: str) -> List[Tuple[str, int, int]]:
         """Split text into sentences with positions"""
         # Enhanced sentence splitting for scientific text
@@ -149,6 +268,23 @@ class SemanticChunker:
         
         return [s for s in sentences if s[0]]  # Filter empty sentences
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._detect_semantic_boundaries
+    # Requirement  : `_detect_semantic_boundaries` shall detect semantic boundaries between sentences
+    # Purpose      : Detect semantic boundaries between sentences
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sentences: List[Tuple[str, int, int]]
+    # Outputs      : List[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_semantic_boundaries(self, sentences: List[Tuple[str, int, int]]) -> List[float]:
         """Detect semantic boundaries between sentences"""
         if not self.sentence_model or len(sentences) < 2:
@@ -177,6 +313,23 @@ class SemanticChunker:
             logger.warning(f"Error in semantic boundary detection: {e}")
             return self._heuristic_boundaries(sentences)
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._heuristic_boundaries
+    # Requirement  : `_heuristic_boundaries` shall fallback heuristic boundary detection
+    # Purpose      : Fallback heuristic boundary detection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sentences: List[Tuple[str, int, int]]
+    # Outputs      : List[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _heuristic_boundaries(self, sentences: List[Tuple[str, int, int]]) -> List[float]:
         """Fallback heuristic boundary detection"""
         boundaries = []
@@ -222,6 +375,23 @@ class SemanticChunker:
         
         return boundaries
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._create_chunks_from_boundaries
+    # Requirement  : `_create_chunks_from_boundaries` shall create chunks based on semantic boundaries
+    # Purpose      : Create chunks based on semantic boundaries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sentences: List[Tuple[str, int, int]]; boundaries: List[float]; doc_id: str; metadata: Dict[str, Any]
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_chunks_from_boundaries(self, sentences: List[Tuple[str, int, int]], 
                                      boundaries: List[float],
                                      doc_id: str, metadata: Dict[str, Any]) -> List[Chunk]:
@@ -281,6 +451,23 @@ class SemanticChunker:
         
         return chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._get_overlap_sentences
+    # Requirement  : `_get_overlap_sentences` shall get overlap sentences for next chunk
+    # Purpose      : Get overlap sentences for next chunk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sentences: List[Tuple[str, int, int]]
+    # Outputs      : List[Tuple[str, int, int]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_overlap_sentences(self, sentences: List[Tuple[str, int, int]]) -> List[Tuple[str, int, int]]:
         """Get overlap sentences for next chunk"""
         if not sentences:
@@ -301,6 +488,23 @@ class SemanticChunker:
         
         return overlap_sentences
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._post_process_chunks
+    # Requirement  : `_post_process_chunks` shall post-process chunks (merge small ones, validate)
+    # Purpose      : Post-process chunks (merge small ones, validate)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[Chunk]
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _post_process_chunks(self, chunks: List[Chunk]) -> List[Chunk]:
         """Post-process chunks (merge small ones, validate)"""
         if not chunks:
@@ -335,6 +539,23 @@ class SemanticChunker:
         
         return processed_chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._chunk_with_structure_preservation
+    # Requirement  : `_chunk_with_structure_preservation` shall chunk document while preserving structure (sections, paragraphs)
+    # Purpose      : Chunk document while preserving structure (sections, paragraphs)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : document: str; doc_id: str
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _chunk_with_structure_preservation(self, document: str, doc_id: str) -> List[Chunk]:
         """Chunk document while preserving structure (sections, paragraphs)"""
         # Detect structural elements
@@ -361,6 +582,23 @@ class SemanticChunker:
         
         return all_chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._detect_sections
+    # Requirement  : `_detect_sections` shall detect sections in a document
+    # Purpose      : Detect sections in a document
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : document: str
+    # Outputs      : List[Tuple[str, str, int]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_sections(self, document: str) -> List[Tuple[str, str, int]]:
         """Detect sections in a document"""
         # Simple section detection based on headers
@@ -405,11 +643,45 @@ class SemanticChunker:
         
         return sections
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker._estimate_tokens
+    # Requirement  : `_estimate_tokens` shall estimate token count (rough approximation)
+    # Purpose      : Estimate token count (rough approximation)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_tokens(self, text: str) -> int:
         """Estimate token count (rough approximation)"""
         # Simple estimation: 1 token ≈ 4 characters for English text
         return max(len(text) // 4, 1)
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.semantic_chunker.SemanticChunker.get_chunking_stats
+    # Requirement  : `get_chunking_stats` shall get statistics about chunking results
+    # Purpose      : Get statistics about chunking results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[Chunk]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_chunking_stats(self, chunks: List[Chunk]) -> Dict[str, Any]:
         """Get statistics about chunking results"""
         if not chunks:
@@ -433,6 +705,23 @@ class SemanticChunker:
 
 
 # Convenience function for quick chunking
+# ---------------------------------------------------------------------------
+# ID           : core.semantic_chunker.chunk_text
+# Requirement  : `chunk_text` shall quick function to chunk text
+# Purpose      : Quick function to chunk text
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : text: str; chunk_size: int (default=512); overlap: int (default=50)
+# Outputs      : List[Chunk]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def chunk_text(text: str, chunk_size: int = 512, overlap: int = 50) -> List[Chunk]:
     """Quick function to chunk text"""
     chunker = SemanticChunker(chunk_size=chunk_size, overlap=overlap)

@@ -34,6 +34,23 @@ from .research_export import EEGResearchExporter
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.rag_integration.BibliometricInsight
+# Requirement  : `BibliometricInsight` class shall be instantiable and expose the documented interface
+# Purpose      : A single bibliometric insight to include in RAG results
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BibliometricInsight with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BibliometricInsight:
     """A single bibliometric insight to include in RAG results."""
@@ -45,6 +62,23 @@ class BibliometricInsight:
     relevance_score: float = 1.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.rag_integration.EnhancedRAGResult
+# Requirement  : `EnhancedRAGResult` class shall be instantiable and expose the documented interface
+# Purpose      : RAG result enhanced with bibliometric data and visualizations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EnhancedRAGResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EnhancedRAGResult:
     """RAG result enhanced with bibliometric data and visualizations."""
@@ -57,6 +91,23 @@ class EnhancedRAGResult:
     charts: Dict[str, str] = field(default_factory=dict)  # name -> base64
     processing_time_ms: float = 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.EnhancedRAGResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for JSON serialization
+    # Purpose      : Convert to dictionary for JSON serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -81,6 +132,23 @@ class EnhancedRAGResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.rag_integration.BibliometricEnhancer
+# Requirement  : `BibliometricEnhancer` class shall be instantiable and expose the documented interface
+# Purpose      : Enhances RAG results with bibliometric insights and visualizations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BibliometricEnhancer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BibliometricEnhancer:
     """
     Enhances RAG results with bibliometric insights and visualizations.
@@ -99,6 +167,23 @@ class BibliometricEnhancer:
         'Publication Trends in Seizure Detection'
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.__init__
+    # Requirement  : `__init__` shall initialize the bibliometric enhancer
+    # Purpose      : Initialize the bibliometric enhancer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : enable_visualizations: bool (default=True); enable_nlp: bool (default=True); enable_metrics: bool (default=True); auto_fetch_articles: bool (default=False); max_articles: int (default=50); chart_style: str (default='seaborn-v0_8-whitegrid')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         enable_visualizations: bool = True,
@@ -134,6 +219,23 @@ class BibliometricEnhancer:
         
         logger.info("BibliometricEnhancer initialized")
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.viz
+    # Requirement  : `viz` shall lazy-load visualization component
+    # Purpose      : Lazy-load visualization component
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : EEGVisualization
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def viz(self) -> EEGVisualization:
         """Lazy-load visualization component."""
@@ -141,6 +243,23 @@ class BibliometricEnhancer:
             self._viz = EEGVisualization(style=self._chart_style)
         return self._viz
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.nlp
+    # Requirement  : `nlp` shall lazy-load NLP component
+    # Purpose      : Lazy-load NLP component
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : EEGNLPEnhancer
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def nlp(self) -> EEGNLPEnhancer:
         """Lazy-load NLP component."""
@@ -148,6 +267,23 @@ class BibliometricEnhancer:
             self._nlp = EEGNLPEnhancer()
         return self._nlp
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.exporter
+    # Requirement  : `exporter` shall lazy-load exporter component
+    # Purpose      : Lazy-load exporter component
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : EEGResearchExporter
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def exporter(self) -> EEGResearchExporter:
         """Lazy-load exporter component."""
@@ -155,6 +291,23 @@ class BibliometricEnhancer:
             self._exporter = EEGResearchExporter()
         return self._exporter
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.biblionet
+    # Requirement  : `biblionet` shall lazy-load biblionet component
+    # Purpose      : Lazy-load biblionet component
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : EEGBiblioNet
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def biblionet(self) -> EEGBiblioNet:
         """Lazy-load biblionet component."""
@@ -162,6 +315,23 @@ class BibliometricEnhancer:
             self._biblionet = EEGBiblioNet()
         return self._biblionet
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.enhance_rag_result
+    # Requirement  : `enhance_rag_result` shall enhance a RAG result with bibliometric insights
+    # Purpose      : Enhance a RAG result with bibliometric insights
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; rag_response: str; cited_articles: Optional[List[EEGArticle]] (default=None); include_trends: bool (default=True); include_author_analysis: bool (default=True); include_keywords: bool (default=True); include_citations: bool (default=True)
+    # Outputs      : EnhancedRAGResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def enhance_rag_result(
         self,
         query: str,
@@ -304,6 +474,23 @@ class BibliometricEnhancer:
             processing_time_ms=processing_time
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._generate_trends_insight
+    # Requirement  : `_generate_trends_insight` shall generate publication trends insight
+    # Purpose      : Generate publication trends insight
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[EEGArticle]; query: str
+    # Outputs      : Tuple[Optional[BibliometricInsight], Optional[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_trends_insight(
         self,
         articles: List[EEGArticle],
@@ -345,6 +532,23 @@ class BibliometricEnhancer:
         
         return insight, chart_base64
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._generate_author_insight
+    # Requirement  : `_generate_author_insight` shall generate top authors insight
+    # Purpose      : Generate top authors insight
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[EEGArticle]
+    # Outputs      : Tuple[Optional[BibliometricInsight], Optional[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_author_insight(
         self,
         articles: List[EEGArticle]
@@ -382,6 +586,23 @@ class BibliometricEnhancer:
         
         return insight, chart_base64
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._generate_citation_insight
+    # Requirement  : `_generate_citation_insight` shall generate citation distribution insight
+    # Purpose      : Generate citation distribution insight
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[EEGArticle]
+    # Outputs      : Tuple[Optional[BibliometricInsight], Optional[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_citation_insight(
         self,
         articles: List[EEGArticle]
@@ -415,6 +636,23 @@ class BibliometricEnhancer:
         
         return insight, chart_base64
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._compute_research_summary
+    # Requirement  : `_compute_research_summary` shall compute summary statistics for research area
+    # Purpose      : Compute summary statistics for research area
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[EEGArticle]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compute_research_summary(
         self,
         articles: List[EEGArticle]
@@ -453,6 +691,23 @@ class BibliometricEnhancer:
             },
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._chart_to_base64
+    # Requirement  : `_chart_to_base64` shall convert chart to base64 string for embedding
+    # Purpose      : Convert chart to base64 string for embedding
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chart_result: ChartResult
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _chart_to_base64(self, chart_result: ChartResult) -> Optional[str]:
         """Convert chart to base64 string for embedding."""
         if chart_result.figure is None:
@@ -469,6 +724,23 @@ class BibliometricEnhancer:
             logger.warning(f"Failed to convert chart to base64: {e}")
             return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer._fetch_relevant_articles
+    # Requirement  : `_fetch_relevant_articles` shall fetch relevant articles from OpenAlex
+    # Purpose      : Fetch relevant articles from OpenAlex
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_results: int (default=20)
+    # Outputs      : List[EEGArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_relevant_articles(
         self,
         query: str,
@@ -503,6 +775,23 @@ class BibliometricEnhancer:
             logger.error(f"Failed to fetch articles: {e}")
             return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.rag_integration.BibliometricEnhancer.should_enhance
+    # Requirement  : `should_enhance` shall determine if a query would benefit from bibliometric enhancement
+    # Purpose      : Determine if a query would benefit from bibliometric enhancement
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def should_enhance(self, query: str) -> bool:
         """
         Determine if a query would benefit from bibliometric enhancement.

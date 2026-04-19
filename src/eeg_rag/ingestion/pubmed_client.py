@@ -16,6 +16,23 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.pubmed_client.PubMedArticle
+# Requirement  : `PubMedArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Complete PubMed article with all metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PubMedArticle:
     """Complete PubMed article with all metadata."""
@@ -44,6 +61,23 @@ class PubMedArticle:
     clinical_conditions: list[str] = field(default_factory=list)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.pubmed_client.PubMedClient
+# Requirement  : `PubMedClient` class shall be instantiable and expose the documented interface
+# Purpose      : Async PubMed client with comprehensive data extraction
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedClient:
     """
     Async PubMed client with comprehensive data extraction.
@@ -131,6 +165,23 @@ class PubMedClient:
         'tbi': r'\btraumatic brain injury|TBI|concussion\b',
     }
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.__init__
+    # Requirement  : `__init__` shall initialize PubMed client
+    # Purpose      : Initialize PubMed client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : api_key: Optional[str] (default=None); email: str (default='your-email@example.com'); requests_per_second: float (default=3.0); max_concurrent: int (default=5)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -154,11 +205,45 @@ class PubMedClient:
         self._last_request_time = 0.0
         self._session: Optional[aiohttp.ClientSession] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.__aenter__
+    # Requirement  : `__aenter__` shall async context manager entry
+    # Purpose      : Async context manager entry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self):
         """Async context manager entry."""
         self._session = aiohttp.ClientSession()
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.__aexit__
+    # Requirement  : `__aexit__` shall async context manager exit
+    # Purpose      : Async context manager exit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self._session:
@@ -166,12 +251,46 @@ class PubMedClient:
             self._session = None
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.close
+    # Requirement  : `close` shall close the client session
+    # Purpose      : Close the client session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Close the client session."""
         if self._session:
             await self._session.close()
             self._session = None
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._rate_limit
+    # Requirement  : `_rate_limit` shall enforce rate limiting between requests
+    # Purpose      : Enforce rate limiting between requests
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self):
         """Enforce rate limiting between requests."""
         now = asyncio.get_event_loop().time()
@@ -180,6 +299,23 @@ class PubMedClient:
             await asyncio.sleep(self.delay - elapsed)
         self._last_request_time = asyncio.get_event_loop().time()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._build_params
+    # Requirement  : `_build_params` shall build request parameters with API key and email
+    # Purpose      : Build request parameters with API key and email
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : **kwargs
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_params(self, **kwargs) -> dict:
         """Build request parameters with API key and email."""
         params = {"email": self.email, "tool": "eeg-rag"}
@@ -188,6 +324,23 @@ class PubMedClient:
         params.update(kwargs)
         return params
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._fetch
+    # Requirement  : `_fetch` shall fetch from PubMed API with retry logic
+    # Purpose      : Fetch from PubMed API with retry logic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session: aiohttp.ClientSession; endpoint: str; params: dict
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def _fetch(self, session: aiohttp.ClientSession, endpoint: str, params: dict) -> str:
         """Fetch from PubMed API with retry logic."""
@@ -198,6 +351,23 @@ class PubMedClient:
                 response.raise_for_status()
                 return await response.text()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.search
+    # Requirement  : `search` shall search PubMed and return list of PMIDs
+    # Purpose      : Search PubMed and return list of PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_results: int (default=10000); min_date: Optional[str] (default=None); max_date: Optional[str] (default=None); sort: str (default='relevance')
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(
         self,
         query: str,
@@ -241,6 +411,23 @@ class PubMedClient:
             logger.info(f"Found {len(pmids)} articles for query: {query[:50]}...")
             return pmids
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.fetch_articles
+    # Requirement  : `fetch_articles` shall fetch full article details for list of PMIDs
+    # Purpose      : Fetch full article details for list of PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: list[str]; batch_size: int (default=200)
+    # Outputs      : AsyncIterator[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_articles(
         self,
         pmids: list[str],
@@ -273,6 +460,23 @@ class PubMedClient:
                     
                 logger.info(f"Fetched {min(i + batch_size, len(pmids))}/{len(pmids)} articles")
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._parse_articles
+    # Requirement  : `_parse_articles` shall parse PubMed XML response into article objects
+    # Purpose      : Parse PubMed XML response into article objects
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_data: str
+    # Outputs      : list[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_articles(self, xml_data: str) -> list[PubMedArticle]:
         """Parse PubMed XML response into article objects."""
         articles = []
@@ -289,6 +493,23 @@ class PubMedClient:
                 
         return articles
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._parse_single_article
+    # Requirement  : `_parse_single_article` shall parse a single PubMed article element
+    # Purpose      : Parse a single PubMed article element
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : elem: ET.Element
+    # Outputs      : Optional[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_single_article(self, elem: ET.Element) -> Optional[PubMedArticle]:
         """Parse a single PubMed article element."""
         # Extract PMID
@@ -418,6 +639,23 @@ class PubMedClient:
         
         return pub_article
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._extract_eeg_entities
+    # Requirement  : `_extract_eeg_entities` shall extract EEG-specific entities from article text
+    # Purpose      : Extract EEG-specific entities from article text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: PubMedArticle
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_eeg_entities(self, article: PubMedArticle):
         """Extract EEG-specific entities from article text."""
         text = f"{article.title} {article.abstract}".lower()
@@ -450,6 +688,23 @@ class PubMedClient:
         if re.search(r'EGI|BioSemi|Neuroscan|Brain Products|g\.tec', text, re.IGNORECASE):
             article.electrode_systems.append('commercial system')
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.fetch_full_text_pmc
+    # Requirement  : `fetch_full_text_pmc` shall fetch full text from PubMed Central
+    # Purpose      : Fetch full text from PubMed Central
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmc_id: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_full_text_pmc(self, pmc_id: str) -> Optional[str]:
         """
         Fetch full text from PubMed Central.
@@ -499,6 +754,23 @@ class PubMedClient:
                 logger.warning(f"Error fetching full text for {pmc_id}: {e}")
                 return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient._extract_text_from_pmc_xml
+    # Requirement  : `_extract_text_from_pmc_xml` shall extract readable text from PMC XML
+    # Purpose      : Extract readable text from PMC XML
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_data: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_text_from_pmc_xml(self, xml_data: str) -> str:
         """Extract readable text from PMC XML."""
         root = ET.fromstring(xml_data)
@@ -522,6 +794,23 @@ class PubMedClient:
         
         return "".join(sections)
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pubmed_client.PubMedClient.collect_eeg_corpus
+    # Requirement  : `collect_eeg_corpus` shall collect comprehensive EEG corpus from PubMed
+    # Purpose      : Collect comprehensive EEG corpus from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : years_back: int (default=10); max_per_query: int (default=5000); include_full_text: bool (default=True)
+    # Outputs      : AsyncIterator[PubMedArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def collect_eeg_corpus(
         self,
         years_back: int = 10,

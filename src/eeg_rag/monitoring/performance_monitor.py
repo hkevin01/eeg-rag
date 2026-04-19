@@ -32,6 +32,23 @@ from eeg_rag.utils.common_utils import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.performance_monitor.PerformanceMetrics
+# Requirement  : `PerformanceMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Performance metrics for monitoring system performance
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PerformanceMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for monitoring system performance"""
@@ -45,11 +62,45 @@ class PerformanceMetrics:
     error_message: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMetrics.duration_seconds
+    # Requirement  : `duration_seconds` shall get duration in seconds
+    # Purpose      : Get duration in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def duration_seconds(self) -> float:
         """Get duration in seconds"""
         return self.duration_ms / 1000.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMetrics.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
@@ -67,6 +118,23 @@ class PerformanceMetrics:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.performance_monitor.BenchmarkResult
+# Requirement  : `BenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result of benchmark testing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass 
 class BenchmarkResult:
     """Result of benchmark testing"""
@@ -82,6 +150,23 @@ class BenchmarkResult:
     system_health: SystemHealth
     timestamp: datetime = field(default_factory=datetime.now)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.BenchmarkResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -99,12 +184,46 @@ class BenchmarkResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.performance_monitor.PerformanceMonitor
+# Requirement  : `PerformanceMonitor` class shall be instantiable and expose the documented interface
+# Purpose      : Advanced performance monitoring system with real-time metrics collection,
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PerformanceMonitor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PerformanceMonitor:
     """
     Advanced performance monitoring system with real-time metrics collection,
     benchmarking capabilities, and optimization recommendations.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.__init__
+    # Requirement  : `__init__` shall initialize performance monitor
+    # Purpose      : Initialize performance monitor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_metrics_history: int (default=1000); performance_threshold_ms: float (default=1000.0); memory_threshold_mb: float (default=500.0); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         max_metrics_history: int = 1000,
@@ -150,6 +269,23 @@ class PerformanceMonitor:
             f"mem_threshold={self.memory_threshold_mb}MB"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.start_operation
+    # Requirement  : `start_operation` shall start monitoring an operation
+    # Purpose      : Start monitoring an operation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_name: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def start_operation(self, operation_name: str) -> str:
         """
         Start monitoring an operation
@@ -166,6 +302,23 @@ class PerformanceMonitor:
         self.logger.debug(f"Started monitoring operation: {operation_name}")
         return operation_id
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.end_operation
+    # Requirement  : `end_operation` shall end monitoring an operation and record metrics
+    # Purpose      : End monitoring an operation and record metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_id: str; success: bool (default=True); error_message: Optional[str] (default=None); metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : PerformanceMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def end_operation(
         self, 
         operation_id: str, 
@@ -231,6 +384,23 @@ class PerformanceMonitor:
         
         return metrics
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor._update_operation_stats
+    # Requirement  : `_update_operation_stats` shall update aggregated statistics for operation type
+    # Purpose      : Update aggregated statistics for operation type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : metrics: PerformanceMetrics
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _update_operation_stats(self, metrics: PerformanceMetrics) -> None:
         """Update aggregated statistics for operation type"""
         op_name = metrics.operation_name
@@ -258,6 +428,23 @@ class PerformanceMonitor:
         if len(stats["durations"]) > 100:
             stats["durations"] = stats["durations"][-100:]
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor._check_performance_alerts
+    # Requirement  : `_check_performance_alerts` shall check metrics against thresholds and generate alerts
+    # Purpose      : Check metrics against thresholds and generate alerts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : metrics: PerformanceMetrics
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_performance_alerts(self, metrics: PerformanceMetrics) -> None:
         """Check metrics against thresholds and generate alerts"""
         alerts = []
@@ -280,6 +467,23 @@ class PerformanceMonitor:
         for alert in alerts:
             self.logger.warning(alert)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.get_operation_statistics
+    # Requirement  : `get_operation_statistics` shall get performance statistics for operations
+    # Purpose      : Get performance statistics for operations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_name: Optional[str] (default=None)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_operation_statistics(self, operation_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Get performance statistics for operations
@@ -314,12 +518,46 @@ class PerformanceMonitor:
                 all_stats.update(self.get_operation_statistics(op_name))
             return all_stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.get_recent_metrics
+    # Requirement  : `get_recent_metrics` shall get recent performance metrics
+    # Purpose      : Get recent performance metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : count: int (default=50)
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_recent_metrics(self, count: int = 50) -> List[Dict[str, Any]]:
         """Get recent performance metrics"""
         count = validate_positive_number(count, "count", min_value=1)
         recent = list(self.metrics_history)[-count:]
         return [m.to_dict() for m in recent]
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.benchmark_operation
+    # Requirement  : `benchmark_operation` shall benchmark an operation with multiple iterations
+    # Purpose      : Benchmark an operation with multiple iterations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_func: Callable; operation_args: tuple (default=()); operation_kwargs: Optional[Dict[str, Any]] (default=None); iterations: int (default=100); benchmark_name: str (default='benchmark')
+    # Outputs      : BenchmarkResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def benchmark_operation(
         self,
         operation_func: Callable,
@@ -414,6 +652,23 @@ class PerformanceMonitor:
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.benchmark_async_operation
+    # Requirement  : `benchmark_async_operation` shall benchmark an async operation
+    # Purpose      : Benchmark an async operation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : async_operation_func: Callable; operation_args: tuple (default=()); operation_kwargs: Optional[Dict[str, Any]] (default=None); iterations: int (default=100); benchmark_name: str (default='async_benchmark'); concurrency: int (default=1)
+    # Outputs      : BenchmarkResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def benchmark_async_operation(
         self,
         async_operation_func: Callable,
@@ -451,6 +706,23 @@ class PerformanceMonitor:
         # Semaphore to control concurrency
         semaphore = asyncio.Semaphore(concurrency)
         
+        # ---------------------------------------------------------------------------
+        # ID           : monitoring.performance_monitor.PerformanceMonitor.run_iteration
+        # Requirement  : `run_iteration` shall execute as specified
+        # Purpose      : Run iteration
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : i: int
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         async def run_iteration(i: int):
             async with semaphore:
                 op_id = self.start_operation(f"{benchmark_name}_async_iter_{i}")
@@ -514,6 +786,23 @@ class PerformanceMonitor:
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.PerformanceMonitor.export_metrics
+    # Requirement  : `export_metrics` shall export collected metrics to file
+    # Purpose      : Export collected metrics to file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : filepath: Path; format: str (default='json')
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_metrics(self, filepath: Path, format: str = "json") -> None:
         """
         Export collected metrics to file
@@ -548,11 +837,45 @@ class PerformanceMonitor:
         self.logger.info(f"Metrics exported to {filepath} in {format} format")
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.performance_monitor.SystemOptimizer
+# Requirement  : `SystemOptimizer` class shall be instantiable and expose the documented interface
+# Purpose      : System optimization recommendations based on performance metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystemOptimizer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystemOptimizer:
     """
     System optimization recommendations based on performance metrics
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer.__init__
+    # Requirement  : `__init__` shall initialize optimizer with performance monitor
+    # Purpose      : Initialize optimizer with performance monitor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : performance_monitor: PerformanceMonitor
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, performance_monitor: PerformanceMonitor):
         """
         Initialize optimizer with performance monitor
@@ -563,6 +886,23 @@ class SystemOptimizer:
         self.performance_monitor = performance_monitor
         self.logger = logging.getLogger("eeg_rag.monitoring.optimizer")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer.analyze_performance
+    # Requirement  : `analyze_performance` shall analyze performance metrics and generate optimization recommendations
+    # Purpose      : Analyze performance metrics and generate optimization recommendations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def analyze_performance(self) -> Dict[str, Any]:
         """
         Analyze performance metrics and generate optimization recommendations
@@ -583,6 +923,23 @@ class SystemOptimizer:
         
         return analysis
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer._summarize_performance
+    # Requirement  : `_summarize_performance` shall generate performance summary
+    # Purpose      : Generate performance summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : stats: Dict[str, Any]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _summarize_performance(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Generate performance summary"""
         summary = {
@@ -610,6 +967,23 @@ class SystemOptimizer:
         
         return summary
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer._identify_bottlenecks
+    # Requirement  : `_identify_bottlenecks` shall identify performance bottlenecks
+    # Purpose      : Identify performance bottlenecks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : stats: Dict[str, Any]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _identify_bottlenecks(self, stats: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Identify performance bottlenecks"""
         bottlenecks = []
@@ -639,6 +1013,23 @@ class SystemOptimizer:
         
         return bottlenecks
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer._analyze_resource_usage
+    # Requirement  : `_analyze_resource_usage` shall analyze resource usage patterns
+    # Purpose      : Analyze resource usage patterns
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : recent_metrics: List[Dict[str, Any]]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _analyze_resource_usage(self, recent_metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze resource usage patterns"""
         if not recent_metrics:
@@ -666,6 +1057,23 @@ class SystemOptimizer:
             }
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.SystemOptimizer._generate_recommendations
+    # Requirement  : `_generate_recommendations` shall generate optimization recommendations
+    # Purpose      : Generate optimization recommendations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : stats: Dict[str, Any]; recent_metrics: List[Dict[str, Any]]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_recommendations(
         self, 
         stats: Dict[str, Any], 
@@ -708,18 +1116,86 @@ class SystemOptimizer:
 
 
 # Performance monitoring context manager
+# ---------------------------------------------------------------------------
+# ID           : monitoring.performance_monitor.monitor_performance
+# Requirement  : `monitor_performance` class shall be instantiable and expose the documented interface
+# Purpose      : Context manager for easy performance monitoring
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate monitor_performance with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class monitor_performance:
     """Context manager for easy performance monitoring"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.monitor_performance.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : monitor: PerformanceMonitor; operation_name: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, monitor: PerformanceMonitor, operation_name: str):
         self.monitor = monitor
         self.operation_name = operation_name
         self.operation_id = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.monitor_performance.__enter__
+    # Requirement  : `__enter__` shall execute as specified
+    # Purpose      :   enter  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __enter__(self):
         self.operation_id = self.monitor.start_operation(self.operation_name)
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.performance_monitor.monitor_performance.__exit__
+    # Requirement  : `__exit__` shall execute as specified
+    # Purpose      :   exit  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __exit__(self, exc_type, exc_val, exc_tb):
         success = exc_type is None
         error_message = str(exc_val) if exc_val else None

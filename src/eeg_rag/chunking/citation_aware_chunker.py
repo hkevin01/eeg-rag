@@ -16,6 +16,23 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : chunking.citation_aware_chunker.Chunk
+# Requirement  : `Chunk` class shall be instantiable and expose the documented interface
+# Purpose      : A chunk of text from a paper
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Chunk with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Chunk:
     """A chunk of text from a paper."""
@@ -29,6 +46,23 @@ class Chunk:
     has_citations: bool = False
 
 
+# ---------------------------------------------------------------------------
+# ID           : chunking.citation_aware_chunker.CitationAwareChunker
+# Requirement  : `CitationAwareChunker` class shall be instantiable and expose the documented interface
+# Purpose      : Smart chunking for research papers that preserves citations and sections
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationAwareChunker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationAwareChunker:
     """
     Smart chunking for research papers that preserves citations and sections.
@@ -60,6 +94,23 @@ class CitationAwareChunker:
         r'et al\.',  # et al.
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.__init__
+    # Requirement  : `__init__` shall initialize chunker
+    # Purpose      : Initialize chunker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunk_size: int (default=512); overlap: int (default=128); min_chunk_size: int (default=100)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         chunk_size: int = 512,
@@ -78,6 +129,23 @@ class CitationAwareChunker:
         self.overlap = overlap
         self.min_chunk_size = min_chunk_size
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.detect_sections
+    # Requirement  : `detect_sections` shall detect sections in paper text
+    # Purpose      : Detect sections in paper text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[Tuple[str, int, int]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def detect_sections(self, text: str) -> List[Tuple[str, int, int]]:
         """
         Detect sections in paper text.
@@ -114,6 +182,23 @@ class CitationAwareChunker:
         
         return sections
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.has_citations
+    # Requirement  : `has_citations` shall check if text contains citations
+    # Purpose      : Check if text contains citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def has_citations(self, text: str) -> bool:
         """Check if text contains citations."""
         for pattern in self.CITATION_PATTERNS:
@@ -121,6 +206,23 @@ class CitationAwareChunker:
                 return True
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.split_into_sentences
+    # Requirement  : `split_into_sentences` shall split text into sentences while preserving citations
+    # Purpose      : Split text into sentences while preserving citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def split_into_sentences(self, text: str) -> List[str]:
         """
         Split text into sentences while preserving citations.
@@ -154,10 +256,44 @@ class CitationAwareChunker:
         
         return sentences
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.estimate_tokens
+    # Requirement  : `estimate_tokens` shall rough token estimation (1 token ≈ 4 characters)
+    # Purpose      : Rough token estimation (1 token ≈ 4 characters)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def estimate_tokens(self, text: str) -> int:
         """Rough token estimation (1 token ≈ 4 characters)."""
         return len(text) // 4
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.chunk_text
+    # Requirement  : `chunk_text` shall chunk text with overlap while preserving sentences
+    # Purpose      : Chunk text with overlap while preserving sentences
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; section: str (default='Unknown'); paper_id: str (default='unknown')
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_text(
         self,
         text: str,
@@ -225,6 +361,23 @@ class CitationAwareChunker:
         
         return chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.chunk_paper
+    # Requirement  : `chunk_paper` shall chunk a complete paper into semantic chunks
+    # Purpose      : Chunk a complete paper into semantic chunks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]; text_field: str (default='text')
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_paper(
         self,
         paper: Dict[str, Any],
@@ -293,6 +446,23 @@ class CitationAwareChunker:
         logger.debug(f"Created {len(all_chunks)} chunks for paper {paper_id}")
         return all_chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : chunking.citation_aware_chunker.CitationAwareChunker.chunk_papers
+    # Requirement  : `chunk_papers` shall chunk multiple papers
+    # Purpose      : Chunk multiple papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; text_field: str (default='text')
+    # Outputs      : List[Chunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_papers(
         self,
         papers: List[Dict[str, Any]],
@@ -322,6 +492,23 @@ class CitationAwareChunker:
         return all_chunks
 
 
+# ---------------------------------------------------------------------------
+# ID           : chunking.citation_aware_chunker.test_chunker
+# Requirement  : `test_chunker` shall test the citation-aware chunker
+# Purpose      : Test the citation-aware chunker
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def test_chunker():
     """Test the citation-aware chunker."""
     logger.info("Testing CitationAwareChunker...")

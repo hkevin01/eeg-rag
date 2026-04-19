@@ -42,6 +42,23 @@ active_streams: Dict[str, asyncio.Queue] = {}
 
 # ============== Lifecycle Management ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.lifespan
+# Requirement  : `lifespan` shall manage application lifespan - startup and shutdown
+# Purpose      : Manage application lifespan - startup and shutdown
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : app: FastAPI
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan - startup and shutdown."""
@@ -127,6 +144,23 @@ app.include_router(stats_router)
 
 # ============== Pydantic Models ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.SearchRequest
+# Requirement  : `SearchRequest` class shall be instantiable and expose the documented interface
+# Purpose      : Search request model
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchRequest with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SearchRequest(BaseModel):
     """Search request model."""
     query: str = Field(..., min_length=3, max_length=500, description="Research query")
@@ -135,6 +169,23 @@ class SearchRequest(BaseModel):
     date_range: Optional[List[int]] = Field(default=None, description="[start_year, end_year]")
     synthesize: bool = Field(default=True, description="Whether to synthesize results")
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.main.Config
+    # Requirement  : `Config` class shall be instantiable and expose the documented interface
+    # Purpose      : Encapsulates Config state and behaviour
+    # Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+    # Inputs       : Constructor arguments — see __init__ signature
+    # Outputs      : N/A (class definition)
+    # Precond.     : All imported dependencies must be available at import time
+    # Postcond.    : Instance attributes initialised as documented; invariants hold
+    # Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+    # Side Effects : May allocate heap memory; __init__ may open connections or load models
+    # Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+    # Err Handling : Constructor raises on invalid args; see __init__ body
+    # Constraints  : Thread-safety not guaranteed unless explicitly documented
+    # Verification : Instantiate Config with valid args; assert attribute types and values
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     class Config:
         json_schema_extra = {
             "example": {
@@ -147,6 +198,23 @@ class SearchRequest(BaseModel):
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.SearchResponse
+# Requirement  : `SearchResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Search response model
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SearchResponse(BaseModel):
     """Search response model."""
     query_id: str
@@ -160,12 +228,46 @@ class SearchResponse(BaseModel):
     metadata: Dict[str, Any] = {}
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.PaperDetailsRequest
+# Requirement  : `PaperDetailsRequest` class shall be instantiable and expose the documented interface
+# Purpose      : Paper details request
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperDetailsRequest with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PaperDetailsRequest(BaseModel):
     """Paper details request."""
     paper_id: str = Field(..., description="Paper identifier (PMID, DOI, or S2 ID)")
     source: str = Field(default="auto", description="Source: auto, pubmed, or s2")
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.CitationRequest
+# Requirement  : `CitationRequest` class shall be instantiable and expose the documented interface
+# Purpose      : Citation network request
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationRequest with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationRequest(BaseModel):
     """Citation network request."""
     paper_id: str = Field(..., description="Paper identifier")
@@ -174,6 +276,23 @@ class CitationRequest(BaseModel):
     max_results: int = Field(default=50, ge=1, le=200)
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.HealthResponse
+# Requirement  : `HealthResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Health check response
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HealthResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HealthResponse(BaseModel):
     """Health check response."""
     status: str
@@ -185,12 +304,46 @@ class HealthResponse(BaseModel):
 
 # ============== API Endpoints ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.root
+# Requirement  : `root` shall root endpoint - redirect to docs
+# Purpose      : Root endpoint - redirect to docs
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/", include_in_schema=False)
 async def root():
     """Root endpoint - redirect to docs."""
     return {"message": "EEG Literature RAG API", "docs": "/docs", "health": "/health"}
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.health_check
+# Requirement  : `health_check` shall health check endpoint
+# Purpose      : Health check endpoint
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """
@@ -212,6 +365,23 @@ async def health_check():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.get_metrics
+# Requirement  : `get_metrics` shall get agent performance metrics
+# Purpose      : Get agent performance metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/metrics")
 async def get_metrics():
     """
@@ -234,6 +404,23 @@ async def get_metrics():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.search
+# Requirement  : `search` shall execute a literature search query
+# Purpose      : Execute a literature search query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: SearchRequest
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.post("/search", response_model=SearchResponse)
 async def search(request: SearchRequest):
     """
@@ -293,6 +480,23 @@ async def search(request: SearchRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.search_stream
+# Requirement  : `search_stream` shall execute a search with streaming progress updates
+# Purpose      : Execute a search with streaming progress updates
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: SearchRequest
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.post("/search/stream")
 async def search_stream(request: SearchRequest):
     """
@@ -326,10 +530,44 @@ async def search_stream(request: SearchRequest):
     progress_queue: asyncio.Queue = asyncio.Queue()
     active_streams[query_id] = progress_queue
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.main.generate_events
+    # Requirement  : `generate_events` shall generate SSE events
+    # Purpose      : Generate SSE events
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def generate_events():
         """Generate SSE events."""
         try:
             # Progress callback
+            # ---------------------------------------------------------------------------
+            # ID           : api.main.on_progress
+            # Requirement  : `on_progress` shall execute as specified
+            # Purpose      : On progress
+            # Rationale    : Implements domain-specific logic per system design; see referenced specs
+            # Inputs       : stage: str; percent: float
+            # Outputs      : Implicitly None or see body
+            # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+            # Postcond.    : Return value satisfies documented output type and range
+            # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+            # Side Effects : May update instance state or perform I/O; see body
+            # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+            # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+            # Constraints  : Synchronous — must not block event loop
+            # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+            # References   : EEG-RAG system design specification; see module docstring
+            # ---------------------------------------------------------------------------
             def on_progress(stage: str, percent: float):
                 try:
                     asyncio.create_task(progress_queue.put({
@@ -417,6 +655,23 @@ async def search_stream(request: SearchRequest):
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.get_paper_details
+# Requirement  : `get_paper_details` shall get detailed information about a specific paper
+# Purpose      : Get detailed information about a specific paper
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: PaperDetailsRequest
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.post("/paper/details")
 async def get_paper_details(request: PaperDetailsRequest):
     """
@@ -445,6 +700,23 @@ async def get_paper_details(request: PaperDetailsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.get_paper_citations
+# Requirement  : `get_paper_citations` shall get citation network for a paper
+# Purpose      : Get citation network for a paper
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: CitationRequest
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.post("/paper/citations")
 async def get_paper_citations(request: CitationRequest):
     """
@@ -474,6 +746,23 @@ async def get_paper_citations(request: CitationRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.suggest_queries
+# Requirement  : `suggest_queries` shall get query suggestions based on prefix
+# Purpose      : Get query suggestions based on prefix
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : prefix: str (default=Query(..., min_length=2, max_length=100, description='Query prefix'))
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/suggest")
 async def suggest_queries(
     prefix: str = Query(..., min_length=2, max_length=100, description="Query prefix")
@@ -513,6 +802,23 @@ async def suggest_queries(
     return {"suggestions": matches[:10], "total": len(matches)}
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.get_query_types
+# Requirement  : `get_query_types` shall get available query types and their descriptions
+# Purpose      : Get available query types and their descriptions
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/query-types")
 async def get_query_types():
     """
@@ -561,6 +867,23 @@ async def get_query_types():
     return {"query_types": query_types}
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.not_found_handler
+# Requirement  : `not_found_handler` shall custom 404 handler
+# Purpose      : Custom 404 handler
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: Request; exc: HTTPException
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc: HTTPException):
     """Custom 404 handler."""
@@ -574,6 +897,23 @@ async def not_found_handler(request: Request, exc: HTTPException):
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.internal_error_handler
+# Requirement  : `internal_error_handler` shall custom 500 handler
+# Purpose      : Custom 500 handler
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: Request; exc: Exception
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc: Exception):
     """Custom 500 handler."""
@@ -590,6 +930,23 @@ async def internal_error_handler(request: Request, exc: Exception):
 
 # ============== Development Server ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.main.run_server
+# Requirement  : `run_server` shall run the FastAPI server with uvicorn
+# Purpose      : Run the FastAPI server with uvicorn
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : host: str (default='0.0.0.0'); port: int (default=8080); reload: bool (default=False)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def run_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = False):
     """Run the FastAPI server with uvicorn."""
     import uvicorn

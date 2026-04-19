@@ -48,6 +48,23 @@ from eeg_rag.utils.common_utils import (
 from enum import Enum
 
 
+# ---------------------------------------------------------------------------
+# ID           : memory.memory_manager.MemoryType
+# Requirement  : `MemoryType` class shall be instantiable and expose the documented interface
+# Purpose      : Type of memory entry
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MemoryType(Enum):
     """Type of memory entry"""
     QUERY = "query"
@@ -58,6 +75,23 @@ class MemoryType(Enum):
     USER_PREFERENCE = "user_preference"
 
 
+# ---------------------------------------------------------------------------
+# ID           : memory.memory_manager.MemoryEntry
+# Requirement  : `MemoryEntry` class shall be instantiable and expose the documented interface
+# Purpose      : Single memory entry
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryEntry with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class MemoryEntry:
     """
@@ -79,6 +113,23 @@ class MemoryEntry:
     metadata: Dict[str, Any] = field(default_factory=dict)
     entry_id: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.__post_init__
+    # Requirement  : `__post_init__` shall generate unique ID if not provided and validate all fields
+    # Purpose      : Generate unique ID if not provided and validate all fields
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Generate unique ID if not provided and validate all fields"""
         # REQ-MEM-025: Validate content
@@ -108,6 +159,23 @@ class MemoryEntry:
                 prefix=self.memory_type.value
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for storage
+    # Purpose      : Convert to dictionary for storage
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage"""
         try:
@@ -122,6 +190,23 @@ class MemoryEntry:
         except Exception as e:
             raise ValueError(f"Failed to serialize MemoryEntry: {str(e)}") from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.from_dict
+    # Requirement  : `from_dict` shall create from dictionary with validation
+    # Purpose      : Create from dictionary with validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : 'MemoryEntry'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "MemoryEntry":
         """Create from dictionary with validation"""
@@ -146,6 +231,23 @@ class MemoryEntry:
         except Exception as e:
             raise ValueError(f"Failed to deserialize MemoryEntry: {str(e)}") from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.is_expired
+    # Requirement  : `is_expired` shall check if entry is expired
+    # Purpose      : Check if entry is expired
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ttl_seconds: float
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def is_expired(self, ttl_seconds: float) -> bool:
         """
         Check if entry is expired
@@ -165,6 +267,23 @@ class MemoryEntry:
         age_seconds = (datetime.now() - self.timestamp).total_seconds()
         return age_seconds > ttl_seconds
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.update_relevance_score
+    # Requirement  : `update_relevance_score` shall update relevance score with validation
+    # Purpose      : Update relevance score with validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_score: float; reason: Optional[str] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def update_relevance_score(self, new_score: float, reason: Optional[str] = None) -> None:
         """
         Update relevance score with validation
@@ -189,6 +308,23 @@ class MemoryEntry:
             "reason": reason
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryEntry.get_age_seconds
+    # Requirement  : `get_age_seconds` shall get entry age in seconds
+    # Purpose      : Get entry age in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_age_seconds(self) -> float:
         """
         Get entry age in seconds
@@ -201,6 +337,23 @@ class MemoryEntry:
         return (datetime.now() - self.timestamp).total_seconds()
 
 
+# ---------------------------------------------------------------------------
+# ID           : memory.memory_manager.ShortTermMemory
+# Requirement  : `ShortTermMemory` class shall be instantiable and expose the documented interface
+# Purpose      : Short-term (working) memory for current session
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ShortTermMemory with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ShortTermMemory:
     """
     Short-term (working) memory for current session
@@ -215,6 +368,23 @@ class ShortTermMemory:
     REQ-MEM-026: Time measurements standardized to seconds
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.__init__
+    # Requirement  : `__init__` shall initialize short-term memory
+    # Purpose      : Initialize short-term memory
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_entries: int (default=50); ttl_seconds: float (default=3600.0); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         max_entries: int = 50,
@@ -267,6 +437,23 @@ class ShortTermMemory:
             f"(max_entries={self.max_entries}, ttl={self.ttl_seconds}s)"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.add
+    # Requirement  : `add` shall add entry to short-term memory with validation
+    # Purpose      : Add entry to short-term memory with validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry: MemoryEntry
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add(self, entry: MemoryEntry) -> None:
         """
         Add entry to short-term memory with validation
@@ -311,6 +498,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             raise ValueError(error_msg) from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.get
+    # Requirement  : `get` shall get entry by ID with expiration checking
+    # Purpose      : Get entry by ID with expiration checking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry_id: str
+    # Outputs      : Optional[MemoryEntry]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get(self, entry_id: str) -> Optional[MemoryEntry]:
         """
         Get entry by ID with expiration checking
@@ -343,6 +547,23 @@ class ShortTermMemory:
         self._stats["cache_hits"] += 1
         return entry
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.get_recent
+    # Requirement  : `get_recent` shall get N most recent entries
+    # Purpose      : Get N most recent entries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : n: int (default=5)
+    # Outputs      : List[MemoryEntry]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_recent(self, n: int = 5) -> List[MemoryEntry]:
         """
         Get N most recent entries
@@ -386,6 +607,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             return []  # Return empty list on error rather than crashing
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.search
+    # Requirement  : `search` shall search memory by content similarity with enhanced validation
+    # Purpose      : Search memory by content similarity with enhanced validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; memory_type: Optional[MemoryType] (default=None); top_k: int (default=5); min_similarity: float (default=0.1)
+    # Outputs      : List[Tuple[MemoryEntry, float]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -480,6 +718,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             return []  # Return empty list on error
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.remove
+    # Requirement  : `remove` shall remove entry by ID with validation
+    # Purpose      : Remove entry by ID with validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry_id: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def remove(self, entry_id: str) -> bool:
         """
         Remove entry by ID with validation
@@ -518,6 +773,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.clear
+    # Requirement  : `clear` shall clear all entries with statistics tracking
+    # Purpose      : Clear all entries with statistics tracking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear(self) -> None:
         """
         Clear all entries with statistics tracking
@@ -540,6 +812,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             raise RuntimeError(error_msg) from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.cleanup_expired
+    # Requirement  : `cleanup_expired` shall remove expired entries with enhanced error handling
+    # Purpose      : Remove expired entries with enhanced error handling
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def cleanup_expired(self) -> int:
         """
         Remove expired entries with enhanced error handling
@@ -577,6 +866,23 @@ class ShortTermMemory:
             self.logger.error(error_msg)
             return 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.get_statistics
+    # Requirement  : `get_statistics` shall get comprehensive memory statistics
+    # Purpose      : Get comprehensive memory statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get comprehensive memory statistics
@@ -639,6 +945,23 @@ class ShortTermMemory:
                 "max_entries": self.max_entries
             }
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.ShortTermMemory.get_memory_usage_info
+    # Requirement  : `get_memory_usage_info` shall get detailed memory usage information for monitoring
+    # Purpose      : Get detailed memory usage information for monitoring
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_memory_usage_info(self) -> Dict[str, Any]:
         """
         Get detailed memory usage information for monitoring
@@ -679,6 +1002,23 @@ class ShortTermMemory:
             return {"error": "Memory usage calculation failed"}
 
 
+# ---------------------------------------------------------------------------
+# ID           : memory.memory_manager.LongTermMemory
+# Requirement  : `LongTermMemory` class shall be instantiable and expose the documented interface
+# Purpose      : Long-term (persistent) memory using SQLite
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LongTermMemory with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LongTermMemory:
     """
     Long-term (persistent) memory using SQLite
@@ -691,6 +1031,23 @@ class LongTermMemory:
     - Entity knowledge
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.__init__
+    # Requirement  : `__init__` shall initialize long-term memory
+    # Purpose      : Initialize long-term memory
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Path; logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         db_path: Path,
@@ -714,6 +1071,23 @@ class LongTermMemory:
         
         self.logger.info(f"Initialized LongTermMemory (db={db_path})")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory._init_database
+    # Requirement  : `_init_database` shall initialize SQLite database schema
+    # Purpose      : Initialize SQLite database schema
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _init_database(self) -> None:
         """
         Initialize SQLite database schema
@@ -751,6 +1125,23 @@ class LongTermMemory:
         
         self.logger.debug("Database schema initialized")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.add
+    # Requirement  : `add` shall add entry to long-term memory
+    # Purpose      : Add entry to long-term memory
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry: MemoryEntry
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add(self, entry: MemoryEntry) -> None:
         """
         Add entry to long-term memory
@@ -778,6 +1169,23 @@ class LongTermMemory:
         
         self.logger.debug(f"Persisted entry: {entry.entry_id}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.get
+    # Requirement  : `get` shall get entry by ID
+    # Purpose      : Get entry by ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry_id: str
+    # Outputs      : Optional[MemoryEntry]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get(self, entry_id: str) -> Optional[MemoryEntry]:
         """
         Get entry by ID
@@ -812,6 +1220,23 @@ class LongTermMemory:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.search
+    # Requirement  : `search` shall search long-term memory
+    # Purpose      : Search long-term memory
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; memory_type: Optional[MemoryType] (default=None); limit: int (default=10)
+    # Outputs      : List[MemoryEntry]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -866,6 +1291,23 @@ class LongTermMemory:
         self.logger.debug(f"Search found {len(entries)} long-term entries")
         return entries
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.get_all_by_type
+    # Requirement  : `get_all_by_type` shall get all entries of a specific type
+    # Purpose      : Get all entries of a specific type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : memory_type: MemoryType; limit: int (default=100)
+    # Outputs      : List[MemoryEntry]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_all_by_type(
         self,
         memory_type: MemoryType,
@@ -897,6 +1339,23 @@ class LongTermMemory:
         
         return entries
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.delete_old_entries
+    # Requirement  : `delete_old_entries` shall delete entries older than specified days
+    # Purpose      : Delete entries older than specified days
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days: int (default=90)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def delete_old_entries(self, days: int = 90) -> int:
         """
         Delete entries older than specified days
@@ -923,6 +1382,23 @@ class LongTermMemory:
         self.logger.info(f"Deleted {deleted_count} entries older than {days} days")
         return deleted_count
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.LongTermMemory.get_statistics
+    # Requirement  : `get_statistics` shall get database statistics
+    # Purpose      : Get database statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get database statistics"""
         with sqlite3.connect(self.db_path) as conn:
@@ -955,6 +1431,23 @@ class LongTermMemory:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : memory.memory_manager.MemoryManager
+# Requirement  : `MemoryManager` class shall be instantiable and expose the documented interface
+# Purpose      : Unified memory manager combining short-term and long-term memory
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryManager with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MemoryManager:
     """
     Unified memory manager combining short-term and long-term memory
@@ -963,6 +1456,23 @@ class MemoryManager:
     REQ-MEM-025: Enhanced validation and error handling
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.__init__
+    # Requirement  : `__init__` shall initialize memory manager
+    # Purpose      : Initialize memory manager
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Path; short_term_max_entries: int (default=50); short_term_ttl_hours: float (default=1.0); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         db_path: Path,
@@ -1034,6 +1544,23 @@ class MemoryManager:
             self.logger.error(error_msg)
             raise RuntimeError(error_msg) from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.add_query
+    # Requirement  : `add_query` shall add query to both memory systems
+    # Purpose      : Add query to both memory systems
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_query(self, query: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Add query to both memory systems"""
         entry = MemoryEntry(
@@ -1050,6 +1577,23 @@ class MemoryManager:
         
         self.logger.debug(f"Added query to memory: {entry.entry_id}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.add_response
+    # Requirement  : `add_response` shall add response to memory
+    # Purpose      : Add response to memory
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : response: str; query_id: Optional[str] (default=None); metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_response(
         self,
         response: str,
@@ -1072,6 +1616,23 @@ class MemoryManager:
         
         self.logger.debug(f"Added response to memory: {entry.entry_id}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.get_recent_context
+    # Requirement  : `get_recent_context` shall get recent conversation context
+    # Purpose      : Get recent conversation context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : n: int (default=5)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_recent_context(self, n: int = 5) -> Dict[str, Any]:
         """
         Get recent conversation context
@@ -1093,6 +1654,23 @@ class MemoryManager:
             "context_size": len(recent)
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.consolidate
+    # Requirement  : `consolidate` shall consolidate important short-term memories to long-term
+    # Purpose      : Consolidate important short-term memories to long-term
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def consolidate(self) -> None:
         """
         Consolidate important short-term memories to long-term
@@ -1103,6 +1681,23 @@ class MemoryManager:
         # to promote frequently accessed entries, increase relevance scores, etc.
         self.logger.debug("Memory consolidation (already real-time)")
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.cleanup
+    # Requirement  : `cleanup` shall cleanup both memory systems
+    # Purpose      : Cleanup both memory systems
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def cleanup(self) -> Dict[str, int]:
         """
         Cleanup both memory systems
@@ -1121,6 +1716,23 @@ class MemoryManager:
         self.logger.info(f"Memory cleanup complete: {stats}")
         return stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : memory.memory_manager.MemoryManager.get_full_statistics
+    # Requirement  : `get_full_statistics` shall get statistics from both memory systems
+    # Purpose      : Get statistics from both memory systems
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_full_statistics(self) -> Dict[str, Any]:
         """Get statistics from both memory systems"""
         return {

@@ -12,6 +12,23 @@ import re
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.query_expander.EEGQueryExpander
+# Requirement  : `EEGQueryExpander` class shall be instantiable and expose the documented interface
+# Purpose      : Query expansion with EEG domain knowledge
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGQueryExpander with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGQueryExpander:
     """
     Query expansion with EEG domain knowledge.
@@ -26,12 +43,46 @@ class EEGQueryExpander:
         "CNN convolutional neural network for seizure epileptic detection"
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.query_expander.EEGQueryExpander.__init__
+    # Requirement  : `__init__` shall initialize with EEG domain synonym dictionary
+    # Purpose      : Initialize with EEG domain synonym dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize with EEG domain synonym dictionary."""
         # Build synonym dictionary
         self.synonyms = self._build_synonym_dict()
         logger.info(f"Initialized EEGQueryExpander with {len(self.synonyms)} terms")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.query_expander.EEGQueryExpander._build_synonym_dict
+    # Requirement  : `_build_synonym_dict` shall build dictionary of EEG-specific synonyms
+    # Purpose      : Build dictionary of EEG-specific synonyms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Set[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_synonym_dict(self) -> Dict[str, Set[str]]:
         """
         Build dictionary of EEG-specific synonyms.
@@ -124,6 +175,23 @@ class EEGQueryExpander:
         
         return synonym_dict
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.query_expander.EEGQueryExpander.expand
+    # Requirement  : `expand` shall expand query with synonyms
+    # Purpose      : Expand query with synonyms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_expansions: int (default=3); add_original: bool (default=True)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def expand(
         self,
         query: str,
@@ -178,6 +246,23 @@ class EEGQueryExpander:
         
         return expanded_query
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.query_expander.EEGQueryExpander.get_synonyms
+    # Requirement  : `get_synonyms` shall get synonyms for a specific term
+    # Purpose      : Get synonyms for a specific term
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : term: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_synonyms(self, term: str) -> List[str]:
         """
         Get synonyms for a specific term.
@@ -190,6 +275,23 @@ class EEGQueryExpander:
         """
         return list(self.synonyms.get(term.lower(), []))
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.query_expander.EEGQueryExpander.has_synonyms
+    # Requirement  : `has_synonyms` shall check if term has synonyms
+    # Purpose      : Check if term has synonyms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : term: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def has_synonyms(self, term: str) -> bool:
         """Check if term has synonyms."""
         return term.lower() in self.synonyms

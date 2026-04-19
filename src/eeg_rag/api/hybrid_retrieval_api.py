@@ -37,6 +37,23 @@ app.add_middleware(
 
 
 # Request/Response models
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.SearchRequest
+# Requirement  : `SearchRequest` class shall be instantiable and expose the documented interface
+# Purpose      : Search request model
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchRequest with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SearchRequest(BaseModel):
     """Search request model"""
     query: str = Field(..., min_length=1)
@@ -45,6 +62,23 @@ class SearchRequest(BaseModel):
     use_reranking: bool = Field(False, description="Enable cross-encoder reranking for improved quality")
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.SearchResponse
+# Requirement  : `SearchResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Search response model
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SearchResponse(BaseModel):
     """Search response model"""
     success: bool
@@ -59,6 +93,23 @@ class SearchResponse(BaseModel):
 _agent: Optional[LocalDataAgent] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.get_agent
+# Requirement  : `get_agent` shall get or create agent instance
+# Purpose      : Get or create agent instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : use_reranking: bool (default=False)
+# Outputs      : LocalDataAgent
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agent(use_reranking: bool = False) -> LocalDataAgent:
     """Get or create agent instance"""
     global _agent
@@ -87,6 +138,23 @@ def get_agent(use_reranking: bool = False) -> LocalDataAgent:
     return _agent
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.startup_event
+# Requirement  : `startup_event` shall initialize agent on startup
+# Purpose      : Initialize agent on startup
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.on_event("startup")
 async def startup_event():
     """Initialize agent on startup"""
@@ -95,12 +163,46 @@ async def startup_event():
     logger.info("API ready")
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.root
+# Requirement  : `root` shall health check endpoint
+# Purpose      : Health check endpoint
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.get("/")
 async def root():
     """Health check endpoint"""
     return {"status": "healthy", "version": "1.0.0"}
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.hybrid_retrieval_api.search
+# Requirement  : `search` shall hybrid search endpoint with optional reranking
+# Purpose      : Hybrid search endpoint with optional reranking
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : request: SearchRequest
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @app.post("/search", response_model=SearchResponse)
 async def search(request: SearchRequest):
     """Hybrid search endpoint with optional reranking"""

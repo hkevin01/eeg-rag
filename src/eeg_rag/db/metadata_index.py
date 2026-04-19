@@ -19,6 +19,23 @@ from typing import List, Optional, Dict, Any, Iterator
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.metadata_index.PaperReference
+# Requirement  : `PaperReference` class shall be instantiable and expose the documented interface
+# Purpose      : Minimal paper reference (~100 bytes vs ~1.2KB for full paper)
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperReference with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PaperReference:
     """
@@ -33,6 +50,23 @@ class PaperReference:
     source: str = "unknown"
     keywords: List[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.PaperReference.primary_id
+    # Requirement  : `primary_id` shall get the best available identifier
+    # Purpose      : Get the best available identifier
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def primary_id(self) -> str:
         """Get the best available identifier."""
@@ -44,6 +78,23 @@ class PaperReference:
             return f"openalex:{self.openalex_id}"
         return f"title:{self.title[:50]}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.PaperReference.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "pmid": self.pmid,
@@ -55,6 +106,23 @@ class PaperReference:
             "keywords": self.keywords,
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.PaperReference.from_row
+    # Requirement  : `from_row` shall execute as specified
+    # Purpose      : From row
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : row: sqlite3.Row
+    # Outputs      : 'PaperReference'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "PaperReference":
         keywords = row["keywords"] or "[]"
@@ -75,6 +143,23 @@ class PaperReference:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.metadata_index.MetadataIndex
+# Requirement  : `MetadataIndex` class shall be instantiable and expose the documented interface
+# Purpose      : Minimal index containing ~500K paper identifiers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MetadataIndex with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MetadataIndex:
     """
     Minimal index containing ~500K paper identifiers.
@@ -146,6 +231,23 @@ class MetadataIndex:
     );
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.__init__
+    # Requirement  : `__init__` shall initialize the metadata index
+    # Purpose      : Initialize the metadata index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Optional[Path] (default=None); read_only: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, db_path: Optional[Path] = None, read_only: bool = True):
         """
         Initialize the metadata index.
@@ -165,6 +267,23 @@ class MetadataIndex:
         # Try to extract if only compressed version exists
         self._maybe_extract_compressed()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex._maybe_extract_compressed
+    # Requirement  : `_maybe_extract_compressed` shall extract compressed index if needed
+    # Purpose      : Extract compressed index if needed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _maybe_extract_compressed(self):
         """Extract compressed index if needed."""
         compressed = self.db_path.with_suffix('.db.gz')
@@ -175,6 +294,23 @@ class MetadataIndex:
                     f_out.write(f_in.read())
             logger.info(f"Extracted to {self.db_path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex._get_connection
+    # Requirement  : `_get_connection` shall context manager for database connections
+    # Purpose      : Context manager for database connections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @contextmanager
     def _get_connection(self):
         """Context manager for database connections."""
@@ -193,6 +329,23 @@ class MetadataIndex:
         finally:
             conn.close()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.initialize
+    # Requirement  : `initialize` shall initialize the database schema (for building new index)
+    # Purpose      : Initialize the database schema (for building new index)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def initialize(self):
         """Initialize the database schema (for building new index)."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -207,6 +360,23 @@ class MetadataIndex:
                 conn.executescript(self.SCHEMA)
         logger.info(f"Initialized metadata index at {self.db_path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex._migrate
+    # Requirement  : `_migrate` shall run database migrations for schema updates
+    # Purpose      : Run database migrations for schema updates
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : conn: sqlite3.Connection
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _migrate(self, conn: sqlite3.Connection):
         """Run database migrations for schema updates."""
         # Check existing columns
@@ -222,6 +392,23 @@ class MetadataIndex:
             except sqlite3.OperationalError:
                 pass  # Column already exists
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.add_reference
+    # Requirement  : `add_reference` shall add a paper reference to the index
+    # Purpose      : Add a paper reference to the index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : title: str; pmid: Optional[str] (default=None); doi: Optional[str] (default=None); openalex_id: Optional[str] (default=None); year: Optional[int] (default=None); source: str (default='unknown'); keywords: Optional[List[str]] (default=None)
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_reference(
         self,
         title: str,
@@ -250,6 +437,23 @@ class MetadataIndex:
             except sqlite3.IntegrityError:
                 return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.add_references_batch
+    # Requirement  : `add_references_batch` shall add multiple references efficiently
+    # Purpose      : Add multiple references efficiently
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : refs: List[Dict[str, Any]]
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_references_batch(self, refs: List[Dict[str, Any]]) -> int:
         """Add multiple references efficiently."""
         if self.read_only:
@@ -278,6 +482,23 @@ class MetadataIndex:
                     pass
         return added
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.search
+    # Requirement  : `search` shall fast FTS5 search on titles and keywords
+    # Purpose      : Fast FTS5 search on titles and keywords
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=100); year_min: Optional[int] (default=None); year_max: Optional[int] (default=None); source: Optional[str] (default=None)
+    # Outputs      : List[PaperReference]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -337,6 +558,23 @@ class MetadataIndex:
                 logger.warning(f"FTS search failed: {e}")
                 return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex._sanitize_fts_query
+    # Requirement  : `_sanitize_fts_query` shall sanitize query for FTS5 safety
+    # Purpose      : Sanitize query for FTS5 safety
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _sanitize_fts_query(self, query: str) -> str:
         """Sanitize query for FTS5 safety."""
         # Remove special FTS5 characters
@@ -352,6 +590,23 @@ class MetadataIndex:
         
         return ' '.join(words)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.get_pmids
+    # Requirement  : `get_pmids` shall iterate over all PMIDs in the index
+    # Purpose      : Iterate over all PMIDs in the index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : limit: Optional[int] (default=None)
+    # Outputs      : Iterator[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_pmids(self, limit: Optional[int] = None) -> Iterator[str]:
         """Iterate over all PMIDs in the index."""
         with self._get_connection() as conn:
@@ -362,6 +617,23 @@ class MetadataIndex:
             for row in cursor:
                 yield row["pmid"]
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.get_dois
+    # Requirement  : `get_dois` shall iterate over all DOIs in the index
+    # Purpose      : Iterate over all DOIs in the index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : limit: Optional[int] (default=None)
+    # Outputs      : Iterator[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_dois(self, limit: Optional[int] = None) -> Iterator[str]:
         """Iterate over all DOIs in the index."""
         with self._get_connection() as conn:
@@ -372,6 +644,23 @@ class MetadataIndex:
             for row in cursor:
                 yield row["doi"]
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.get_references_for_topic
+    # Requirement  : `get_references_for_topic` shall get paper references related to a topic
+    # Purpose      : Get paper references related to a topic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : topic: str; limit: int (default=1000)
+    # Outputs      : List[PaperReference]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_references_for_topic(
         self,
         topic: str,
@@ -380,11 +669,45 @@ class MetadataIndex:
         """Get paper references related to a topic."""
         return self.search(topic, limit=limit)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.get_pmids_for_topic
+    # Requirement  : `get_pmids_for_topic` shall get PMIDs for papers related to a topic
+    # Purpose      : Get PMIDs for papers related to a topic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : topic: str; limit: int (default=1000)
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_pmids_for_topic(self, topic: str, limit: int = 1000) -> List[str]:
         """Get PMIDs for papers related to a topic."""
         refs = self.search(topic, limit=limit)
         return [r.pmid for r in refs if r.pmid]
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.get_stats
+    # Requirement  : `get_stats` shall get index statistics
+    # Purpose      : Get index statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_stats(self) -> Dict[str, Any]:
         """Get index statistics."""
         with self._get_connection() as conn:
@@ -418,6 +741,23 @@ class MetadataIndex:
             
             return stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.compress
+    # Requirement  : `compress` shall compress the index for distribution
+    # Purpose      : Compress the index for distribution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Optional[Path] (default=None)
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compress(self, output_path: Optional[Path] = None) -> Path:
         """Compress the index for distribution."""
         if output_path is None:
@@ -443,12 +783,46 @@ class MetadataIndex:
         
         return output_path
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.metadata_index.MetadataIndex.exists
+    # Requirement  : `exists` shall check if the index exists
+    # Purpose      : Check if the index exists
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def exists(self) -> bool:
         """Check if the index exists."""
         return self.db_path.exists() or self.db_path.with_suffix('.db.gz').exists()
 
 
 # Convenience function
+# ---------------------------------------------------------------------------
+# ID           : db.metadata_index.get_metadata_index
+# Requirement  : `get_metadata_index` shall get the default metadata index (read-only)
+# Purpose      : Get the default metadata index (read-only)
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : MetadataIndex
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_metadata_index() -> MetadataIndex:
     """Get the default metadata index (read-only)."""
     return MetadataIndex(read_only=True)

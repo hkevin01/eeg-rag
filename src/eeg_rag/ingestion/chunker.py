@@ -8,6 +8,23 @@ from typing import Iterator, Optional
 from enum import Enum
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.chunker.ChunkType
+# Requirement  : `ChunkType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of document chunks for classification
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ChunkType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ChunkType(Enum):
     """Types of document chunks for classification."""
     TITLE = "title"
@@ -20,6 +37,23 @@ class ChunkType(Enum):
     FULL_TEXT = "full_text"
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.chunker.DocumentChunk
+# Requirement  : `DocumentChunk` class shall be instantiable and expose the documented interface
+# Purpose      : A chunk of a document for indexing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DocumentChunk with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class DocumentChunk:
     """A chunk of a document for indexing."""
@@ -43,6 +77,23 @@ class DocumentChunk:
     token_count: int
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.chunker.EEGDocumentChunker
+# Requirement  : `EEGDocumentChunker` class shall be instantiable and expose the documented interface
+# Purpose      : Chunker optimized for EEG research documents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGDocumentChunker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGDocumentChunker:
     """
     Chunker optimized for EEG research documents.
@@ -57,6 +108,23 @@ class EEGDocumentChunker:
         ChunkType.CONCLUSION: r'(?i)^\s*(conclusions?|summary)\s*$',
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker.__init__
+    # Requirement  : `__init__` shall initialize document chunker
+    # Purpose      : Initialize document chunker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunk_size: int (default=512); chunk_overlap: int (default=50); min_chunk_size: int (default=100); preserve_sentences: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         chunk_size: int = 512,
@@ -78,6 +146,23 @@ class EEGDocumentChunker:
         self.min_chunk_size = min_chunk_size
         self.preserve_sentences = preserve_sentences
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker.chunk_document
+    # Requirement  : `chunk_document` shall chunk a unified document into indexable pieces
+    # Purpose      : Chunk a unified document into indexable pieces
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: dict
+    # Outputs      : Iterator[DocumentChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_document(self, doc: dict) -> Iterator[DocumentChunk]:
         """
         Chunk a unified document into indexable pieces.
@@ -120,6 +205,23 @@ class EEGDocumentChunker:
                     yield chunk
                     chunk_index += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker._split_into_sections
+    # Requirement  : `_split_into_sections` shall split full text into labeled sections
+    # Purpose      : Split full text into labeled sections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : list[tuple[ChunkType, str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _split_into_sections(self, text: str) -> list[tuple[ChunkType, str]]:
         """Split full text into labeled sections."""
         sections = []
@@ -153,6 +255,23 @@ class EEGDocumentChunker:
         
         return sections
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker._create_chunks
+    # Requirement  : `_create_chunks` shall create chunks from text with proper overlap
+    # Purpose      : Create chunks from text with proper overlap
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; chunk_type: ChunkType; doc_id: str; doc: dict; start_index: int
+    # Outputs      : Iterator[DocumentChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_chunks(
         self,
         text: str,
@@ -238,6 +357,23 @@ class EEGDocumentChunker:
                 token_count=current_length
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker._split_sentences
+    # Requirement  : `_split_sentences` shall split text into sentences, handling abbreviations
+    # Purpose      : Split text into sentences, handling abbreviations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _split_sentences(self, text: str) -> list[str]:
         """Split text into sentences, handling abbreviations."""
         # Simple sentence splitter (could use nltk/spacy for better results)
@@ -253,6 +389,23 @@ class EEGDocumentChunker:
         
         return [s.strip() for s in sentences if s.strip()]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker.chunk_batch
+    # Requirement  : `chunk_batch` shall chunk multiple documents
+    # Purpose      : Chunk multiple documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: list[dict]
+    # Outputs      : Iterator[DocumentChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_batch(self, documents: list[dict]) -> Iterator[DocumentChunk]:
         """
         Chunk multiple documents.
@@ -266,6 +419,23 @@ class EEGDocumentChunker:
         for doc in documents:
             yield from self.chunk_document(doc)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.chunker.EEGDocumentChunker.estimate_chunk_count
+    # Requirement  : `estimate_chunk_count` shall estimate the number of chunks a document will produce
+    # Purpose      : Estimate the number of chunks a document will produce
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: dict
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def estimate_chunk_count(self, doc: dict) -> int:
         """
         Estimate the number of chunks a document will produce.

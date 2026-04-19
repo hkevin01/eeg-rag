@@ -15,6 +15,23 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.comparator.SystematicReviewComparator
+# Requirement  : `SystematicReviewComparator` class shall be instantiable and expose the documented interface
+# Purpose      : Compare systematic review extractions against baseline studies
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystematicReviewComparator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystematicReviewComparator:
     """
     Compare systematic review extractions against baseline studies.
@@ -27,6 +44,23 @@ class SystematicReviewComparator:
         print(comparison.summary())
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator.__init__
+    # Requirement  : `__init__` shall initialize comparator
+    # Purpose      : Initialize comparator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : baseline_path: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, baseline_path: Optional[str] = None):
         """
         Initialize comparator.
@@ -38,11 +72,45 @@ class SystematicReviewComparator:
         if baseline_path:
             self.load_baseline(baseline_path)
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator.load_baseline
+    # Requirement  : `load_baseline` shall load baseline study data
+    # Purpose      : Load baseline study data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def load_baseline(self, path: str):
         """Load baseline study data."""
         self.baseline_df = pd.read_csv(path)
         logger.info(f"Loaded baseline data: {len(self.baseline_df)} papers from {path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator.compare
+    # Requirement  : `compare` shall compare new results against baseline
+    # Purpose      : Compare new results against baseline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame; comparison_fields: Optional[List[str]] (default=None)
+    # Outputs      : 'ComparisonResults'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compare(
         self,
         new_df: pd.DataFrame,
@@ -100,6 +168,23 @@ class SystematicReviewComparator:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_years
+    # Requirement  : `_compare_years` shall compare year distributions
+    # Purpose      : Compare year distributions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_years(self, new_df: pd.DataFrame) -> Dict:
         """Compare year distributions."""
         baseline_years = self.baseline_df['year'].value_counts().sort_index()
@@ -115,6 +200,23 @@ class SystematicReviewComparator:
             "growth_rate": f"{((new_years.mean() - baseline_years.mean()) / baseline_years.mean() * 100):.1f}%"
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_architectures
+    # Requirement  : `_compare_architectures` shall compare architecture type distributions
+    # Purpose      : Compare architecture type distributions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_architectures(self, new_df: pd.DataFrame) -> Dict:
         """Compare architecture type distributions."""
         baseline_arch = self.baseline_df['architecture_type'].value_counts(normalize=True)
@@ -135,6 +237,23 @@ class SystematicReviewComparator:
         
         return trends
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_performance
+    # Requirement  : `_compare_performance` shall compare reported performance metrics
+    # Purpose      : Compare reported performance metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_performance(self, new_df: pd.DataFrame) -> Dict:
         """Compare reported performance metrics."""
         baseline_acc = self.baseline_df['reported_accuracy'].dropna()
@@ -152,8 +271,42 @@ class SystematicReviewComparator:
             "papers_with_metrics_new": f"{len(new_acc)} ({len(new_acc)/len(new_df)*100:.1f}%)"
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_reproducibility
+    # Requirement  : `_compare_reproducibility` shall compare code/data availability trends
+    # Purpose      : Compare code/data availability trends
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_reproducibility(self, new_df: pd.DataFrame) -> Dict:
         """Compare code/data availability trends."""
+        # ---------------------------------------------------------------------------
+        # ID           : review.comparator.SystematicReviewComparator.categorize_availability
+        # Requirement  : `categorize_availability` shall execute as specified
+        # Purpose      : Categorize availability
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : df
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def categorize_availability(df):
             if 'code_available' not in df.columns:
                 return {}
@@ -193,6 +346,23 @@ class SystematicReviewComparator:
         
         return comparison
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_datasets
+    # Requirement  : `_compare_datasets` shall compare dataset usage patterns
+    # Purpose      : Compare dataset usage patterns
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_datasets(self, new_df: pd.DataFrame) -> Dict:
         """Compare dataset usage patterns."""
         baseline_datasets = self.baseline_df['dataset_name'].value_counts().head(10)
@@ -206,6 +376,23 @@ class SystematicReviewComparator:
             "emerging_datasets": list(set(new_datasets.index) - set(baseline_datasets.index))[:5]
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.SystematicReviewComparator._compare_tasks
+    # Requirement  : `_compare_tasks` shall compare task type distributions
+    # Purpose      : Compare task type distributions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : new_df: pd.DataFrame
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_tasks(self, new_df: pd.DataFrame) -> Dict:
         """Compare task type distributions."""
         baseline_tasks = self.baseline_df['task_type'].value_counts(normalize=True) * 100
@@ -225,18 +412,86 @@ class SystematicReviewComparator:
         return tasks_comparison
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.comparator.ComparisonResults
+# Requirement  : `ComparisonResults` class shall be instantiable and expose the documented interface
+# Purpose      : Container for comparison results with formatting methods
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ComparisonResults with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ComparisonResults:
     """Container for comparison results with formatting methods."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ComparisonResults.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.baseline_count = 0
         self.new_count = 0
         self.trends: Dict[str, Dict] = {}
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ComparisonResults.add_trend
+    # Requirement  : `add_trend` shall add a trend comparison
+    # Purpose      : Add a trend comparison
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : trend_name: str; trend_data: Dict
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_trend(self, trend_name: str, trend_data: Dict):
         """Add a trend comparison."""
         self.trends[trend_name] = trend_data
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ComparisonResults.summary
+    # Requirement  : `summary` shall generate formatted summary of comparison
+    # Purpose      : Generate formatted summary of comparison
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def summary(self) -> str:
         """Generate formatted summary of comparison."""
         lines = [
@@ -257,6 +512,23 @@ class ComparisonResults:
         lines.append("\n" + "="*80)
         return "\n".join(lines)
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ComparisonResults._format_trend_data
+    # Requirement  : `_format_trend_data` shall recursively format trend data
+    # Purpose      : Recursively format trend data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict; lines: List[str]; indent: int (default=0)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _format_trend_data(self, data: Dict, lines: List[str], indent: int = 0):
         """Recursively format trend data."""
         prefix = " " * indent
@@ -267,6 +539,23 @@ class ComparisonResults:
             else:
                 lines.append(f"{prefix}{key}: {value}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ComparisonResults.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict:
         """Convert to dictionary."""
         return {
@@ -276,6 +565,23 @@ class ComparisonResults:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : review.comparator.ReproducibilityScorer
+# Requirement  : `ReproducibilityScorer` class shall be instantiable and expose the documented interface
+# Purpose      : Score papers on reproducibility based on code/data availability
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReproducibilityScorer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ReproducibilityScorer:
     """
     Score papers on reproducibility based on code/data availability.
@@ -299,6 +605,23 @@ class ReproducibilityScorer:
         "no_data": 0
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ReproducibilityScorer.score_paper
+    # Requirement  : `score_paper` shall score a single paper's reproducibility
+    # Purpose      : Score a single paper's reproducibility
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict
+    # Outputs      : Tuple[int, str, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def score_paper(self, paper: Dict) -> Tuple[int, str, List[str]]:
         """
         Score a single paper's reproducibility.
@@ -362,6 +685,23 @@ class ReproducibilityScorer:
         
         return score, category, justifications
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ReproducibilityScorer.score_dataset
+    # Requirement  : `score_dataset` shall score all papers in a dataset
+    # Purpose      : Score all papers in a dataset
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : df: pd.DataFrame
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def score_dataset(self, df: pd.DataFrame) -> pd.DataFrame:
         """Score all papers in a dataset."""
         results = []
@@ -376,6 +716,23 @@ class ReproducibilityScorer:
         result_df = pd.DataFrame(results)
         return pd.concat([df, result_df], axis=1)
     
+    # ---------------------------------------------------------------------------
+    # ID           : review.comparator.ReproducibilityScorer.generate_report
+    # Requirement  : `generate_report` shall generate reproducibility report for a dataset
+    # Purpose      : Generate reproducibility report for a dataset
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : df: pd.DataFrame
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def generate_report(self, df: pd.DataFrame) -> str:
         """Generate reproducibility report for a dataset."""
         scored_df = self.score_dataset(df)

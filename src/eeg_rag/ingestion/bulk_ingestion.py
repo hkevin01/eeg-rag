@@ -28,6 +28,23 @@ from .openalex_client import OpenAlexClient
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.bulk_ingestion.IngestionCheckpoint
+# Requirement  : `IngestionCheckpoint` class shall be instantiable and expose the documented interface
+# Purpose      : Tracks progress for resumable bulk ingestion
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate IngestionCheckpoint with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class IngestionCheckpoint:
     """Tracks progress for resumable bulk ingestion."""
@@ -60,6 +77,23 @@ class IngestionCheckpoint:
     total_duplicates_skipped: int = 0
     total_errors: int = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.IngestionCheckpoint.save
+    # Requirement  : `save` shall save checkpoint to disk
+    # Purpose      : Save checkpoint to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save(self, path: Path) -> None:
         """Save checkpoint to disk."""
         data = {
@@ -85,6 +119,23 @@ class IngestionCheckpoint:
         with open(path, 'w') as f:
             json.dump(data, f, indent=2)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.IngestionCheckpoint.load
+    # Requirement  : `load` shall load checkpoint from disk
+    # Purpose      : Load checkpoint from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Path
+    # Outputs      : Optional['IngestionCheckpoint']
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def load(cls, path: Path) -> Optional['IngestionCheckpoint']:
         """Load checkpoint from disk."""
@@ -115,6 +166,23 @@ class IngestionCheckpoint:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.bulk_ingestion.BulkIngestionConfig
+# Requirement  : `BulkIngestionConfig` class shall be instantiable and expose the documented interface
+# Purpose      : Configuration for bulk ingestion
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BulkIngestionConfig with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BulkIngestionConfig:
     """Configuration for bulk ingestion."""
@@ -140,6 +208,23 @@ class BulkIngestionConfig:
     output_dir: str = "data/bulk_ingestion"
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.bulk_ingestion.BulkIngestionManager
+# Requirement  : `BulkIngestionManager` class shall be instantiable and expose the documented interface
+# Purpose      : Manages large-scale bulk ingestion of EEG research papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BulkIngestionManager with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BulkIngestionManager:
     """
     Manages large-scale bulk ingestion of EEG research papers.
@@ -160,6 +245,23 @@ class BulkIngestionManager:
         await manager.run_bulk_ingestion(resume=True)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: Optional[BulkIngestionConfig] (default=None); pubmed_api_key: Optional[str] (default=None); semantic_scholar_api_key: Optional[str] (default=None); email: str (default='eeg-rag-bulk@research.edu')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         config: Optional[BulkIngestionConfig] = None,
@@ -192,6 +294,23 @@ class BulkIngestionManager:
         self.start_time: Optional[datetime] = None
         self.papers_per_minute: List[float] = []
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._log_rate_limits
+    # Requirement  : `_log_rate_limits` shall log effective rate limits based on API key availability
+    # Purpose      : Log effective rate limits based on API key availability
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _log_rate_limits(self) -> None:
         """Log effective rate limits based on API key availability."""
         logger.info("=" * 60)
@@ -231,6 +350,23 @@ class BulkIngestionManager:
         logger.info(f"Estimated time: {estimated_hours:.1f} hours")
         logger.info("=" * 60)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._estimate_eta
+    # Requirement  : `_estimate_eta` shall calculate estimated time remaining
+    # Purpose      : Calculate estimated time remaining
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : collected: int; target: int
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_eta(self, collected: int, target: int) -> str:
         """Calculate estimated time remaining."""
         if not self.papers_per_minute or collected == 0:
@@ -250,6 +386,23 @@ class BulkIngestionManager:
         else:
             return f"{minutes_left / 1440:.1f} days"
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._is_duplicate
+    # Requirement  : `_is_duplicate` shall check if document is a duplicate
+    # Purpose      : Check if document is a duplicate
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: UnifiedDocument; checkpoint: IngestionCheckpoint
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _is_duplicate(self, doc: UnifiedDocument, checkpoint: IngestionCheckpoint) -> bool:
         """Check if document is a duplicate."""
         if doc.doi and doc.doi in checkpoint.all_dois:
@@ -264,6 +417,23 @@ class BulkIngestionManager:
         
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._register_document
+    # Requirement  : `_register_document` shall register document for deduplication
+    # Purpose      : Register document for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: UnifiedDocument; checkpoint: IngestionCheckpoint
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _register_document(self, doc: UnifiedDocument, checkpoint: IngestionCheckpoint) -> None:
         """Register document for deduplication."""
         if doc.doi:
@@ -274,6 +444,23 @@ class BulkIngestionManager:
             normalized = doc.title.lower().strip()[:100]
             checkpoint.all_titles.add(normalized)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._collect_pubmed
+    # Requirement  : `_collect_pubmed` shall collect papers from PubMed
+    # Purpose      : Collect papers from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : checkpoint: IngestionCheckpoint; output_file
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_pubmed(
         self, 
         checkpoint: IngestionCheckpoint,
@@ -450,6 +637,23 @@ class BulkIngestionManager:
         
         return collected
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._collect_semantic_scholar
+    # Requirement  : `_collect_semantic_scholar` shall collect papers from Semantic Scholar
+    # Purpose      : Collect papers from Semantic Scholar
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : checkpoint: IngestionCheckpoint; output_file
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_semantic_scholar(
         self,
         checkpoint: IngestionCheckpoint,
@@ -538,6 +742,23 @@ class BulkIngestionManager:
         
         return collected
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._collect_arxiv
+    # Requirement  : `_collect_arxiv` shall collect papers from arXiv
+    # Purpose      : Collect papers from arXiv
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : checkpoint: IngestionCheckpoint; output_file
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_arxiv(
         self,
         checkpoint: IngestionCheckpoint,
@@ -615,6 +836,23 @@ class BulkIngestionManager:
         
         return collected
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager._collect_openalex
+    # Requirement  : `_collect_openalex` shall collect papers from OpenAlex
+    # Purpose      : Collect papers from OpenAlex
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : checkpoint: IngestionCheckpoint; output_file
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_openalex(
         self,
         checkpoint: IngestionCheckpoint,
@@ -684,6 +922,23 @@ class BulkIngestionManager:
         
         return collected
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.bulk_ingestion.BulkIngestionManager.run_bulk_ingestion
+    # Requirement  : `run_bulk_ingestion` shall run bulk ingestion of EEG research papers
+    # Purpose      : Run bulk ingestion of EEG research papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : resume: bool (default=True)
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_bulk_ingestion(self, resume: bool = True) -> Dict:
         """
         Run bulk ingestion of EEG research papers.
@@ -764,6 +1019,23 @@ class BulkIngestionManager:
         return stats
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.bulk_ingestion.main
+# Requirement  : `main` shall cLI entry point for bulk ingestion
+# Purpose      : CLI entry point for bulk ingestion
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def main():
     """CLI entry point for bulk ingestion."""
     import argparse

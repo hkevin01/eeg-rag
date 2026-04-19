@@ -9,6 +9,23 @@ from typing import Optional
 from .search_history import HistoryManager, HistorySession
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.history_sidebar.render_history_sidebar
+# Requirement  : `render_history_sidebar` shall render the conversation history sidebar
+# Purpose      : Render the conversation history sidebar
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_history_sidebar():
     """Render the conversation history sidebar."""
 
@@ -116,6 +133,23 @@ def render_history_sidebar():
                 _export_session_json(manager)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.history_sidebar._load_session_data
+# Requirement  : `_load_session_data` shall load session data into session state
+# Purpose      : Load session data into session state
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : manager: HistoryManager; session_id: str
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _load_session_data(manager: HistoryManager, session_id: str):
     """Load session data into session state."""
     messages = manager.get_session_messages(session_id)
@@ -136,6 +170,23 @@ def _load_session_data(manager: HistoryManager, session_id: str):
             st.session_state.pop("last_executed_query", None)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.history_sidebar._export_session_markdown
+# Requirement  : `_export_session_markdown` shall export current session to Markdown
+# Purpose      : Export current session to Markdown
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : manager: HistoryManager
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _export_session_markdown(manager: HistoryManager):
     """Export current session to Markdown."""
     session_id = st.session_state.get("active_session_id")
@@ -176,6 +227,23 @@ def _export_session_markdown(manager: HistoryManager):
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.history_sidebar._export_session_json
+# Requirement  : `_export_session_json` shall export current session to JSON
+# Purpose      : Export current session to JSON
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : manager: HistoryManager
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _export_session_json(manager: HistoryManager):
     """Export current session to JSON."""
     import json
@@ -226,6 +294,23 @@ def _export_session_json(manager: HistoryManager):
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.history_sidebar.get_or_create_session
+# Requirement  : `get_or_create_session` shall get active session or create new one based on query
+# Purpose      : Get active session or create new one based on query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : manager: HistoryManager; query: str
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_or_create_session(manager: HistoryManager, query: str) -> str:
     """Get active session or create new one based on query."""
 

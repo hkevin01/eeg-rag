@@ -58,6 +58,23 @@ from .influence_scorer import InfluenceScorer
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.semantic_scholar_agent.s2_agent.S2Paper
+# Requirement  : `S2Paper` class shall be instantiable and expose the documented interface
+# Purpose      : Semantic Scholar paper data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate S2Paper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class S2Paper:
     """Semantic Scholar paper data."""
@@ -76,6 +93,23 @@ class S2Paper:
     open_access_pdf: Optional[str] = None
     tldr: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.S2Paper.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -101,6 +135,23 @@ class S2Paper:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent
+# Requirement  : `SemanticScholarAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Enhanced Semantic Scholar agent with:
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SemanticScholarAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SemanticScholarAgent(BaseAgent):
     """
     Enhanced Semantic Scholar agent with:
@@ -122,6 +173,23 @@ class SemanticScholarAgent(BaseAgent):
         "tldr"
     ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.__init__
+    # Requirement  : `__init__` shall initialize Semantic Scholar agent
+    # Purpose      : Initialize Semantic Scholar agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='SemanticScholarAgent'); api_key: Optional[str] (default=None); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "SemanticScholarAgent",
@@ -167,11 +235,45 @@ class SemanticScholarAgent(BaseAgent):
 
         logger.info(f"SemanticScholarAgent initialized (api_key={'yes' if api_key else 'no'})")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.base_url
+    # Requirement  : `base_url` shall get base URL based on API key availability
+    # Purpose      : Get base URL based on API key availability
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def base_url(self) -> str:
         """Get base URL based on API key availability."""
         return self.S2_PARTNER_BASE if self.api_key else self.S2_API_BASE
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._get_session
+    # Requirement  : `_get_session` shall get or create aiohttp session
+    # Purpose      : Get or create aiohttp session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : aiohttp.ClientSession
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session."""
         if self._session is None or self._session.closed:
@@ -187,11 +289,45 @@ class SemanticScholarAgent(BaseAgent):
             self._owns_session = True
         return self._session
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.close
+    # Requirement  : `close` shall close HTTP session
+    # Purpose      : Close HTTP session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self) -> None:
         """Close HTTP session."""
         if self._owns_session and self._session and not self._session.closed:
             await self._session.close()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._rate_limit
+    # Requirement  : `_rate_limit` shall enforce rate limiting
+    # Purpose      : Enforce rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self) -> None:
         """Enforce rate limiting."""
         async with self._request_lock:
@@ -202,6 +338,23 @@ class SemanticScholarAgent(BaseAgent):
                 await asyncio.sleep(self.min_request_interval - elapsed)
             self._last_request_time = time.time()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._get_cache
+    # Requirement  : `_get_cache` shall get value from cache if not expired
+    # Purpose      : Get value from cache if not expired
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str
+    # Outputs      : Optional[Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_cache(self, key: str) -> Optional[Any]:
         """Get value from cache if not expired."""
         if key in self._cache:
@@ -213,10 +366,44 @@ class SemanticScholarAgent(BaseAgent):
         self.cache_misses += 1
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._set_cache
+    # Requirement  : `_set_cache` shall set value in cache
+    # Purpose      : Set value in cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str; value: Any
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _set_cache(self, key: str, value: Any) -> None:
         """Set value in cache."""
         self._cache[key] = (value, datetime.now())
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.execute
+    # Requirement  : `execute` shall execute Semantic Scholar search
+    # Purpose      : Execute Semantic Scholar search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute Semantic Scholar search.
@@ -299,6 +486,23 @@ class SemanticScholarAgent(BaseAgent):
                 elapsed_time=elapsed
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._search
+    # Requirement  : `_search` shall execute paper search
+    # Purpose      : Execute paper search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_results: int (default=50); year_range: Optional[Tuple[int, int]] (default=None); fields_of_study: Optional[List[str]] (default=None); open_access_only: bool (default=False)
+    # Outputs      : Tuple[List[S2Paper], int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _search(
         self,
         query: str,
@@ -368,6 +572,23 @@ class SemanticScholarAgent(BaseAgent):
             logger.error(f"S2 search error: {e}")
             return [], 0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent._parse_paper
+    # Requirement  : `_parse_paper` shall parse S2 API response into S2Paper
+    # Purpose      : Parse S2 API response into S2Paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Optional[S2Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_paper(self, data: Dict[str, Any]) -> Optional[S2Paper]:
         """Parse S2 API response into S2Paper."""
         if not data or not data.get("paperId"):
@@ -409,6 +630,23 @@ class SemanticScholarAgent(BaseAgent):
             tldr=tldr
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_paper_details
+    # Requirement  : `get_paper_details` shall get details for a specific paper
+    # Purpose      : Get details for a specific paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : Optional[S2Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_paper_details(self, paper_id: str) -> Optional[S2Paper]:
         """
         Get details for a specific paper.
@@ -442,6 +680,23 @@ class SemanticScholarAgent(BaseAgent):
             logger.error(f"Paper details error: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_citations
+    # Requirement  : `get_citations` shall get papers that cite a given paper
+    # Purpose      : Get papers that cite a given paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str; max_results: int (default=50)
+    # Outputs      : List[S2Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_citations(
         self,
         paper_id: str,
@@ -487,6 +742,23 @@ class SemanticScholarAgent(BaseAgent):
             logger.error(f"Citations error: {e}")
             return []
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_references
+    # Requirement  : `get_references` shall get papers referenced by a given paper
+    # Purpose      : Get papers referenced by a given paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str; max_results: int (default=50)
+    # Outputs      : List[S2Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_references(
         self,
         paper_id: str,
@@ -532,6 +804,23 @@ class SemanticScholarAgent(BaseAgent):
             logger.error(f"References error: {e}")
             return []
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_author_papers
+    # Requirement  : `get_author_papers` shall get papers by a specific author
+    # Purpose      : Get papers by a specific author
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : author_id: str; max_results: int (default=50)
+    # Outputs      : List[S2Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_author_papers(
         self,
         author_id: str,
@@ -576,6 +865,23 @@ class SemanticScholarAgent(BaseAgent):
             logger.error(f"Author papers error: {e}")
             return []
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_citation_graph
+    # Requirement  : `get_citation_graph` shall build a citation graph around a paper
+    # Purpose      : Build a citation graph around a paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str; depth: int (default=1); max_per_level: int (default=10)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_citation_graph(
         self,
         paper_id: str,
@@ -624,6 +930,23 @@ class SemanticScholarAgent(BaseAgent):
 
         return graph
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.s2_agent.SemanticScholarAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics."""
         base_stats = super().get_statistics()

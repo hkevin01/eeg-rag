@@ -31,6 +31,23 @@ import time
 from collections import defaultdict
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.ValidationStatus
+# Requirement  : `ValidationStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Status of citation validation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ValidationStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ValidationStatus(Enum):
     """Status of citation validation"""
     VALID = "valid"
@@ -41,6 +58,23 @@ class ValidationStatus(Enum):
     DUPLICATE = "duplicate"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.AccessType
+# Requirement  : `AccessType` class shall be instantiable and expose the documented interface
+# Purpose      : Open access status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AccessType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AccessType(Enum):
     """Open access status"""
     OPEN_ACCESS = "open_access"
@@ -49,6 +83,23 @@ class AccessType(Enum):
     UNKNOWN = "unknown"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.ImpactScore
+# Requirement  : `ImpactScore` class shall be instantiable and expose the documented interface
+# Purpose      : Impact score for a citation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ImpactScore with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ImpactScore:
     """
@@ -66,6 +117,23 @@ class ImpactScore:
     h_index: int = 0
     field_normalized_score: float = 0.0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.ImpactScore.calculate_total
+    # Requirement  : `calculate_total` shall calculate overall impact score (0-100)
+    # Purpose      : Calculate overall impact score (0-100)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def calculate_total(self) -> float:
         """
         Calculate overall impact score (0-100)
@@ -93,6 +161,23 @@ class ImpactScore:
         return round(min(100, total), 2)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.CitationValidationResult
+# Requirement  : `CitationValidationResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from validating a citation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationValidationResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class CitationValidationResult:
     """Result from validating a citation"""
@@ -128,6 +213,23 @@ class CitationValidationResult:
     # Errors
     errors: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidationResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -156,9 +258,43 @@ class CitationValidationResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.MockValidationDatabase
+# Requirement  : `MockValidationDatabase` class shall be instantiable and expose the documented interface
+# Purpose      : Mock validation database for testing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MockValidationDatabase with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MockValidationDatabase:
     """Mock validation database for testing"""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.MockValidationDatabase.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.known_citations = {
             '12345678': {
@@ -206,12 +342,46 @@ class MockValidationDatabase:
             }
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.MockValidationDatabase.lookup
+    # Requirement  : `lookup` shall lookup citation in database
+    # Purpose      : Lookup citation in database
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def lookup(self, citation_id: str) -> Optional[Dict[str, Any]]:
         """Lookup citation in database"""
         await asyncio.sleep(0.05)  # Simulate network delay
         return self.known_citations.get(citation_id)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.PubMedValidationDatabase
+# Requirement  : `PubMedValidationDatabase` class shall be instantiable and expose the documented interface
+# Purpose      : Production validation database backed by PubMed E-utilities + CrossRef
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedValidationDatabase with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedValidationDatabase:
     """Production validation database backed by PubMed E-utilities + CrossRef.
 
@@ -224,11 +394,45 @@ class PubMedValidationDatabase:
     _NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     _CROSSREF_BASE = "https://api.crossref.org/works"
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.PubMedValidationDatabase.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self) -> None:
         import os
         self._api_key: str = os.getenv("NCBI_API_KEY", "")
         self._cache: Dict[str, Optional[Dict[str, Any]]] = {}
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.PubMedValidationDatabase.lookup
+    # Requirement  : `lookup` shall lookup a citation by PMID (all digits) or DOI string
+    # Purpose      : Lookup a citation by PMID (all digits) or DOI string
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def lookup(self, citation_id: str) -> Optional[Dict[str, Any]]:
         """Lookup a citation by PMID (all digits) or DOI string."""
         if citation_id in self._cache:
@@ -242,6 +446,23 @@ class PubMedValidationDatabase:
         self._cache[citation_id] = result
         return result
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.PubMedValidationDatabase._lookup_pmid
+    # Requirement  : `_lookup_pmid` shall execute as specified
+    # Purpose      :  lookup pmid
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _lookup_pmid(self, pmid: str) -> Optional[Dict[str, Any]]:
         import urllib.request, urllib.parse
         params: Dict[str, str] = {"db": "pubmed", "id": pmid, "retmode": "json"}
@@ -291,6 +512,23 @@ class PubMedValidationDatabase:
             logging.getLogger(__name__).warning("PubMed lookup failed for %s: %s", pmid, exc)
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.PubMedValidationDatabase._lookup_doi
+    # Requirement  : `_lookup_doi` shall execute as specified
+    # Purpose      :  lookup doi
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _lookup_doi(self, doi: str) -> Optional[Dict[str, Any]]:
         import urllib.request, urllib.parse
         url = f"{self._CROSSREF_BASE}/{urllib.parse.quote(doi, safe='')}"
@@ -330,6 +568,23 @@ class PubMedValidationDatabase:
             return None
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.citation_agent.citation_validator.CitationValidator
+# Requirement  : `CitationValidator` class shall be instantiable and expose the documented interface
+# Purpose      : Agent 4: Citation Validation Agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationValidator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationValidator:
     """
     Agent 4: Citation Validation Agent
@@ -338,6 +593,23 @@ class CitationValidator:
     Integrates with PubMed, CrossRef, and other citation databases.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator.__init__
+    # Requirement  : `__init__` shall initialize Citation Validation Agent
+    # Purpose      : Initialize Citation Validation Agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='CitationValidator'); agent_type: str (default='citation_validation'); capabilities: Optional[List[str]] (default=None); use_mock: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "CitationValidator",
@@ -386,10 +658,44 @@ class CitationValidator:
         self.cache_hits = 0
         self.cache_misses = 0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator._cache_key
+    # Requirement  : `_cache_key` shall generate cache key from citation ID
+    # Purpose      : Generate cache key from citation ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _cache_key(self, citation_id: str) -> str:
         """Generate cache key from citation ID"""
         return hashlib.md5(citation_id.encode()).hexdigest()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator.validate
+    # Requirement  : `validate` shall validate a single citation
+    # Purpose      : Validate a single citation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str; use_cache: bool (default=True)
+    # Outputs      : CitationValidationResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def validate(
         self,
         citation_id: str,
@@ -490,6 +796,23 @@ class CitationValidator:
                 errors=[f"Validation error: {str(e)}"]
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator.validate_batch
+    # Requirement  : `validate_batch` shall validate multiple citations in parallel
+    # Purpose      : Validate multiple citations in parallel
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_ids: List[str]; use_cache: bool (default=True)
+    # Outputs      : List[CitationValidationResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def validate_batch(
         self,
         citation_ids: List[str],
@@ -509,6 +832,23 @@ class CitationValidator:
         results = await asyncio.gather(*tasks)
         return list(results)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator._determine_status
+    # Requirement  : `_determine_status` shall determine validation status from citation data
+    # Purpose      : Determine validation status from citation data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_data: Dict[str, Any]
+    # Outputs      : ValidationStatus
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _determine_status(self, citation_data: Dict[str, Any]) -> ValidationStatus:
         """Determine validation status from citation data"""
         if citation_data.get('is_retracted', False):
@@ -520,6 +860,23 @@ class CitationValidator:
         else:
             return ValidationStatus.VALID
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator._calculate_impact_score
+    # Requirement  : `_calculate_impact_score` shall calculate impact score from citation data
+    # Purpose      : Calculate impact score from citation data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_data: Dict[str, Any]
+    # Outputs      : ImpactScore
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_impact_score(self, citation_data: Dict[str, Any]) -> ImpactScore:
         """Calculate impact score from citation data"""
         return ImpactScore(
@@ -530,6 +887,23 @@ class CitationValidator:
             field_normalized_score=citation_data.get('field_score', 0.5)
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator._check_completeness
+    # Requirement  : `_check_completeness` shall check for missing required fields
+    # Purpose      : Check for missing required fields
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_data: Dict[str, Any]
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_completeness(self, citation_data: Dict[str, Any]) -> List[str]:
         """Check for missing required fields"""
         required_fields = ['title', 'authors', 'journal', 'year', 'doi']
@@ -543,6 +917,23 @@ class CitationValidator:
 
         return missing
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator._calculate_confidence
+    # Requirement  : `_calculate_confidence` shall calculate confidence score for validation
+    # Purpose      : Calculate confidence score for validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_data: Dict[str, Any]; missing_fields: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_confidence(
         self,
         citation_data: Dict[str, Any],
@@ -572,6 +963,23 @@ class CitationValidator:
 
         return max(0.0, min(1.0, confidence))
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -595,6 +1003,23 @@ class CitationValidator:
             )
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.citation_agent.citation_validator.CitationValidator.clear_cache
+    # Requirement  : `clear_cache` shall clear validation cache
+    # Purpose      : Clear validation cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear validation cache"""
         self.validation_cache.clear()

@@ -9,9 +9,43 @@ import re
 from datetime import datetime
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.citations.CitationGenerator
+# Requirement  : `CitationGenerator` class shall be instantiable and expose the documented interface
+# Purpose      : Generate citations in various formats
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationGenerator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationGenerator:
     """Generate citations in various formats."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.citations.CitationGenerator.clean_string
+    # Requirement  : `clean_string` shall clean string for citation formats
+    # Purpose      : Clean string for citation formats
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : s: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def clean_string(s: str) -> str:
         """Clean string for citation formats."""
@@ -21,6 +55,23 @@ class CitationGenerator:
         s = re.sub(r'\s+', ' ', s).strip()
         return s
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.citations.CitationGenerator.to_bibtex
+    # Requirement  : `to_bibtex` shall convert paper metadata to BibTeX format
+    # Purpose      : Convert paper metadata to BibTeX format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict; entry_type: str (default='article')
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def to_bibtex(paper: Dict, entry_type: str = "article") -> str:
         """
@@ -80,6 +131,23 @@ class CitationGenerator:
         bibtex += "}\n"
         return bibtex
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.citations.CitationGenerator.to_ris
+    # Requirement  : `to_ris` shall convert paper metadata to RIS format
+    # Purpose      : Convert paper metadata to RIS format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def to_ris(paper: Dict) -> str:
         """
@@ -132,6 +200,23 @@ class CitationGenerator:
         ris += "ER  - \n\n"
         return ris
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.citations.CitationGenerator.to_plain_text
+    # Requirement  : `to_plain_text` shall convert paper metadata to plain text citation
+    # Purpose      : Convert paper metadata to plain text citation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def to_plain_text(paper: Dict) -> str:
         """
@@ -164,6 +249,23 @@ class CitationGenerator:
         return citation
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.citations.generate_citations
+# Requirement  : `generate_citations` shall generate citations for multiple papers
+# Purpose      : Generate citations for multiple papers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : papers: List[Dict]; format: str (default='bibtex')
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def generate_citations(papers: List[Dict], format: str = "bibtex") -> str:
     """
     Generate citations for multiple papers.

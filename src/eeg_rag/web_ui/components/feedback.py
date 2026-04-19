@@ -11,6 +11,23 @@ import json
 import uuid
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.render_feedback_panel
+# Requirement  : `render_feedback_panel` shall render comprehensive feedback collection panel
+# Purpose      : Render comprehensive feedback collection panel
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_feedback_panel():
     """Render comprehensive feedback collection panel."""
 
@@ -49,6 +66,23 @@ def render_feedback_panel():
         render_feedback_history()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.render_result_rating
+# Requirement  : `render_result_rating` shall render result quality rating form
+# Purpose      : Render result quality rating form
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_result_rating():
     """Render result quality rating form."""
 
@@ -145,6 +179,23 @@ def render_result_rating():
         st.success("✅ Thank you for your rating! Your feedback helps improve EEG-RAG.")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.render_issue_report
+# Requirement  : `render_issue_report` shall render issue/bug report form
+# Purpose      : Render issue/bug report form
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_issue_report():
     """Render issue/bug report form."""
 
@@ -230,6 +281,23 @@ def render_issue_report():
         st.success("✅ Issue reported! Thank you for helping improve EEG-RAG.")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.render_feature_suggestion
+# Requirement  : `render_feature_suggestion` shall render feature suggestion form
+# Purpose      : Render feature suggestion form
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_feature_suggestion():
     """Render feature suggestion form."""
 
@@ -298,6 +366,23 @@ def render_feature_suggestion():
         st.success("✅ Suggestion submitted! We appreciate your input.")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.render_feedback_history
+# Requirement  : `render_feedback_history` shall render user's feedback history
+# Purpose      : Render user's feedback history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_feedback_history():
     """Render user's feedback history."""
 
@@ -348,6 +433,23 @@ def render_feedback_history():
             st.json(item)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.feedback.save_feedback
+# Requirement  : `save_feedback` shall save feedback to session state and optionally to file
+# Purpose      : Save feedback to session state and optionally to file
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : feedback_data: dict
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def save_feedback(feedback_data: dict):
     """Save feedback to session state and optionally to file."""
 

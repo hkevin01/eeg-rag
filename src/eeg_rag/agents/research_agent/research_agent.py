@@ -52,6 +52,23 @@ _EEG_SYNONYMS: Dict[str, List[str]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.research_agent.research_agent._expand_eeg_query
+# Requirement  : `_expand_eeg_query` shall expand EEG query with domain synonyms
+# Purpose      : Expand EEG query with domain synonyms
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; max_expansions: int (default=3)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _expand_eeg_query(query: str, max_expansions: int = 3) -> str:
     """Expand EEG query with domain synonyms."""
     words = query.lower().split()
@@ -82,10 +99,44 @@ class ResearchResult:
     duration_seconds: float
     timestamp: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchResult.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.timestamp:
             self.timestamp = datetime.utcnow().isoformat()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchResult.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "query": self.query,
@@ -131,6 +182,23 @@ class ResearchAgent(BaseAgent):
         result = await research.execute(query)
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchAgent.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='ResearchAgent'); pubmed_agent: Optional[BaseAgent] (default=None); semantic_scholar_agent: Optional[BaseAgent] (default=None); local_agent: Optional[BaseAgent] (default=None); config: Optional[Dict[str, Any]] (default=None); max_results_per_source: int (default=200); use_query_expansion: bool (default=True); deduplicate: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "ResearchAgent",
@@ -169,6 +237,23 @@ class ResearchAgent(BaseAgent):
             active if active else ["none — provide papers via context"],
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchAgent.execute
+    # Requirement  : `execute` shall execute as specified
+    # Purpose      : Execute
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         t0 = datetime.now()
         try:
@@ -199,6 +284,23 @@ class ResearchAgent(BaseAgent):
                 elapsed_time=elapsed,
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchAgent.search
+    # Requirement  : `search` shall execute the multi-source search pipeline
+    # Purpose      : Execute the multi-source search pipeline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; parameters: Dict[str, Any]; context_papers: Optional[List[Dict[str, Any]]] (default=None)
+    # Outputs      : ResearchResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(
         self,
         query: str,
@@ -365,6 +467,23 @@ class ResearchAgent(BaseAgent):
             return result.data
         return []
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.research_agent.research_agent.ResearchAgent._deduplicate
+    # Requirement  : `_deduplicate` shall execute as specified
+    # Purpose      :  deduplicate
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _deduplicate(
         papers: List[Dict[str, Any]],

@@ -26,6 +26,23 @@ MINUTE = 60.0
 HOUR = 3600.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.setup_logging
+# Requirement  : `setup_logging` shall configure logging for the entire application
+# Purpose      : Configure logging for the entire application
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : log_level: str (default='INFO'); log_file: Optional[Path] (default=None); include_timestamps: bool (default=True); include_module: bool (default=True)
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def setup_logging(
     log_level: str = "INFO",
     log_file: Optional[Path] = None,
@@ -95,6 +112,23 @@ def setup_logging(
     logging.info(f"Logging configured with level {log_level}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.format_time
+# Requirement  : `format_time` shall format time duration in human-readable format
+# Purpose      : Format time duration in human-readable format
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : seconds: float; precision: int (default=2)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def format_time(seconds: float, precision: int = 2) -> str:
     """
     Format time duration in human-readable format.
@@ -156,6 +190,23 @@ def format_time(seconds: float, precision: int = 2) -> str:
     return " ".join(parts)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.PerformanceTimer
+# Requirement  : `PerformanceTimer` class shall be instantiable and expose the documented interface
+# Purpose      : Context manager for timing code blocks with automatic logging
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PerformanceTimer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PerformanceTimer:
     """
     Context manager for timing code blocks with automatic logging.
@@ -178,6 +229,23 @@ class PerformanceTimer:
         INFO - Processing: completed in 1.23s
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceTimer.__init__
+    # Requirement  : `__init__` shall initialize performance timer
+    # Purpose      : Initialize performance timer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_name: str; logger: Optional[logging.Logger] (default=None); log_start: bool (default=False); log_completion: bool (default=True); warn_threshold_seconds: Optional[float] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         operation_name: str,
@@ -207,6 +275,23 @@ class PerformanceTimer:
         self.end_time: Optional[float] = None
         self.duration_seconds: Optional[float] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceTimer.__enter__
+    # Requirement  : `__enter__` shall start timing when entering context
+    # Purpose      : Start timing when entering context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'PerformanceTimer'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __enter__(self) -> "PerformanceTimer":
         """Start timing when entering context."""
         self.start_time = time.perf_counter()  # High-resolution timer in seconds
@@ -214,6 +299,23 @@ class PerformanceTimer:
             self.logger.info(f"{self.operation_name}: started")
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceTimer.__exit__
+    # Requirement  : `__exit__` shall stop timing when exiting context
+    # Purpose      : Stop timing when exiting context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """
         Stop timing when exiting context.
@@ -247,6 +349,23 @@ class PerformanceTimer:
                     f"{self.operation_name}: completed in {formatted_duration}"
                 )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceTimer.get_duration_seconds
+    # Requirement  : `get_duration_seconds` shall get duration of timed operation in seconds
+    # Purpose      : Get duration of timed operation in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Optional[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_duration_seconds(self) -> Optional[float]:
         """
         Get duration of timed operation in seconds.
@@ -257,6 +376,23 @@ class PerformanceTimer:
         return self.duration_seconds
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.timed
+# Requirement  : `timed` shall decorator for timing function execution
+# Purpose      : Decorator for timing function execution
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : operation_name: Optional[str] (default=None); log_args: bool (default=False); warn_threshold_seconds: Optional[float] (default=None)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def timed(
     operation_name: Optional[str] = None,
     log_args: bool = False,
@@ -284,7 +420,41 @@ def timed(
         >>> result = slow_function(5)
         WARNING - slow_function: completed in 1.50s (exceeded threshold of 1.00s)
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.logging_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Any
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
             nonlocal operation_name
@@ -310,6 +480,23 @@ def timed(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.log_exception
+# Requirement  : `log_exception` shall decorator for logging exceptions with full context
+# Purpose      : Decorator for logging exceptions with full context
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : logger: Optional[logging.Logger] (default=None); include_traceback: bool (default=True); reraise: bool (default=True)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def log_exception(
     logger: Optional[logging.Logger] = None,
     include_traceback: bool = True,
@@ -339,7 +526,41 @@ def log_exception(
         ...
         ZeroDivisionError: division by zero
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.logging_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Any
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
             nonlocal logger
@@ -368,6 +589,23 @@ def log_exception(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.PerformanceMonitor
+# Requirement  : `PerformanceMonitor` class shall be instantiable and expose the documented interface
+# Purpose      : Collect and report performance metrics for the application
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PerformanceMonitor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PerformanceMonitor:
     """
     Collect and report performance metrics for the application.
@@ -378,6 +616,23 @@ class PerformanceMonitor:
     All timing data is stored in seconds.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceMonitor.__init__
+    # Requirement  : `__init__` shall initialize performance monitor
+    # Purpose      : Initialize performance monitor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize performance monitor."""
         self.metrics: dict = {
@@ -386,6 +641,23 @@ class PerformanceMonitor:
         }
         self.logger = logging.getLogger(__name__)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceMonitor.record_operation
+    # Requirement  : `record_operation` shall record a timed operation
+    # Purpose      : Record a timed operation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_name: str; duration_seconds: float
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_operation(self, operation_name: str, duration_seconds: float) -> None:
         """
         Record a timed operation.
@@ -399,6 +671,23 @@ class PerformanceMonitor:
         
         self.metrics["operations"][operation_name].append(duration_seconds)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceMonitor.get_statistics
+    # Requirement  : `get_statistics` shall get statistics for a specific operation
+    # Purpose      : Get statistics for a specific operation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation_name: str
+    # Outputs      : Optional[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self, operation_name: str) -> Optional[dict]:
         """
         Get statistics for a specific operation.
@@ -418,6 +707,23 @@ class PerformanceMonitor:
             "max_seconds": max(durations),
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceMonitor.log_summary
+    # Requirement  : `log_summary` shall log summary of all performance metrics
+    # Purpose      : Log summary of all performance metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def log_summary(self) -> None:
         """Log summary of all performance metrics."""
         self.logger.info("=== Performance Summary ===")
@@ -434,6 +740,23 @@ class PerformanceMonitor:
                     f"total {format_time(stats['total_seconds'])}"
                 )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.logging_utils.PerformanceMonitor.export_metrics
+    # Requirement  : `export_metrics` shall export metrics to JSON file
+    # Purpose      : Export metrics to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : filepath: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_metrics(self, filepath: Path) -> None:
         """
         Export metrics to JSON file.
@@ -455,11 +778,45 @@ class PerformanceMonitor:
 _global_monitor = PerformanceMonitor()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.get_performance_monitor
+# Requirement  : `get_performance_monitor` shall get global performance monitor instance
+# Purpose      : Get global performance monitor instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : PerformanceMonitor
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_performance_monitor() -> PerformanceMonitor:
     """Get global performance monitor instance."""
     return _global_monitor
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.logging_utils.get_logger
+# Requirement  : `get_logger` shall get a logger instance
+# Purpose      : Get a logger instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : name: str (default=None)
+# Outputs      : logging.Logger
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_logger(name: str = None) -> logging.Logger:
     """
     Get a logger instance.

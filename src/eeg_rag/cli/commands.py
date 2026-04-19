@@ -30,6 +30,23 @@ from ..monitoring.production_monitor import ProductionMonitor
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.graph
+# Requirement  : `graph` shall knowledge graph operations
+# Purpose      : Knowledge graph operations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group()
 def graph():
     """Knowledge graph operations."""
@@ -45,6 +62,23 @@ def graph():
               help='Neo4j username')
 @click.option('--neo4j-password', prompt=True, hide_input=True,
               help='Neo4j password')
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.populate
+# Requirement  : `populate` shall populate knowledge graph from corpus data
+# Purpose      : Populate knowledge graph from corpus data
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : corpus_path; neo4j_uri; neo4j_user; neo4j_password; limit; batch_size
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.option('--limit', type=int, help='Limit number of papers to process')
 @click.option('--batch-size', default=100, help='Batch size for processing')
 async def populate(corpus_path, neo4j_uri, neo4j_user, neo4j_password, limit, batch_size):
@@ -88,6 +122,23 @@ async def populate(corpus_path, neo4j_uri, neo4j_user, neo4j_password, limit, ba
               help='Neo4j username')
 @click.option('--neo4j-password', prompt=True, hide_input=True,
               help='Neo4j password')
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.visualize
+# Requirement  : `visualize` shall create network visualization for query terms
+# Purpose      : Create network visualization for query terms
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query_terms; neo4j_uri; neo4j_user; neo4j_password; max_nodes; max_depth; output
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.option('--max-nodes', default=100, help='Maximum nodes to include')
 @click.option('--max-depth', default=2, help='Maximum relationship depth')
 @click.option('--output', type=click.Path(), help='Output file for visualization data')
@@ -144,6 +195,23 @@ async def visualize(query_terms, neo4j_uri, neo4j_user, neo4j_password,
               help='Neo4j username')
 @click.option('--neo4j-password', prompt=True, hide_input=True,
               help='Neo4j password')
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.web
+# Requirement  : `web` shall start web interface for graph visualization
+# Purpose      : Start web interface for graph visualization
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : neo4j_uri; neo4j_user; neo4j_password; host; port
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.option('--host', default='localhost', help='Web server host')
 @click.option('--port', default=8080, help='Web server port')
 async def web(neo4j_uri, neo4j_user, neo4j_password, host, port):
@@ -166,6 +234,23 @@ async def web(neo4j_uri, neo4j_user, neo4j_password, host, port):
         raise click.Abort()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.test
+# Requirement  : `test` shall testing and evaluation commands
+# Purpose      : Testing and evaluation commands
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group()
 def test():
     """Testing and evaluation commands."""
@@ -179,6 +264,23 @@ def test():
 @click.option('--output-dir', type=click.Path(), help='Output directory for results')
 @click.option('--queries-file', type=click.Path(exists=True),
               help='File containing test queries (one per line)')
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.load_test
+# Requirement  : `load_test` shall run load testing against the EEG-RAG system
+# Purpose      : Run load testing against the EEG-RAG system
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : concurrent_users; total_requests; ramp_up_time; output_dir; queries_file
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def load_test(concurrent_users, total_requests, ramp_up_time, output_dir, queries_file):
     """Run load testing against the EEG-RAG system."""
     try:
@@ -205,6 +307,23 @@ async def load_test(concurrent_users, total_requests, ramp_up_time, output_dir, 
         click.echo(f"Starting load test with {concurrent_users} users, {total_requests} requests...")
         
         # Run test with progress updates
+        # ---------------------------------------------------------------------------
+        # ID           : cli.commands.progress_callback
+        # Requirement  : `progress_callback` shall execute as specified
+        # Purpose      : Progress callback
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : progress
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def progress_callback(progress):
             percentage = progress * 100
             click.echo(f"Progress: {percentage:.1f}%")
@@ -232,6 +351,23 @@ async def load_test(concurrent_users, total_requests, ramp_up_time, output_dir, 
         raise click.Abort()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.benchmark
+# Requirement  : `benchmark` shall run comprehensive benchmarking suite
+# Purpose      : Run comprehensive benchmarking suite
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : output_dir
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @test.command()
 @click.option('--output-dir', type=click.Path(), help='Output directory for results')
 async def benchmark(output_dir):
@@ -271,12 +407,46 @@ async def benchmark(output_dir):
         raise click.Abort()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.monitor
+# Requirement  : `monitor` shall system monitoring commands
+# Purpose      : System monitoring commands
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group()
 def monitor():
     """System monitoring commands."""
     pass
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.health
+# Requirement  : `health` shall monitor system health and performance
+# Purpose      : Monitor system health and performance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : duration; interval
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @monitor.command()
 @click.option('--duration', default=60, help='Monitoring duration in seconds')
 @click.option('--interval', default=5, help='Monitoring interval in seconds')
@@ -317,6 +487,23 @@ async def health(duration, interval):
         raise click.Abort()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.status
+# Requirement  : `status` shall check current system status
+# Purpose      : Check current system status
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @monitor.command()
 async def status():
     """Check current system status."""
@@ -356,6 +543,23 @@ async def status():
         raise click.Abort()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.data
+# Requirement  : `data` shall data import/export operations
+# Purpose      : Data import/export operations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group()
 def data():
     """Data import/export operations."""
@@ -365,6 +569,23 @@ def data():
 @data.command()
 @click.option('--corpus-path', required=True, type=click.Path(exists=True),
               help='Path to corpus file to validate')
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.validate
+# Requirement  : `validate` shall validate corpus data format and integrity
+# Purpose      : Validate corpus data format and integrity
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : corpus_path
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def validate(corpus_path):
     """Validate corpus data format and integrity."""
     try:
@@ -423,6 +644,23 @@ async def validate(corpus_path):
 
 
 # Add commands to main CLI
+# ---------------------------------------------------------------------------
+# ID           : cli.commands.add_extended_commands
+# Requirement  : `add_extended_commands` shall add extended commands to main CLI application
+# Purpose      : Add extended commands to main CLI application
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : cli_app
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def add_extended_commands(cli_app):
     """Add extended commands to main CLI application."""
     cli_app.add_command(graph)

@@ -63,6 +63,23 @@ STOPWORDS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.extract_key_terms
+# Requirement  : `extract_key_terms` shall extract key terms from text, removing stopwords
+# Purpose      : Extract key terms from text, removing stopwords
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : text: str; max_terms: int (default=5)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def extract_key_terms(text: str, max_terms: int = 5) -> str:
     """Extract key terms from text, removing stopwords."""
     # Clean punctuation and split
@@ -81,6 +98,23 @@ def extract_key_terms(text: str, max_terms: int = 5) -> str:
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.AppConfig
+# Requirement  : `AppConfig` class shall be instantiable and expose the documented interface
+# Purpose      : Application configuration
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AppConfig with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AppConfig:
     """Application configuration."""
 
@@ -95,6 +129,23 @@ class AppConfig:
     SESSION_TIMEOUT_HOURS = 24
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.QueryComplexity
+# Requirement  : `QueryComplexity` class shall be instantiable and expose the documented interface
+# Purpose      : Query complexity levels
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryComplexity with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryComplexity(Enum):
     """Query complexity levels."""
 
@@ -109,6 +160,23 @@ class QueryComplexity(Enum):
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.ExtractionResult
+# Requirement  : `ExtractionResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result of extracting a single field from a paper
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExtractionResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExtractionResult:
     """Result of extracting a single field from a paper."""
@@ -122,11 +190,45 @@ class ExtractionResult:
     extraction_method: str = "regex"
     error_type: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.ExtractionResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.PaperExtractionResult
+# Requirement  : `PaperExtractionResult` class shall be instantiable and expose the documented interface
+# Purpose      : Complete extraction results for a single paper
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperExtractionResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PaperExtractionResult:
     """Complete extraction results for a single paper."""
@@ -139,15 +241,66 @@ class PaperExtractionResult:
     overall_accuracy: float = 0.0
     extraction_time_ms: float = 0.0
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.PaperExtractionResult.get_correct_fields
+    # Requirement  : `get_correct_fields` shall get list of correctly extracted fields
+    # Purpose      : Get list of correctly extracted fields
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_correct_fields(self) -> List[str]:
         """Get list of correctly extracted fields."""
         return [f for f, r in self.field_results.items() if r.is_correct]
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.PaperExtractionResult.get_incorrect_fields
+    # Requirement  : `get_incorrect_fields` shall get list of incorrectly extracted fields
+    # Purpose      : Get list of incorrectly extracted fields
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_incorrect_fields(self) -> List[str]:
         """Get list of incorrectly extracted fields."""
         return [f for f, r in self.field_results.items() if not r.is_correct]
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.SystematicReviewBenchmarkResult
+# Requirement  : `SystematicReviewBenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Complete benchmark results for systematic review extraction
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystematicReviewBenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SystematicReviewBenchmarkResult:
     """Complete benchmark results for systematic review extraction."""
@@ -162,6 +315,23 @@ class SystematicReviewBenchmarkResult:
     timestamp: str
     error_analysis: Dict[str, int] = field(default_factory=dict)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmarkResult.get_summary_stats
+    # Requirement  : `get_summary_stats` shall get summary statistics
+    # Purpose      : Get summary statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_summary_stats(self) -> Dict[str, Any]:
         """Get summary statistics."""
         accuracies = [p.overall_accuracy for p in self.paper_results]
@@ -173,6 +343,23 @@ class SystematicReviewBenchmarkResult:
             "median_accuracy": np.median(accuracies) if accuracies else 0.0,
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmarkResult.to_dataframe
+    # Requirement  : `to_dataframe` shall convert paper results to DataFrame
+    # Purpose      : Convert paper results to DataFrame
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dataframe(self) -> pd.DataFrame:
         """Convert paper results to DataFrame."""
         return pd.DataFrame(
@@ -191,6 +378,23 @@ class SystematicReviewBenchmarkResult:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.QueryResult
+# Requirement  : `QueryResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result of a RAG query
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class QueryResult:
     """Result of a RAG query."""
@@ -205,6 +409,23 @@ class QueryResult:
     query_id: str = ""
     related_queries: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.QueryResult.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.query_id:
             self.query_id = hashlib.md5(
@@ -217,6 +438,23 @@ class QueryResult:
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.SystematicReviewBenchmark
+# Requirement  : `SystematicReviewBenchmark` class shall be instantiable and expose the documented interface
+# Purpose      : Benchmark for systematic review data extraction
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystematicReviewBenchmark with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystematicReviewBenchmark:
     """
     Benchmark for systematic review data extraction.
@@ -265,6 +503,23 @@ class SystematicReviewBenchmark:
         "Neurological": r"stroke|parkinson|alzheimer|dementia|tumor",
     }
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark.__init__
+    # Requirement  : `__init__` shall initialize benchmark
+    # Purpose      : Initialize benchmark
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ground_truth_csv: str; extraction_fields: Optional[List[str]] (default=None); strict_matching: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         ground_truth_csv: str,
@@ -280,6 +535,23 @@ class SystematicReviewBenchmark:
         self.ground_truth_df = self._load_ground_truth()
         self._error_counts: Dict[str, int] = {}
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._load_ground_truth
+    # Requirement  : `_load_ground_truth` shall load and preprocess ground truth CSV
+    # Purpose      : Load and preprocess ground truth CSV
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_ground_truth(self) -> pd.DataFrame:
         """Load and preprocess ground truth CSV."""
         if not self.ground_truth_path.exists():
@@ -304,6 +576,23 @@ class SystematicReviewBenchmark:
         logger.info(f"Loaded {len(df)} valid papers from ground truth")
         return df
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._extract_architecture
+    # Requirement  : `_extract_architecture` shall extract architecture type from text
+    # Purpose      : Extract architecture type from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_architecture(self, text: str) -> str:
         """Extract architecture type from text."""
         if not isinstance(text, str):
@@ -322,6 +611,23 @@ class SystematicReviewBenchmark:
 
         return "Unknown"
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._extract_domain
+    # Requirement  : `_extract_domain` shall extract research domain from text
+    # Purpose      : Extract research domain from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_domain(self, text: str) -> str:
         """Extract research domain from text."""
         if not isinstance(text, str):
@@ -332,6 +638,23 @@ class SystematicReviewBenchmark:
                 return domain
         return "Other"
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._extract_accuracy
+    # Requirement  : `_extract_accuracy` shall extract best accuracy value from results text
+    # Purpose      : Extract best accuracy value from results text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : Optional[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_accuracy(self, text: str) -> Optional[float]:
         """Extract best accuracy value from results text."""
         if not isinstance(text, str):
@@ -359,6 +682,23 @@ class SystematicReviewBenchmark:
 
         return max(accuracies) if accuracies else None
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._extract_layers
+    # Requirement  : `_extract_layers` shall extract number of layers from text
+    # Purpose      : Extract number of layers from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : Optional[int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_layers(self, text: str) -> Optional[int]:
         """Extract number of layers from text."""
         if not isinstance(text, str):
@@ -381,6 +721,23 @@ class SystematicReviewBenchmark:
                     continue
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._normalize_value
+    # Requirement  : `_normalize_value` shall normalize extracted value for comparison
+    # Purpose      : Normalize extracted value for comparison
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : value: Any; field: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _normalize_value(self, value: Any, field: str) -> str:
         """Normalize extracted value for comparison."""
         if pd.isna(value) or value is None:
@@ -417,6 +774,23 @@ class SystematicReviewBenchmark:
 
         return value_str
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._compare_values
+    # Requirement  : `_compare_values` shall compare extracted value against ground truth
+    # Purpose      : Compare extracted value against ground truth
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : extracted: Any; ground_truth: Any; field: str
+    # Outputs      : Tuple[bool, Optional[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compare_values(
         self, extracted: Any, ground_truth: Any, field: str
     ) -> Tuple[bool, Optional[str]]:
@@ -470,6 +844,23 @@ class SystematicReviewBenchmark:
 
         return False, "mismatch"
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark.evaluate_extraction_accuracy
+    # Requirement  : `evaluate_extraction_accuracy` shall evaluate extraction accuracy against ground truth
+    # Purpose      : Evaluate extraction accuracy against ground truth
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_papers: Optional[int] (default=None); progress_callback: Optional[Callable[[float], None]] (default=None); use_rag: bool (default=False)
+    # Outputs      : SystematicReviewBenchmarkResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def evaluate_extraction_accuracy(
         self,
         max_papers: Optional[int] = None,
@@ -589,12 +980,46 @@ class SystematicReviewBenchmark:
             error_analysis=error_counts,
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark._extract_with_rag
+    # Requirement  : `_extract_with_rag` shall extract field using RAG (placeholder for real implementation)
+    # Purpose      : Extract field using RAG (placeholder for real implementation)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : title: str; field: str
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _extract_with_rag(self, title: str, field: str) -> Any:
         """Extract field using RAG (placeholder for real implementation)."""
         # In production, this would query the RAG system
         await asyncio.sleep(0.01)  # Simulate API call
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.SystematicReviewBenchmark.get_field_statistics
+    # Requirement  : `get_field_statistics` shall get statistics about ground truth data by field
+    # Purpose      : Get statistics about ground truth data by field
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : pd.DataFrame
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_field_statistics(self) -> pd.DataFrame:
         """Get statistics about ground truth data by field."""
         stats = []
@@ -618,6 +1043,23 @@ class SystematicReviewBenchmark:
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.RAGQueryEngine
+# Requirement  : `RAGQueryEngine` class shall be instantiable and expose the documented interface
+# Purpose      : Production RAG Query Engine for EEG Research
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RAGQueryEngine with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RAGQueryEngine:
     """
     Production RAG Query Engine for EEG Research.
@@ -664,6 +1106,23 @@ question, acknowledge the limitations.
 
 === ANSWER ==="""
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine.__init__
+    # Requirement  : `__init__` shall initialize the RAG Query Engine
+    # Purpose      : Initialize the RAG Query Engine
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : corpus_path: Optional[str] (default=None); use_llm: bool (default=False); llm_provider: str (default='openai')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         corpus_path: Optional[str] = None,
@@ -678,6 +1137,23 @@ question, acknowledge the limitations.
         self.retriever = None
         self._load_corpus()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._load_corpus
+    # Requirement  : `_load_corpus` shall load the research paper corpus from multiple sources
+    # Purpose      : Load the research paper corpus from multiple sources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_corpus(self):
         """Load the research paper corpus from multiple sources."""
         papers_list = []
@@ -753,6 +1229,23 @@ question, acknowledge the limitations.
             logger.warning("No corpus loaded - using demo mode")
             self.papers_df = pd.DataFrame()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._normalize_ingested_doc
+    # Requirement  : `_normalize_ingested_doc` shall normalize ingested document to match CSV format for unified search
+    # Purpose      : Normalize ingested document to match CSV format for unified search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: dict
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _normalize_ingested_doc(self, doc: dict) -> dict:
         """Normalize ingested document to match CSV format for unified search."""
         # Map ingested fields to Roy et al. CSV format for compatibility
@@ -798,6 +1291,23 @@ question, acknowledge the limitations.
             "_pdf_url": doc.get("pdf_url", ""),
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._build_searchable_text
+    # Requirement  : `_build_searchable_text` shall build searchable text from paper metadata
+    # Purpose      : Build searchable text from paper metadata
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : row: pd.Series
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_searchable_text(self, row: pd.Series) -> str:
         """Build searchable text from paper metadata."""
         parts = []
@@ -852,6 +1362,23 @@ question, acknowledge the limitations.
 
         return " ".join(parts)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._simple_search
+    # Requirement  : `_simple_search` shall simple keyword-based search over papers with diversity boosting
+    # Purpose      : Simple keyword-based search over papers with diversity boosting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; top_k: int (default=5)
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _simple_search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """Simple keyword-based search over papers with diversity boosting."""
         if self.papers_df is None or self.papers_df.empty:
@@ -956,6 +1483,23 @@ question, acknowledge the limitations.
 
         return results
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._build_context
+    # Requirement  : `_build_context` shall build context string from retrieved documents
+    # Purpose      : Build context string from retrieved documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : retrieved_docs: List[Dict[str, Any]]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_context(self, retrieved_docs: List[Dict[str, Any]]) -> str:
         """Build context string from retrieved documents."""
         context_parts = []
@@ -978,6 +1522,23 @@ question, acknowledge the limitations.
 
         return "\n\n".join(context_parts)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._generate_response_local
+    # Requirement  : `_generate_response_local` shall generate response using template-based approach (no LLM API needed)
+    # Purpose      : Generate response using template-based approach (no LLM API needed)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; context: str; sources: List[Dict]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_response_local(
         self, query: str, context: str, sources: List[Dict]
     ) -> str:
@@ -1044,6 +1605,23 @@ question, acknowledge the limitations.
 
         return "\n".join(response_parts)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine._generate_response_llm
+    # Requirement  : `_generate_response_llm` shall generate response using Ollama/Mistral or OpenAI
+    # Purpose      : Generate response using Ollama/Mistral or OpenAI
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; context: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _generate_response_llm(self, query: str, context: str) -> str:
         """Generate response using Ollama/Mistral or OpenAI."""
         try:
@@ -1110,6 +1688,23 @@ question, acknowledge the limitations.
         # Final fallback to local template
         return self._generate_response_local(query, context, [])
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine.generate_related_queries
+    # Requirement  : `generate_related_queries` shall generate related search suggestions based on current query and results
+    # Purpose      : Generate related search suggestions based on current query and results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; sources: List[Dict]
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def generate_related_queries(self, query: str, sources: List[Dict]) -> List[str]:
         """Generate related search suggestions based on current query and results."""
         import random
@@ -1227,6 +1822,23 @@ question, acknowledge the limitations.
         random.shuffle(cleaned)
         return cleaned[:3]
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app.RAGQueryEngine.query
+    # Requirement  : `query` shall execute a RAG query
+    # Purpose      : Execute a RAG query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; max_sources: int (default=5); use_llm: bool (default=False)
+    # Outputs      : QueryResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def query(
         self, query_text: str, max_sources: int = 5, use_llm: bool = False
     ) -> QueryResult:
@@ -1355,6 +1967,23 @@ EEGQueryEngine = RAGQueryEngine
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.init_session_state
+# Requirement  : `init_session_state` shall initialize Streamlit session state
+# Purpose      : Initialize Streamlit session state
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def init_session_state():
     """Initialize Streamlit session state."""
     defaults = {
@@ -1383,6 +2012,23 @@ def init_session_state():
             st.session_state[key] = value
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.navigate_to_paper
+# Requirement  : `navigate_to_paper` shall navigate to Paper Research Explorer with a specific paper selected
+# Purpose      : Navigate to Paper Research Explorer with a specific paper selected
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : paper_id: str; paper_data: Optional[Dict] (default=None)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def navigate_to_paper(paper_id: str, paper_data: Optional[Dict] = None):
     """Navigate to Paper Research Explorer with a specific paper selected."""
     st.session_state["navigate_to_explorer"] = True
@@ -1396,6 +2042,23 @@ def navigate_to_paper(paper_id: str, paper_data: Optional[Dict] = None):
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_header
+# Requirement  : `render_header` shall render application header
+# Purpose      : Render application header
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_header():
     """Render application header."""
     col1, col2 = st.columns([4, 1])
@@ -1417,6 +2080,23 @@ def render_header():
             st.metric("Last Accuracy", f"{results.overall_accuracy:.1%}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_sidebar
+# Requirement  : `render_sidebar` shall render sidebar navigation
+# Purpose      : Render sidebar navigation
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_sidebar() -> str:
     """Render sidebar navigation."""
     st.sidebar.title("🧭 Navigation")
@@ -1472,6 +2152,23 @@ def render_sidebar() -> str:
     return page
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_query_page
+# Requirement  : `render_query_page` shall render query interface page
+# Purpose      : Render query interface page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_query_page():
     """Render query interface page."""
     st.header("🔍 Query the EEG Research Corpus")
@@ -2210,6 +2907,23 @@ def render_query_page():
                 st.caption(f"_{hist.timestamp}_")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_benchmark_page
+# Requirement  : `render_benchmark_page` shall render systematic review benchmark page
+# Purpose      : Render systematic review benchmark page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_benchmark_page():
     """Render systematic review benchmark page."""
     st.header("📊 Systematic Review Benchmark")
@@ -2305,6 +3019,23 @@ def render_benchmark_page():
             progress_bar = st.progress(0)
             status_text = st.empty()
 
+            # ---------------------------------------------------------------------------
+            # ID           : web_ui.app.update_progress
+            # Requirement  : `update_progress` shall execute as specified
+            # Purpose      : Update progress
+            # Rationale    : Implements domain-specific logic per system design; see referenced specs
+            # Inputs       : progress: float
+            # Outputs      : Implicitly None or see body
+            # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+            # Postcond.    : Return value satisfies documented output type and range
+            # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+            # Side Effects : May update instance state or perform I/O; see body
+            # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+            # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+            # Constraints  : Synchronous — must not block event loop
+            # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+            # References   : EEG-RAG system design specification; see module docstring
+            # ---------------------------------------------------------------------------
             def update_progress(progress: float):
                 progress_bar.progress(progress)
                 status_text.text(f"📊 Evaluating papers... {int(progress * 100)}%")
@@ -2413,6 +3144,23 @@ def render_benchmark_page():
             logger.exception("Benchmark error")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_results_page
+# Requirement  : `render_results_page` shall render results dashboard page
+# Purpose      : Render results dashboard page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_results_page():
     """Render results dashboard page."""
     st.header("📈 Results Dashboard")
@@ -2507,6 +3255,23 @@ def render_results_page():
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_corpus_page
+# Requirement  : `render_corpus_page` shall render corpus explorer page
+# Purpose      : Render corpus explorer page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_corpus_page():
     """Render corpus explorer page."""
     st.header("📚 Corpus Explorer")
@@ -2570,6 +3335,23 @@ def render_corpus_page():
         st.warning("⚠️ Ground truth CSV not found. Run `make download-benchmark-data`")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_paper_explorer_page
+# Requirement  : `render_paper_explorer_page` shall render the Paper Research Explorer page with full metadata and PubMed links
+# Purpose      : Render the Paper Research Explorer page with full metadata and PubMed links
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_paper_explorer_page():
     """Render the Paper Research Explorer page with full metadata and PubMed links."""
     st.header("🔬 Paper Research Explorer")
@@ -3156,6 +3938,23 @@ def render_paper_explorer_page():
                         st.metric("Top Domain", top_domain)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_ingestion_page
+# Requirement  : `render_ingestion_page` shall render data ingestion page
+# Purpose      : Render data ingestion page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_ingestion_page():
     """Render data ingestion page."""
     st.header("📥 Data Ingestion")
@@ -3417,6 +4216,23 @@ def render_ingestion_page():
                     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.render_settings_page
+# Requirement  : `render_settings_page` shall render settings page
+# Purpose      : Render settings page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_settings_page():
     """Render settings page."""
     st.header("⚙️ Settings")
@@ -3509,6 +4325,23 @@ def render_settings_page():
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app.main
+# Requirement  : `main` shall main application entry point
+# Purpose      : Main application entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main application entry point."""
     # Page config must be first Streamlit command

@@ -27,6 +27,23 @@ from eeg_rag.services.history_manager import HistoryManager
 console = Console() if RICH_AVAILABLE else None
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli._print
+# Requirement  : `_print` shall print with optional rich formatting
+# Purpose      : Print with optional rich formatting
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : message: str; style: str (default=None)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _print(message: str, style: str = None):
     """Print with optional rich formatting."""
     if RICH_AVAILABLE and console:
@@ -35,17 +52,68 @@ def _print(message: str, style: str = None):
         print(message)
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli._get_manager
+# Requirement  : `_get_manager` shall get the history manager instance
+# Purpose      : Get the history manager instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : HistoryManager
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _get_manager() -> HistoryManager:
     """Get the history manager instance."""
     return HistoryManager.get_instance()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.history_cli
+# Requirement  : `history_cli` shall search history management commands
+# Purpose      : Search history management commands
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group(name='history')
 def history_cli():
     """Search history management commands."""
     pass
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.list_searches
+# Requirement  : `list_searches` shall list recent searches
+# Purpose      : List recent searches
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : limit: int; starred: bool; format: str
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('list')
 @click.option('--limit', '-n', default=20, help='Number of searches to show')
 @click.option('--starred', '-s', is_flag=True, help='Show only starred searches')
@@ -92,6 +160,23 @@ def list_searches(limit: int, starred: bool, format: str):
             print(f"{star} [{s.id[:8]}] {s.timestamp.strftime('%m/%d %H:%M')} - {s.query_text[:40]}... ({s.result_count} results)")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.show_search
+# Requirement  : `show_search` shall show details of a specific search
+# Purpose      : Show details of a specific search
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query_id: str; results: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('show')
 @click.argument('query_id')
 @click.option('--results', '-r', is_flag=True, help='Show search results')
@@ -163,6 +248,23 @@ def show_search(query_id: str, results: bool):
             print("  ⭐ Starred")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.search_history
+# Requirement  : `search_history` shall search through your search history
+# Purpose      : Search through your search history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : search_text: str; limit: int
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('search')
 @click.argument('search_text')
 @click.option('--limit', '-n', default=10, help='Maximum results')
@@ -182,6 +284,23 @@ def search_history(search_text: str, limit: int):
         _print(f"{star} [{s.id[:8]}] {s.query_text}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.toggle_star
+# Requirement  : `toggle_star` shall toggle star status for a search
+# Purpose      : Toggle star status for a search
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query_id: str
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('star')
 @click.argument('query_id')
 def toggle_star(query_id: str):
@@ -200,6 +319,23 @@ def toggle_star(query_id: str):
     _print(f"Search not found: {query_id}", style="red")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.add_note
+# Requirement  : `add_note` shall add a note to a search
+# Purpose      : Add a note to a search
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query_id: str; note_text: str
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('note')
 @click.argument('query_id')
 @click.argument('note_text')
@@ -217,6 +353,23 @@ def add_note(query_id: str, note_text: str):
     _print(f"Search not found: {query_id}", style="red")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.delete_search
+# Requirement  : `delete_search` shall delete a search from history
+# Purpose      : Delete a search from history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query_id: str; yes: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('delete')
 @click.argument('query_id')
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
@@ -239,6 +392,23 @@ def delete_search(query_id: str, yes: bool):
     _print(f"Search not found: {query_id}", style="red")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.clear_history
+# Requirement  : `clear_history` shall clear old search history
+# Purpose      : Clear old search history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : days: int; keep_starred: bool; yes: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('clear')
 @click.option('--days', '-d', default=30, help='Clear searches older than N days')
 @click.option('--keep-starred', '-k', is_flag=True, default=True, help='Keep starred searches')
@@ -258,6 +428,23 @@ def clear_history(days: int, keep_starred: bool, yes: bool):
     _print(f"Cleared {count} searches", style="green")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.show_stats
+# Requirement  : `show_stats` shall show search history statistics
+# Purpose      : Show search history statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('stats')
 def show_stats():
     """Show search history statistics."""
@@ -304,6 +491,23 @@ def show_stats():
         print(f"  Saved Papers: {stats['saved_papers']}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.export_history
+# Requirement  : `export_history` shall export search history to a file
+# Purpose      : Export search history to a file
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : filepath: str; format: str
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('export')
 @click.argument('filepath', type=click.Path())
 @click.option('--format', '-f', type=click.Choice(['json', 'csv']), default='json')
@@ -315,6 +519,23 @@ def export_history(filepath: str, format: str):
     _print(f"Exported history to: {output_path}", style="green")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.list_papers
+# Requirement  : `list_papers` shall list saved papers
+# Purpose      : List saved papers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : status: Optional[str]; tag: Optional[str]; limit: int
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @history_cli.command('papers')
 @click.option('--status', '-s', type=click.Choice(['unread', 'reading', 'read', 'archived']))
 @click.option('--tag', '-t', help='Filter by tag')
@@ -354,6 +575,23 @@ def list_papers(status: Optional[str], tag: Optional[str], limit: int):
 
 
 # Main entry point for standalone use
+# ---------------------------------------------------------------------------
+# ID           : cli.history_cli.main
+# Requirement  : `main` shall main entry point
+# Purpose      : Main entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main entry point."""
     history_cli()

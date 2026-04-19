@@ -19,6 +19,23 @@ import aiohttp
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.europepmc_client.EuropePMCArticle
+# Requirement  : `EuropePMCArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Article record from Europe PMC
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EuropePMCArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EuropePMCArticle:
     """Article record from Europe PMC."""
@@ -42,6 +59,23 @@ class EuropePMCArticle:
     source: str                        # MED, PPR (preprint), etc.
     eeg_methods_mentioned: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCArticle.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "pmid": self.pmid,
@@ -66,6 +100,23 @@ class EuropePMCArticle:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.europepmc_client.EuropePMCClient
+# Requirement  : `EuropePMCClient` class shall be instantiable and expose the documented interface
+# Purpose      : Async client for the Europe PMC REST API
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EuropePMCClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EuropePMCClient:
     """
     Async client for the Europe PMC REST API.
@@ -113,6 +164,23 @@ class EuropePMCClient:
         "source localization",
     ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient.__init__
+    # Requirement  : `__init__` shall args:
+    # Purpose      : Args:
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : page_size: int (default=100); timeout: float (default=30.0); fetch_full_text: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         page_size: int = 100,
@@ -131,6 +199,23 @@ class EuropePMCClient:
         self.timeout = aiohttp.ClientTimeout(total=timeout)
         self._session: Optional[aiohttp.ClientSession] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient.__aenter__
+    # Requirement  : `__aenter__` shall execute as specified
+    # Purpose      :   aenter  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'EuropePMCClient'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self) -> "EuropePMCClient":
         self._session = aiohttp.ClientSession(
             timeout=self.timeout,
@@ -138,6 +223,23 @@ class EuropePMCClient:
         )
         return self
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient.__aexit__
+    # Requirement  : `__aexit__` shall execute as specified
+    # Purpose      :   aexit  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> bool:
         if self._session:
             await self._session.close()
@@ -180,12 +282,46 @@ class EuropePMCClient:
                 yield article
                 yielded += 1
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient.fetch_full_text_xml
+    # Requirement  : `fetch_full_text_xml` shall download full-text XML for a PMC article
+    # Purpose      : Download full-text XML for a PMC article
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmcid: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_full_text_xml(self, pmcid: str) -> Optional[str]:
         """Download full-text XML for a PMC article."""
         url = f"{self.BASE_URL}/article/{pmcid}/textyml"
         data = await self._get_text(url)
         return data
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient.get_citations
+    # Requirement  : `get_citations` shall return PMIDs that cite the given article
+    # Purpose      : Return PMIDs that cite the given article
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str; limit: int (default=100)
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_citations(self, pmid: str, limit: int = 100) -> List[str]:
         """Return PMIDs that cite the given article."""
         url = f"{self.BASE_URL}/article/MED/{pmid}/citations"
@@ -239,6 +375,23 @@ class EuropePMCClient:
             cursor = next_cursor
             await asyncio.sleep(0.1)  # polite pacing
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient._parse_article
+    # Requirement  : `_parse_article` shall execute as specified
+    # Purpose      :  parse article
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : item: Dict[str, Any]
+    # Outputs      : Optional[EuropePMCArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_article(self, item: Dict[str, Any]) -> Optional[EuropePMCArticle]:
         import re
 
@@ -323,6 +476,23 @@ class EuropePMCClient:
             logger.warning("Failed to parse Europe PMC article: %s", exc)
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient._get_json
+    # Requirement  : `_get_json` shall execute as specified
+    # Purpose      :  get json
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str; params: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_json(
         self,
         url: str,
@@ -340,6 +510,23 @@ class EuropePMCClient:
             logger.error("Europe PMC request error: %s", exc)
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.europepmc_client.EuropePMCClient._get_text
+    # Requirement  : `_get_text` shall execute as specified
+    # Purpose      :  get text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str; params: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_text(
         self, url: str, params: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:

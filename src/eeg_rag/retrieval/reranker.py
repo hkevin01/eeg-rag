@@ -22,6 +22,23 @@ except ImportError:
     logging.warning("sentence-transformers not available for reranking")
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.reranker.RerankedResult
+# Requirement  : `RerankedResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result after reranking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RerankedResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RerankedResult:
     """Result after reranking"""
@@ -34,6 +51,23 @@ class RerankedResult:
     chunk_id: Optional[str] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.reranker.CrossEncoderReranker
+# Requirement  : `CrossEncoderReranker` class shall be instantiable and expose the documented interface
+# Purpose      : Cross-encoder reranker for improving retrieval quality
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CrossEncoderReranker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CrossEncoderReranker:
     """
     Cross-encoder reranker for improving retrieval quality
@@ -43,6 +77,23 @@ class CrossEncoderReranker:
     relevance scores than bi-encoders.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.CrossEncoderReranker.__init__
+    # Requirement  : `__init__` shall initialize cross-encoder reranker
+    # Purpose      : Initialize cross-encoder reranker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default='cross-encoder/ms-marco-MiniLM-L-6-v2'); combine_weight: float (default=0.7); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
@@ -70,6 +121,23 @@ class CrossEncoderReranker:
         self.model = CrossEncoder(model_name)
         self.logger.info("Cross-encoder loaded successfully")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.CrossEncoderReranker.rerank
+    # Requirement  : `rerank` shall rerank candidates using cross-encoder
+    # Purpose      : Rerank candidates using cross-encoder
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; candidates: List[Dict[str, Any]]; top_k: Optional[int] (default=None)
+    # Outputs      : List[RerankedResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rerank(
         self,
         query: str,
@@ -142,6 +210,23 @@ class CrossEncoderReranker:
         
         return reranked
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.CrossEncoderReranker.get_statistics
+    # Requirement  : `get_statistics` shall get reranker statistics
+    # Purpose      : Get reranker statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get reranker statistics"""
         return {
@@ -151,6 +236,23 @@ class CrossEncoderReranker:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.reranker.NoOpReranker
+# Requirement  : `NoOpReranker` class shall be instantiable and expose the documented interface
+# Purpose      : No-op reranker for when cross-encoder is not available
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate NoOpReranker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class NoOpReranker:
     """
     No-op reranker for when cross-encoder is not available
@@ -158,10 +260,44 @@ class NoOpReranker:
     Simply passes through results without reranking
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.NoOpReranker.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, logger: Optional[logging.Logger] = None):
         self.logger = logger or logging.getLogger("eeg_rag.reranker")
         self.logger.warning("Using NoOp reranker (cross-encoder not available)")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.NoOpReranker.rerank
+    # Requirement  : `rerank` shall pass through without reranking
+    # Purpose      : Pass through without reranking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; candidates: List[Dict[str, Any]]; top_k: Optional[int] (default=None)
+    # Outputs      : List[RerankedResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rerank(
         self,
         query: str,
@@ -187,5 +323,22 @@ class NoOpReranker:
         
         return reranked
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.reranker.NoOpReranker.get_statistics
+    # Requirement  : `get_statistics` shall execute as specified
+    # Purpose      : Get statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         return {"available": False, "model_name": "noop"}

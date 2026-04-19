@@ -195,6 +195,23 @@ AI_AGENTS = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agents_showcase.render_agents_showcase
+# Requirement  : `render_agents_showcase` shall render the AI Agents showcase section on the homepage
+# Purpose      : Render the AI Agents showcase section on the homepage
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agents_showcase():
     """Render the AI Agents showcase section on the homepage."""
     
@@ -220,6 +237,23 @@ def render_agents_showcase():
     st.markdown("<br/>", unsafe_allow_html=True)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agents_showcase.render_agent_card
+# Requirement  : `render_agent_card` shall render a single agent card with expandable details
+# Purpose      : Render a single agent card with expandable details
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent: dict
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_card(agent: dict):
     """Render a single agent card with expandable details."""
     
@@ -255,6 +289,23 @@ def render_agent_card(agent: dict):
         st.markdown(tech_str)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agents_showcase.get_agent_info
+# Requirement  : `get_agent_info` shall get agent information by ID
+# Purpose      : Get agent information by ID
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str
+# Outputs      : dict
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agent_info(agent_id: str) -> dict:
     """Get agent information by ID."""
     for agent in AI_AGENTS:
@@ -263,6 +314,23 @@ def get_agent_info(agent_id: str) -> dict:
     return None
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agents_showcase.render_agent_activity
+# Requirement  : `render_agent_activity` shall render a single agent's activity during search
+# Purpose      : Render a single agent's activity during search
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str; status: str (default='running'); details: str (default='')
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_activity(agent_id: str, status: str = "running", details: str = ""):
     """Render a single agent's activity during search."""
     
@@ -304,6 +372,23 @@ def render_agent_activity(agent_id: str, status: str = "running", details: str =
     """, unsafe_allow_html=True)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agents_showcase.render_agent_pipeline_status
+# Requirement  : `render_agent_pipeline_status` shall render the full agent pipeline status during query execution
+# Purpose      : Render the full agent pipeline status during query execution
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : active_agents: list; completed_agents: list; current_agent: str (default=None)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_pipeline_status(active_agents: list, completed_agents: list, current_agent: str = None):
     """Render the full agent pipeline status during query execution."""
     

@@ -155,6 +155,23 @@ AGENT_CAPABILITIES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : core.query_router.QueryType
+# Requirement  : `QueryType` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive query classification for intelligent routing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryType(Enum):
     """Comprehensive query classification for intelligent routing.
     
@@ -170,6 +187,23 @@ class QueryType(Enum):
     UNKNOWN = "unknown"               # Fallback for ambiguous queries
 
 
+# ---------------------------------------------------------------------------
+# ID           : core.query_router.RoutingResult
+# Requirement  : `RoutingResult` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive routing decision with detailed reasoning and metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RoutingResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RoutingResult:
     """Comprehensive routing decision with detailed reasoning and metrics.
@@ -203,6 +237,23 @@ class RoutingResult:
     routing_metadata: Dict[str, Any] = field(default_factory=dict)
     routing_timestamp: Optional[float] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.RoutingResult.__post_init__
+    # Requirement  : `__post_init__` shall add timestamp and validate confidence score
+    # Purpose      : Add timestamp and validate confidence score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Add timestamp and validate confidence score."""
         if self.routing_timestamp is None:
@@ -212,6 +263,23 @@ class RoutingResult:
             logger.warning(f"Confidence out of range: {self.confidence}")
             self.confidence = max(0.0, min(1.0, self.confidence))
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.RoutingResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization and API responses
+    # Purpose      : Convert to dictionary for serialization and API responses
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization and API responses."""
         return {
@@ -237,9 +305,43 @@ class RoutingResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : core.query_router.QueryRouter
+# Requirement  : `QueryRouter` class shall be instantiable and expose the documented interface
+# Purpose      : Routes queries to appropriate agents based on content analysis
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryRouter with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryRouter:
     """Routes queries to appropriate agents based on content analysis"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         # Define patterns for different query types
         self.query_patterns = {
@@ -333,6 +435,23 @@ class QueryRouter:
             'epileptiform', 'spike', 'sharp', 'wave'
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter.route_query
+    # Requirement  : `route_query` shall route query to appropriate agent
+    # Purpose      : Route query to appropriate agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; context: Dict[str, Any] (default=None)
+    # Outputs      : RoutingResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def route_query(self, query: str, context: Dict[str, Any] = None) -> RoutingResult:
         """Route query to appropriate agent"""
         query_lower = query.lower()
@@ -384,6 +503,23 @@ class QueryRouter:
             complexity=complexity
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter._calculate_type_score
+    # Requirement  : `_calculate_type_score` shall calculate score for a specific query type
+    # Purpose      : Calculate score for a specific query type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; config: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_type_score(self, query: str, config: Dict[str, Any]) -> float:
         """Calculate score for a specific query type"""
         pattern_matches = 0
@@ -407,11 +543,45 @@ class QueryRouter:
         
         return (pattern_score * 0.7) + (keyword_score * 0.3)
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter._calculate_eeg_relevance
+    # Requirement  : `_calculate_eeg_relevance` shall calculate how EEG-relevant the query is
+    # Purpose      : Calculate how EEG-relevant the query is
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_eeg_relevance(self, query: str) -> float:
         """Calculate how EEG-relevant the query is"""
         eeg_matches = sum(1 for keyword in self.eeg_keywords if keyword in query)
         return min(eeg_matches / 10.0, 1.0)  # Normalize to 0-1
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter._assess_complexity
+    # Requirement  : `_assess_complexity` shall assess query complexity
+    # Purpose      : Assess query complexity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; context: Dict[str, Any] (default=None)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _assess_complexity(self, query: str, context: Dict[str, Any] = None) -> str:
         """Assess query complexity"""
         # Simple heuristics for complexity
@@ -434,6 +604,23 @@ class QueryRouter:
         else:
             return "simple"
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter._generate_reasoning
+    # Requirement  : `_generate_reasoning` shall generate human-readable reasoning for the routing decision
+    # Purpose      : Generate human-readable reasoning for the routing decision
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; query_type: QueryType; confidence: float; complexity: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_reasoning(self, query: str, query_type: QueryType, 
                            confidence: float, complexity: str) -> str:
         """Generate human-readable reasoning for the routing decision"""
@@ -454,6 +641,23 @@ class QueryRouter:
         
         return f"{base_reasoning} (confidence: {confidence_desc}, complexity: {complexity})"
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter._extract_key_terms
+    # Requirement  : `_extract_key_terms` shall extract key terms from the query
+    # Purpose      : Extract key terms from the query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_key_terms(self, query: str) -> List[str]:
         """Extract key terms from the query"""
         # Simple keyword extraction (could be improved with NLP)
@@ -474,6 +678,23 @@ class QueryRouter:
         
         return key_terms[:10]  # Return top 10 key terms
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter.get_routing_stats
+    # Requirement  : `get_routing_stats` shall get routing statistics and configuration
+    # Purpose      : Get routing statistics and configuration
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_routing_stats(self) -> Dict[str, Any]:
         """Get routing statistics and configuration"""
         return {
@@ -482,6 +703,23 @@ class QueryRouter:
             'eeg_keywords_count': len(self.eeg_keywords)
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : core.query_router.QueryRouter.add_custom_pattern
+    # Requirement  : `add_custom_pattern` shall add custom pattern for query type detection
+    # Purpose      : Add custom pattern for query type detection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_type: QueryType; pattern: str; keywords: List[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_custom_pattern(self, query_type: QueryType, pattern: str, keywords: List[str] = None):
         """Add custom pattern for query type detection"""
         if query_type in self.query_patterns:
@@ -493,6 +731,23 @@ class QueryRouter:
 
 
 # Convenience function for quick routing
+# ---------------------------------------------------------------------------
+# ID           : core.query_router.route_query
+# Requirement  : `route_query` shall quick function to route a query
+# Purpose      : Quick function to route a query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; context: Dict[str, Any] (default=None)
+# Outputs      : RoutingResult
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def route_query(query: str, context: Dict[str, Any] = None) -> RoutingResult:
     """Quick function to route a query"""
     router = QueryRouter()

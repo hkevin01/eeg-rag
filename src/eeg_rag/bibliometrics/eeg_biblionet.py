@@ -37,6 +37,23 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.EEGResearchDomain
+# Requirement  : `EEGResearchDomain` class shall be instantiable and expose the documented interface
+# Purpose      : EEG research domains for targeted bibliometric analysis
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGResearchDomain with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGResearchDomain(Enum):
     """
     EEG research domains for targeted bibliometric analysis.
@@ -53,6 +70,23 @@ class EEGResearchDomain(Enum):
     GENERAL = "general_eeg"
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.EEGArticle
+# Requirement  : `EEGArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an EEG research article with bibliometric metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EEGArticle:
     """
@@ -90,6 +124,23 @@ class EEGArticle:
     citation_count: int = 0
     centrality_score: float = 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGArticle.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -108,6 +159,23 @@ class EEGArticle:
             "centrality_score": self.centrality_score,
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGArticle.from_openalex
+    # Requirement  : `from_openalex` shall create EEGArticle from OpenAlex API response
+    # Purpose      : Create EEGArticle from OpenAlex API response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : 'EEGArticle'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_openalex(cls, data: Dict[str, Any]) -> "EEGArticle":
         """
@@ -168,6 +236,23 @@ class EEGArticle:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.EEGAuthor
+# Requirement  : `EEGAuthor` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an EEG researcher with bibliometric metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGAuthor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EEGAuthor:
     """
@@ -195,6 +280,23 @@ class EEGAuthor:
     centrality_score: float = 0.0
     collaboration_count: int = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGAuthor.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -209,6 +311,23 @@ class EEGAuthor:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.NetworkMetrics
+# Requirement  : `NetworkMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Network-level metrics for bibliometric analysis
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate NetworkMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class NetworkMetrics:
     """
@@ -236,6 +355,23 @@ class NetworkMetrics:
     max_degree: int = 0
     diameter: int = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.NetworkMetrics.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -250,6 +386,23 @@ class NetworkMetrics:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.EEGBiblioNet
+# Requirement  : `EEGBiblioNet` class shall be instantiable and expose the documented interface
+# Purpose      : Main class for EEG-specific bibliometric network analysis
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGBiblioNet with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGBiblioNet:
     """
     Main class for EEG-specific bibliometric network analysis.
@@ -286,6 +439,23 @@ class EEGBiblioNet:
         EEGResearchDomain.SIGNAL_PROCESSING: "(EEG|electroencephalography)( )(signal processing|artifact|filtering|preprocessing|ICA)",
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.__init__
+    # Requirement  : `__init__` shall initialize EEGBiblioNet instance
+    # Purpose      : Initialize EEGBiblioNet instance
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : email: str; cache_dir: Optional[Union[str, Path]] (default=None); use_cache: bool (default=True)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         email: str,
@@ -333,6 +503,23 @@ class EEGBiblioNet:
             f"cache_dir={self.cache_dir}, pybiblionet_available={self._pybiblionet_available}"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet._check_pybiblionet
+    # Requirement  : `_check_pybiblionet` shall check if pyBiblioNet is installed and available
+    # Purpose      : Check if pyBiblioNet is installed and available
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_pybiblionet(self) -> bool:
         """
         Check if pyBiblioNet is installed and available.
@@ -349,6 +536,23 @@ class EEGBiblioNet:
             )
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.search_eeg_literature
+    # Requirement  : `search_eeg_literature` shall search for EEG literature using OpenAlex via pyBiblioNet
+    # Purpose      : Search for EEG literature using OpenAlex via pyBiblioNet
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : domain: EEGResearchDomain (default=EEGResearchDomain.GENERAL); custom_query: Optional[str] (default=None); from_date: Optional[str] (default=None); to_date: Optional[str] (default=None); max_results: int (default=1000)
+    # Outputs      : List[EEGArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search_eeg_literature(
         self,
         domain: EEGResearchDomain = EEGResearchDomain.GENERAL,
@@ -450,6 +654,23 @@ class EEGBiblioNet:
         
         return self.articles
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.build_citation_network
+    # Requirement  : `build_citation_network` shall build citation network from retrieved articles
+    # Purpose      : Build citation network from retrieved articles
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Optional[Union[str, Path]] (default=None); base_set_only: bool (default=True)
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_citation_network(
         self,
         output_path: Optional[Union[str, Path]] = None,
@@ -508,6 +729,23 @@ class EEGBiblioNet:
         
         return self.citation_graph
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.build_coauthorship_network
+    # Requirement  : `build_coauthorship_network` shall build co-authorship network from retrieved articles
+    # Purpose      : Build co-authorship network from retrieved articles
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Optional[Union[str, Path]] (default=None); base_set_only: bool (default=True)
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_coauthorship_network(
         self,
         output_path: Optional[Union[str, Path]] = None,
@@ -566,6 +804,23 @@ class EEGBiblioNet:
         
         return self.coauthorship_graph
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.compute_citation_centrality
+    # Requirement  : `compute_citation_centrality` shall compute centrality metrics for citation network
+    # Purpose      : Compute centrality metrics for citation network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : method: str (default='pagerank')
+    # Outputs      : Dict[str, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_citation_centrality(
         self,
         method: str = "pagerank",
@@ -620,6 +875,23 @@ class EEGBiblioNet:
         
         return centrality
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.compute_coauthorship_centrality
+    # Requirement  : `compute_coauthorship_centrality` shall compute centrality metrics for co-authorship network
+    # Purpose      : Compute centrality metrics for co-authorship network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : method: str (default='betweenness')
+    # Outputs      : Dict[str, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_coauthorship_centrality(
         self,
         method: str = "betweenness",
@@ -667,6 +939,23 @@ class EEGBiblioNet:
         
         return centrality
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.get_influential_papers
+    # Requirement  : `get_influential_papers` shall get most influential EEG papers based on citation network
+    # Purpose      : Get most influential EEG papers based on citation network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : top_n: int (default=10); method: str (default='pagerank')
+    # Outputs      : List[EEGArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_influential_papers(
         self,
         top_n: int = 10,
@@ -705,6 +994,23 @@ class EEGBiblioNet:
         
         return sorted_articles[:top_n]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.get_influential_authors
+    # Requirement  : `get_influential_authors` shall get most influential EEG researchers based on co-authorship network
+    # Purpose      : Get most influential EEG researchers based on co-authorship network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : top_n: int (default=10); method: str (default='betweenness')
+    # Outputs      : List[Tuple[str, float]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_influential_authors(
         self,
         top_n: int = 10,
@@ -738,6 +1044,23 @@ class EEGBiblioNet:
         
         return sorted_authors[:top_n]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.get_network_metrics
+    # Requirement  : `get_network_metrics` shall get network-level metrics for the specified network
+    # Purpose      : Get network-level metrics for the specified network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : network_type: str (default='citation')
+    # Outputs      : NetworkMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_network_metrics(
         self,
         network_type: str = "citation",
@@ -807,6 +1130,23 @@ class EEGBiblioNet:
         
         return metrics
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.detect_communities
+    # Requirement  : `detect_communities` shall detect communities in the network
+    # Purpose      : Detect communities in the network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : network_type: str (default='coauthorship'); method: str (default='louvain')
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def detect_communities(
         self,
         network_type: str = "coauthorship",
@@ -862,6 +1202,23 @@ class EEGBiblioNet:
         
         raise ValueError(f"Unknown community detection method: {method}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.export_to_csv
+    # Requirement  : `export_to_csv` shall export bibliometric data to CSV files
+    # Purpose      : Export bibliometric data to CSV files
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_dir: Union[str, Path]; include_authors: bool (default=True); include_venues: bool (default=True)
+    # Outputs      : Dict[str, Path]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_to_csv(
         self,
         output_dir: Union[str, Path],
@@ -928,6 +1285,23 @@ class EEGBiblioNet:
         
         return outputs
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.eeg_biblionet.EEGBiblioNet.get_articles_for_rag
+    # Requirement  : `get_articles_for_rag` shall get articles formatted for RAG ingestion
+    # Purpose      : Get articles formatted for RAG ingestion
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : min_citations: int (default=0); min_centrality: float (default=0.0); topics: Optional[List[str]] (default=None)
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_articles_for_rag(
         self,
         min_citations: int = 0,
@@ -996,6 +1370,23 @@ class EEGBiblioNet:
 
 
 # Convenience functions for direct usage
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.retrieve_eeg_articles
+# Requirement  : `retrieve_eeg_articles` shall convenience function to retrieve EEG articles
+# Purpose      : Convenience function to retrieve EEG articles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : email: str; domain: EEGResearchDomain (default=EEGResearchDomain.GENERAL); from_date: Optional[str] (default=None); to_date: Optional[str] (default=None); max_results: int (default=1000)
+# Outputs      : List[EEGArticle]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def retrieve_eeg_articles(
     email: str,
     domain: EEGResearchDomain = EEGResearchDomain.GENERAL,
@@ -1027,6 +1418,23 @@ def retrieve_eeg_articles(
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.build_eeg_citation_network
+# Requirement  : `build_eeg_citation_network` shall convenience function to build citation network from articles
+# Purpose      : Convenience function to build citation network from articles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[EEGArticle]; output_path: Optional[str] (default=None)
+# Outputs      : Any
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def build_eeg_citation_network(
     articles: List[EEGArticle],
     output_path: Optional[str] = None,
@@ -1048,6 +1456,23 @@ def build_eeg_citation_network(
     return biblio.build_citation_network(output_path=output_path)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.build_eeg_coauthorship_network
+# Requirement  : `build_eeg_coauthorship_network` shall convenience function to build co-authorship network from articles
+# Purpose      : Convenience function to build co-authorship network from articles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[EEGArticle]; output_path: Optional[str] (default=None)
+# Outputs      : Any
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def build_eeg_coauthorship_network(
     articles: List[EEGArticle],
     output_path: Optional[str] = None,
@@ -1069,6 +1494,23 @@ def build_eeg_coauthorship_network(
     return biblio.build_coauthorship_network(output_path=output_path)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.get_influential_papers
+# Requirement  : `get_influential_papers` shall convenience function to get influential papers from a list
+# Purpose      : Convenience function to get influential papers from a list
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[EEGArticle]; top_n: int (default=10)
+# Outputs      : List[EEGArticle]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_influential_papers(
     articles: List[EEGArticle],
     top_n: int = 10,
@@ -1090,6 +1532,23 @@ def get_influential_papers(
     return biblio.get_influential_papers(top_n=top_n)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.eeg_biblionet.get_influential_authors
+# Requirement  : `get_influential_authors` shall convenience function to get influential authors from a list
+# Purpose      : Convenience function to get influential authors from a list
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[EEGArticle]; top_n: int (default=10)
+# Outputs      : List[Tuple[str, float]]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_influential_authors(
     articles: List[EEGArticle],
     top_n: int = 10,

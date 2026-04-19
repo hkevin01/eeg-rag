@@ -23,6 +23,23 @@ st.set_page_config(
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.1_Testing_Suite.main
+# Requirement  : `main` shall render testing suite page
+# Purpose      : Render testing suite page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Render testing suite page."""
     st.title("🧪 Testing Suite")
@@ -114,6 +131,23 @@ def main():
     render_test_history()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.1_Testing_Suite.run_tests
+# Requirement  : `run_tests` shall run selected tests
+# Purpose      : Run selected tests
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : test_files; verbose; show_coverage; stop_on_fail; parallel
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def run_tests(test_files, verbose, show_coverage, stop_on_fail, parallel):
     """Run selected tests."""
     st.subheader("Test Execution")
@@ -202,6 +236,23 @@ def run_tests(test_files, verbose, show_coverage, stop_on_fail, parallel):
             st.code(str(e), language="text")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.1_Testing_Suite.parse_test_summary
+# Requirement  : `parse_test_summary` shall parse pytest output for test summary
+# Purpose      : Parse pytest output for test summary
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : output
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def parse_test_summary(output):
     """Parse pytest output for test summary."""
     passed = failed = skipped = errors = 0
@@ -231,6 +282,23 @@ def parse_test_summary(output):
     return passed, failed, skipped, errors
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.1_Testing_Suite.save_test_run
+# Requirement  : `save_test_run` shall save test run to history
+# Purpose      : Save test run to history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : run_data
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def save_test_run(run_data):
     """Save test run to history."""
     history_file = Path("test_history.json")
@@ -253,6 +321,23 @@ def save_test_run(run_data):
         json.dump(history, f, indent=2)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.1_Testing_Suite.render_test_history
+# Requirement  : `render_test_history` shall render test history
+# Purpose      : Render test history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_test_history():
     """Render test history."""
     st.subheader("Test History")

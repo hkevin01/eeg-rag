@@ -59,6 +59,23 @@ from eeg_rag.retrieval.query_analyzer import QueryAnalyzer, QueryAnalysis
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.hybrid_retriever.HybridResult
+# Requirement  : `HybridResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from hybrid search with both sparse and dense scores
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HybridResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class HybridResult:
     """Result from hybrid search with both sparse and dense scores."""
@@ -72,6 +89,23 @@ class HybridResult:
     dense_rank: Optional[int] = None  # Rank in dense results (1-indexed)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.hybrid_retriever.HybridRetriever
+# Requirement  : `HybridRetriever` class shall be instantiable and expose the documented interface
+# Purpose      : Hybrid retrieval combining BM25 and dense search with RRF fusion
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HybridRetriever with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HybridRetriever:
     """
     Hybrid retrieval combining BM25 and dense search with RRF fusion.
@@ -97,6 +131,23 @@ class HybridRetriever:
         ...     print(f"{r.doc_id}: RRF={r.rrf_score:.3f}")
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.hybrid_retriever.HybridRetriever.__init__
+    # Requirement  : `__init__` shall initialize hybrid retriever
+    # Purpose      : Initialize hybrid retriever
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : bm25_retriever: BM25Retriever; dense_retriever: DenseRetriever; bm25_weight: float (default=0.5); dense_weight: float (default=0.5); rrf_k: int (default=60); use_query_expansion: bool (default=True); use_reranking: bool (default=False); reranker_model: str (default='cross-encoder/ms-marco-MiniLM-L-6-v2'); adaptive_reranking: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         bm25_retriever: BM25Retriever,
@@ -161,6 +212,23 @@ class HybridRetriever:
         logger.info(f"  RRF k: {rrf_k}")
         logger.info(f"  Query expansion: {'enabled' if use_query_expansion else 'disabled'}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.hybrid_retriever.HybridRetriever._compute_rrf_scores
+    # Requirement  : `_compute_rrf_scores` shall compute Reciprocal Rank Fusion scores
+    # Purpose      : Compute Reciprocal Rank Fusion scores
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : bm25_results: List[BM25Result]; dense_results: List[DenseResult]
+    # Outputs      : Dict[str, Tuple[float, Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compute_rrf_scores(
         self,
         bm25_results: List[BM25Result],
@@ -224,6 +292,23 @@ class HybridRetriever:
 
         return combined
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.hybrid_retriever.HybridRetriever.search
+    # Requirement  : `search` shall search using hybrid BM25 + dense retrieval with RRF
+    # Purpose      : Search using hybrid BM25 + dense retrieval with RRF
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; top_k: int (default=10); retrieve_k: int (default=100); filters: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : List[HybridResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,

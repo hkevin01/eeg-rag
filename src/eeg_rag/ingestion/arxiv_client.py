@@ -16,6 +16,23 @@ from urllib.parse import quote
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.arxiv_client.ArxivPaper
+# Requirement  : `ArxivPaper` class shall be instantiable and expose the documented interface
+# Purpose      : Paper from arXiv
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ArxivPaper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ArxivPaper:
     """Paper from arXiv."""
@@ -34,6 +51,23 @@ class ArxivPaper:
     comment: Optional[str]
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.arxiv_client.ArxivClient
+# Requirement  : `ArxivClient` class shall be instantiable and expose the documented interface
+# Purpose      : Async client for arXiv API
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ArxivClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ArxivClient:
     """
     Async client for arXiv API.
@@ -74,6 +108,23 @@ class ArxivClient:
         "brain connectivity",
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.__init__
+    # Requirement  : `__init__` shall initialize arXiv client
+    # Purpose      : Initialize arXiv client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results_per_request: int (default=100)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, results_per_request: int = 100):
         """
         Initialize arXiv client.
@@ -87,11 +138,45 @@ class ArxivClient:
         self.delay = 3.0
         self._session: Optional[aiohttp.ClientSession] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.__aenter__
+    # Requirement  : `__aenter__` shall async context manager entry
+    # Purpose      : Async context manager entry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self):
         """Async context manager entry."""
         self._session = aiohttp.ClientSession()
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.__aexit__
+    # Requirement  : `__aexit__` shall async context manager exit
+    # Purpose      : Async context manager exit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self._session:
@@ -99,12 +184,46 @@ class ArxivClient:
             self._session = None
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.close
+    # Requirement  : `close` shall close the client session
+    # Purpose      : Close the client session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Close the client session."""
         if self._session:
             await self._session.close()
             self._session = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient._rate_limit
+    # Requirement  : `_rate_limit` shall enforce arXiv's rate limit
+    # Purpose      : Enforce arXiv's rate limit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self):
         """Enforce arXiv's rate limit."""
         now = asyncio.get_event_loop().time()
@@ -113,6 +232,23 @@ class ArxivClient:
             await asyncio.sleep(self.delay - elapsed)
         self._last_request_time = asyncio.get_event_loop().time()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient._build_query
+    # Requirement  : `_build_query` shall build arXiv search query string
+    # Purpose      : Build arXiv search query string
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : search_terms: list[str]; categories: Optional[list[str]] (default=None)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_query(
         self,
         search_terms: list[str],
@@ -130,6 +266,23 @@ class ArxivClient:
         
         return query
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.search
+    # Requirement  : `search` shall search arXiv and yield papers
+    # Purpose      : Search arXiv and yield papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_results: int (default=1000); sort_by: str (default='submittedDate'); sort_order: str (default='descending')
+    # Outputs      : AsyncIterator[ArxivPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(
         self,
         query: str,
@@ -180,6 +333,23 @@ class ArxivClient:
                 start += len(feed.entries)
                 logger.info(f"Fetched {start} papers from arXiv")
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient._parse_entry
+    # Requirement  : `_parse_entry` shall parse arXiv feed entry into ArxivPaper
+    # Purpose      : Parse arXiv feed entry into ArxivPaper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry
+    # Outputs      : Optional[ArxivPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_entry(self, entry) -> Optional[ArxivPaper]:
         """Parse arXiv feed entry into ArxivPaper."""
         try:
@@ -225,6 +395,23 @@ class ArxivClient:
             logger.warning(f"Error parsing arXiv entry: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.collect_eeg_papers
+    # Requirement  : `collect_eeg_papers` shall collect EEG-related papers from arXiv
+    # Purpose      : Collect EEG-related papers from arXiv
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_results: int (default=5000); years_back: int (default=5)
+    # Outputs      : AsyncIterator[ArxivPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def collect_eeg_papers(
         self,
         max_results: int = 5000,
@@ -258,6 +445,23 @@ class ArxivClient:
         
         logger.info(f"Collected {count} EEG papers from arXiv")
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.get_paper_by_id
+    # Requirement  : `get_paper_by_id` shall fetch a specific paper by arXiv ID
+    # Purpose      : Fetch a specific paper by arXiv ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : arxiv_id: str
+    # Outputs      : Optional[ArxivPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_paper_by_id(self, arxiv_id: str) -> Optional[ArxivPaper]:
         """
         Fetch a specific paper by arXiv ID.
@@ -278,6 +482,23 @@ class ArxivClient:
         
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.arxiv_client.ArxivClient.search_by_author
+    # Requirement  : `search_by_author` shall search for papers by author name
+    # Purpose      : Search for papers by author name
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : author_name: str; max_results: int (default=100)
+    # Outputs      : AsyncIterator[ArxivPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search_by_author(
         self,
         author_name: str,

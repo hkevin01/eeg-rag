@@ -17,6 +17,23 @@ from .generation_ensemble import GenerationResult, EnsembleResponse
 
 
 # REQ-FINAL-001: Define final answer structure
+# ---------------------------------------------------------------------------
+# ID           : ensemble.final_aggregator.FinalAnswer
+# Requirement  : `FinalAnswer` class shall be instantiable and expose the documented interface
+# Purpose      : Complete answer with citations, confidence, and metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate FinalAnswer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class FinalAnswer:
     """
@@ -32,6 +49,23 @@ class FinalAnswer:
     statistics: Dict[str, Any] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAnswer.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -46,6 +80,23 @@ class FinalAnswer:
             'warnings': self.warnings
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAnswer.to_markdown
+    # Requirement  : `to_markdown` shall format as markdown with citations
+    # Purpose      : Format as markdown with citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_markdown(self) -> str:
         """Format as markdown with citations"""
         md = f"# Query: {self.query}\n\n"
@@ -79,9 +130,43 @@ class FinalAnswer:
 
 
 # REQ-FINAL-002: Implement hallucination detection
+# ---------------------------------------------------------------------------
+# ID           : ensemble.final_aggregator.HallucinationDetector
+# Requirement  : `HallucinationDetector` class shall be instantiable and expose the documented interface
+# Purpose      : Detect potential hallucinations in generated responses
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HallucinationDetector with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HallucinationDetector:
     """Detect potential hallucinations in generated responses"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.HallucinationDetector.detect_hallucinations
+    # Requirement  : `detect_hallucinations` shall detect potential hallucinations by checking if claims are supported by citations
+    # Purpose      : Detect potential hallucinations by checking if claims are supported by citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : response: str; context: AggregatedContext; threshold: float (default=0.7)
+    # Outputs      : Tuple[bool, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def detect_hallucinations(
         response: str,
@@ -140,9 +225,43 @@ class HallucinationDetector:
 
 
 # REQ-FINAL-003: Implement response validator
+# ---------------------------------------------------------------------------
+# ID           : ensemble.final_aggregator.ResponseValidator
+# Requirement  : `ResponseValidator` class shall be instantiable and expose the documented interface
+# Purpose      : Validate responses against source documents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ResponseValidator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ResponseValidator:
     """Validate responses against source documents"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.ResponseValidator.validate_response
+    # Requirement  : `validate_response` shall validate that response content is grounded in source documents
+    # Purpose      : Validate that response content is grounded in source documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : response: str; context: AggregatedContext; min_overlap: float (default=0.3)
+    # Outputs      : Tuple[bool, float, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def validate_response(
         response: str,
@@ -222,9 +341,43 @@ class ResponseValidator:
 
 
 # REQ-FINAL-004: Implement citation formatter
+# ---------------------------------------------------------------------------
+# ID           : ensemble.final_aggregator.CitationFormatter
+# Requirement  : `CitationFormatter` class shall be instantiable and expose the documented interface
+# Purpose      : Format citations in various styles
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationFormatter with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationFormatter:
     """Format citations in various styles"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.CitationFormatter.extract_citation_markers
+    # Requirement  : `extract_citation_markers` shall extract citation markers from text (e.g., [1], [Smith2020])
+    # Purpose      : Extract citation markers from text (e.g., [1], [Smith2020])
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def extract_citation_markers(text: str) -> List[str]:
         """Extract citation markers from text (e.g., [1], [Smith2020])"""
@@ -232,6 +385,23 @@ class CitationFormatter:
         markers = re.findall(r'\[([^\]]+)\]', text)
         return markers
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.CitationFormatter.format_inline_citation
+    # Requirement  : `format_inline_citation` shall format inline citation
+    # Purpose      : Format inline citation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation: Citation; style: str (default='numeric')
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def format_inline_citation(
         citation: Citation,
@@ -249,6 +419,23 @@ class CitationFormatter:
             return f"PMID:{citation.pmid}" if citation.pmid else "REF"
         return ""
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.CitationFormatter.format_bibliography_entry
+    # Requirement  : `format_bibliography_entry` shall format full bibliography entry
+    # Purpose      : Format full bibliography entry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation: Citation; index: int; style: str (default='apa')
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def format_bibliography_entry(
         citation: Citation,
@@ -289,6 +476,23 @@ class CitationFormatter:
         
         return f"[{index}] {citation.title}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.CitationFormatter.insert_citations
+    # Requirement  : `insert_citations` shall insert citation markers into text
+    # Purpose      : Insert citation markers into text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; citations: List[Citation]; style: str (default='numeric')
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def insert_citations(
         text: str,
@@ -302,6 +506,23 @@ class CitationFormatter:
 
 
 # REQ-FINAL-005: Implement Final Aggregator class
+# ---------------------------------------------------------------------------
+# ID           : ensemble.final_aggregator.FinalAggregator
+# Requirement  : `FinalAggregator` class shall be instantiable and expose the documented interface
+# Purpose      : Assembles final answer with citations from ensemble outputs
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate FinalAggregator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class FinalAggregator:
     """
     Assembles final answer with citations from ensemble outputs
@@ -324,6 +545,23 @@ class FinalAggregator:
     - REQ-FINAL-015: Statistics tracking ✓
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAggregator.__init__
+    # Requirement  : `__init__` shall initialize Final Aggregator
+    # Purpose      : Initialize Final Aggregator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : hallucination_threshold: float (default=0.7); validation_threshold: float (default=0.3); min_confidence: float (default=0.5); citation_style: str (default='numeric')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         hallucination_threshold: float = 0.7,
@@ -361,6 +599,23 @@ class FinalAggregator:
             'avg_citation_count': 0.0
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAggregator.aggregate
+    # Requirement  : `aggregate` shall aggregate ensemble responses into final answer
+    # Purpose      : Aggregate ensemble responses into final answer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ensemble_response: EnsembleResponse; context: AggregatedContext; query: str
+    # Outputs      : FinalAnswer
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def aggregate(
         self,
         ensemble_response: EnsembleResponse,
@@ -491,10 +746,44 @@ class FinalAggregator:
         
         return final_answer
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAggregator.get_statistics
+    # Requirement  : `get_statistics` shall get aggregator statistics
+    # Purpose      : Get aggregator statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get aggregator statistics"""
         return self.stats.copy()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.final_aggregator.FinalAggregator.reset_statistics
+    # Requirement  : `reset_statistics` shall reset statistics counters
+    # Purpose      : Reset statistics counters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset_statistics(self):
         """Reset statistics counters"""
         for key in self.stats:

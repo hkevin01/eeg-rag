@@ -54,6 +54,23 @@ logger = get_logger(__name__)
 T = TypeVar('T')
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.ErrorCode
+# Requirement  : `ErrorCode` class shall be instantiable and expose the documented interface
+# Purpose      : Standardized error codes for programmatic error handling
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ErrorCode with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ErrorCode(IntEnum):
     """
     Standardized error codes for programmatic error handling.
@@ -142,6 +159,23 @@ class ErrorCode(IntEnum):
     RESOURCE_EXHAUSTED = 7007
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.ErrorContext
+# Requirement  : `ErrorContext` class shall be instantiable and expose the documented interface
+# Purpose      : Rich context information for error tracking and debugging
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ErrorContext with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ErrorContext:
     """
@@ -166,6 +200,23 @@ class ErrorContext:
     correlation_id: Optional[str] = None
     additional_data: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.ErrorContext.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -179,6 +230,23 @@ class ErrorContext:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.EEGRAGError
+# Requirement  : `EEGRAGError` class shall be instantiable and expose the documented interface
+# Purpose      : Base exception for all EEG-RAG errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGRAGError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGRAGError(Exception):
     """
     Base exception for all EEG-RAG errors.
@@ -195,6 +263,23 @@ class EEGRAGError(Exception):
         user_message: Safe message to show to users
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.EEGRAGError.__init__
+    # Requirement  : `__init__` shall initialize EEG-RAG error
+    # Purpose      : Initialize EEG-RAG error
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode; message: str; context: Optional[Dict[str, Any]] (default=None); recoverable: bool (default=True); user_message: Optional[str] (default=None); cause: Optional[Exception] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode,
@@ -224,6 +309,23 @@ class EEGRAGError(Exception):
         self.cause = cause
         self.timestamp = datetime.now(timezone.utc).isoformat()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.EEGRAGError._default_user_message
+    # Requirement  : `_default_user_message` shall generate safe default user message based on error code
+    # Purpose      : Generate safe default user message based on error code
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _default_user_message(self) -> str:
         """Generate safe default user message based on error code."""
         # REQ-SEC-001: Safe messages that don't expose system details
@@ -241,6 +343,23 @@ class EEGRAGError(Exception):
             "An error occurred. Please try again or contact support."
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.EEGRAGError.to_dict
+    # Requirement  : `to_dict` shall convert error to dictionary for serialization
+    # Purpose      : Convert error to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert error to dictionary for serialization.
@@ -260,10 +379,44 @@ class EEGRAGError(Exception):
             },  # Truncate context values
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.EEGRAGError.__str__
+    # Requirement  : `__str__` shall human-readable error representation
+    # Purpose      : Human-readable error representation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __str__(self) -> str:
         """Human-readable error representation."""
         return f"[{self.code.name}] {self.message}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.EEGRAGError.__repr__
+    # Requirement  : `__repr__` shall debug representation
+    # Purpose      : Debug representation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __repr__(self) -> str:
         """Debug representation."""
         return (
@@ -276,6 +429,23 @@ class EEGRAGError(Exception):
 
 # Specialized exception classes for different error categories
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.ValidationError
+# Requirement  : `ValidationError` class shall be instantiable and expose the documented interface
+# Purpose      : Input validation errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ValidationError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ValidationError(EEGRAGError):
     """
     Input validation errors.
@@ -283,6 +453,23 @@ class ValidationError(EEGRAGError):
     REQ-FUNC-002: Query validation with descriptive errors.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.ValidationError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.VALIDATION_ERROR); message: str (default='Validation failed'); field: Optional[str] (default=None); value: Optional[Any] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.VALIDATION_ERROR,
@@ -302,6 +489,23 @@ class ValidationError(EEGRAGError):
         self.field = field
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.RetrievalError
+# Requirement  : `RetrievalError` class shall be instantiable and expose the documented interface
+# Purpose      : Document retrieval and search errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RetrievalError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RetrievalError(EEGRAGError):
     """
     Document retrieval and search errors.
@@ -309,6 +513,23 @@ class RetrievalError(EEGRAGError):
     REQ-FUNC-010: Hybrid retrieval error handling.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.RetrievalError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.RETRIEVAL_ERROR); message: str (default='Retrieval failed'); query: Optional[str] (default=None); source: Optional[str] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.RETRIEVAL_ERROR,
@@ -325,6 +546,23 @@ class RetrievalError(EEGRAGError):
         super().__init__(code, message, context=context, **kwargs)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.CitationError
+# Requirement  : `CitationError` class shall be instantiable and expose the documented interface
+# Purpose      : Citation verification errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationError(EEGRAGError):
     """
     Citation verification errors.
@@ -332,6 +570,23 @@ class CitationError(EEGRAGError):
     REQ-FUNC-020: PMID validation and verification errors.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.CitationError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.CITATION_ERROR); message: str (default='Citation verification failed'); pmid: Optional[str] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.CITATION_ERROR,
@@ -346,6 +601,23 @@ class CitationError(EEGRAGError):
         self.pmid = pmid
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.AgentError
+# Requirement  : `AgentError` class shall be instantiable and expose the documented interface
+# Purpose      : Agent and orchestration errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentError(EEGRAGError):
     """
     Agent and orchestration errors.
@@ -353,6 +625,23 @@ class AgentError(EEGRAGError):
     REQ-FUNC-030: Multi-agent system error handling.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.AgentError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.AGENT_ERROR); message: str (default='Agent operation failed'); agent_name: Optional[str] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.AGENT_ERROR,
@@ -367,6 +656,23 @@ class AgentError(EEGRAGError):
         self.agent_name = agent_name
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.APIError
+# Requirement  : `APIError` class shall be instantiable and expose the documented interface
+# Purpose      : External API errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate APIError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class APIError(EEGRAGError):
     """
     External API errors.
@@ -374,6 +680,23 @@ class APIError(EEGRAGError):
     REQ-INT-001: External API integration error handling.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.APIError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.API_ERROR); message: str (default='API request failed'); api_name: Optional[str] (default=None); status_code: Optional[int] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.API_ERROR,
@@ -392,6 +715,23 @@ class APIError(EEGRAGError):
         self.status_code = status_code
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.DatabaseError
+# Requirement  : `DatabaseError` class shall be instantiable and expose the documented interface
+# Purpose      : Database and storage errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DatabaseError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class DatabaseError(EEGRAGError):
     """
     Database and storage errors.
@@ -399,6 +739,23 @@ class DatabaseError(EEGRAGError):
     REQ-DAT-001: Persistence error handling.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.DatabaseError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.DATABASE_ERROR); message: str (default='Database operation failed'); operation: Optional[str] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.DATABASE_ERROR,
@@ -412,6 +769,23 @@ class DatabaseError(EEGRAGError):
         super().__init__(code, message, context=context, **kwargs)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.SystemError
+# Requirement  : `SystemError` class shall be instantiable and expose the documented interface
+# Purpose      : System and infrastructure errors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystemError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystemError(EEGRAGError):
     """
     System and infrastructure errors.
@@ -419,6 +793,23 @@ class SystemError(EEGRAGError):
     REQ-REL-001: System reliability error handling.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.SystemError.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: ErrorCode (default=ErrorCode.SYSTEM_ERROR); message: str (default='System error occurred'); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         code: ErrorCode = ErrorCode.SYSTEM_ERROR,
@@ -430,6 +821,23 @@ class SystemError(EEGRAGError):
 
 # Error handling utilities
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.handle_exception
+# Requirement  : `handle_exception` shall standardized exception handling with logging
+# Purpose      : Standardized exception handling with logging
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : exception: Exception; component: str (default='unknown'); operation: str (default='unknown'); log_level: str (default='error'); reraise: bool (default=True); default_code: ErrorCode (default=ErrorCode.SYSTEM_ERROR)
+# Outputs      : Optional[EEGRAGError]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def handle_exception(
     exception: Exception,
     component: str = "unknown",
@@ -486,6 +894,23 @@ def handle_exception(
     return eeg_error
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.safe_execute
+# Requirement  : `safe_execute` shall execute a function with automatic error handling
+# Purpose      : Execute a function with automatic error handling
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : func: Callable[..., T]; default: Optional[T]; on_error: Optional[Callable[[Exception], None]]; log_errors: bool; *args; **kwargs
+# Outputs      : Optional[T]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def safe_execute(
     func: Callable[..., T],
     *args,
@@ -526,6 +951,23 @@ def safe_execute(
         return default
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.safe_execute_async
+# Requirement  : `safe_execute_async` shall execute an async function with automatic error handling
+# Purpose      : Execute an async function with automatic error handling
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : func: Callable[..., T]; default: Optional[T]; on_error: Optional[Callable[[Exception], None]]; log_errors: bool; *args; **kwargs
+# Outputs      : Optional[T]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def safe_execute_async(
     func: Callable[..., T],
     *args,
@@ -563,6 +1005,23 @@ async def safe_execute_async(
         return default
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.with_error_handling
+# Requirement  : `with_error_handling` shall decorator for standardized error handling
+# Purpose      : Decorator for standardized error handling
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : error_code: ErrorCode (default=ErrorCode.SYSTEM_ERROR); component: str (default='unknown'); log_errors: bool (default=True); reraise: bool (default=True)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def with_error_handling(
     error_code: ErrorCode = ErrorCode.SYSTEM_ERROR,
     component: str = "unknown",
@@ -588,7 +1047,41 @@ def with_error_handling(
         ... def search(query: str) -> List[Document]:
         ...     ...
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.error_handling.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
@@ -605,6 +1098,23 @@ def with_error_handling(
                     default_code=error_code
                 )
         
+        # ---------------------------------------------------------------------------
+        # ID           : utils.error_handling.async_wrapper
+        # Requirement  : `async_wrapper` shall execute as specified
+        # Purpose      : Async wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             try:
@@ -628,6 +1138,23 @@ def with_error_handling(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.with_retry
+# Requirement  : `with_retry` shall decorator for automatic retry with exponential backoff
+# Purpose      : Decorator for automatic retry with exponential backoff
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : max_attempts: int (default=3); delay_seconds: float (default=1.0); backoff_multiplier: float (default=2.0); retryable_exceptions: tuple (default=(Exception,)); on_retry: Optional[Callable[[Exception, int], None]] (default=None)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def with_retry(
     max_attempts: int = 3,
     delay_seconds: float = 1.0,
@@ -655,7 +1182,41 @@ def with_retry(
         ... def fetch_data() -> dict:
         ...     ...
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.error_handling.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.error_handling.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             last_exception = None
@@ -686,6 +1247,23 @@ def with_retry(
                 cause=last_exception
             )
         
+        # ---------------------------------------------------------------------------
+        # ID           : utils.error_handling.async_wrapper
+        # Requirement  : `async_wrapper` shall execute as specified
+        # Purpose      : Async wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             last_exception = None
@@ -724,6 +1302,23 @@ def with_retry(
 
 # Input validation utilities
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.validate_not_empty
+# Requirement  : `validate_not_empty` shall validate that a value is not empty
+# Purpose      : Validate that a value is not empty
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Any; field_name: str (default='value')
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_not_empty(
     value: Any,
     field_name: str = "value"
@@ -763,6 +1358,23 @@ def validate_not_empty(
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.validate_type
+# Requirement  : `validate_type` shall validate that a value is of expected type
+# Purpose      : Validate that a value is of expected type
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Any; expected_type: Union[Type, tuple]; field_name: str (default='value')
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_type(
     value: Any,
     expected_type: Union[Type, tuple],
@@ -795,6 +1407,23 @@ def validate_type(
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.validate_range
+# Requirement  : `validate_range` shall validate that a numeric value is within range
+# Purpose      : Validate that a numeric value is within range
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Union[int, float]; min_value: Optional[Union[int, float]] (default=None); max_value: Optional[Union[int, float]] (default=None); field_name: str (default='value')
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_range(
     value: Union[int, float],
     min_value: Optional[Union[int, float]] = None,
@@ -834,6 +1463,23 @@ def validate_range(
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.error_handling.validate_string_length
+# Requirement  : `validate_string_length` shall validate string length constraints
+# Purpose      : Validate string length constraints
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: str; min_length: int (default=0); max_length: Optional[int] (default=None); field_name: str (default='value')
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_string_length(
     value: str,
     min_length: int = 0,

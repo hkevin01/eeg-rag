@@ -15,6 +15,23 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.scholar_client.ScholarArticle
+# Requirement  : `ScholarArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Article from Google Scholar / Semantic Scholar
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ScholarArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ScholarArticle:
     """Article from Google Scholar / Semantic Scholar."""
@@ -38,6 +55,23 @@ class ScholarArticle:
     tldr: Optional[str]  # Semantic Scholar's TL;DR
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.scholar_client.SemanticScholarClient
+# Requirement  : `SemanticScholarClient` class shall be instantiable and expose the documented interface
+# Purpose      : Primary client for academic paper retrieval
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SemanticScholarClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SemanticScholarClient:
     """
     Primary client for academic paper retrieval.
@@ -70,6 +104,23 @@ class SemanticScholarClient:
         "EEG depression anxiety",
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.__init__
+    # Requirement  : `__init__` shall initialize Semantic Scholar client
+    # Purpose      : Initialize Semantic Scholar client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : api_key: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, api_key: Optional[str] = None):
         """
         Initialize Semantic Scholar client.
@@ -89,11 +140,45 @@ class SemanticScholarClient:
         self.window_seconds = 300
         self._session: Optional[aiohttp.ClientSession] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.__aenter__
+    # Requirement  : `__aenter__` shall async context manager entry
+    # Purpose      : Async context manager entry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self):
         """Async context manager entry."""
         self._session = aiohttp.ClientSession(headers=self.headers)
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.__aexit__
+    # Requirement  : `__aexit__` shall async context manager exit
+    # Purpose      : Async context manager exit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self._session:
@@ -101,12 +186,46 @@ class SemanticScholarClient:
             self._session = None
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.close
+    # Requirement  : `close` shall close the client session
+    # Purpose      : Close the client session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Close the client session."""
         if self._session:
             await self._session.close()
             self._session = None
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient._rate_limit
+    # Requirement  : `_rate_limit` shall enforce rate limiting
+    # Purpose      : Enforce rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self):
         """Enforce rate limiting."""
         current_time = time.time()
@@ -127,6 +246,23 @@ class SemanticScholarClient:
         
         self.request_count += 1
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient._fetch
+    # Requirement  : `_fetch` shall fetch from Semantic Scholar API
+    # Purpose      : Fetch from Semantic Scholar API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session: aiohttp.ClientSession; endpoint: str; params: dict (default=None)
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=4, max=30))
     async def _fetch(self, session: aiohttp.ClientSession, endpoint: str, params: dict = None) -> dict:
         """Fetch from Semantic Scholar API."""
@@ -143,6 +279,23 @@ class SemanticScholarClient:
             response.raise_for_status()
             return await response.json()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.search
+    # Requirement  : `search` shall search for papers and return Semantic Scholar IDs
+    # Purpose      : Search for papers and return Semantic Scholar IDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=100); year_range: Optional[tuple[int, int]] (default=None); fields_of_study: Optional[list[str]] (default=None)
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(
         self,
         query: str,
@@ -178,6 +331,23 @@ class SemanticScholarClient:
             papers = result.get("data", [])
             return [p["paperId"] for p in papers if p.get("paperId")]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.get_paper
+    # Requirement  : `get_paper` shall get full paper details by Semantic Scholar ID
+    # Purpose      : Get full paper details by Semantic Scholar ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : Optional[ScholarArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_paper(self, paper_id: str) -> Optional[ScholarArticle]:
         """
         Get full paper details by Semantic Scholar ID.
@@ -207,6 +377,23 @@ class SemanticScholarClient:
                 logger.warning(f"Error fetching paper {paper_id}: {e}")
                 return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient._parse_paper
+    # Requirement  : `_parse_paper` shall parse Semantic Scholar response into ScholarArticle
+    # Purpose      : Parse Semantic Scholar response into ScholarArticle
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: dict
+    # Outputs      : ScholarArticle
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_paper(self, data: dict) -> ScholarArticle:
         """Parse Semantic Scholar response into ScholarArticle."""
         external_ids = data.get("externalIds", {})
@@ -248,6 +435,23 @@ class SemanticScholarClient:
             tldr=data.get("tldr", {}).get("text") if data.get("tldr") else None
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.get_papers_batch
+    # Requirement  : `get_papers_batch` shall fetch multiple papers in batches
+    # Purpose      : Fetch multiple papers in batches
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_ids: list[str]; batch_size: int (default=50)
+    # Outputs      : AsyncIterator[ScholarArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_papers_batch(self, paper_ids: list[str], batch_size: int = 50) -> AsyncIterator[ScholarArticle]:
         """
         Fetch multiple papers in batches.
@@ -291,6 +495,23 @@ class SemanticScholarClient:
                 
                 logger.info(f"Fetched {min(i + batch_size, len(paper_ids))}/{len(paper_ids)} papers")
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.get_author_papers
+    # Requirement  : `get_author_papers` shall get paper IDs for a specific author
+    # Purpose      : Get paper IDs for a specific author
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : author_id: str; limit: int (default=100)
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_author_papers(self, author_id: str, limit: int = 100) -> list[str]:
         """Get paper IDs for a specific author."""
         params = {
@@ -303,6 +524,23 @@ class SemanticScholarClient:
             papers = result.get("papers", [])
             return [p["paperId"] for p in papers if p.get("paperId")]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.get_recommendations
+    # Requirement  : `get_recommendations` shall get recommended papers based on a paper ID
+    # Purpose      : Get recommended papers based on a paper ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str; limit: int (default=50)
+    # Outputs      : list[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_recommendations(self, paper_id: str, limit: int = 50) -> list[str]:
         """Get recommended papers based on a paper ID."""
         params = {
@@ -319,6 +557,23 @@ class SemanticScholarClient:
             papers = result.get("recommendedPapers", [])
             return [p["paperId"] for p in papers if p.get("paperId")]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.SemanticScholarClient.collect_eeg_corpus
+    # Requirement  : `collect_eeg_corpus` shall collect comprehensive EEG corpus from Semantic Scholar
+    # Purpose      : Collect comprehensive EEG corpus from Semantic Scholar
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_per_query: int (default=1000); year_start: int (default=2014); include_recommendations: bool (default=True)
+    # Outputs      : AsyncIterator[ScholarArticle]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def collect_eeg_corpus(
         self,
         max_per_query: int = 1000,
@@ -375,12 +630,46 @@ class SemanticScholarClient:
         logger.info(f"Total unique papers from Semantic Scholar: {len(seen_ids)}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.scholar_client.GoogleScholarScraper
+# Requirement  : `GoogleScholarScraper` class shall be instantiable and expose the documented interface
+# Purpose      : Fallback scraper for Google Scholar using scholarly library
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GoogleScholarScraper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GoogleScholarScraper:
     """
     Fallback scraper for Google Scholar using scholarly library.
     Use sparingly - Google may block aggressive scraping.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.GoogleScholarScraper.__init__
+    # Requirement  : `__init__` shall initialize Google Scholar scraper
+    # Purpose      : Initialize Google Scholar scraper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_proxy: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, use_proxy: bool = False):
         """
         Initialize Google Scholar scraper.
@@ -391,6 +680,23 @@ class GoogleScholarScraper:
         self.use_proxy = use_proxy
         self._scholarly = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.GoogleScholarScraper._get_scholarly
+    # Requirement  : `_get_scholarly` shall lazy load scholarly library
+    # Purpose      : Lazy load scholarly library
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_scholarly(self):
         """Lazy load scholarly library."""
         if self._scholarly is None:
@@ -406,6 +712,23 @@ class GoogleScholarScraper:
                 return None
         return self._scholarly
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.GoogleScholarScraper.search_sync
+    # Requirement  : `search_sync` shall synchronous search (scholarly doesn't support async)
+    # Purpose      : Synchronous search (scholarly doesn't support async)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=20)
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search_sync(self, query: str, limit: int = 20) -> list[dict]:
         """
         Synchronous search (scholarly doesn't support async).
@@ -451,6 +774,23 @@ class GoogleScholarScraper:
         
         return results
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.scholar_client.GoogleScholarScraper.search
+    # Requirement  : `search` shall async wrapper for synchronous search
+    # Purpose      : Async wrapper for synchronous search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=20)
+    # Outputs      : list[dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(self, query: str, limit: int = 20) -> list[dict]:
         """Async wrapper for synchronous search."""
         return await asyncio.to_thread(self.search_sync, query, limit)

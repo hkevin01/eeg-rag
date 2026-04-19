@@ -13,6 +13,23 @@ import json
 
 
 # REQ-GEN-001: Define LLM model types
+# ---------------------------------------------------------------------------
+# ID           : ensemble.generation_ensemble.LLMProvider
+# Requirement  : `LLMProvider` class shall be instantiable and expose the documented interface
+# Purpose      : Supported LLM providers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LLMProvider with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LLMProvider(Enum):
     """Supported LLM providers"""
     OPENAI = "openai"
@@ -22,6 +39,23 @@ class LLMProvider(Enum):
 
 
 # REQ-GEN-002: Define generation result structure
+# ---------------------------------------------------------------------------
+# ID           : ensemble.generation_ensemble.GenerationResult
+# Requirement  : `GenerationResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from a single LLM generation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GenerationResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GenerationResult:
     """Result from a single LLM generation"""
@@ -34,6 +68,23 @@ class GenerationResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -48,6 +99,23 @@ class GenerationResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ensemble.generation_ensemble.EnsembleResponse
+# Requirement  : `EnsembleResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Final ensemble response with voting and weighting
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EnsembleResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EnsembleResponse:
     """Final ensemble response with voting and weighting"""
@@ -60,6 +128,23 @@ class EnsembleResponse:
     timestamp: str
     statistics: Dict[str, Any]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.EnsembleResponse.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -75,13 +160,64 @@ class EnsembleResponse:
 
 
 # REQ-GEN-003: Implement mock LLM for testing
+# ---------------------------------------------------------------------------
+# ID           : ensemble.generation_ensemble.MockLLMClient
+# Requirement  : `MockLLMClient` class shall be instantiable and expose the documented interface
+# Purpose      : Mock LLM client for testing without API calls
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MockLLMClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MockLLMClient:
     """Mock LLM client for testing without API calls"""
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.MockLLMClient.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str; provider: LLMProvider
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, model_name: str, provider: LLMProvider):
         self.model_name = model_name
         self.provider = provider
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.MockLLMClient.generate
+    # Requirement  : `generate` shall generate mock response
+    # Purpose      : Generate mock response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str; temperature: float (default=0.7); max_tokens: int (default=1000)
+    # Outputs      : GenerationResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def generate(
         self,
         prompt: str,
@@ -118,6 +254,23 @@ class MockLLMClient:
 
 
 # REQ-GEN-004: Implement Generation Ensemble class
+# ---------------------------------------------------------------------------
+# ID           : ensemble.generation_ensemble.GenerationEnsemble
+# Requirement  : `GenerationEnsemble` class shall be instantiable and expose the documented interface
+# Purpose      : Multi-LLM generation ensemble with voting and confidence weighting
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GenerationEnsemble with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GenerationEnsemble:
     """
     Multi-LLM generation ensemble with voting and confidence weighting
@@ -145,6 +298,23 @@ class GenerationEnsemble:
     - REQ-GEN-020: Output validation ✓
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble.__init__
+    # Requirement  : `__init__` shall initialize generation ensemble
+    # Purpose      : Initialize generation ensemble
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : models: Optional[List[Dict[str, Any]]] (default=None); use_mock: bool (default=False); temperature: float (default=0.7); max_tokens: int (default=1000); timeout: float (default=30.0); max_retries: int (default=3); enable_caching: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         models: Optional[List[Dict[str, Any]]] = None,
@@ -200,6 +370,23 @@ class GenerationEnsemble:
             'model_usage': {model['name']: 0 for model in models}
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._initialize_clients
+    # Requirement  : `_initialize_clients` shall initialize LLM clients
+    # Purpose      : Initialize LLM clients
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _initialize_clients(self) -> Dict[str, Any]:
         """Initialize LLM clients"""
         clients = {}
@@ -221,6 +408,23 @@ class GenerationEnsemble:
         
         return clients
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble.generate
+    # Requirement  : `generate` shall generate response using ensemble of LLMs
+    # Purpose      : Generate response using ensemble of LLMs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str; context: Optional[Dict[str, Any]] (default=None); use_all_models: bool (default=True)
+    # Outputs      : EnsembleResponse
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def generate(
         self,
         prompt: str,
@@ -339,6 +543,23 @@ class GenerationEnsemble:
         
         return ensemble_response
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._generate_with_retry
+    # Requirement  : `_generate_with_retry` shall generate with retry logic
+    # Purpose      : Generate with retry logic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str; prompt: str
+    # Outputs      : GenerationResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _generate_with_retry(
         self,
         model_name: str,
@@ -375,6 +596,23 @@ class GenerationEnsemble:
             error=last_error
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._prepare_prompt
+    # Requirement  : `_prepare_prompt` shall prepare prompt with context
+    # Purpose      : Prepare prompt with context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str; context: Optional[Dict[str, Any]]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _prepare_prompt(
         self,
         prompt: str,
@@ -405,6 +643,23 @@ class GenerationEnsemble:
         
         return prompt
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._vote_and_weight
+    # Requirement  : `_vote_and_weight` shall vote and weight responses by confidence
+    # Purpose      : Vote and weight responses by confidence
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[GenerationResult]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _vote_and_weight(self, results: List[GenerationResult]) -> str:
         """
         Vote and weight responses by confidence
@@ -430,6 +685,23 @@ class GenerationEnsemble:
         # Use highest weighted response
         return weighted_scores[0][0].response
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._calculate_diversity
+    # Requirement  : `_calculate_diversity` shall calculate diversity score across responses
+    # Purpose      : Calculate diversity score across responses
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[GenerationResult]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_diversity(self, results: List[GenerationResult]) -> float:
         """
         Calculate diversity score across responses
@@ -463,6 +735,23 @@ class GenerationEnsemble:
         
         return total_diff / pairs if pairs > 0 else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._calculate_quality
+    # Requirement  : `_calculate_quality` shall calculate overall quality score
+    # Purpose      : Calculate overall quality score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[GenerationResult]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_quality(self, results: List[GenerationResult]) -> float:
         """
         Calculate overall quality score
@@ -486,6 +775,23 @@ class GenerationEnsemble:
         
         return total_weighted_confidence / total_weight if total_weight > 0 else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._create_fallback_response
+    # Requirement  : `_create_fallback_response` shall create fallback response when all models fail
+    # Purpose      : Create fallback response when all models fail
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : failed_results: List[Any]
+    # Outputs      : EnsembleResponse
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_fallback_response(
         self,
         failed_results: List[Any]
@@ -512,6 +818,23 @@ class GenerationEnsemble:
             }
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble._get_cache_key
+    # Requirement  : `_get_cache_key` shall generate cache key for prompt and context
+    # Purpose      : Generate cache key for prompt and context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prompt: str; context: Optional[Dict[str, Any]]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_cache_key(self, prompt: str, context: Optional[Dict[str, Any]]) -> str:
         """Generate cache key for prompt and context"""
         cache_data = {
@@ -523,6 +846,23 @@ class GenerationEnsemble:
         cache_str = json.dumps(cache_data, sort_keys=True)
         return hashlib.md5(cache_str.encode()).hexdigest()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble.get_statistics
+    # Requirement  : `get_statistics` shall get generation statistics
+    # Purpose      : Get generation statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get generation statistics"""
         return {
@@ -547,10 +887,44 @@ class GenerationEnsemble:
             'model_usage': dict(self.stats['model_usage'])
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble.clear_cache
+    # Requirement  : `clear_cache` shall clear response cache
+    # Purpose      : Clear response cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear response cache"""
         self.cache.clear()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.generation_ensemble.GenerationEnsemble.reset_statistics
+    # Requirement  : `reset_statistics` shall reset statistics counters
+    # Purpose      : Reset statistics counters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset_statistics(self):
         """Reset statistics counters"""
         self.stats = {

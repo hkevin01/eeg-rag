@@ -23,6 +23,23 @@ from collections import defaultdict
 import json
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.ner_eeg.EntityType
+# Requirement  : `EntityType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of EEG-related entities
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EntityType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EntityType(Enum):
     """Types of EEG-related entities"""
     FREQUENCY_BAND = "frequency_band"
@@ -39,6 +56,23 @@ class EntityType(Enum):
     HARDWARE = "hardware"
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.ner_eeg.Entity
+# Requirement  : `Entity` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an extracted named entity
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Entity with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Entity:
     """Represents an extracted named entity"""
@@ -50,6 +84,23 @@ class Entity:
     context: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.Entity.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -63,6 +114,23 @@ class Entity:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.ner_eeg.NERResult
+# Requirement  : `NERResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from NER processing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate NERResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class NERResult:
     """Result from NER processing"""
@@ -71,6 +139,23 @@ class NERResult:
     entity_counts: Dict[str, int]
     processing_time: float
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.NERResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -82,6 +167,23 @@ class NERResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.ner_eeg.EEGTerminologyDatabase
+# Requirement  : `EEGTerminologyDatabase` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive database of EEG terminology
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGTerminologyDatabase with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGTerminologyDatabase:
     """
     Comprehensive database of EEG terminology
@@ -392,6 +494,23 @@ class EEGTerminologyDatabase:
     ]
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.ner_eeg.EEGNER
+# Requirement  : `EEGNER` class shall be instantiable and expose the documented interface
+# Purpose      : Named Entity Recognition for EEG terminology
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGNER with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGNER:
     """
     Named Entity Recognition for EEG terminology
@@ -400,6 +519,23 @@ class EEGNER:
     and confidence scoring.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.__init__
+    # Requirement  : `__init__` shall initialize EEG NER system
+    # Purpose      : Initialize EEG NER system
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize EEG NER system"""
         self.terminology = EEGTerminologyDatabase()
@@ -414,6 +550,23 @@ class EEGNER:
             'entities_by_type': defaultdict(int)
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER._build_lookup_tables
+    # Requirement  : `_build_lookup_tables` shall build efficient lookup tables for entity matching
+    # Purpose      : Build efficient lookup tables for entity matching
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_lookup_tables(self):
         """Build efficient lookup tables for entity matching"""
         self.entity_patterns = {
@@ -441,6 +594,23 @@ class EEGNER:
             pattern = r'\b(' + '|'.join(escaped_terms) + r')\b'
             self.compiled_patterns[entity_type] = re.compile(pattern, re.IGNORECASE)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.extract_entities
+    # Requirement  : `extract_entities` shall extract EEG-related entities from text
+    # Purpose      : Extract EEG-related entities from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; context_window: int (default=50); min_confidence: float (default=0.0)
+    # Outputs      : NERResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_entities(
         self,
         text: str,
@@ -527,6 +697,23 @@ class EEGNER:
             processing_time=processing_time
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER._calculate_confidence
+    # Requirement  : `_calculate_confidence` shall calculate confidence score for entity
+    # Purpose      : Calculate confidence score for entity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entity_text: str; entity_type: EntityType; context: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_confidence(
         self,
         entity_text: str,
@@ -562,6 +749,23 @@ class EEGNER:
         
         return min(1.0, confidence)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER._remove_overlaps
+    # Requirement  : `_remove_overlaps` shall remove overlapping entities, keeping higher confidence ones
+    # Purpose      : Remove overlapping entities, keeping higher confidence ones
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entities: List[Entity]
+    # Outputs      : List[Entity]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _remove_overlaps(self, entities: List[Entity]) -> List[Entity]:
         """Remove overlapping entities, keeping higher confidence ones"""
         if not entities:
@@ -583,6 +787,23 @@ class EEGNER:
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.extract_batch
+    # Requirement  : `extract_batch` shall extract entities from multiple texts
+    # Purpose      : Extract entities from multiple texts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : texts: List[str]; **kwargs
+    # Outputs      : List[NERResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_batch(
         self,
         texts: List[str],
@@ -591,6 +812,23 @@ class EEGNER:
         """Extract entities from multiple texts"""
         return [self.extract_entities(text, **kwargs) for text in texts]
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.get_entity_summary
+    # Requirement  : `get_entity_summary` shall get summary statistics for extracted entities
+    # Purpose      : Get summary statistics for extracted entities
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ner_result: NERResult
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_entity_summary(self, ner_result: NERResult) -> Dict[str, Any]:
         """Get summary statistics for extracted entities"""
         return {
@@ -605,6 +843,23 @@ class EEGNER:
             'avg_confidence': sum(e.confidence for e in ner_result.entities) / len(ner_result.entities) if ner_result.entities else 0
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.export_entities_to_json
+    # Requirement  : `export_entities_to_json` shall export entities to JSON file
+    # Purpose      : Export entities to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ner_result: NERResult; output_path: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_entities_to_json(
         self,
         ner_result: NERResult,
@@ -621,6 +876,23 @@ class EEGNER:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.ner_eeg.EEGNER.get_statistics
+    # Requirement  : `get_statistics` shall get overall NER statistics
+    # Purpose      : Get overall NER statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get overall NER statistics"""
         return {

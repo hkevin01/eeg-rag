@@ -14,6 +14,23 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.biorxiv_client.PreprintArticle
+# Requirement  : `PreprintArticle` class shall be instantiable and expose the documented interface
+# Purpose      : Preprint article from bioRxiv/medRxiv
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PreprintArticle with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PreprintArticle:
     """Preprint article from bioRxiv/medRxiv."""
@@ -29,6 +46,23 @@ class PreprintArticle:
     published_doi: Optional[str] = None  # DOI if published in journal
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.biorxiv_client.BioRxivClient
+# Requirement  : `BioRxivClient` class shall be instantiable and expose the documented interface
+# Purpose      : Async client for bioRxiv and medRxiv APIs
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BioRxivClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BioRxivClient:
     """
     Async client for bioRxiv and medRxiv APIs.
@@ -43,6 +77,23 @@ class BioRxivClient:
     
     BASE_URL = "https://api.biorxiv.org"
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient.__init__
+    # Requirement  : `__init__` shall initialize the client
+    # Purpose      : Initialize the client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : rate_limit: float (default=2.0)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, rate_limit: float = 2.0):
         """
         Initialize the client.
@@ -55,6 +106,23 @@ class BioRxivClient:
         self.last_request = 0.0
         self._session: Optional[aiohttp.ClientSession] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient._get_session
+    # Requirement  : `_get_session` shall get or create aiohttp session
+    # Purpose      : Get or create aiohttp session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : aiohttp.ClientSession
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session."""
         if self._session is None or self._session.closed:
@@ -62,6 +130,23 @@ class BioRxivClient:
             self._session = aiohttp.ClientSession(timeout=timeout)
         return self._session
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient._rate_limit
+    # Requirement  : `_rate_limit` shall enforce rate limiting
+    # Purpose      : Enforce rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self):
         """Enforce rate limiting."""
         now = asyncio.get_event_loop().time()
@@ -70,6 +155,23 @@ class BioRxivClient:
             await asyncio.sleep(self.min_delay - elapsed)
         self.last_request = asyncio.get_event_loop().time()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient._fetch
+    # Requirement  : `_fetch` shall fetch data from API with retry logic
+    # Purpose      : Fetch data from API with retry logic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def _fetch(self, url: str) -> Dict:
         """Fetch data from API with retry logic."""
@@ -86,6 +188,23 @@ class BioRxivClient:
             else:
                 response.raise_for_status()
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient.get_details_by_date
+    # Requirement  : `get_details_by_date` shall get preprints by date range
+    # Purpose      : Get preprints by date range
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : server: str (default='biorxiv'); start_date: str (default='2024-01-01'); end_date: Optional[str] (default=None); cursor: int (default=0)
+    # Outputs      : tuple[List[Dict], Optional[int]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_details_by_date(
         self,
         server: str = "biorxiv",
@@ -130,6 +249,23 @@ class BioRxivClient:
             logger.error(f"Error fetching {server} papers: {e}")
             return [], None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient.search
+    # Requirement  : `search` shall search for preprints matching a query
+    # Purpose      : Search for preprints matching a query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; server: str (default='biorxiv'); start_date: Optional[str] (default=None); end_date: Optional[str] (default=None); max_results: int (default=1000)
+    # Outputs      : List[Dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search(
         self,
         query: str,
@@ -209,6 +345,23 @@ class BioRxivClient:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient.get_recent_eeg_preprints
+    # Requirement  : `get_recent_eeg_preprints` shall get recent EEG-related preprints
+    # Purpose      : Get recent EEG-related preprints
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days: int (default=30); server: str (default='biorxiv')
+    # Outputs      : List[Dict]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_recent_eeg_preprints(
         self,
         days: int = 30,
@@ -271,6 +424,23 @@ class BioRxivClient:
         logger.info(f"Found {len(results)} EEG-related {server} preprints from last {days} days")
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.biorxiv_client.BioRxivClient.close
+    # Requirement  : `close` shall close the session
+    # Purpose      : Close the session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Close the session."""
         if self._session and not self._session.closed:

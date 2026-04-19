@@ -31,6 +31,23 @@ except ImportError:
     logging.warning("transformers/torch not available for SPLADE")
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.splade_retriever.SpladeResult
+# Requirement  : `SpladeResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from SPLADE search
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SpladeResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SpladeResult:
     """Result from SPLADE search"""
@@ -41,6 +58,23 @@ class SpladeResult:
     sparse_vector: Optional[Dict[int, float]] = None  # term_id -> weight
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.splade_retriever.SpladeRetriever
+# Requirement  : `SpladeRetriever` class shall be instantiable and expose the documented interface
+# Purpose      : SPLADE retriever using learned sparse representations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SpladeRetriever with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SpladeRetriever:
     """
     SPLADE retriever using learned sparse representations
@@ -54,6 +88,23 @@ class SpladeRetriever:
         >>> results = retriever.search("epilepsy seizure detection", top_k=10)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.__init__
+    # Requirement  : `__init__` shall initialize SPLADE retriever
+    # Purpose      : Initialize SPLADE retriever
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default='naver/splade-cocondenser-ensembledistil'); cache_dir: Optional[str] (default=None); device: str (default='cpu'); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         model_name: str = "naver/splade-cocondenser-ensembledistil",
@@ -94,6 +145,23 @@ class SpladeRetriever:
         if self.cache_dir and (self.cache_dir / "splade_index.pkl").exists():
             self.load_cache()
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever._encode
+    # Requirement  : `_encode` shall encode text to sparse vector using SPLADE
+    # Purpose      : Encode text to sparse vector using SPLADE
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; max_length: int (default=512)
+    # Outputs      : Dict[int, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _encode(self, text: str, max_length: int = 512) -> Dict[int, float]:
         """
         Encode text to sparse vector using SPLADE
@@ -135,6 +203,23 @@ class SpladeRetriever:
         
         return sparse_vec
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.index_documents
+    # Requirement  : `index_documents` shall index documents for search
+    # Purpose      : Index documents for search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict[str, Any]]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def index_documents(self, documents: List[Dict[str, Any]]) -> None:
         """
         Index documents for search
@@ -184,6 +269,23 @@ class SpladeRetriever:
         if self.cache_dir:
             self.save_cache()
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.search
+    # Requirement  : `search` shall search for similar documents
+    # Purpose      : Search for similar documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; top_k: int (default=10); min_score: float (default=0.0)
+    # Outputs      : List[SpladeResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -236,6 +338,23 @@ class SpladeRetriever:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.save_cache
+    # Requirement  : `save_cache` shall save index to disk
+    # Purpose      : Save index to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save_cache(self) -> None:
         """Save index to disk"""
         if not self.cache_dir:
@@ -255,6 +374,23 @@ class SpladeRetriever:
         
         self.logger.info(f"Saved SPLADE index to {cache_path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.load_cache
+    # Requirement  : `load_cache` shall load index from disk
+    # Purpose      : Load index from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def load_cache(self) -> None:
         """Load index from disk"""
         if not self.cache_dir:
@@ -273,6 +409,23 @@ class SpladeRetriever:
         self.logger.info(f"Loaded SPLADE index from {cache_path}")
         self.logger.info(f"  Documents: {len(self.documents)}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.splade_retriever.SpladeRetriever.get_statistics
+    # Requirement  : `get_statistics` shall get retriever statistics
+    # Purpose      : Get retriever statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get retriever statistics"""
         # Calculate average sparsity

@@ -12,6 +12,23 @@ import re
 
 
 # REQ-CTX-001: Define data structures for aggregated context
+# ---------------------------------------------------------------------------
+# ID           : ensemble.context_aggregator.Citation
+# Requirement  : `Citation` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a single citation from any source
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Citation with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Citation:
     """Represents a single citation from any source"""
@@ -27,6 +44,23 @@ class Citation:
     source_agents: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.Citation.get_id
+    # Requirement  : `get_id` shall get unique identifier for deduplication
+    # Purpose      : Get unique identifier for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_id(self) -> str:
         """Get unique identifier for deduplication"""
         if self.pmid:
@@ -39,6 +73,23 @@ class Citation:
             return f"title:{title_hash}"
         return f"unknown:{id(self)}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.Citation.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -56,6 +107,23 @@ class Citation:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ensemble.context_aggregator.Entity
+# Requirement  : `Entity` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an extracted entity (biomarker, condition, method, etc.)
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Entity with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Entity:
     """Represents an extracted entity (biomarker, condition, method, etc.)"""
@@ -66,6 +134,23 @@ class Entity:
     citations: List[str] = field(default_factory=list)  # Citation IDs
     confidence: float = 1.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.Entity.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -78,6 +163,23 @@ class Entity:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ensemble.context_aggregator.AggregatedContext
+# Requirement  : `AggregatedContext` class shall be instantiable and expose the documented interface
+# Purpose      : Final aggregated context from all agents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AggregatedContext with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AggregatedContext:
     """Final aggregated context from all agents"""
@@ -90,6 +192,23 @@ class AggregatedContext:
     timestamp: str
     statistics: Dict[str, Any]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.AggregatedContext.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -105,6 +224,23 @@ class AggregatedContext:
 
 
 # REQ-CTX-002: Implement context aggregation class
+# ---------------------------------------------------------------------------
+# ID           : ensemble.context_aggregator.ContextAggregator
+# Requirement  : `ContextAggregator` class shall be instantiable and expose the documented interface
+# Purpose      : Aggregates and ranks results from multiple specialized agents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ContextAggregator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ContextAggregator:
     """
     Aggregates and ranks results from multiple specialized agents
@@ -127,6 +263,23 @@ class ContextAggregator:
     - REQ-CTX-015: Output standardized format ✓
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator.__init__
+    # Requirement  : `__init__` shall initialize context aggregator
+    # Purpose      : Initialize context aggregator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevance_threshold: float (default=0.3); max_citations: int (default=50); entity_min_frequency: int (default=2); ranking_strategy: str (default='weighted')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         relevance_threshold: float = 0.3,
@@ -184,6 +337,23 @@ class ContextAggregator:
         }
     
     # REQ-CTX-003: Merge results from multiple agents
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator.aggregate
+    # Requirement  : `aggregate` shall aggregate results from multiple agents
+    # Purpose      : Aggregate results from multiple agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; agent_results: Dict[str, Any]
+    # Outputs      : AggregatedContext
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def aggregate(
         self,
         query: str,
@@ -253,6 +423,23 @@ class ContextAggregator:
             statistics=statistics
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._extract_citations
+    # Requirement  : `_extract_citations` shall extract citations from all agent results
+    # Purpose      : Extract citations from all agent results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_results: Dict[str, Any]
+    # Outputs      : List[Citation]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_citations(self, agent_results: Dict[str, Any]) -> List[Citation]:
         """Extract citations from all agent results"""
         citations = []
@@ -277,6 +464,23 @@ class ContextAggregator:
         
         return citations
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._parse_citation
+    # Requirement  : `_parse_citation` shall parse a single citation from agent result
+    # Purpose      : Parse a single citation from agent result
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : item: Dict[str, Any]; agent_name: str
+    # Outputs      : Optional[Citation]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_citation(self, item: Dict[str, Any], agent_name: str) -> Optional[Citation]:
         """Parse a single citation from agent result"""
         try:
@@ -298,6 +502,23 @@ class ContextAggregator:
         except Exception:
             return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._deduplicate_citations
+    # Requirement  : `_deduplicate_citations` shall deduplicate citations by PMID, DOI, or title
+    # Purpose      : Deduplicate citations by PMID, DOI, or title
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[Citation]
+    # Outputs      : List[Citation]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _deduplicate_citations(self, citations: List[Citation]) -> List[Citation]:
         """
         Deduplicate citations by PMID, DOI, or title
@@ -329,6 +550,23 @@ class ContextAggregator:
         
         return deduplicated
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._rank_citations
+    # Requirement  : `_rank_citations` shall rank citations by relevance
+    # Purpose      : Rank citations by relevance
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[Citation]; query: str
+    # Outputs      : List[Citation]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _rank_citations(self, citations: List[Citation], query: str) -> List[Citation]:
         """
         Rank citations by relevance
@@ -370,6 +608,23 @@ class ContextAggregator:
         
         return citations
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._extract_entities
+    # Requirement  : `_extract_entities` shall extract entities from citations
+    # Purpose      : Extract entities from citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[Citation]
+    # Outputs      : List[Entity]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_entities(self, citations: List[Citation]) -> List[Entity]:
         """
         Extract entities from citations
@@ -415,6 +670,23 @@ class ContextAggregator:
         
         return entities
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator._count_contributions
+    # Requirement  : `_count_contributions` shall count contributions from each agent
+    # Purpose      : Count contributions from each agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[Citation]
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _count_contributions(self, citations: List[Citation]) -> Dict[str, int]:
         """
         Count contributions from each agent
@@ -428,6 +700,23 @@ class ContextAggregator:
         
         return dict(contributions)
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator.get_statistics
+    # Requirement  : `get_statistics` shall get aggregation statistics
+    # Purpose      : Get aggregation statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get aggregation statistics"""
         return {
@@ -441,6 +730,23 @@ class ContextAggregator:
             'ranking_strategy': self.ranking_strategy
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : ensemble.context_aggregator.ContextAggregator.reset_statistics
+    # Requirement  : `reset_statistics` shall reset statistics counters
+    # Purpose      : Reset statistics counters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset_statistics(self):
         """Reset statistics counters"""
         self.stats = {

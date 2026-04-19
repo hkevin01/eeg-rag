@@ -43,6 +43,23 @@ class EEGPattern:
     patient_age_group: Optional[str] = None   # neonate, infant, child, adult, elderly
     medications: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.EEGPattern.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "morphology": self.morphology,
@@ -54,6 +71,23 @@ class EEGPattern:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatch
+# Requirement  : `ClinicalMatch` class shall be instantiable and expose the documented interface
+# Purpose      : Single matched clinical entity with evidence
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalMatch with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ClinicalMatch:
     """Single matched clinical entity with evidence."""
@@ -68,6 +102,23 @@ class ClinicalMatch:
     evidence_text: str = ""
     clinical_action: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatch.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
@@ -385,6 +436,23 @@ class ClinicalMatchingAgent(BaseAgent):
         )
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatchingAgent.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='ClinicalMatchingAgent'); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "ClinicalMatchingAgent",
@@ -397,6 +465,23 @@ class ClinicalMatchingAgent(BaseAgent):
         )
         logger.info("ClinicalMatchingAgent initialised (%d KB entries)", len(_PATTERN_KB))
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatchingAgent.execute
+    # Requirement  : `execute` shall execute as specified
+    # Purpose      : Execute
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         from datetime import datetime
 
@@ -531,6 +616,23 @@ class ClinicalMatchingAgent(BaseAgent):
             medications=params.get("medications", []),
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatchingAgent._pattern_to_text
+    # Requirement  : `_pattern_to_text` shall execute as specified
+    # Purpose      :  pattern to text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pattern: EEGPattern
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _pattern_to_text(pattern: EEGPattern) -> str:
         parts = (
@@ -541,6 +643,23 @@ class ClinicalMatchingAgent(BaseAgent):
         )
         return " ".join(parts)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatchingAgent._apply_age_modifier
+    # Requirement  : `_apply_age_modifier` shall boost or penalise based on age appropriateness
+    # Purpose      : Boost or penalise based on age appropriateness
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : score: float; match_name: str; age_group: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _apply_age_modifier(
         score: float, match_name: str, age_group: str
@@ -559,6 +678,23 @@ class ClinicalMatchingAgent(BaseAgent):
                     return min(score + 0.05, 1.0)
         return score
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.clinical_matching_agent.clinical_matching_agent.ClinicalMatchingAgent._check_drug_effects
+    # Requirement  : `_check_drug_effects` shall execute as specified
+    # Purpose      :  check drug effects
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : medications: List[str]
+    # Outputs      : List[Dict[str, str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _check_drug_effects(medications: List[str]) -> List[Dict[str, str]]:
         effects: List[Dict[str, str]] = []

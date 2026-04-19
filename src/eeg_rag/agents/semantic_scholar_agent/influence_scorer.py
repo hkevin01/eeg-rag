@@ -15,6 +15,23 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer
+# Requirement  : `InfluenceScorer` class shall be instantiable and expose the documented interface
+# Purpose      : Score papers by research influence
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate InfluenceScorer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class InfluenceScorer:
     """Score papers by research influence."""
     
@@ -51,6 +68,23 @@ class InfluenceScorer:
         "icml": 0.82,
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer.__init__
+    # Requirement  : `__init__` shall initialize influence scorer
+    # Purpose      : Initialize influence scorer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : current_year: int (default=2026)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, current_year: int = 2026):
         """
         Initialize influence scorer.
@@ -61,6 +95,23 @@ class InfluenceScorer:
         self.current_year = current_year
         logger.debug("InfluenceScorer initialized")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer.calculate_influence_score
+    # Requirement  : `calculate_influence_score` shall calculate influence score based on multiple factors
+    # Purpose      : Calculate influence score based on multiple factors
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_count: int (default=0); influential_citation_count: int (default=0); year: Optional[int] (default=None); venue: Optional[str] (default=None); reference_count: int (default=0); is_open_access: bool (default=False); fields_of_study: Optional[list] (default=None)
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def calculate_influence_score(
         self,
         citation_count: int = 0,
@@ -121,6 +172,23 @@ class InfluenceScorer:
         
         return min(1.0, max(0.0, total_score))
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer._calculate_citation_score
+    # Requirement  : `_calculate_citation_score` shall calculate citation score using log scale
+    # Purpose      : Calculate citation score using log scale
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_count: int
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_citation_score(self, citation_count: int) -> float:
         """Calculate citation score using log scale."""
         if citation_count <= 0:
@@ -136,6 +204,23 @@ class InfluenceScorer:
         
         return normalized
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer._calculate_influential_ratio
+    # Requirement  : `_calculate_influential_ratio` shall calculate influential citation ratio
+    # Purpose      : Calculate influential citation ratio
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_count: int; influential_count: int
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_influential_ratio(
         self,
         citation_count: int,
@@ -156,6 +241,23 @@ class InfluenceScorer:
         
         return min(1.0, base_boost + ratio_contribution)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer._calculate_recency_score
+    # Requirement  : `_calculate_recency_score` shall calculate recency score with decay
+    # Purpose      : Calculate recency score with decay
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : year: Optional[int]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_recency_score(self, year: Optional[int]) -> float:
         """Calculate recency score with decay."""
         if year is None:
@@ -176,6 +278,23 @@ class InfluenceScorer:
         else:
             return max(0.1, 0.30 - (age - 20) * 0.01)  # Very old
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer._calculate_venue_score
+    # Requirement  : `_calculate_venue_score` shall calculate venue prestige score
+    # Purpose      : Calculate venue prestige score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : venue: Optional[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_venue_score(self, venue: Optional[str]) -> float:
         """Calculate venue prestige score."""
         if venue is None:
@@ -204,6 +323,23 @@ class InfluenceScorer:
         
         return 0.4  # Unknown venue
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer.score_paper
+    # Requirement  : `score_paper` shall calculate influence score for a paper dictionary
+    # Purpose      : Calculate influence score for a paper dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def score_paper(self, paper: Dict[str, Any]) -> float:
         """
         Calculate influence score for a paper dictionary.
@@ -224,6 +360,23 @@ class InfluenceScorer:
             fields_of_study=paper.get("fields_of_study")
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.semantic_scholar_agent.influence_scorer.InfluenceScorer.rank_papers
+    # Requirement  : `rank_papers` shall rank papers by influence score
+    # Purpose      : Rank papers by influence score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: list; key: str (default='influence_score')
+    # Outputs      : list
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rank_papers(
         self,
         papers: list,

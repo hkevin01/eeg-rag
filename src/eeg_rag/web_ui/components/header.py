@@ -7,12 +7,46 @@ import streamlit as st
 from eeg_rag.web_ui.components.corpus_stats import get_header_display_stats
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.header.get_paper_count
+# Requirement  : `get_paper_count` shall get formatted paper count for display
+# Purpose      : Get formatted paper count for display
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_count() -> str:
     """Get formatted paper count for display."""
     stats = get_header_display_stats()
     return stats.get("papers_indexed", "0")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.header.render_header
+# Requirement  : `render_header` shall render the application header with title and quick metrics
+# Purpose      : Render the application header with title and quick metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_header():
     """Render the application header with title and quick metrics."""
 

@@ -118,6 +118,23 @@ class RetrievalNeed(Enum):
     DECOMPOSE = "decompose"
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.ReformulationStrategy
+# Requirement  : `ReformulationStrategy` class shall be instantiable and expose the documented interface
+# Purpose      : Strategy applied when reformulating an insufficient query
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReformulationStrategy with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ReformulationStrategy(Enum):
     """Strategy applied when reformulating an insufficient query.
 
@@ -139,6 +156,23 @@ class ReformulationStrategy(Enum):
     DECOMPOSE = "decompose"
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.SufficiencyStatus
+# Requirement  : `SufficiencyStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Outcome of the sufficiency check on retrieved documents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SufficiencyStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SufficiencyStatus(Enum):
     """Outcome of the sufficiency check on retrieved documents.
 
@@ -183,6 +217,23 @@ class RetrievalDecision:
     claimed_pmids: List[str] = field(default_factory=list)
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.SufficiencyCheck
+# Requirement  : `SufficiencyCheck` class shall be instantiable and expose the documented interface
+# Purpose      : Outcome of evaluating whether retrieved docs satisfy the query
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SufficiencyCheck with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SufficiencyCheck:
     """Outcome of evaluating whether retrieved docs satisfy the query.
@@ -206,6 +257,23 @@ class SufficiencyCheck:
     explanation: str = ""
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.ReformulationResult
+# Requirement  : `ReformulationResult` class shall be instantiable and expose the documented interface
+# Purpose      : A reformulated query produced when results are insufficient
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReformulationResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ReformulationResult:
     """A reformulated query produced when results are insufficient.
@@ -228,6 +296,23 @@ class ReformulationResult:
     dense_weight_hint: Optional[float] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.AgenticStep
+# Requirement  : `AgenticStep` class shall be instantiable and expose the documented interface
+# Purpose      : Audit record for a single iteration of the agentic loop
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgenticStep with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgenticStep:
     """Audit record for a single iteration of the agentic loop.
@@ -255,6 +340,23 @@ class AgenticStep:
     elapsed_ms: float
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.agentic_rag.AgenticRAGResult
+# Requirement  : `AgenticRAGResult` class shall be instantiable and expose the documented interface
+# Purpose      : Final result from the Agentic RAG orchestrator
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgenticRAGResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgenticRAGResult:
     """Final result from the Agentic RAG orchestrator.
@@ -320,6 +422,23 @@ class RetrievalDecisionMaker:
         re.IGNORECASE,
     )
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.RetrievalDecisionMaker.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : min_query_length: int (default=15)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, min_query_length: int = 15) -> None:
         self._min_length = min_query_length
 
@@ -391,6 +510,23 @@ class RetrievalDecisionMaker:
         """Return True if the query matches a direct-answer pattern."""
         return any(p.search(query) for p in _DIRECT_ANSWER_PATTERNS)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.RetrievalDecisionMaker._needs_decomposition
+    # Requirement  : `_needs_decomposition` shall return True if the query contains multiple independent questions
+    # Purpose      : Return True if the query contains multiple independent questions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _needs_decomposition(self, query: str) -> bool:
         """Return True if the query contains multiple independent questions."""
         return bool(
@@ -398,6 +534,23 @@ class RetrievalDecisionMaker:
             or self._CONJUNCTION_RE.search(query)
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.RetrievalDecisionMaker._decompose
+    # Requirement  : `_decompose` shall split a multi-part query into independent sub-queries
+    # Purpose      : Split a multi-part query into independent sub-queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _decompose(self, query: str) -> List[str]:
         """Split a multi-part query into independent sub-queries.
 
@@ -417,6 +570,23 @@ class RetrievalDecisionMaker:
         # Fallback: return original as single item
         return sub_queries if len(sub_queries) >= 2 else [query]
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.RetrievalDecisionMaker._extract_eeg_entities
+    # Requirement  : `_extract_eeg_entities` shall extract EEG-domain entity mentions from the query
+    # Purpose      : Extract EEG-domain entity mentions from the query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _extract_eeg_entities(query: str) -> List[str]:
         """Extract EEG-domain entity mentions from the query.
@@ -457,6 +627,23 @@ class SufficiencyEvaluator:
             retrieved text for coverage to pass (default 0.6).
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.SufficiencyEvaluator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : min_docs: int (default=_MIN_DOCS_DEFAULT); min_relevance: float (default=_MIN_RELEVANCE_DEFAULT); coverage_threshold: float (default=0.6)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         min_docs: int = _MIN_DOCS_DEFAULT,
@@ -467,6 +654,23 @@ class SufficiencyEvaluator:
         self._min_relevance = min_relevance
         self._coverage_threshold = coverage_threshold
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.SufficiencyEvaluator.evaluate
+    # Requirement  : `evaluate` shall assess whether ``results`` sufficiently cover ``query``
+    # Purpose      : Assess whether ``results`` sufficiently cover ``query``
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; results: List[HybridResult]; decision: RetrievalDecision
+    # Outputs      : SufficiencyCheck
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def evaluate(
         self,
         query: str,
@@ -569,6 +773,23 @@ class SufficiencyEvaluator:
         # 1/(60+1) ≈ 0.0164; cap at 1.0
         return min(raw / 0.02, 1.0)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.SufficiencyEvaluator._compute_coverage
+    # Requirement  : `_compute_coverage` shall measure what fraction of query entities appear in retrieved text
+    # Purpose      : Measure what fraction of query entities appear in retrieved text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[HybridResult]; entities: List[str]
+    # Outputs      : Tuple[float, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _compute_coverage(
         results: List[HybridResult],
@@ -607,9 +828,43 @@ class QueryReformulator:
         expander: EEGQueryExpander instance (or None to disable expansion).
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.QueryReformulator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : expander: Optional[EEGQueryExpander] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, expander: Optional[EEGQueryExpander] = None) -> None:
         self._expander = expander or EEGQueryExpander()
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.QueryReformulator.reformulate
+    # Requirement  : `reformulate` shall generate a new query based on the insufficiency signal
+    # Purpose      : Generate a new query based on the insufficiency signal
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : original_query: str; current_query: str; check: SufficiencyCheck; iteration: int; prior_strategies: List[ReformulationStrategy]
+    # Outputs      : ReformulationResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reformulate(
         self,
         original_query: str,
@@ -718,6 +973,23 @@ class QueryReformulator:
         # Ensure we don't repeat the exact same string
         return expanded if expanded.lower() != query.lower() else f"{query} EEG"
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.QueryReformulator._apply_pivot_dense
+    # Requirement  : `_apply_pivot_dense` shall remove overly specific jargon that hinders dense retrieval
+    # Purpose      : Remove overly specific jargon that hinders dense retrieval
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _apply_pivot_dense(query: str) -> str:
         """Remove overly specific jargon that hinders dense retrieval."""
@@ -726,6 +998,23 @@ class QueryReformulator:
         cleaned = re.sub(r'\s{2,}', ' ', cleaned).strip()
         return cleaned or query
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.QueryReformulator._apply_relax
+    # Requirement  : `_apply_relax` shall broaden scope by falling back toward the original query terms
+    # Purpose      : Broaden scope by falling back toward the original query terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : current_query: str; original_query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _apply_relax(current_query: str, original_query: str) -> str:
         """Broaden scope by falling back toward the original query terms."""
@@ -735,6 +1024,23 @@ class QueryReformulator:
         relaxed = re.sub(r'\s{2,}', ' ', relaxed).strip()
         return relaxed if len(relaxed) > 10 else original_query
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.QueryReformulator._apply_narrow
+    # Requirement  : `_apply_narrow` shall append missing aspect terms to focus retrieval
+    # Purpose      : Append missing aspect terms to focus retrieval
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : current_query: str; missing: List[str]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _apply_narrow(current_query: str, missing: List[str]) -> str:
         """Append missing aspect terms to focus retrieval."""
@@ -825,6 +1131,23 @@ class AgenticRAGOrchestrator:
         top_k: Number of results to request from retriever each round.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.AgenticRAGOrchestrator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : retriever: HybridRetriever; generator: ResponseGenerator; verifier: Optional[CitationVerifier] (default=None); max_iterations: int (default=_MAX_ITERATIONS_DEFAULT); min_docs: int (default=_MIN_DOCS_DEFAULT); min_relevance: float (default=_MIN_RELEVANCE_DEFAULT); top_k: int (default=10)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         retriever: HybridRetriever,
@@ -946,6 +1269,23 @@ class AgenticRAGOrchestrator:
             verification_warnings=warnings,
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.AgenticRAGOrchestrator.stream
+    # Requirement  : `stream` shall stream the agentic RAG response token-by-token
+    # Purpose      : Stream the agentic RAG response token-by-token
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : AsyncGenerator[str, None]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def stream(self, query: str) -> AsyncGenerator[str, None]:
         """Stream the agentic RAG response token-by-token.
 
@@ -1204,6 +1544,23 @@ class AgenticRAGOrchestrator:
             chunks.append(chunk)
         return "".join(chunks)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.agentic_rag.AgenticRAGOrchestrator._direct_answer
+    # Requirement  : `_direct_answer` shall generate a direct (no-retrieval) answer using the LLM
+    # Purpose      : Generate a direct (no-retrieval) answer using the LLM
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _direct_answer(self, query: str) -> str:
         """Generate a direct (no-retrieval) answer using the LLM.
 

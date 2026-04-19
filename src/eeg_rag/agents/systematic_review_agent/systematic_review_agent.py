@@ -51,6 +51,23 @@ class InclusionCriteria:
     require_human_subjects: bool = True
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.systematic_review_agent.systematic_review_agent.ReviewProtocol
+# Requirement  : `ReviewProtocol` class shall be instantiable and expose the documented interface
+# Purpose      : Full review configuration
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReviewProtocol with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ReviewProtocol:
     """Full review configuration."""
@@ -64,6 +81,23 @@ class ReviewProtocol:
     deduplicate: bool = True
     review_id: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.ReviewProtocol.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.review_id:
             self.review_id = hashlib.md5(
@@ -71,6 +105,23 @@ class ReviewProtocol:
             ).hexdigest()[:8]
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.systematic_review_agent.systematic_review_agent.ScreenedPaper
+# Requirement  : `ScreenedPaper` class shall be instantiable and expose the documented interface
+# Purpose      : Paper with screening decision
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ScreenedPaper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ScreenedPaper:
     """Paper with screening decision."""
@@ -80,6 +131,23 @@ class ScreenedPaper:
     screening_score: float = 0.0
     evidence_score: Optional[EvidenceScore] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.ScreenedPaper.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         d = dict(self.paper)
         d["screening"] = {
@@ -92,6 +160,23 @@ class ScreenedPaper:
         return d
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.systematic_review_agent.systematic_review_agent.ReviewResult
+# Requirement  : `ReviewResult` class shall be instantiable and expose the documented interface
+# Purpose      : Completed systematic review output
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReviewResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ReviewResult:
     """Completed systematic review output."""
@@ -108,10 +193,44 @@ class ReviewResult:
     duration_seconds: float
     timestamp: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.ReviewResult.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.timestamp:
             self.timestamp = datetime.utcnow().isoformat()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.ReviewResult.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "review_id": self.protocol.review_id,
@@ -184,6 +303,23 @@ class SystematicReviewAgent(BaseAgent):
         result = await agent.execute(query)
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='SystematicReviewAgent'); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "SystematicReviewAgent",
@@ -197,6 +333,23 @@ class SystematicReviewAgent(BaseAgent):
         self.evidence_ranker = EvidenceRanker()
         logger.info("SystematicReviewAgent initialised")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent.execute
+    # Requirement  : `execute` shall execute as specified
+    # Purpose      : Execute
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         start = datetime.now()
         try:
@@ -344,6 +497,23 @@ class SystematicReviewAgent(BaseAgent):
         logger.debug("Dedup: %d → %d", len(papers), len(unique))
         return unique
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent._screen_abstract
+    # Requirement  : `_screen_abstract` shall apply inclusion criteria to a single paper's title + abstract
+    # Purpose      : Apply inclusion criteria to a single paper's title + abstract
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]; criteria: InclusionCriteria
+    # Outputs      : ScreenedPaper
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _screen_abstract(
         self,
         paper: Dict[str, Any],
@@ -424,6 +594,23 @@ class SystematicReviewAgent(BaseAgent):
         normalised = score / max(len(criteria.required_keywords), 1)
         return ScreenedPaper(paper=paper, included=True, screening_score=normalised)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent._extract_sample_size
+    # Requirement  : `_extract_sample_size` shall execute as specified
+    # Purpose      :  extract sample size
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_sample_size(self, text: str) -> List[int]:
         sizes: List[int] = []
         for m in _SAMPLE_SIZE.finditer(text):
@@ -432,6 +619,23 @@ class SystematicReviewAgent(BaseAgent):
                 sizes.append(int(num_str))
         return sizes
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent._extract_themes
+    # Requirement  : `_extract_themes` shall group papers by detected EEG theme
+    # Purpose      : Group papers by detected EEG theme
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : included: List[ScreenedPaper]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_themes(
         self, included: List[ScreenedPaper]
     ) -> List[Dict[str, Any]]:
@@ -489,6 +693,23 @@ class SystematicReviewAgent(BaseAgent):
             )
         ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent._summarise_evidence
+    # Requirement  : `_summarise_evidence` shall aggregate evidence level distribution
+    # Purpose      : Aggregate evidence level distribution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : included: List[ScreenedPaper]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _summarise_evidence(
         self, included: List[ScreenedPaper]
     ) -> Dict[str, Any]:
@@ -515,6 +736,23 @@ class SystematicReviewAgent(BaseAgent):
             "high_quality_count": sum(1 for s in scores if s >= 0.8),
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.systematic_review_agent.systematic_review_agent.SystematicReviewAgent._detect_gaps
+    # Requirement  : `_detect_gaps` shall detect basic research gaps from included papers
+    # Purpose      : Detect basic research gaps from included papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : included: List[ScreenedPaper]; research_question: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_gaps(
         self, included: List[ScreenedPaper], research_question: str
     ) -> List[str]:

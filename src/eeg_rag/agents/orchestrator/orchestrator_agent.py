@@ -46,6 +46,23 @@ from eeg_rag.planning.query_planner import (
 from eeg_rag.memory.memory_manager import MemoryManager
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.orchestrator.orchestrator_agent.ExecutionNode
+# Requirement  : `ExecutionNode` class shall be instantiable and expose the documented interface
+# Purpose      : Node in the execution graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExecutionNode with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExecutionNode:
     """
@@ -62,6 +79,23 @@ class ExecutionNode:
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionNode.elapsed_time
+    # Requirement  : `elapsed_time` shall get elapsed time in seconds
+    # Purpose      : Get elapsed time in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def elapsed_time(self) -> float:
         """Get elapsed time in seconds"""
@@ -69,12 +103,46 @@ class ExecutionNode:
             return (self.end_time - self.start_time).total_seconds()
         return 0.0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionNode.is_complete
+    # Requirement  : `is_complete` shall check if node execution is complete
+    # Purpose      : Check if node execution is complete
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def is_complete(self) -> bool:
         """Check if node execution is complete"""
         return self.status in [AgentStatus.COMPLETED, AgentStatus.FAILED]
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan
+# Requirement  : `ExecutionPlan` class shall be instantiable and expose the documented interface
+# Purpose      : Complete execution plan with dependency graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExecutionPlan with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExecutionPlan:
     """
@@ -86,6 +154,23 @@ class ExecutionPlan:
     nodes: List[ExecutionNode]
     parallel_groups: Dict[int, List[ExecutionNode]]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan.__post_init__
+    # Requirement  : `__post_init__` shall build parallel groups from nodes
+    # Purpose      : Build parallel groups from nodes
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Build parallel groups from nodes"""
         self.parallel_groups = {}
@@ -95,6 +180,23 @@ class ExecutionPlan:
                 self.parallel_groups[group_id] = []
             self.parallel_groups[group_id].append(node)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan.get_ready_nodes
+    # Requirement  : `get_ready_nodes` shall get nodes that are ready to execute
+    # Purpose      : Get nodes that are ready to execute
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[ExecutionNode]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_ready_nodes(self) -> List[ExecutionNode]:
         """
         Get nodes that are ready to execute
@@ -121,6 +223,23 @@ class ExecutionPlan:
 
         return ready
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan.get_next_parallel_group
+    # Requirement  : `get_next_parallel_group` shall get next group of nodes that can execute in parallel
+    # Purpose      : Get next group of nodes that can execute in parallel
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Optional[List[ExecutionNode]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_next_parallel_group(self) -> Optional[List[ExecutionNode]]:
         """
         Get next group of nodes that can execute in parallel
@@ -138,10 +257,44 @@ class ExecutionPlan:
         min_group = min(node.parallel_group for node in ready_nodes)
         return [n for n in ready_nodes if n.parallel_group == min_group]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan.all_complete
+    # Requirement  : `all_complete` shall check if all nodes are complete
+    # Purpose      : Check if all nodes are complete
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def all_complete(self) -> bool:
         """Check if all nodes are complete"""
         return all(node.is_complete for node in self.nodes)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.ExecutionPlan.get_statistics
+    # Requirement  : `get_statistics` shall get execution statistics
+    # Purpose      : Get execution statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get execution statistics"""
         completed = [n for n in self.nodes if n.status == AgentStatus.COMPLETED]
@@ -157,6 +310,23 @@ class ExecutionPlan:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent
+# Requirement  : `OrchestratorAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Orchestrator agent that coordinates the entire multi-agent workflow
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate OrchestratorAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class OrchestratorAgent(BaseAgent):
     """
     Orchestrator agent that coordinates the entire multi-agent workflow
@@ -164,6 +334,23 @@ class OrchestratorAgent(BaseAgent):
     REQ-ORCH-010: Main orchestrator implementation
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent.__init__
+    # Requirement  : `__init__` shall initialize orchestrator
+    # Purpose      : Initialize orchestrator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : memory_manager: MemoryManager; agent_registry: AgentRegistry; config: Optional[Dict[str, Any]] (default=None); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         memory_manager: MemoryManager,
@@ -198,6 +385,23 @@ class OrchestratorAgent(BaseAgent):
 
         self.logger.info("OrchestratorAgent initialized")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent.execute
+    # Requirement  : `execute` shall execute the full orchestration workflow
+    # Purpose      : Execute the full orchestration workflow
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute the full orchestration workflow
@@ -270,6 +474,23 @@ class OrchestratorAgent(BaseAgent):
                 agent_type=AgentType.ORCHESTRATOR
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._plan_query
+    # Requirement  : `_plan_query` shall plan the query using QueryPlanner
+    # Purpose      : Plan the query using QueryPlanner
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery; recent_context: Dict[str, Any]
+    # Outputs      : QueryPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _plan_query(
         self,
         query: AgentQuery,
@@ -298,6 +519,23 @@ class OrchestratorAgent(BaseAgent):
 
         return plan
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._create_execution_plan
+    # Requirement  : `_create_execution_plan` shall create execution plan from query plan
+    # Purpose      : Create execution plan from query plan
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_plan: QueryPlan
+    # Outputs      : ExecutionPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_execution_plan(self, query_plan: QueryPlan) -> ExecutionPlan:
         """
         Create execution plan from query plan
@@ -329,6 +567,23 @@ class OrchestratorAgent(BaseAgent):
 
         return exec_plan
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._execute_plan
+    # Requirement  : `_execute_plan` shall execute the plan with parallel execution and adaptive replanning
+    # Purpose      : Execute the plan with parallel execution and adaptive replanning
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exec_plan: ExecutionPlan; query: AgentQuery
+    # Outputs      : List[AgentResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_plan(
         self,
         exec_plan: ExecutionPlan,
@@ -400,6 +655,23 @@ class OrchestratorAgent(BaseAgent):
 
         return all_results
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._execute_parallel_group
+    # Requirement  : `_execute_parallel_group` shall execute a group of nodes in parallel
+    # Purpose      : Execute a group of nodes in parallel
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[ExecutionNode]; query: AgentQuery
+    # Outputs      : List[AgentResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_parallel_group(
         self,
         nodes: List[ExecutionNode],
@@ -457,6 +729,23 @@ class OrchestratorAgent(BaseAgent):
 
         return agent_results
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._execute_node
+    # Requirement  : `_execute_node` shall execute a single node (agent)
+    # Purpose      : Execute a single node (agent)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : node: ExecutionNode; query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_node(
         self,
         node: ExecutionNode,
@@ -510,6 +799,23 @@ class OrchestratorAgent(BaseAgent):
                 agent_type=AgentType.ORCHESTRATOR
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._aggregate_results
+    # Requirement  : `_aggregate_results` shall aggregate results from multiple agents
+    # Purpose      : Aggregate results from multiple agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[AgentResult]; query_plan: QueryPlan
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _aggregate_results(
         self,
         results: List[AgentResult],
@@ -560,6 +866,23 @@ class OrchestratorAgent(BaseAgent):
         return aggregated
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent
+# Requirement  : `EnhancedOrchestratorAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Enhanced orchestrator with advanced coordination capabilities
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EnhancedOrchestratorAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EnhancedOrchestratorAgent(OrchestratorAgent):
     """
     Enhanced orchestrator with advanced coordination capabilities
@@ -569,6 +892,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
     REQ-ORCH-021: Adaptive replanning and optimization
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : registry: AgentRegistry; memory_manager: MemoryManager; planner: QueryPlanner; performance_monitor: Optional['PerformanceMonitor'] (default=None); enable_coordination: bool (default=True); config: Optional[Dict[str, Any]] (default=None); **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         registry: AgentRegistry,
@@ -607,6 +947,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
 
         self.logger.info("Enhanced orchestrator initialized with coordination features")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._setup_coordination
+    # Requirement  : `_setup_coordination` shall setup circuit breakers and load balancers for registered agents
+    # Purpose      : Setup circuit breakers and load balancers for registered agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _setup_coordination(self) -> None:
         """Setup circuit breakers and load balancers for registered agents"""
         if not self.coordinator:
@@ -640,6 +997,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         self.logger.info(f"Coordination setup complete: {len(self.coordinator.circuit_breakers)} circuit breakers, "
                         f"{len(self.coordinator.load_balancers)} load balancers")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent.execute_with_coordination
+    # Requirement  : `execute_with_coordination` shall execute query with enhanced coordination and monitoring
+    # Purpose      : Execute query with enhanced coordination and monitoring
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery; enable_monitoring: bool (default=True); enable_adaptation: bool (default=True)
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_with_coordination(
         self,
         query: AgentQuery,
@@ -681,6 +1055,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
                 agent_type=self.agent_type
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._execute_with_enhancements
+    # Requirement  : `_execute_with_enhancements` shall execute with coordination and adaptive features
+    # Purpose      : Execute with coordination and adaptive features
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery; enable_adaptation: bool
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_with_enhancements(
         self,
         query: AgentQuery,
@@ -697,6 +1088,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         else:
             return await self._execute_plan(plan)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._create_enhanced_execution_plan
+    # Requirement  : `_create_enhanced_execution_plan` shall create execution plan with adaptive optimizations
+    # Purpose      : Create execution plan with adaptive optimizations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : ExecutionPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_enhanced_execution_plan(self, query: AgentQuery) -> ExecutionPlan:
         """Create execution plan with adaptive optimizations"""
 
@@ -726,6 +1134,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
             parallel_groups={}
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._select_optimal_agent
+    # Requirement  : `_select_optimal_agent` shall select optimal agent for action with load balancing
+    # Purpose      : Select optimal agent for action with load balancing
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : action: ReActAction
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _select_optimal_agent(self, action: ReActAction) -> str:
         """Select optimal agent for action with load balancing"""
 
@@ -750,6 +1175,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         # Default to first capable agent
         return capable_agents[0].name
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._execute_plan_with_coordination
+    # Requirement  : `_execute_plan_with_coordination` shall execute plan using coordination features
+    # Purpose      : Execute plan using coordination features
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : plan: ExecutionPlan
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_plan_with_coordination(self, plan: ExecutionPlan) -> AgentResult:
         """Execute plan using coordination features"""
 
@@ -782,6 +1224,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         # Aggregate results
         return await self._aggregate_coordinated_results(results)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._execute_node_with_coordination
+    # Requirement  : `_execute_node_with_coordination` shall execute individual node with coordination features
+    # Purpose      : Execute individual node with coordination features
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : node: ExecutionNode; agent: BaseAgent
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_node_with_coordination(
         self,
         node: ExecutionNode,
@@ -829,6 +1288,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
         finally:
             node.end_time = datetime.now()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._optimize_plan_based_on_history
+    # Requirement  : `_optimize_plan_based_on_history` shall optimize plan based on performance history
+    # Purpose      : Optimize plan based on performance history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : plan: QueryPlan
+    # Outputs      : QueryPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _optimize_plan_based_on_history(self, plan: QueryPlan) -> QueryPlan:
         """Optimize plan based on performance history"""
 
@@ -849,6 +1325,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
 
         return plan
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent._aggregate_coordinated_results
+    # Requirement  : `_aggregate_coordinated_results` shall aggregate results with enhanced error handling
+    # Purpose      : Aggregate results with enhanced error handling
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[AgentResult]
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _aggregate_coordinated_results(self, results: List[AgentResult]) -> AgentResult:
         """Aggregate results with enhanced error handling"""
 
@@ -889,6 +1382,23 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
             confidence_score=avg_confidence
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent.get_coordination_statistics
+    # Requirement  : `get_coordination_statistics` shall get coordination and performance statistics
+    # Purpose      : Get coordination and performance statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_coordination_statistics(self) -> Dict[str, Any]:
         """Get coordination and performance statistics"""
 

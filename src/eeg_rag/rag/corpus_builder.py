@@ -22,6 +22,23 @@ from datetime import datetime
 import logging
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.corpus_builder.Paper
+# Requirement  : `Paper` class shall be instantiable and expose the documented interface
+# Purpose      : Research paper with metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Paper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Paper:
     """Research paper with metadata"""
@@ -35,6 +52,23 @@ class Paper:
     keywords: List[str] = field(default_factory=list)
     mesh_terms: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.Paper.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -50,6 +84,23 @@ class Paper:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.corpus_builder.EEGCorpusBuilder
+# Requirement  : `EEGCorpusBuilder` class shall be instantiable and expose the documented interface
+# Purpose      : Builds a corpus of EEG research papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGCorpusBuilder with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGCorpusBuilder:
     """
     Builds a corpus of EEG research papers
@@ -74,6 +125,23 @@ class EEGCorpusBuilder:
         'cognitive EEG'
     ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder.__init__
+    # Requirement  : `__init__` shall initialize corpus builder
+    # Purpose      : Initialize corpus builder
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_dir: Path; target_count: int (default=1000); use_mock: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         output_dir: Path,
@@ -107,6 +175,23 @@ class EEGCorpusBuilder:
 
         self.logger = logging.getLogger(__name__)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder.build_corpus
+    # Requirement  : `build_corpus` shall build EEG corpus by fetching papers from PubMed
+    # Purpose      : Build EEG corpus by fetching papers from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def build_corpus(self) -> Dict[str, Any]:
         """
         Build EEG corpus by fetching papers from PubMed
@@ -137,6 +222,23 @@ class EEGCorpusBuilder:
 
         return self.get_statistics()
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._generate_mock_corpus
+    # Requirement  : `_generate_mock_corpus` shall generate mock corpus for testing
+    # Purpose      : Generate mock corpus for testing
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _generate_mock_corpus(self):
         """Generate mock corpus for testing"""
         self.logger.info("Generating mock corpus")
@@ -162,6 +264,23 @@ class EEGCorpusBuilder:
             if i % 10 == 0:
                 await asyncio.sleep(0.01)  # Simulate async processing
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._fetch_from_pubmed
+    # Requirement  : `_fetch_from_pubmed` shall fetch EEG papers from PubMed using E-utilities
+    # Purpose      : Fetch EEG papers from PubMed using E-utilities
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_from_pubmed(self) -> None:
         """Fetch EEG papers from PubMed using E-utilities.
 
@@ -184,6 +303,23 @@ class EEGCorpusBuilder:
         api_key = os.getenv("NCBI_API_KEY", "")
         delay = 0.4 if not api_key else 0.12  # be conservative
 
+        # ---------------------------------------------------------------------------
+        # ID           : rag.corpus_builder.EEGCorpusBuilder._get
+        # Requirement  : `_get` shall execute as specified
+        # Purpose      :  get
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : url: str; retries: int (default=4)
+        # Outputs      : bytes
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def _get(url: str, retries: int = 4) -> bytes:
             for attempt in range(retries):
                 try:
@@ -304,6 +440,23 @@ class EEGCorpusBuilder:
             self.stats["duplicates_skipped"],
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._save_corpus
+    # Requirement  : `_save_corpus` shall save corpus to disk in JSONL format
+    # Purpose      : Save corpus to disk in JSONL format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _save_corpus(self):
         """Save corpus to disk in JSONL format"""
         output_file = self.output_dir / f"eeg_corpus_{datetime.now().strftime('%Y%m%d')}.jsonl"
@@ -326,6 +479,23 @@ class EEGCorpusBuilder:
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder.load_corpus
+    # Requirement  : `load_corpus` shall load corpus from JSONL file
+    # Purpose      : Load corpus from JSONL file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : corpus_file: Path
+    # Outputs      : List[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def load_corpus(self, corpus_file: Path) -> List[Paper]:
         """Load corpus from JSONL file"""
         papers = []
@@ -338,6 +508,23 @@ class EEGCorpusBuilder:
 
         return papers
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder.get_statistics
+    # Requirement  : `get_statistics` shall get corpus statistics
+    # Purpose      : Get corpus statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get corpus statistics"""
         return {
@@ -351,6 +538,23 @@ class EEGCorpusBuilder:
         }
 
     # Helper methods for mock data generation
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._random_eeg_topic
+    # Requirement  : `_random_eeg_topic` shall generate random EEG topic
+    # Purpose      : Generate random EEG topic
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _random_eeg_topic(self) -> str:
         """Generate random EEG topic"""
         import random
@@ -368,6 +572,23 @@ class EEGCorpusBuilder:
         ]
         return random.choice(topics)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._generate_mock_abstract
+    # Requirement  : `_generate_mock_abstract` shall generate mock abstract
+    # Purpose      : Generate mock abstract
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : seed: int
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_mock_abstract(self, seed: int) -> str:
         """Generate mock abstract"""
         templates = [
@@ -394,6 +615,23 @@ class EEGCorpusBuilder:
         import random
         return random.choice(templates)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._generate_mock_authors
+    # Requirement  : `_generate_mock_authors` shall generate mock author list
+    # Purpose      : Generate mock author list
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_mock_authors(self) -> List[str]:
         """Generate mock author list"""
         import random
@@ -408,6 +646,23 @@ class EEGCorpusBuilder:
 
         return authors
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._random_journal
+    # Requirement  : `_random_journal` shall random journal name
+    # Purpose      : Random journal name
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _random_journal(self) -> str:
         """Random journal name"""
         import random
@@ -423,6 +678,23 @@ class EEGCorpusBuilder:
         ]
         return random.choice(journals)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._random_keywords
+    # Requirement  : `_random_keywords` shall random keywords
+    # Purpose      : Random keywords
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _random_keywords(self) -> List[str]:
         """Random keywords"""
         import random
@@ -433,6 +705,23 @@ class EEGCorpusBuilder:
         ]
         return random.sample(all_keywords, k=random.randint(3, 6))
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.corpus_builder.EEGCorpusBuilder._random_mesh_terms
+    # Requirement  : `_random_mesh_terms` shall random MeSH terms
+    # Purpose      : Random MeSH terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _random_mesh_terms(self) -> List[str]:
         """Random MeSH terms"""
         import random

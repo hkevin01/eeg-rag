@@ -19,6 +19,23 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.retrieval_metrics.RetrievalMetrics
+# Requirement  : `RetrievalMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Container for retrieval metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RetrievalMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RetrievalMetrics:
     """Container for retrieval metrics"""
@@ -28,6 +45,23 @@ class RetrievalMetrics:
     ndcg_at_k: Dict[int, float]  # K -> NDCG value
     map_score: float  # Mean Average Precision
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalMetrics.__str__
+    # Requirement  : `__str__` shall execute as specified
+    # Purpose      :   str  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __str__(self) -> str:
         lines = ["Retrieval Metrics:"]
         lines.append(f"  MRR: {self.mrr:.4f}")
@@ -43,6 +77,23 @@ class RetrievalMetrics:
         return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.retrieval_metrics.RetrievalEvaluator
+# Requirement  : `RetrievalEvaluator` class shall be instantiable and expose the documented interface
+# Purpose      : Evaluate retrieval quality using standard IR metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RetrievalEvaluator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RetrievalEvaluator:
     """
     Evaluate retrieval quality using standard IR metrics
@@ -66,9 +117,43 @@ class RetrievalEvaluator:
         >>> print(metrics)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, logger: Optional[logging.Logger] = None):
         self.logger = logger or logging.getLogger("eeg_rag.evaluation")
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.recall_at_k
+    # Requirement  : `recall_at_k` shall calculate Recall@K
+    # Purpose      : Calculate Recall@K
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevant: Set[str]; retrieved: List[str]; k: int
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def recall_at_k(
         self,
         relevant: Set[str],
@@ -96,6 +181,23 @@ class RetrievalEvaluator:
         
         return hits / len(relevant)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.precision_at_k
+    # Requirement  : `precision_at_k` shall calculate Precision@K
+    # Purpose      : Calculate Precision@K
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevant: Set[str]; retrieved: List[str]; k: int
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def precision_at_k(
         self,
         relevant: Set[str],
@@ -123,6 +225,23 @@ class RetrievalEvaluator:
         
         return hits / k
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.mean_reciprocal_rank
+    # Requirement  : `mean_reciprocal_rank` shall calculate MRR (Mean Reciprocal Rank)
+    # Purpose      : Calculate MRR (Mean Reciprocal Rank)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevant: Set[str]; retrieved: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def mean_reciprocal_rank(
         self,
         relevant: Set[str],
@@ -146,6 +265,23 @@ class RetrievalEvaluator:
         
         return 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.ndcg_at_k
+    # Requirement  : `ndcg_at_k` shall calculate NDCG@K (Normalized Discounted Cumulative Gain)
+    # Purpose      : Calculate NDCG@K (Normalized Discounted Cumulative Gain)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevant: Set[str]; retrieved: List[str]; k: int; relevance_scores: Optional[Dict[str, float]] (default=None)
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def ndcg_at_k(
         self,
         relevant: Set[str],
@@ -169,6 +305,23 @@ class RetrievalEvaluator:
         Returns:
             NDCG value (0-1)
         """
+        # ---------------------------------------------------------------------------
+        # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.dcg
+        # Requirement  : `dcg` shall compute DCG
+        # Purpose      : Compute DCG
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : ranks: List[Tuple[int, float]]
+        # Outputs      : float
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def dcg(ranks: List[Tuple[int, float]]) -> float:
             """Compute DCG"""
             score = 0.0
@@ -209,6 +362,23 @@ class RetrievalEvaluator:
         
         return dcg_score / idcg_score
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.average_precision
+    # Requirement  : `average_precision` shall calculate Average Precision (AP)
+    # Purpose      : Calculate Average Precision (AP)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : relevant: Set[str]; retrieved: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def average_precision(
         self,
         relevant: Set[str],
@@ -241,6 +411,23 @@ class RetrievalEvaluator:
         
         return score / len(relevant)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.evaluate
+    # Requirement  : `evaluate` shall evaluate retrieval results against ground truth
+    # Purpose      : Evaluate retrieval results against ground truth
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : ground_truth: Dict[str, Set[str]]; retrieved: Dict[str, List[str]]; k_values: List[int] (default=[1, 3, 5, 10, 20]); relevance_scores: Optional[Dict[str, Dict[str, float]]] (default=None)
+    # Outputs      : RetrievalMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def evaluate(
         self,
         ground_truth: Dict[str, Set[str]],
@@ -303,6 +490,23 @@ class RetrievalEvaluator:
         self.logger.info("Evaluation complete")
         return metrics
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.retrieval_metrics.RetrievalEvaluator.compare
+    # Requirement  : `compare` shall compare two sets of metrics and compute improvements
+    # Purpose      : Compare two sets of metrics and compute improvements
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : baseline_metrics: RetrievalMetrics; improved_metrics: RetrievalMetrics
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compare(
         self,
         baseline_metrics: RetrievalMetrics,

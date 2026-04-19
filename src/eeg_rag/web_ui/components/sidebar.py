@@ -7,6 +7,23 @@ import streamlit as st
 from eeg_rag.web_ui.components.corpus_stats import get_corpus_stats, get_display_paper_count
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.sidebar.get_paper_count_short
+# Requirement  : `get_paper_count_short` shall get short formatted paper count (e.g., '500K' or '10')
+# Purpose      : Get short formatted paper count (e.g., '500K' or '10')
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_count_short() -> str:
     """Get short formatted paper count (e.g., '500K' or '10')."""
     count, is_actual = get_display_paper_count()
@@ -15,6 +32,23 @@ def get_paper_count_short() -> str:
     return str(count)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.sidebar.render_sidebar
+# Requirement  : `render_sidebar` shall render a compact application sidebar
+# Purpose      : Render a compact application sidebar
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_sidebar():
     """Render a compact application sidebar."""
     

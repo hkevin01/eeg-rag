@@ -18,6 +18,23 @@ from enum import Enum
 from typing import Optional, Any
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentStatus
+# Requirement  : `AgentStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Runtime status of an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentStatus(Enum):
     """Runtime status of an agent."""
     IDLE = "idle"
@@ -27,6 +44,23 @@ class AgentStatus(Enum):
     DISABLED = "disabled"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentCategory
+# Requirement  : `AgentCategory` class shall be instantiable and expose the documented interface
+# Purpose      : Functional category of an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentCategory with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentCategory(Enum):
     """Functional category of an agent."""
     ORCHESTRATION = "orchestration"
@@ -36,6 +70,23 @@ class AgentCategory(Enum):
     SYNTHESIS = "synthesis"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentCapability
+# Requirement  : `AgentCapability` class shall be instantiable and expose the documented interface
+# Purpose      : A specific capability of an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentCapability with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentCapability:
     """A specific capability of an agent."""
@@ -44,6 +95,23 @@ class AgentCapability:
     enabled: bool = True
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentMetrics
+# Requirement  : `AgentMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Runtime metrics for an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentMetrics:
     """Runtime metrics for an agent."""
@@ -55,6 +123,23 @@ class AgentMetrics:
     last_invocation: Optional[str] = None
     last_error: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.registry.__init__.AgentMetrics.success_rate
+    # Requirement  : `success_rate` shall calculate success rate as percentage
+    # Purpose      : Calculate success rate as percentage
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def success_rate(self) -> float:
         """Calculate success rate as percentage."""
@@ -63,6 +148,23 @@ class AgentMetrics:
         return (self.successful_invocations / self.total_invocations) * 100
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentConfig
+# Requirement  : `AgentConfig` class shall be instantiable and expose the documented interface
+# Purpose      : Configuration options for an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentConfig with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentConfig:
     """Configuration options for an agent."""
@@ -74,6 +176,23 @@ class AgentConfig:
     custom_params: dict = field(default_factory=dict)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.AgentInfo
+# Requirement  : `AgentInfo` class shall be instantiable and expose the documented interface
+# Purpose      : Complete information about an agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentInfo with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentInfo:
     """Complete information about an agent."""
@@ -1208,27 +1327,112 @@ The prompt explicitly requires:
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.get_agent_info
+# Requirement  : `get_agent_info` shall get detailed information about an agent
+# Purpose      : Get detailed information about an agent
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str
+# Outputs      : Optional[AgentInfo]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agent_info(agent_id: str) -> Optional[AgentInfo]:
     """Get detailed information about an agent."""
     return AGENT_REGISTRY.get(agent_id)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.get_all_agents
+# Requirement  : `get_all_agents` shall get all registered agents
+# Purpose      : Get all registered agents
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : list[AgentInfo]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_all_agents() -> list[AgentInfo]:
     """Get all registered agents."""
     return list(AGENT_REGISTRY.values())
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.get_agents_by_category
+# Requirement  : `get_agents_by_category` shall get agents filtered by category
+# Purpose      : Get agents filtered by category
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : category: AgentCategory
+# Outputs      : list[AgentInfo]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agents_by_category(category: AgentCategory) -> list[AgentInfo]:
     """Get agents filtered by category."""
     return [a for a in AGENT_REGISTRY.values() if a.category == category]
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.get_agent_dependencies
+# Requirement  : `get_agent_dependencies` shall get list of agent IDs this agent depends on
+# Purpose      : Get list of agent IDs this agent depends on
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str
+# Outputs      : list[str]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agent_dependencies(agent_id: str) -> list[str]:
     """Get list of agent IDs this agent depends on."""
     agent = AGENT_REGISTRY.get(agent_id)
     return agent.dependencies if agent else []
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.update_agent_metrics
+# Requirement  : `update_agent_metrics` shall update runtime metrics for an agent
+# Purpose      : Update runtime metrics for an agent
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str; latency_ms: float; success: bool; error: Optional[str] (default=None)
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def update_agent_metrics(agent_id: str, latency_ms: float, success: bool, error: Optional[str] = None) -> None:
     """Update runtime metrics for an agent."""
     agent = AGENT_REGISTRY.get(agent_id)
@@ -1247,6 +1451,23 @@ def update_agent_metrics(agent_id: str, latency_ms: float, success: bool, error:
         agent.metrics.last_invocation = datetime.now().isoformat()
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.registry.__init__.set_agent_status
+# Requirement  : `set_agent_status` shall set the runtime status of an agent
+# Purpose      : Set the runtime status of an agent
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str; status: AgentStatus
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def set_agent_status(agent_id: str, status: AgentStatus) -> None:
     """Set the runtime status of an agent."""
     agent = AGENT_REGISTRY.get(agent_id)

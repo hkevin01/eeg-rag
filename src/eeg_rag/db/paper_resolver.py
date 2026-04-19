@@ -30,6 +30,23 @@ from urllib.parse import quote, urlencode
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.paper_resolver.ResolvedPaper
+# Requirement  : `ResolvedPaper` class shall be instantiable and expose the documented interface
+# Purpose      : Full paper content resolved from external APIs
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ResolvedPaper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ResolvedPaper:
     """Full paper content resolved from external APIs."""
@@ -51,12 +68,63 @@ class ResolvedPaper:
     citation_count: int = 0
     fetched_at: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.ResolvedPaper.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.ResolvedPaper.from_cache_row
+    # Requirement  : `from_cache_row` shall create from cache database row
+    # Purpose      : Create from cache database row
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : row: sqlite3.Row
+    # Outputs      : 'ResolvedPaper'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_cache_row(cls, row: sqlite3.Row) -> "ResolvedPaper":
         """Create from cache database row."""
+        # ---------------------------------------------------------------------------
+        # ID           : db.paper_resolver.ResolvedPaper.parse_json_list
+        # Requirement  : `parse_json_list` shall execute as specified
+        # Purpose      : Parse json list
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : val: Any
+        # Outputs      : List[str]
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def parse_json_list(val: Any) -> List[str]:
             if val is None:
                 return []
@@ -67,6 +135,23 @@ class ResolvedPaper:
             except (json.JSONDecodeError, TypeError):
                 return []
         
+        # ---------------------------------------------------------------------------
+        # ID           : db.paper_resolver.ResolvedPaper.safe_get
+        # Requirement  : `safe_get` shall safely get value from sqlite3.Row (doesn't support .get())
+        # Purpose      : Safely get value from sqlite3.Row (doesn't support .get())
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : key: str; default: Any (default=None)
+        # Outputs      : Any
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def safe_get(key: str, default: Any = None) -> Any:
             """Safely get value from sqlite3.Row (doesn't support .get())."""
             try:
@@ -94,6 +179,23 @@ class ResolvedPaper:
             fetched_at=row["fetched_at"],
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.ResolvedPaper.primary_id
+    # Requirement  : `primary_id` shall get the primary identifier
+    # Purpose      : Get the primary identifier
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def primary_id(self) -> str:
         """Get the primary identifier."""
@@ -110,6 +212,23 @@ class ResolvedPaper:
         return f"title:{self.title[:50]}"
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.paper_resolver.PaperResolver
+# Requirement  : `PaperResolver` class shall be instantiable and expose the documented interface
+# Purpose      : Resolves paper IDs to full content using external APIs
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperResolver with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PaperResolver:
     """
     Resolves paper IDs to full content using external APIs.
@@ -169,6 +288,23 @@ class PaperResolver:
     CREATE INDEX IF NOT EXISTS idx_chunks_paper ON chunks(paper_id);
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.__init__
+    # Requirement  : `__init__` shall initialize the paper resolver
+    # Purpose      : Initialize the paper resolver
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : cache_dir: Optional[Path] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, cache_dir: Optional[Path] = None):
         """
         Initialize the paper resolver.
@@ -201,6 +337,23 @@ class PaperResolver:
         self._crossref_rate_limit = timedelta(seconds=0.05)  # ~20/sec with polite pool
         self._biorxiv_rate_limit = timedelta(seconds=0.5)  # ~2/sec
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._init_cache
+    # Requirement  : `_init_cache` shall initialize the local cache database
+    # Purpose      : Initialize the local cache database
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _init_cache(self):
         """Initialize the local cache database."""
         conn = sqlite3.connect(str(self.cache_db))
@@ -235,6 +388,23 @@ class PaperResolver:
         conn.close()
         logger.debug(f"Cache initialized at {self.cache_db}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._get_cache_connection
+    # Requirement  : `_get_cache_connection` shall context manager for cache database
+    # Purpose      : Context manager for cache database
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @contextmanager
     def _get_cache_connection(self):
         """Context manager for cache database."""
@@ -246,6 +416,23 @@ class PaperResolver:
         finally:
             conn.close()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.get_from_cache
+    # Requirement  : `get_from_cache` shall check if paper is in local cache
+    # Purpose      : Check if paper is in local cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: Optional[str] (default=None); doi: Optional[str] (default=None); arxiv_id: Optional[str] (default=None)
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_from_cache(self, pmid: Optional[str] = None, doi: Optional[str] = None, arxiv_id: Optional[str] = None) -> Optional[ResolvedPaper]:
         """Check if paper is in local cache."""
         with self._get_cache_connection() as conn:
@@ -269,6 +456,23 @@ class PaperResolver:
                 return ResolvedPaper.from_cache_row(row)
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.save_to_cache
+    # Requirement  : `save_to_cache` shall save paper to local cache
+    # Purpose      : Save paper to local cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: ResolvedPaper
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save_to_cache(self, paper: ResolvedPaper) -> bool:
         """Save paper to local cache."""
         with self._get_cache_connection() as conn:
@@ -302,6 +506,23 @@ class PaperResolver:
                 logger.error(f"Failed to cache paper: {e}")
                 return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_pmid
+    # Requirement  : `resolve_pmid` shall resolve a PMID to full paper content
+    # Purpose      : Resolve a PMID to full paper content
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_pmid(self, pmid: str) -> Optional[ResolvedPaper]:
         """
         Resolve a PMID to full paper content.
@@ -323,6 +544,23 @@ class PaperResolver:
         
         return paper
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_doi
+    # Requirement  : `resolve_doi` shall resolve a DOI to full paper content
+    # Purpose      : Resolve a DOI to full paper content
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_doi(self, doi: str) -> Optional[ResolvedPaper]:
         """
         Resolve a DOI to full paper content.
@@ -344,6 +582,23 @@ class PaperResolver:
         
         return paper
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_batch
+    # Requirement  : `resolve_batch` shall resolve multiple identifiers efficiently
+    # Purpose      : Resolve multiple identifiers efficiently
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: Optional[List[str]] (default=None); dois: Optional[List[str]] (default=None); batch_size: int (default=100)
+    # Outputs      : List[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_batch(
         self,
         pmids: Optional[List[str]] = None,
@@ -398,6 +653,23 @@ class PaperResolver:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_pubmed
+    # Requirement  : `_rate_limit_pubmed` shall enforce PubMed rate limiting
+    # Purpose      : Enforce PubMed rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_pubmed(self):
         """Enforce PubMed rate limiting."""
         elapsed = datetime.now() - self._last_pubmed_request
@@ -405,6 +677,23 @@ class PaperResolver:
             await asyncio.sleep((self._pubmed_rate_limit - elapsed).total_seconds())
         self._last_pubmed_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_openalex
+    # Requirement  : `_rate_limit_openalex` shall enforce OpenAlex rate limiting
+    # Purpose      : Enforce OpenAlex rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_openalex(self):
         """Enforce OpenAlex rate limiting."""
         elapsed = datetime.now() - self._last_openalex_request
@@ -412,6 +701,23 @@ class PaperResolver:
             await asyncio.sleep((self._openalex_rate_limit - elapsed).total_seconds())
         self._last_openalex_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_pubmed
+    # Requirement  : `_fetch_from_pubmed` shall fetch a single paper from PubMed E-utilities
+    # Purpose      : Fetch a single paper from PubMed E-utilities
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_from_pubmed(self, pmid: str) -> Optional[ResolvedPaper]:
         """Fetch a single paper from PubMed E-utilities."""
         try:
@@ -442,6 +748,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_pubmed_sync
+    # Requirement  : `_fetch_from_pubmed_sync` shall synchronous fallback for PubMed fetch
+    # Purpose      : Synchronous fallback for PubMed fetch
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_pubmed_sync(self, pmid: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for PubMed fetch."""
         import urllib.request
@@ -458,6 +781,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._batch_fetch_pubmed
+    # Requirement  : `_batch_fetch_pubmed` shall batch fetch from PubMed
+    # Purpose      : Batch fetch from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]; batch_size: int (default=100)
+    # Outputs      : List[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _batch_fetch_pubmed(
         self,
         pmids: List[str],
@@ -501,6 +841,23 @@ class PaperResolver:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_pubmed_xml
+    # Requirement  : `_parse_pubmed_xml` shall parse PubMed XML response into ResolvedPaper objects
+    # Purpose      : Parse PubMed XML response into ResolvedPaper objects
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_text: str
+    # Outputs      : List[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_pubmed_xml(self, xml_text: str) -> List[ResolvedPaper]:
         """Parse PubMed XML response into ResolvedPaper objects."""
         papers: List[ResolvedPaper] = []
@@ -613,6 +970,23 @@ class PaperResolver:
         
         return papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_openalex_doi
+    # Requirement  : `_fetch_from_openalex_doi` shall fetch paper from OpenAlex by DOI
+    # Purpose      : Fetch paper from OpenAlex by DOI
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_from_openalex_doi(self, doi: str) -> Optional[ResolvedPaper]:
         """Fetch paper from OpenAlex by DOI."""
         try:
@@ -636,6 +1010,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_openalex_sync
+    # Requirement  : `_fetch_from_openalex_sync` shall synchronous fallback for OpenAlex
+    # Purpose      : Synchronous fallback for OpenAlex
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_openalex_sync(self, doi: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for OpenAlex."""
         import urllib.request
@@ -652,6 +1043,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._batch_fetch_openalex
+    # Requirement  : `_batch_fetch_openalex` shall batch fetch from OpenAlex
+    # Purpose      : Batch fetch from OpenAlex
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : dois: List[str]; batch_size: int (default=50)
+    # Outputs      : List[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _batch_fetch_openalex(
         self,
         dois: List[str],
@@ -692,6 +1100,23 @@ class PaperResolver:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_openalex_work
+    # Requirement  : `_parse_openalex_work` shall parse OpenAlex work into ResolvedPaper
+    # Purpose      : Parse OpenAlex work into ResolvedPaper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_openalex_work(self, data: Dict[str, Any]) -> Optional[ResolvedPaper]:
         """Parse OpenAlex work into ResolvedPaper."""
         try:
@@ -775,6 +1200,23 @@ class PaperResolver:
     # Semantic Scholar API
     # ========================================================================
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_s2
+    # Requirement  : `_rate_limit_s2` shall enforce Semantic Scholar rate limiting
+    # Purpose      : Enforce Semantic Scholar rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_s2(self):
         """Enforce Semantic Scholar rate limiting."""
         elapsed = datetime.now() - self._last_s2_request
@@ -782,6 +1224,23 @@ class PaperResolver:
             await asyncio.sleep((self._s2_rate_limit - elapsed).total_seconds())
         self._last_s2_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_from_semantic_scholar
+    # Requirement  : `resolve_from_semantic_scholar` shall resolve paper from Semantic Scholar API
+    # Purpose      : Resolve paper from Semantic Scholar API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: Optional[str] (default=None); pmid: Optional[str] (default=None); arxiv_id: Optional[str] (default=None)
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_from_semantic_scholar(
         self, 
         doi: Optional[str] = None,
@@ -830,6 +1289,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_s2_sync
+    # Requirement  : `_fetch_from_s2_sync` shall synchronous fallback for Semantic Scholar
+    # Purpose      : Synchronous fallback for Semantic Scholar
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_s2_sync(self, paper_id: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for Semantic Scholar."""
         import urllib.request
@@ -847,6 +1323,23 @@ class PaperResolver:
             logger.error(f"S2 sync fetch failed for {paper_id}: {e}")
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_s2_paper
+    # Requirement  : `_parse_s2_paper` shall parse Semantic Scholar API response
+    # Purpose      : Parse Semantic Scholar API response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_s2_paper(self, data: Dict[str, Any]) -> Optional[ResolvedPaper]:
         """Parse Semantic Scholar API response."""
         try:
@@ -899,6 +1392,23 @@ class PaperResolver:
     # arXiv API
     # ========================================================================
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_arxiv
+    # Requirement  : `_rate_limit_arxiv` shall enforce arXiv rate limiting (3 seconds between requests)
+    # Purpose      : Enforce arXiv rate limiting (3 seconds between requests)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_arxiv(self):
         """Enforce arXiv rate limiting (3 seconds between requests)."""
         elapsed = datetime.now() - self._last_arxiv_request
@@ -906,6 +1416,23 @@ class PaperResolver:
             await asyncio.sleep((self._arxiv_rate_limit - elapsed).total_seconds())
         self._last_arxiv_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_arxiv
+    # Requirement  : `resolve_arxiv` shall resolve paper from arXiv API
+    # Purpose      : Resolve paper from arXiv API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : arxiv_id: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_arxiv(self, arxiv_id: str) -> Optional[ResolvedPaper]:
         """
         Resolve paper from arXiv API.
@@ -938,6 +1465,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_arxiv_sync
+    # Requirement  : `_fetch_from_arxiv_sync` shall synchronous fallback for arXiv
+    # Purpose      : Synchronous fallback for arXiv
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : arxiv_id: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_arxiv_sync(self, arxiv_id: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for arXiv."""
         import urllib.request
@@ -952,6 +1496,23 @@ class PaperResolver:
             logger.error(f"arXiv sync fetch failed for {arxiv_id}: {e}")
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_arxiv_response
+    # Requirement  : `_parse_arxiv_response` shall parse arXiv Atom API response
+    # Purpose      : Parse arXiv Atom API response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_text: str; arxiv_id: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_arxiv_response(self, xml_text: str, arxiv_id: str) -> Optional[ResolvedPaper]:
         """Parse arXiv Atom API response."""
         try:
@@ -1043,6 +1604,23 @@ class PaperResolver:
     # CrossRef API
     # ========================================================================
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_crossref
+    # Requirement  : `_rate_limit_crossref` shall enforce CrossRef rate limiting
+    # Purpose      : Enforce CrossRef rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_crossref(self):
         """Enforce CrossRef rate limiting."""
         elapsed = datetime.now() - self._last_crossref_request
@@ -1050,6 +1628,23 @@ class PaperResolver:
             await asyncio.sleep((self._crossref_rate_limit - elapsed).total_seconds())
         self._last_crossref_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_from_crossref
+    # Requirement  : `resolve_from_crossref` shall resolve paper metadata from CrossRef API
+    # Purpose      : Resolve paper metadata from CrossRef API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_from_crossref(self, doi: str) -> Optional[ResolvedPaper]:
         """
         Resolve paper metadata from CrossRef API.
@@ -1083,6 +1678,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_crossref_sync
+    # Requirement  : `_fetch_from_crossref_sync` shall synchronous fallback for CrossRef
+    # Purpose      : Synchronous fallback for CrossRef
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_crossref_sync(self, doi: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for CrossRef."""
         import urllib.request
@@ -1099,6 +1711,23 @@ class PaperResolver:
             logger.error(f"CrossRef sync fetch failed for {doi}: {e}")
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_crossref_work
+    # Requirement  : `_parse_crossref_work` shall parse CrossRef API response
+    # Purpose      : Parse CrossRef API response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_crossref_work(self, data: Dict[str, Any]) -> Optional[ResolvedPaper]:
         """Parse CrossRef API response."""
         try:
@@ -1167,6 +1796,23 @@ class PaperResolver:
     # bioRxiv / medRxiv API
     # ========================================================================
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._rate_limit_biorxiv
+    # Requirement  : `_rate_limit_biorxiv` shall enforce bioRxiv rate limiting
+    # Purpose      : Enforce bioRxiv rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit_biorxiv(self):
         """Enforce bioRxiv rate limiting."""
         elapsed = datetime.now() - self._last_biorxiv_request
@@ -1174,6 +1820,23 @@ class PaperResolver:
             await asyncio.sleep((self._biorxiv_rate_limit - elapsed).total_seconds())
         self._last_biorxiv_request = datetime.now()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_from_biorxiv
+    # Requirement  : `resolve_from_biorxiv` shall resolve paper from bioRxiv/medRxiv API
+    # Purpose      : Resolve paper from bioRxiv/medRxiv API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_from_biorxiv(self, doi: str) -> Optional[ResolvedPaper]:
         """
         Resolve paper from bioRxiv/medRxiv API.
@@ -1208,6 +1871,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._fetch_from_biorxiv_sync
+    # Requirement  : `_fetch_from_biorxiv_sync` shall synchronous fallback for bioRxiv
+    # Purpose      : Synchronous fallback for bioRxiv
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fetch_from_biorxiv_sync(self, doi: str) -> Optional[ResolvedPaper]:
         """Synchronous fallback for bioRxiv."""
         import urllib.request
@@ -1228,6 +1908,23 @@ class PaperResolver:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._parse_biorxiv_paper
+    # Requirement  : `_parse_biorxiv_paper` shall parse bioRxiv/medRxiv API response
+    # Purpose      : Parse bioRxiv/medRxiv API response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]; server: str
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_biorxiv_paper(self, data: Dict[str, Any], server: str) -> Optional[ResolvedPaper]:
         """Parse bioRxiv/medRxiv API response."""
         try:
@@ -1273,6 +1970,23 @@ class PaperResolver:
     # Multi-Source Resolution with Fallback
     # ========================================================================
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_with_fallback
+    # Requirement  : `resolve_with_fallback` shall resolve a paper using multiple sources with fallback
+    # Purpose      : Resolve a paper using multiple sources with fallback
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: Optional[str] (default=None); pmid: Optional[str] (default=None); arxiv_id: Optional[str] (default=None); prefer_source: Optional[str] (default=None)
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def resolve_with_fallback(
         self,
         doi: Optional[str] = None,
@@ -1359,6 +2073,23 @@ class PaperResolver:
         
         return paper
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver._get_doi_source_order
+    # Requirement  : `_get_doi_source_order` shall determine source order based on DOI prefix
+    # Purpose      : Determine source order based on DOI prefix
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str; prefer_source: Optional[str] (default=None)
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_doi_source_order(self, doi: str, prefer_source: Optional[str] = None) -> List[str]:
         """Determine source order based on DOI prefix."""
         # bioRxiv/medRxiv preprints
@@ -1378,6 +2109,23 @@ class PaperResolver:
         
         return order
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.resolve_with_fallback_sync
+    # Requirement  : `resolve_with_fallback_sync` shall synchronous wrapper for resolve_with_fallback
+    # Purpose      : Synchronous wrapper for resolve_with_fallback
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: Optional[str] (default=None); pmid: Optional[str] (default=None); arxiv_id: Optional[str] (default=None)
+    # Outputs      : Optional[ResolvedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def resolve_with_fallback_sync(
         self,
         doi: Optional[str] = None,
@@ -1405,6 +2153,23 @@ class PaperResolver:
                 self.resolve_with_fallback(doi=doi, pmid=pmid, arxiv_id=arxiv_id)
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.get_cache_stats
+    # Requirement  : `get_cache_stats` shall get cache statistics including per-source breakdown
+    # Purpose      : Get cache statistics including per-source breakdown
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics including per-source breakdown."""
         with self._get_cache_connection() as conn:
@@ -1434,6 +2199,23 @@ class PaperResolver:
             
             return stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_resolver.PaperResolver.clear_cache
+    # Requirement  : `clear_cache` shall clear the cache, optionally only entries older than N days
+    # Purpose      : Clear the cache, optionally only entries older than N days
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : older_than_days: Optional[int] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self, older_than_days: Optional[int] = None):
         """Clear the cache, optionally only entries older than N days."""
         with self._get_cache_connection() as conn:
@@ -1449,6 +2231,23 @@ class PaperResolver:
 
 
 # Convenience function
+# ---------------------------------------------------------------------------
+# ID           : db.paper_resolver.get_paper_resolver
+# Requirement  : `get_paper_resolver` shall get the default paper resolver
+# Purpose      : Get the default paper resolver
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : PaperResolver
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_resolver() -> PaperResolver:
     """Get the default paper resolver."""
     return PaperResolver()

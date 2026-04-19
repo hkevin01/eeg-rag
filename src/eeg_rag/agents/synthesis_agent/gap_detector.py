@@ -18,6 +18,23 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.gap_detector.GapType
+# Requirement  : `GapType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of research gaps
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GapType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GapType(Enum):
     """Types of research gaps."""
     METHODOLOGICAL = "methodological"
@@ -31,6 +48,23 @@ class GapType(Enum):
     STANDARDIZATION = "standardization"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.gap_detector.ResearchGap
+# Requirement  : `ResearchGap` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an identified research gap
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ResearchGap with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ResearchGap:
     """Represents an identified research gap."""
@@ -41,6 +75,23 @@ class ResearchGap:
     suggested_studies: List[str] = field(default_factory=list)
     priority: float = 0.5
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.ResearchGap.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -53,6 +104,23 @@ class ResearchGap:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.gap_detector.GapDetector
+# Requirement  : `GapDetector` class shall be instantiable and expose the documented interface
+# Purpose      : Detects research gaps from a corpus of papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GapDetector with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GapDetector:
     """
     Detects research gaps from a corpus of papers.
@@ -137,6 +205,23 @@ class GapDetector:
         ],
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector.__init__
+    # Requirement  : `__init__` shall initialize gap detector
+    # Purpose      : Initialize gap detector
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize gap detector."""
         # Compile patterns
@@ -151,6 +236,23 @@ class GapDetector:
             for gap_type, patterns in self.EEG_GAP_PATTERNS.items()
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector.detect_gaps
+    # Requirement  : `detect_gaps` shall detect research gaps from a collection of papers
+    # Purpose      : Detect research gaps from a collection of papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; min_confidence: float (default=0.5)
+    # Outputs      : List[ResearchGap]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def detect_gaps(
         self,
         papers: List[Dict[str, Any]],
@@ -222,12 +324,46 @@ class GapDetector:
         
         return gaps
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector._get_paper_text
+    # Requirement  : `_get_paper_text` shall extract searchable text from paper
+    # Purpose      : Extract searchable text from paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_paper_text(self, paper: Dict[str, Any]) -> str:
         """Extract searchable text from paper."""
         title = paper.get("title", "") or ""
         abstract = paper.get("abstract", "") or ""
         return f"{title} {abstract}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector._generate_gap_description
+    # Requirement  : `_generate_gap_description` shall generate a description for the identified gap
+    # Purpose      : Generate a description for the identified gap
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : gap_type: GapType; findings: List[Tuple[str, float, str]]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_gap_description(
         self,
         gap_type: GapType,
@@ -251,6 +387,23 @@ class GapDetector:
         
         return f"{base_desc} Identified across {paper_count} paper(s)."
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector._generate_suggestions
+    # Requirement  : `_generate_suggestions` shall generate suggested studies to address the gap
+    # Purpose      : Generate suggested studies to address the gap
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : gap_type: GapType
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_suggestions(self, gap_type: GapType) -> List[str]:
         """Generate suggested studies to address the gap."""
         suggestions = {
@@ -303,6 +456,23 @@ class GapDetector:
         
         return suggestions.get(gap_type, ["Additional research needed"])
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector.extract_limitations
+    # Requirement  : `extract_limitations` shall extract explicit limitations from a single paper
+    # Purpose      : Extract explicit limitations from a single paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_limitations(
         self,
         paper: Dict[str, Any]
@@ -333,6 +503,23 @@ class GapDetector:
         
         return limitations
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector.extract_future_directions
+    # Requirement  : `extract_future_directions` shall extract future research directions from a single paper
+    # Purpose      : Extract future research directions from a single paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_future_directions(
         self,
         paper: Dict[str, Any]
@@ -363,6 +550,23 @@ class GapDetector:
         
         return directions
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.gap_detector.GapDetector.get_gap_summary
+    # Requirement  : `get_gap_summary` shall get summary of detected gaps
+    # Purpose      : Get summary of detected gaps
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : gaps: List[ResearchGap]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_gap_summary(
         self,
         gaps: List[ResearchGap]

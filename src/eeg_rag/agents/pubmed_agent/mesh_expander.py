@@ -14,6 +14,23 @@ from typing import Dict, List, Set
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.pubmed_agent.mesh_expander.MeSHExpander
+# Requirement  : `MeSHExpander` class shall be instantiable and expose the documented interface
+# Purpose      : Expand queries with MeSH (Medical Subject Headings) terms
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MeSHExpander with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MeSHExpander:
     """Expand queries with MeSH (Medical Subject Headings) terms."""
     
@@ -126,6 +143,23 @@ class MeSHExpander:
         "instrumentation"
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.mesh_expander.MeSHExpander.__init__
+    # Requirement  : `__init__` shall initialize MeSH expander
+    # Purpose      : Initialize MeSH expander
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : custom_mappings: Dict[str, List[str]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, custom_mappings: Dict[str, List[str]] = None):
         """
         Initialize MeSH expander.
@@ -138,6 +172,23 @@ class MeSHExpander:
             self.mappings.update(custom_mappings)
         logger.info(f"MeSH expander initialized with {len(self.mappings)} term mappings")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.mesh_expander.MeSHExpander.expand_query
+    # Requirement  : `expand_query` shall convert natural language query to PubMed query with MeSH terms
+    # Purpose      : Convert natural language query to PubMed query with MeSH terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def expand_query(self, query: str) -> str:
         """
         Convert natural language query to PubMed query with MeSH terms.
@@ -175,6 +226,23 @@ class MeSHExpander:
         logger.debug(f"Expanded query: {query[:50]}... -> {len(mesh_terms)} MeSH terms")
         return combined
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.mesh_expander.MeSHExpander.get_mesh_suggestions
+    # Requirement  : `get_mesh_suggestions` shall get suggested MeSH terms for a query without building full query
+    # Purpose      : Get suggested MeSH terms for a query without building full query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_mesh_suggestions(self, query: str) -> List[str]:
         """
         Get suggested MeSH terms for a query without building full query.
@@ -194,6 +262,23 @@ class MeSHExpander:
         
         return sorted(list(suggestions))
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.mesh_expander.MeSHExpander.get_mesh_for_term
+    # Requirement  : `get_mesh_for_term` shall get MeSH terms for a specific keyword
+    # Purpose      : Get MeSH terms for a specific keyword
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : term: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_mesh_for_term(self, term: str) -> List[str]:
         """
         Get MeSH terms for a specific keyword.
@@ -206,6 +291,23 @@ class MeSHExpander:
         """
         return self.mappings.get(term.lower(), [])
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.mesh_expander.MeSHExpander.add_mapping
+    # Requirement  : `add_mapping` shall add a custom keyword-to-MeSH mapping
+    # Purpose      : Add a custom keyword-to-MeSH mapping
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : keyword: str; mesh_terms: List[str]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_mapping(self, keyword: str, mesh_terms: List[str]) -> None:
         """
         Add a custom keyword-to-MeSH mapping.

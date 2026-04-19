@@ -23,6 +23,23 @@ from enum import Enum
 from datetime import datetime
 
 # REQ-PLAN-006: Define query intents for routing
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.QueryIntent
+# Requirement  : `QueryIntent` class shall be instantiable and expose the documented interface
+# Purpose      : Classification of query intent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryIntent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryIntent(Enum):
     """Classification of query intent"""
     FACTUAL = "factual"  # Simple fact retrieval
@@ -37,6 +54,23 @@ class QueryIntent(Enum):
 
 
 # REQ-PLAN-007: Define complexity levels
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.QueryComplexity
+# Requirement  : `QueryComplexity` class shall be instantiable and expose the documented interface
+# Purpose      : Query complexity assessment
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryComplexity with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryComplexity(Enum):
     """Query complexity assessment"""
     SIMPLE = "simple"  # Single agent, single source
@@ -45,6 +79,23 @@ class QueryComplexity(Enum):
     VERY_COMPLEX = "very_complex"  # Multiple agents, parallel + sequential
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.SubQuery
+# Requirement  : `SubQuery` class shall be instantiable and expose the documented interface
+# Purpose      : Individual sub-query from decomposition
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SubQuery with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SubQuery:
     """
@@ -59,6 +110,23 @@ class SubQuery:
     required_agents: List[str] = field(default_factory=list)
     estimated_complexity: QueryComplexity = QueryComplexity.SIMPLE
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.SubQuery.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -71,6 +139,23 @@ class SubQuery:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.CoTStep
+# Requirement  : `CoTStep` class shall be instantiable and expose the documented interface
+# Purpose      : Single step in Chain-of-Thought reasoning
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CoTStep with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class CoTStep:
     """
@@ -84,6 +169,23 @@ class CoTStep:
     conclusion: str
     confidence: float = 1.0  # 0.0 to 1.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.CoTStep.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -95,6 +197,23 @@ class CoTStep:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.ReActAction
+# Requirement  : `ReActAction` class shall be instantiable and expose the documented interface
+# Purpose      : Action in ReAct (Reasoning + Acting) pattern
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ReActAction with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ReActAction:
     """
@@ -109,6 +228,23 @@ class ReActAction:
     agent_name: Optional[str] = None
     parallel_group: int = 0  # Actions in same group run in parallel
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.ReActAction.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -121,6 +257,23 @@ class ReActAction:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.QueryPlan
+# Requirement  : `QueryPlan` class shall be instantiable and expose the documented interface
+# Purpose      : Complete query execution plan
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryPlan with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class QueryPlan:
     """
@@ -146,6 +299,23 @@ class QueryPlan:
     requires_cloud_kb: bool = False
     requires_mcp_tools: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlan.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -167,6 +337,23 @@ class QueryPlan:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.query_planner.QueryPlanner
+# Requirement  : `QueryPlanner` class shall be instantiable and expose the documented interface
+# Purpose      : Sophisticated query planner with CoT and ReAct
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryPlanner with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class QueryPlanner:
     """
     Sophisticated query planner with CoT and ReAct
@@ -197,6 +384,23 @@ class QueryPlanner:
         "how to", "example", "snippet"
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner.__init__
+    # Requirement  : `__init__` shall initialize query planner
+    # Purpose      : Initialize query planner
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, logger: Optional[logging.Logger] = None):
         """
         Initialize query planner
@@ -207,6 +411,23 @@ class QueryPlanner:
         self.logger = logger or logging.getLogger("eeg_rag.planning.query_planner")
         self.logger.info("Initialized QueryPlanner")
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner.plan
+    # Requirement  : `plan` shall create comprehensive query plan
+    # Purpose      : Create comprehensive query plan
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : QueryPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def plan(self, query: str) -> QueryPlan:
         """
         Create comprehensive query plan
@@ -273,6 +494,23 @@ class QueryPlanner:
         
         return plan
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._classify_intent
+    # Requirement  : `_classify_intent` shall classify query intent
+    # Purpose      : Classify query intent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : QueryIntent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _classify_intent(self, query: str) -> QueryIntent:
         """
         Classify query intent
@@ -316,6 +554,23 @@ class QueryPlanner:
         # Default to factual
         return QueryIntent.FACTUAL
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._chain_of_thought_reasoning
+    # Requirement  : `_chain_of_thought_reasoning` shall generate Chain-of-Thought reasoning steps
+    # Purpose      : Generate Chain-of-Thought reasoning steps
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; intent: QueryIntent
+    # Outputs      : List[CoTStep]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _chain_of_thought_reasoning(
         self,
         query: str,
@@ -372,6 +627,23 @@ class QueryPlanner:
         
         return steps
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._reason_about_sources
+    # Requirement  : `_reason_about_sources` shall helper to reason about required data sources
+    # Purpose      : Helper to reason about required data sources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; intent: QueryIntent
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _reason_about_sources(self, query: str, intent: QueryIntent) -> str:
         """Helper to reason about required data sources"""
         query_lower = query.lower()
@@ -394,6 +666,23 @@ class QueryPlanner:
         
         return "Need: " + ", ".join(sources)
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._decompose_query
+    # Requirement  : `_decompose_query` shall decompose complex queries into sub-queries
+    # Purpose      : Decompose complex queries into sub-queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; intent: QueryIntent
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _decompose_query(self, query: str, intent: QueryIntent) -> List[SubQuery]:
         """
         Decompose complex queries into sub-queries
@@ -445,6 +734,23 @@ class QueryPlanner:
         
         return sub_queries
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._extract_comparison_items
+    # Requirement  : `_extract_comparison_items` shall extract items being compared from query
+    # Purpose      : Extract items being compared from query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_comparison_items(self, query: str) -> List[str]:
         """Extract items being compared from query"""
         # Simple heuristic - look for patterns like "X vs Y" or "X and Y"
@@ -460,6 +766,23 @@ class QueryPlanner:
         
         return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._suggest_agents_for_intent
+    # Requirement  : `_suggest_agents_for_intent` shall suggest agents based on intent
+    # Purpose      : Suggest agents based on intent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : intent: QueryIntent
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _suggest_agents_for_intent(self, intent: QueryIntent) -> List[str]:
         """Suggest agents based on intent"""
         agent_map = {
@@ -473,6 +796,23 @@ class QueryPlanner:
         }
         return agent_map.get(intent, ["local_data"])
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._assess_complexity
+    # Requirement  : `_assess_complexity` shall assess query complexity
+    # Purpose      : Assess query complexity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; intent: QueryIntent; sub_queries: List[SubQuery]
+    # Outputs      : QueryComplexity
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _assess_complexity(
         self,
         query: str,
@@ -506,6 +846,23 @@ class QueryPlanner:
         
         return QueryComplexity.MODERATE
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._plan_actions
+    # Requirement  : `_plan_actions` shall plan ReAct actions based on reasoning
+    # Purpose      : Plan ReAct actions based on reasoning
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; intent: QueryIntent; sub_queries: List[SubQuery]; cot_steps: List[CoTStep]
+    # Outputs      : List[ReActAction]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _plan_actions(
         self,
         query: str,
@@ -541,14 +898,65 @@ class QueryPlanner:
         
         return actions
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._identify_required_agents
+    # Requirement  : `_identify_required_agents` shall extract unique agent names from actions
+    # Purpose      : Extract unique agent names from actions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : actions: List[ReActAction]
+    # Outputs      : Set[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _identify_required_agents(self, actions: List[ReActAction]) -> Set[str]:
         """Extract unique agent names from actions"""
         return {action.agent_name for action in actions if action.agent_name}
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._check_requirement
+    # Requirement  : `_check_requirement` shall check if any action requires specific agent type
+    # Purpose      : Check if any action requires specific agent type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : actions: List[ReActAction]; keyword: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_requirement(self, actions: List[ReActAction], keyword: str) -> bool:
         """Check if any action requires specific agent type"""
         return any(keyword in action.action_type.lower() for action in actions)
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._estimate_latency
+    # Requirement  : `_estimate_latency` shall estimate query latency based on plan
+    # Purpose      : Estimate query latency based on plan
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : plan: QueryPlan
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_latency(self, plan: QueryPlan) -> float:
         """
         Estimate query latency based on plan
@@ -588,6 +996,23 @@ class QueryPlanner:
         
         return round(total_time, 2)
 
+    # ---------------------------------------------------------------------------
+    # ID           : planning.query_planner.QueryPlanner._estimate_execution_time
+    # Requirement  : `_estimate_execution_time` shall estimate execution time for a list of actions
+    # Purpose      : Estimate execution time for a list of actions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : actions: List[ReActAction]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_execution_time(self, actions: List[ReActAction]) -> float:
         """
         Estimate execution time for a list of actions

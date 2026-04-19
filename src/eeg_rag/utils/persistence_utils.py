@@ -31,6 +31,23 @@ T = TypeVar("T")
 
 
 # REQ-DAT-001: Persistence operation status codes
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.PersistenceStatus
+# Requirement  : `PersistenceStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Status codes for persistence operations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PersistenceStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PersistenceStatus:
     """Status codes for persistence operations."""
     SUCCESS = "success"
@@ -41,6 +58,23 @@ class PersistenceStatus:
     CORRUPTED = "corrupted"
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.PersistenceResult
+# Requirement  : `PersistenceResult` class shall be instantiable and expose the documented interface
+# Purpose      : REQ-DAT-001: Result of a persistence operation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PersistenceResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PersistenceResult(Generic[T]):
     """
@@ -60,6 +94,23 @@ class PersistenceResult(Generic[T]):
     duration_ms: float = 0.0
     recovered: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.PersistenceResult.to_dict
+    # Requirement  : `to_dict` shall serialize to dictionary
+    # Purpose      : Serialize to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
         return {
@@ -71,6 +122,23 @@ class PersistenceResult(Generic[T]):
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.BackupInfo
+# Requirement  : `BackupInfo` class shall be instantiable and expose the documented interface
+# Purpose      : REQ-DAT-003: Information about a backup
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BackupInfo with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BackupInfo:
     """
@@ -87,6 +155,23 @@ class BackupInfo:
     size_bytes: int
     checksum: str
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupInfo.to_dict
+    # Requirement  : `to_dict` shall serialize to dictionary
+    # Purpose      : Serialize to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
         return {
@@ -98,6 +183,23 @@ class BackupInfo:
 
 
 # REQ-REL-003: Checksum calculation
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.calculate_checksum
+# Requirement  : `calculate_checksum` shall calculate SHA256 checksum for data integrity verification
+# Purpose      : Calculate SHA256 checksum for data integrity verification
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : data: Union[bytes, str, Path]
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def calculate_checksum(data: Union[bytes, str, Path]) -> str:
     """
     Calculate SHA256 checksum for data integrity verification.
@@ -122,6 +224,23 @@ def calculate_checksum(data: Union[bytes, str, Path]) -> str:
     return hasher.hexdigest()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.verify_checksum
+# Requirement  : `verify_checksum` shall verify data integrity by comparing checksums
+# Purpose      : Verify data integrity by comparing checksums
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : data: Union[bytes, str, Path]; expected: str
+# Outputs      : bool
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def verify_checksum(data: Union[bytes, str, Path], expected: str) -> bool:
     """
     Verify data integrity by comparing checksums.
@@ -138,6 +257,23 @@ def verify_checksum(data: Union[bytes, str, Path], expected: str) -> bool:
 
 
 # REQ-DAT-002: Retry decorator for persistence operations
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.with_persistence_retry
+# Requirement  : `with_persistence_retry` shall decorator that adds retry logic to persistence operations
+# Purpose      : Decorator that adds retry logic to persistence operations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : max_attempts: int (default=3); delay_seconds: float (default=1.0); backoff_multiplier: float (default=2.0); retryable_exceptions: tuple (default=(IOError, OSError, ConnectionError)); on_retry: Optional[Callable[[int, Exception], None]] (default=None)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def with_persistence_retry(
     max_attempts: int = 3,
     delay_seconds: float = 1.0,
@@ -158,7 +294,41 @@ def with_persistence_retry(
     Returns:
         Decorated function
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.persistence_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : PersistenceResult
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         def wrapper(*args, **kwargs) -> PersistenceResult:
             last_error: Optional[Exception] = None
@@ -204,6 +374,23 @@ def with_persistence_retry(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.with_async_persistence_retry
+# Requirement  : `with_async_persistence_retry` shall async version of persistence retry decorator
+# Purpose      : Async version of persistence retry decorator
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : max_attempts: int (default=3); delay_seconds: float (default=1.0); backoff_multiplier: float (default=2.0); retryable_exceptions: tuple (default=(IOError, OSError, ConnectionError))
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def with_async_persistence_retry(
     max_attempts: int = 3,
     delay_seconds: float = 1.0,
@@ -222,7 +409,41 @@ def with_async_persistence_retry(
     Returns:
         Decorated async function
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.persistence_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : PersistenceResult
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         async def wrapper(*args, **kwargs) -> PersistenceResult:
             last_error: Optional[Exception] = None
@@ -267,6 +488,23 @@ def with_async_persistence_retry(
 
 
 # REQ-DAT-003: Backup management
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.BackupManager
+# Requirement  : `BackupManager` class shall be instantiable and expose the documented interface
+# Purpose      : Manages file backups with rotation and integrity verification
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BackupManager with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BackupManager:
     """
     Manages file backups with rotation and integrity verification.
@@ -276,6 +514,23 @@ class BackupManager:
         max_backups: Maximum number of backups to retain
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager.__init__
+    # Requirement  : `__init__` shall initialize backup manager
+    # Purpose      : Initialize backup manager
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : backup_dir: Union[str, Path]; max_backups: int (default=5)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         backup_dir: Union[str, Path],
@@ -292,10 +547,44 @@ class BackupManager:
         self.max_backups = max_backups
         self._ensure_dir()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager._ensure_dir
+    # Requirement  : `_ensure_dir` shall ensure backup directory exists
+    # Purpose      : Ensure backup directory exists
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _ensure_dir(self) -> None:
         """Ensure backup directory exists."""
         self.backup_dir.mkdir(parents=True, exist_ok=True)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager.create_backup
+    # Requirement  : `create_backup` shall rEQ-DAT-003: Create a backup of a file
+    # Purpose      : REQ-DAT-003: Create a backup of a file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : source: Union[str, Path]; prefix: str (default='backup')
+    # Outputs      : BackupInfo
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def create_backup(
         self,
         source: Union[str, Path],
@@ -345,6 +634,23 @@ class BackupManager:
         
         return backup_info
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager._rotate_backups
+    # Requirement  : `_rotate_backups` shall remove old backups exceeding max_backups
+    # Purpose      : Remove old backups exceeding max_backups
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prefix: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _rotate_backups(self, prefix: str) -> None:
         """Remove old backups exceeding max_backups."""
         backups = sorted(
@@ -357,6 +663,23 @@ class BackupManager:
             logger.info(f"Rotating out old backup: {old_backup}")
             old_backup.unlink()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager.list_backups
+    # Requirement  : `list_backups` shall rEQ-DAT-003: List all backups for a prefix
+    # Purpose      : REQ-DAT-003: List all backups for a prefix
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : prefix: str (default='backup')
+    # Outputs      : List[BackupInfo]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def list_backups(self, prefix: str = "backup") -> List[BackupInfo]:
         """
         REQ-DAT-003: List all backups for a prefix.
@@ -382,6 +705,23 @@ class BackupManager:
         
         return sorted(backups, key=lambda b: b.timestamp, reverse=True)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager.restore_backup
+    # Requirement  : `restore_backup` shall rEQ-DAT-003: Restore a file from backup
+    # Purpose      : REQ-DAT-003: Restore a file from backup
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : backup: Union[BackupInfo, Path]; destination: Union[str, Path]; verify: bool (default=True)
+    # Outputs      : PersistenceResult[Path]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def restore_backup(
         self,
         backup: Union[BackupInfo, Path],
@@ -448,6 +788,23 @@ class BackupManager:
                 duration_ms=(time.time() - start_time) * 1000,
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.BackupManager.cleanup
+    # Requirement  : `cleanup` shall remove all backups
+    # Purpose      : Remove all backups
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def cleanup(self) -> int:
         """
         Remove all backups.
@@ -464,6 +821,23 @@ class BackupManager:
 
 
 # REQ-DAT-001: Atomic file write
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.atomic_write
+# Requirement  : `atomic_write` shall context manager for atomic file writes
+# Purpose      : Context manager for atomic file writes
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : path: Union[str, Path]; mode: str (default='w'); encoding: str (default='utf-8')
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @contextmanager
 def atomic_write(
     path: Union[str, Path],
@@ -506,6 +880,23 @@ def atomic_write(
         raise
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.async_atomic_write
+# Requirement  : `async_atomic_write` shall async context manager for atomic file writes
+# Purpose      : Async context manager for atomic file writes
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : path: Union[str, Path]; mode: str (default='w'); encoding: str (default='utf-8')
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @asynccontextmanager
 async def async_atomic_write(
     path: Union[str, Path],
@@ -552,6 +943,23 @@ async def async_atomic_write(
 
 
 # REQ-DAT-001: JSON persistence with integrity
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.JsonPersistence
+# Requirement  : `JsonPersistence` class shall be instantiable and expose the documented interface
+# Purpose      : JSON file persistence with integrity verification and backup
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate JsonPersistence with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class JsonPersistence:
     """
     JSON file persistence with integrity verification and backup.
@@ -559,6 +967,23 @@ class JsonPersistence:
     Provides safe read/write operations with automatic checksums.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.JsonPersistence.__init__
+    # Requirement  : `__init__` shall initialize JSON persistence
+    # Purpose      : Initialize JSON persistence
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: Union[str, Path]; backup_manager: Optional[BackupManager] (default=None); pretty: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         path: Union[str, Path],
@@ -578,6 +1003,23 @@ class JsonPersistence:
         self.pretty = pretty
         self._checksum_file = self.path.with_suffix(".checksum")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.JsonPersistence.save
+    # Requirement  : `save` shall rEQ-DAT-001: Save data to JSON file with integrity
+    # Purpose      : REQ-DAT-001: Save data to JSON file with integrity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @with_persistence_retry(max_attempts=3)
     def save(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -616,6 +1058,23 @@ class JsonPersistence:
         
         return data
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.JsonPersistence.load
+    # Requirement  : `load` shall rEQ-DAT-001: Load data from JSON file with integrity check
+    # Purpose      : REQ-DAT-001: Load data from JSON file with integrity check
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : verify: bool (default=True)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @with_persistence_retry(max_attempts=3)
     def load(self, verify: bool = True) -> Dict[str, Any]:
         """
@@ -644,10 +1103,44 @@ class JsonPersistence:
         
         return json.loads(content)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.JsonPersistence.exists
+    # Requirement  : `exists` shall check if the JSON file exists
+    # Purpose      : Check if the JSON file exists
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def exists(self) -> bool:
         """Check if the JSON file exists."""
         return self.path.exists()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.JsonPersistence.delete
+    # Requirement  : `delete` shall delete the JSON file and its checksum
+    # Purpose      : Delete the JSON file and its checksum
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def delete(self) -> bool:
         """Delete the JSON file and its checksum."""
         deleted = False
@@ -660,6 +1153,23 @@ class JsonPersistence:
 
 
 # REQ-DAT-002: Connection pool for database connections
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.ConnectionPool
+# Requirement  : `ConnectionPool` class shall be instantiable and expose the documented interface
+# Purpose      : Generic connection pool for database connections
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ConnectionPool with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ConnectionPool(Generic[T]):
     """
     Generic connection pool for database connections.
@@ -667,6 +1177,23 @@ class ConnectionPool(Generic[T]):
     Manages a pool of reusable connections with health checking.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.__init__
+    # Requirement  : `__init__` shall initialize connection pool
+    # Purpose      : Initialize connection pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : create_fn: Callable[[], T]; close_fn: Callable[[T], None]; validate_fn: Optional[Callable[[T], bool]] (default=None); min_size: int (default=1); max_size: int (default=10)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         create_fn: Callable[[], T],
@@ -704,6 +1231,23 @@ class ConnectionPool(Generic[T]):
         # Initialize minimum connections
         self._initialize()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool._initialize
+    # Requirement  : `_initialize` shall create initial connections
+    # Purpose      : Create initial connections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _initialize(self) -> None:
         """Create initial connections."""
         for _ in range(self.min_size):
@@ -713,6 +1257,23 @@ class ConnectionPool(Generic[T]):
             except Exception as e:
                 logger.warning(f"Failed to create initial connection: {e}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.acquire
+    # Requirement  : `acquire` shall acquire a connection from the pool
+    # Purpose      : Acquire a connection from the pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : T
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def acquire(self) -> T:
         """
         Acquire a connection from the pool.
@@ -742,6 +1303,23 @@ class ConnectionPool(Generic[T]):
             
             raise RuntimeError("Connection pool exhausted")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.release
+    # Requirement  : `release` shall release a connection back to the pool
+    # Purpose      : Release a connection back to the pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : conn: T
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def release(self, conn: T) -> None:
         """
         Release a connection back to the pool.
@@ -761,6 +1339,23 @@ class ConnectionPool(Generic[T]):
                     except Exception:
                         pass
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.connection
+    # Requirement  : `connection` shall context manager for acquiring a connection
+    # Purpose      : Context manager for acquiring a connection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @contextmanager
     def connection(self):
         """
@@ -775,6 +1370,23 @@ class ConnectionPool(Generic[T]):
         finally:
             self.release(conn)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.close_all
+    # Requirement  : `close_all` shall close all connections in the pool
+    # Purpose      : Close all connections in the pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def close_all(self) -> None:
         """Close all connections in the pool."""
         with self._thread_lock:
@@ -786,6 +1398,23 @@ class ConnectionPool(Generic[T]):
             self._pool.clear()
             self._in_use.clear()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.ConnectionPool.stats
+    # Requirement  : `stats` shall get pool statistics
+    # Purpose      : Get pool statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def stats(self) -> Dict[str, int]:
         """Get pool statistics."""
         return {
@@ -797,6 +1426,23 @@ class ConnectionPool(Generic[T]):
 
 
 # REQ-DAT-001: Write-ahead logging for crash recovery
+# ---------------------------------------------------------------------------
+# ID           : utils.persistence_utils.WriteAheadLog
+# Requirement  : `WriteAheadLog` class shall be instantiable and expose the documented interface
+# Purpose      : Simple write-ahead log for crash recovery
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate WriteAheadLog with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class WriteAheadLog:
     """
     Simple write-ahead log for crash recovery.
@@ -805,6 +1451,23 @@ class WriteAheadLog:
     recovery of incomplete operations after a crash.
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.__init__
+    # Requirement  : `__init__` shall initialize write-ahead log
+    # Purpose      : Initialize write-ahead log
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : log_dir: Union[str, Path]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, log_dir: Union[str, Path]):
         """
         Initialize write-ahead log.
@@ -816,10 +1479,44 @@ class WriteAheadLog:
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self._current_log: Optional[Path] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog._get_log_path
+    # Requirement  : `_get_log_path` shall get current log file path
+    # Purpose      : Get current log file path
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_log_path(self) -> Path:
         """Get current log file path."""
         return self.log_dir / f"wal_{datetime.now().strftime('%Y%m%d')}.log"
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.begin_transaction
+    # Requirement  : `begin_transaction` shall begin a new transaction
+    # Purpose      : Begin a new transaction
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : transaction_id: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def begin_transaction(self, transaction_id: str) -> None:
         """
         Begin a new transaction.
@@ -833,6 +1530,23 @@ class WriteAheadLog:
             "timestamp": datetime.now().isoformat(),
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.log_operation
+    # Requirement  : `log_operation` shall log an operation within a transaction
+    # Purpose      : Log an operation within a transaction
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : transaction_id: str; operation: str; data: Dict[str, Any]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def log_operation(
         self,
         transaction_id: str,
@@ -855,6 +1569,23 @@ class WriteAheadLog:
             "timestamp": datetime.now().isoformat(),
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.commit_transaction
+    # Requirement  : `commit_transaction` shall commit a transaction
+    # Purpose      : Commit a transaction
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : transaction_id: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def commit_transaction(self, transaction_id: str) -> None:
         """
         Commit a transaction.
@@ -868,6 +1599,23 @@ class WriteAheadLog:
             "timestamp": datetime.now().isoformat(),
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.rollback_transaction
+    # Requirement  : `rollback_transaction` shall rollback a transaction
+    # Purpose      : Rollback a transaction
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : transaction_id: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rollback_transaction(self, transaction_id: str) -> None:
         """
         Rollback a transaction.
@@ -881,12 +1629,46 @@ class WriteAheadLog:
             "timestamp": datetime.now().isoformat(),
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog._append_entry
+    # Requirement  : `_append_entry` shall append an entry to the log
+    # Purpose      : Append an entry to the log
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entry: Dict[str, Any]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _append_entry(self, entry: Dict[str, Any]) -> None:
         """Append an entry to the log."""
         log_path = self._get_log_path()
         with open(log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.get_uncommitted_transactions
+    # Requirement  : `get_uncommitted_transactions` shall get list of uncommitted transactions for recovery
+    # Purpose      : Get list of uncommitted transactions for recovery
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_uncommitted_transactions(self) -> List[str]:
         """
         Get list of uncommitted transactions for recovery.
@@ -916,6 +1698,23 @@ class WriteAheadLog:
         
         return list(begun - committed - rolledback)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.persistence_utils.WriteAheadLog.cleanup_old_logs
+    # Requirement  : `cleanup_old_logs` shall remove log files older than specified days
+    # Purpose      : Remove log files older than specified days
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : days: int (default=7)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def cleanup_old_logs(self, days: int = 7) -> int:
         """
         Remove log files older than specified days.

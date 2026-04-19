@@ -20,6 +20,23 @@ from typing import List, Dict, Any, Optional
 from enum import Enum
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.EEGSystemType
+# Requirement  : `EEGSystemType` class shall be instantiable and expose the documented interface
+# Purpose      : Type of EEG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGSystemType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGSystemType(Enum):
     """Type of EEG system"""
     CLINICAL = "clinical"  # 250+ nodes, clinical montages
@@ -27,6 +44,23 @@ class EEGSystemType(Enum):
     HYBRID = "hybrid"  # Supports both
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.MontageType
+# Requirement  : `MontageType` class shall be instantiable and expose the documented interface
+# Purpose      : EEG montage configurations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MontageType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MontageType(Enum):
     """EEG montage configurations"""
     # Clinical montages
@@ -47,6 +81,23 @@ class MontageType(Enum):
     INTRAOPERATIVE = "intraop"  # Intraoperative monitoring
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.RegulatoryFramework
+# Requirement  : `RegulatoryFramework` class shall be instantiable and expose the documented interface
+# Purpose      : Regulatory frameworks
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RegulatoryFramework with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RegulatoryFramework(Enum):
     """Regulatory frameworks"""
     HIPAA = "hipaa"  # US healthcare data protection
@@ -58,6 +109,23 @@ class RegulatoryFramework(Enum):
     IEC_60601 = "iec_60601"  # Medical electrical equipment safety
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.EEGConfiguration
+# Requirement  : `EEGConfiguration` class shall be instantiable and expose the documented interface
+# Purpose      : EEG system configuration
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGConfiguration with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EEGConfiguration:
     """
@@ -82,6 +150,23 @@ class EEGConfiguration:
     clinical_use: bool = False
     research_use: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.EEGConfiguration.validate
+    # Requirement  : `validate` shall validate configuration
+    # Purpose      : Validate configuration
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def validate(self) -> List[str]:
         """
         Validate configuration
@@ -113,6 +198,23 @@ class EEGConfiguration:
         
         return errors
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.EEGConfiguration.is_clinical_grade
+    # Requirement  : `is_clinical_grade` shall check if configuration meets clinical-grade requirements
+    # Purpose      : Check if configuration meets clinical-grade requirements
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def is_clinical_grade(self) -> bool:
         """Check if configuration meets clinical-grade requirements"""
         return (
@@ -124,6 +226,23 @@ class EEGConfiguration:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.ClinicalWorkflow
+# Requirement  : `ClinicalWorkflow` class shall be instantiable and expose the documented interface
+# Purpose      : Clinical workflow configuration
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalWorkflow with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ClinicalWorkflow:
     """
@@ -141,6 +260,23 @@ class ClinicalWorkflow:
     approval_workflow: bool  # Whether clinical approval is required
     audit_logging: bool  # Whether audit logs are required
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalWorkflow.get_integration_requirements
+    # Requirement  : `get_integration_requirements` shall get requirements for clinical system integration
+    # Purpose      : Get requirements for clinical system integration
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_integration_requirements(self) -> Dict[str, Any]:
         """Get requirements for clinical system integration"""
         return {
@@ -157,6 +293,23 @@ class ClinicalWorkflow:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : compliance.clinical_framework.ClinicalComplianceFramework
+# Requirement  : `ClinicalComplianceFramework` class shall be instantiable and expose the documented interface
+# Purpose      : Clinical compliance and integration framework
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalComplianceFramework with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ClinicalComplianceFramework:
     """
     Clinical compliance and integration framework
@@ -192,11 +345,45 @@ class ClinicalComplianceFramework:
             print(f"❌ Compliance issues: {validation['issues']}")
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.__init__
+    # Requirement  : `__init__` shall initialize clinical compliance framework
+    # Purpose      : Initialize clinical compliance framework
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize clinical compliance framework"""
         self.workflows = self._load_workflows()
         self.configurations = {}
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework._load_workflows
+    # Requirement  : `_load_workflows` shall load predefined clinical workflows
+    # Purpose      : Load predefined clinical workflows
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, ClinicalWorkflow]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_workflows(self) -> Dict[str, ClinicalWorkflow]:
         """Load predefined clinical workflows"""
         return {
@@ -273,6 +460,23 @@ class ClinicalComplianceFramework:
             )
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.get_workflow
+    # Requirement  : `get_workflow` shall get predefined clinical workflow
+    # Purpose      : Get predefined clinical workflow
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : workflow_name: str
+    # Outputs      : Optional[ClinicalWorkflow]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_workflow(self, workflow_name: str) -> Optional[ClinicalWorkflow]:
         """
         Get predefined clinical workflow
@@ -285,6 +489,23 @@ class ClinicalComplianceFramework:
         """
         return self.workflows.get(workflow_name)
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.validate_clinical_deployment
+    # Requirement  : `validate_clinical_deployment` shall validate configuration for clinical deployment
+    # Purpose      : Validate configuration for clinical deployment
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: EEGConfiguration; workflow: ClinicalWorkflow
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def validate_clinical_deployment(
         self,
         config: EEGConfiguration,
@@ -334,6 +555,23 @@ class ClinicalComplianceFramework:
             )
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.get_integration_guide
+    # Requirement  : `get_integration_guide` shall get integration guide for clinical system
+    # Purpose      : Get integration guide for clinical system
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : workflow_name: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_integration_guide(self, workflow_name: str) -> Optional[Dict[str, Any]]:
         """
         Get integration guide for clinical system
@@ -373,6 +611,23 @@ class ClinicalComplianceFramework:
             ]
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.compare_clinical_vs_research
+    # Requirement  : `compare_clinical_vs_research` shall compare clinical vs research requirements
+    # Purpose      : Compare clinical vs research requirements
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compare_clinical_vs_research(self) -> Dict[str, Any]:
         """
         Compare clinical vs research requirements
@@ -426,6 +681,23 @@ class ClinicalComplianceFramework:
             ]
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : compliance.clinical_framework.ClinicalComplianceFramework.get_statistics
+    # Requirement  : `get_statistics` shall get framework statistics
+    # Purpose      : Get framework statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get framework statistics"""
         return {

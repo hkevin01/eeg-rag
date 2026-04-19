@@ -14,6 +14,23 @@ from eeg_rag.storage.vector_db import VectorDB, SearchResult
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.dense_retriever.DenseResult
+# Requirement  : `DenseResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from dense (semantic) search
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DenseResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class DenseResult:
     """Result from dense (semantic) search."""
@@ -24,6 +41,23 @@ class DenseResult:
     chunk_id: Optional[str] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.dense_retriever.DenseRetriever
+# Requirement  : `DenseRetriever` class shall be instantiable and expose the documented interface
+# Purpose      : Dense retrieval using semantic embeddings
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DenseRetriever with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class DenseRetriever:
     """
     Dense retrieval using semantic embeddings.
@@ -55,6 +89,23 @@ class DenseRetriever:
         "multilingual": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     }
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.dense_retriever.DenseRetriever.__init__
+    # Requirement  : `__init__` shall initialize dense retriever
+    # Purpose      : Initialize dense retriever
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str (default='http://localhost:6333'); collection_name: str (default='eeg_papers'); model_name: str (default='sentence-transformers/all-MiniLM-L6-v2'); model_preset: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         url: str = "http://localhost:6333",
@@ -110,6 +161,23 @@ class DenseRetriever:
         logger.info("  Collection: %s", collection_name)
         logger.info("  Model: %s", model_name)
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.dense_retriever.DenseRetriever.search
+    # Requirement  : `search` shall search documents using semantic similarity
+    # Purpose      : Search documents using semantic similarity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; top_k: int (default=10); filters: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : List[DenseResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -156,6 +224,23 @@ class DenseRetriever:
 
         return results
 
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.dense_retriever.DenseRetriever.get_collection_info
+    # Requirement  : `get_collection_info` shall get information about the vector collection
+    # Purpose      : Get information about the vector collection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_collection_info(self) -> Dict[str, Any]:
         """
         Get information about the vector collection.

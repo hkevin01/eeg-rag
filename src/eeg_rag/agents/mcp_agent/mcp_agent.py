@@ -19,6 +19,23 @@ from pathlib import Path
 
 
 # Tool and Resource Types
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.ToolType
+# Requirement  : `ToolType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of tools available through MCP
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ToolType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ToolType(Enum):
     """Types of tools available through MCP"""
     CODE_EXECUTION = "code_execution"
@@ -31,6 +48,23 @@ class ToolType(Enum):
     CUSTOM = "custom"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.ResourceType
+# Requirement  : `ResourceType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of resources accessible through MCP
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ResourceType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ResourceType(Enum):
     """Types of resources accessible through MCP"""
     FILE = "file"
@@ -42,6 +76,23 @@ class ResourceType(Enum):
     CUSTOM = "custom"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.ExecutionStatus
+# Requirement  : `ExecutionStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Status of tool execution
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExecutionStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ExecutionStatus(Enum):
     """Status of tool execution"""
     PENDING = "pending"
@@ -52,6 +103,23 @@ class ExecutionStatus(Enum):
     CANCELLED = "cancelled"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.Tool
+# Requirement  : `Tool` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an MCP tool
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Tool with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Tool:
     """Represents an MCP tool"""
@@ -63,6 +131,23 @@ class Tool:
     capabilities: List[str] = field(default_factory=list)
     timeout: float = 30.0  # seconds
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.Tool.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -76,6 +161,23 @@ class Tool:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.Resource
+# Requirement  : `Resource` class shall be instantiable and expose the documented interface
+# Purpose      : Represents an MCP resource
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Resource with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Resource:
     """Represents an MCP resource"""
@@ -86,6 +188,23 @@ class Resource:
     metadata: Dict[str, Any] = field(default_factory=dict)
     access_permissions: List[str] = field(default_factory=lambda: ["read"])
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.Resource.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -98,6 +217,23 @@ class Resource:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.ExecutionResult
+# Requirement  : `ExecutionResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from tool execution
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExecutionResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExecutionResult:
     """Result from tool execution"""
@@ -109,6 +245,23 @@ class ExecutionResult:
     execution_time: float = 0.0
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.ExecutionResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -122,13 +275,64 @@ class ExecutionResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.MockMCPServer
+# Requirement  : `MockMCPServer` class shall be instantiable and expose the documented interface
+# Purpose      : Mock MCP server for testing (replace with real MCP client in production)
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MockMCPServer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MockMCPServer:
     """Mock MCP server for testing (replace with real MCP client in production)"""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.tools = self._create_mock_tools()
         self.resources = self._create_mock_resources()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._create_mock_tools
+    # Requirement  : `_create_mock_tools` shall create mock tools
+    # Purpose      : Create mock tools
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Tool]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_mock_tools(self) -> List[Tool]:
         """Create mock tools"""
         return [
@@ -170,6 +374,23 @@ class MockMCPServer:
             )
         ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._create_mock_resources
+    # Requirement  : `_create_mock_resources` shall create mock resources
+    # Purpose      : Create mock resources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Resource]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_mock_resources(self) -> List[Resource]:
         """Create mock resources"""
         return [
@@ -191,16 +412,67 @@ class MockMCPServer:
             )
         ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer.list_tools
+    # Requirement  : `list_tools` shall list available tools
+    # Purpose      : List available tools
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Tool]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def list_tools(self) -> List[Tool]:
         """List available tools"""
         await asyncio.sleep(0.01)  # Simulate network delay
         return self.tools
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer.list_resources
+    # Requirement  : `list_resources` shall list available resources
+    # Purpose      : List available resources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Resource]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def list_resources(self) -> List[Resource]:
         """List available resources"""
         await asyncio.sleep(0.01)
         return self.resources
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer.execute_tool
+    # Requirement  : `execute_tool` shall execute a tool
+    # Purpose      : Execute a tool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : tool_id: str; parameters: Dict[str, Any]
+    # Outputs      : ExecutionResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_tool(
         self,
         tool_id: str,
@@ -254,6 +526,23 @@ class MockMCPServer:
                 execution_time=time.time() - start_time
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._execute_code
+    # Requirement  : `_execute_code` shall mock code execution
+    # Purpose      : Mock code execution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : code: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _execute_code(self, code: str) -> Dict[str, Any]:
         """Mock code execution"""
         return {
@@ -262,6 +551,23 @@ class MockMCPServer:
             'stdout': 'Mock execution output'
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._read_file
+    # Requirement  : `_read_file` shall mock file reading
+    # Purpose      : Mock file reading
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : path: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _read_file(self, path: str) -> Dict[str, Any]:
         """Mock file reading"""
         return {
@@ -270,6 +576,23 @@ class MockMCPServer:
             'encoding': 'utf-8'
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._analyze_data
+    # Requirement  : `_analyze_data` shall mock data analysis
+    # Purpose      : Mock data analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: List[Any]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _analyze_data(self, data: List[Any]) -> Dict[str, Any]:
         """Mock data analysis"""
         return {
@@ -280,6 +603,23 @@ class MockMCPServer:
             'max': 90.0
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer._call_api
+    # Requirement  : `_call_api` shall mock API call
+    # Purpose      : Mock API call
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : params: Dict[str, Any]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _call_api(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Mock API call"""
         return {
@@ -288,6 +628,23 @@ class MockMCPServer:
             'headers': {'Content-Type': 'application/json'}
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MockMCPServer.access_resource
+    # Requirement  : `access_resource` shall access a resource
+    # Purpose      : Access a resource
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : resource_id: str; operation: str (default='read')
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def access_resource(
         self,
         resource_id: str,
@@ -311,6 +668,23 @@ class MockMCPServer:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.HttpMCPServer
+# Requirement  : `HttpMCPServer` class shall be instantiable and expose the documented interface
+# Purpose      : Production MCP server client over HTTP/SSE transport
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HttpMCPServer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HttpMCPServer:
     """Production MCP server client over HTTP/SSE transport.
 
@@ -319,6 +693,23 @@ class HttpMCPServer:
     interface mirrors ``MockMCPServer`` so ``MCPAgent`` works unchanged.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.HttpMCPServer.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : server_uri: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, server_uri: str) -> None:
         try:
             import httpx  # type: ignore
@@ -330,6 +721,23 @@ class HttpMCPServer:
         self._base = server_uri.rstrip("/")
         self._client = httpx.AsyncClient(timeout=30.0)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.HttpMCPServer.list_tools
+    # Requirement  : `list_tools` shall fetch tool list from the MCP server
+    # Purpose      : Fetch tool list from the MCP server
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Tool]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def list_tools(self) -> List[Tool]:
         """Fetch tool list from the MCP server."""
         resp = await self._client.get(f"{self._base}/tools")
@@ -349,6 +757,23 @@ class HttpMCPServer:
             )
         return tools
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.HttpMCPServer.list_resources
+    # Requirement  : `list_resources` shall fetch resource list from the MCP server
+    # Purpose      : Fetch resource list from the MCP server
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Resource]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def list_resources(self) -> List[Resource]:
         """Fetch resource list from the MCP server."""
         resp = await self._client.get(f"{self._base}/resources")
@@ -367,6 +792,23 @@ class HttpMCPServer:
             )
         return resources
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.HttpMCPServer.execute_tool
+    # Requirement  : `execute_tool` shall call a tool on the MCP server
+    # Purpose      : Call a tool on the MCP server
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : tool_id: str; parameters: Dict[str, Any]
+    # Outputs      : ExecutionResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_tool(
         self,
         tool_id: str,
@@ -399,6 +841,23 @@ class HttpMCPServer:
                 execution_time=time.time() - start,
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.HttpMCPServer.get_resource
+    # Requirement  : `get_resource` shall retrieve a resource by ID
+    # Purpose      : Retrieve a resource by ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : resource_id: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_resource(self, resource_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a resource by ID."""
         try:
@@ -409,6 +868,23 @@ class HttpMCPServer:
             return None
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.mcp_agent.mcp_agent.MCPAgent
+# Requirement  : `MCPAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Agent 4: MCP Server Agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MCPAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MCPAgent:
     """
     Agent 4: MCP Server Agent
@@ -431,6 +907,23 @@ class MCPAgent:
     REQ-AGT4-015: Generate execution IDs for tracking
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.__init__
+    # Requirement  : `__init__` shall initialize MCP Agent
+    # Purpose      : Initialize MCP Agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='MCPAgent'); agent_type: str (default='mcp'); server_uri: Optional[str] (default=None); capabilities: Optional[List[str]] (default=None); use_mock: bool (default=True); max_concurrent_executions: int (default=5)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "MCPAgent",
@@ -491,6 +984,23 @@ class MCPAgent:
             'resources_accessed': 0
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.initialize
+    # Requirement  : `initialize` shall initialize agent by discovering tools and resources
+    # Purpose      : Initialize agent by discovering tools and resources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def initialize(self):
         """Initialize agent by discovering tools and resources"""
         # Discover tools
@@ -504,6 +1014,23 @@ class MCPAgent:
 
         self.cache_valid = True
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.execute
+    # Requirement  : `execute` shall execute a tool or process a query
+    # Purpose      : Execute a tool or process a query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; tool_id: Optional[str] (default=None); parameters: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : ExecutionResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(
         self,
         query: str,
@@ -597,6 +1124,23 @@ class MCPAgent:
                 execution_time=time.time() - start_time
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent._infer_tool_from_query
+    # Requirement  : `_infer_tool_from_query` shall infer which tool to use based on query
+    # Purpose      : Infer which tool to use based on query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : Optional[Tool]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _infer_tool_from_query(self, query: str) -> Optional[Tool]:
         """Infer which tool to use based on query"""
         query_lower = query.lower()
@@ -621,6 +1165,23 @@ class MCPAgent:
         # Default to first available tool
         return next(iter(self.tools_cache.values()), None)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent._extract_parameters_from_query
+    # Requirement  : `_extract_parameters_from_query` shall extract parameters from natural language query
+    # Purpose      : Extract parameters from natural language query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; tool: Tool
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_parameters_from_query(
         self,
         query: str,
@@ -650,6 +1211,23 @@ class MCPAgent:
 
         return params
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent._validate_parameters
+    # Requirement  : `_validate_parameters` shall validate tool parameters
+    # Purpose      : Validate tool parameters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : tool: Tool; parameters: Dict[str, Any]
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _validate_parameters(
         self,
         tool: Tool,
@@ -663,6 +1241,23 @@ class MCPAgent:
 
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.access_resource
+    # Requirement  : `access_resource` shall access a resource
+    # Purpose      : Access a resource
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : resource_id: str; operation: str (default='read')
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def access_resource(
         self,
         resource_id: str,
@@ -678,18 +1273,86 @@ class MCPAgent:
         self.stats['resources_accessed'] += 1
         return await self.server.access_resource(resource_id, operation)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.get_available_tools
+    # Requirement  : `get_available_tools` shall get list of available tools
+    # Purpose      : Get list of available tools
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Tool]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_available_tools(self) -> List[Tool]:
         """Get list of available tools"""
         return list(self.tools_cache.values())
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.get_available_resources
+    # Requirement  : `get_available_resources` shall get list of available resources
+    # Purpose      : Get list of available resources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Resource]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_available_resources(self) -> List[Resource]:
         """Get list of available resources"""
         return list(self.resources_cache.values())
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.get_execution_history
+    # Requirement  : `get_execution_history` shall get recent execution history
+    # Purpose      : Get recent execution history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : limit: int (default=10)
+    # Outputs      : List[ExecutionResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_execution_history(self, limit: int = 10) -> List[ExecutionResult]:
         """Get recent execution history"""
         return self.execution_history[-limit:]
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -710,12 +1373,46 @@ class MCPAgent:
             'resources_accessed': self.stats['resources_accessed']
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.clear_cache
+    # Requirement  : `clear_cache` shall clear tool and resource caches
+    # Purpose      : Clear tool and resource caches
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear tool and resource caches"""
         self.tools_cache.clear()
         self.resources_cache.clear()
         self.cache_valid = False
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.mcp_agent.mcp_agent.MCPAgent.clear_history
+    # Requirement  : `clear_history` shall clear execution history
+    # Purpose      : Clear execution history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_history(self):
         """Clear execution history"""
         self.execution_history.clear()

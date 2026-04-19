@@ -16,6 +16,23 @@ from collections import defaultdict
 
 
 # Node and Relationship Types
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.NodeType
+# Requirement  : `NodeType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of nodes in the EEG knowledge graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate NodeType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class NodeType(Enum):
     """Types of nodes in the EEG knowledge graph"""
     BIOMARKER = "Biomarker"
@@ -28,6 +45,23 @@ class NodeType(Enum):
     BRAIN_REGION = "BrainRegion"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.RelationType
+# Requirement  : `RelationType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of relationships in the knowledge graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RelationType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RelationType(Enum):
     """Types of relationships in the knowledge graph"""
     PREDICTS = "PREDICTS"
@@ -40,6 +74,23 @@ class RelationType(Enum):
     AFFECTS = "AFFECTS"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.GraphNode
+# Requirement  : `GraphNode` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a node in the knowledge graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphNode with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GraphNode:
     """Represents a node in the knowledge graph"""
@@ -48,6 +99,23 @@ class GraphNode:
     properties: Dict[str, Any]
     labels: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphNode.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -58,6 +126,23 @@ class GraphNode:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.GraphRelationship
+# Requirement  : `GraphRelationship` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a relationship in the knowledge graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphRelationship with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GraphRelationship:
     """Represents a relationship in the knowledge graph"""
@@ -67,6 +152,23 @@ class GraphRelationship:
     properties: Dict[str, Any] = field(default_factory=dict)
     strength: float = 1.0  # 0.0 - 1.0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphRelationship.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -78,6 +180,23 @@ class GraphRelationship:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.GraphPath
+# Requirement  : `GraphPath` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a path through the knowledge graph
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphPath with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GraphPath:
     """Represents a path through the knowledge graph"""
@@ -86,6 +205,23 @@ class GraphPath:
     path_length: int
     total_strength: float
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphPath.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -96,6 +232,23 @@ class GraphPath:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.GraphQueryResult
+# Requirement  : `GraphQueryResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from a graph query
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphQueryResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GraphQueryResult:
     """Result from a graph query"""
@@ -107,6 +260,23 @@ class GraphQueryResult:
     cypher_query: str
     execution_time: float
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphQueryResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -120,6 +290,23 @@ class GraphQueryResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.CypherQueryBuilder
+# Requirement  : `CypherQueryBuilder` class shall be instantiable and expose the documented interface
+# Purpose      : Builds Cypher queries from natural language
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CypherQueryBuilder with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CypherQueryBuilder:
     """Builds Cypher queries from natural language"""
 
@@ -160,6 +347,23 @@ class CypherQueryBuilder:
         """
     }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.CypherQueryBuilder.detect_query_intent
+    # Requirement  : `detect_query_intent` shall detect the intent of a natural language query and extract parameters
+    # Purpose      : Detect the intent of a natural language query and extract parameters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : Tuple[str, Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def detect_query_intent(query_text: str) -> Tuple[str, Dict[str, Any]]:
         """
@@ -212,6 +416,23 @@ class CypherQueryBuilder:
         # Default: find biomarkers
         return 'find_biomarkers', {'condition': 'epilepsy', 'limit': 10}
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.CypherQueryBuilder.build_cypher
+    # Requirement  : `build_cypher` shall build Cypher query from pattern and parameters
+    # Purpose      : Build Cypher query from pattern and parameters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pattern_name: str; parameters: Dict[str, Any]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def build_cypher(pattern_name: str, parameters: Dict[str, Any]) -> str:
         """Build Cypher query from pattern and parameters"""
@@ -232,12 +453,63 @@ class CypherQueryBuilder:
         return query.strip()
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.MockNeo4jConnection
+# Requirement  : `MockNeo4jConnection` class shall be instantiable and expose the documented interface
+# Purpose      : Mock Neo4j connection for testing (replace with real neo4j.Driver in production)
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MockNeo4jConnection with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MockNeo4jConnection:
     """Mock Neo4j connection for testing (replace with real neo4j.Driver in production)"""
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.MockNeo4jConnection.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.mock_data = self._create_mock_data()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.MockNeo4jConnection._create_mock_data
+    # Requirement  : `_create_mock_data` shall create mock EEG knowledge graph data
+    # Purpose      : Create mock EEG knowledge graph data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_mock_data(self) -> Dict[str, Any]:
         """Create mock EEG knowledge graph data"""
         return {
@@ -259,6 +531,23 @@ class MockNeo4jConnection:
             ]
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.MockNeo4jConnection.run_query
+    # Requirement  : `run_query` shall execute mock Cypher query
+    # Purpose      : Execute mock Cypher query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : cypher: str; parameters: Dict[str, Any]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_query(self, cypher: str, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Execute mock Cypher query"""
         await asyncio.sleep(0.05)  # Simulate network latency
@@ -299,6 +588,23 @@ class MockNeo4jConnection:
             ]
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.Neo4jConnection
+# Requirement  : `Neo4jConnection` class shall be instantiable and expose the documented interface
+# Purpose      : Production Neo4j connection using the official ``neo4j`` driver
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Neo4jConnection with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class Neo4jConnection:
     """Production Neo4j connection using the official ``neo4j`` driver.
 
@@ -308,6 +614,23 @@ class Neo4jConnection:
     Interface mirrors ``MockNeo4jConnection`` so the agent needs no changes.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.Neo4jConnection.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : uri: str; user: str; password: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, uri: str, user: str, password: str) -> None:
         try:
             from neo4j import AsyncGraphDatabase  # type: ignore
@@ -318,6 +641,23 @@ class Neo4jConnection:
 
         self._driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.Neo4jConnection.run_query
+    # Requirement  : `run_query` shall execute a Cypher query and return rows as plain dicts
+    # Purpose      : Execute a Cypher query and return rows as plain dicts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : cypher: str; parameters: Dict[str, Any]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_query(
         self, cypher: str, parameters: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
@@ -327,11 +667,45 @@ class Neo4jConnection:
             records = await result.data()
         return records
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.Neo4jConnection.close
+    # Requirement  : `close` shall close the underlying driver
+    # Purpose      : Close the underlying driver
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self) -> None:
         """Close the underlying driver."""
         await self._driver.close()
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.graph_agent.graph_agent.GraphAgent
+# Requirement  : `GraphAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Agent 3: Knowledge Graph Agent
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GraphAgent:
     """
     Agent 3: Knowledge Graph Agent
@@ -354,6 +728,23 @@ class GraphAgent:
     REQ-AGT3-015: Collect statistics (queries executed, nodes retrieved, avg latency)
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent.__init__
+    # Requirement  : `__init__` shall initialize Knowledge Graph Agent
+    # Purpose      : Initialize Knowledge Graph Agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='GraphAgent'); agent_type: str (default='graph'); neo4j_uri: Optional[str] (default=None); neo4j_user: Optional[str] (default=None); neo4j_password: Optional[str] (default=None); capabilities: Optional[List[str]] (default=None); max_hops: int (default=3); use_mock: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "GraphAgent",
@@ -417,10 +808,44 @@ class GraphAgent:
         self.cache_hits = 0
         self.cache_misses = 0
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent._cache_key
+    # Requirement  : `_cache_key` shall generate cache key from query text
+    # Purpose      : Generate cache key from query text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _cache_key(self, query_text: str) -> str:
         """Generate cache key from query text"""
         return hashlib.md5(query_text.encode()).hexdigest()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent.execute
+    # Requirement  : `execute` shall execute a knowledge graph query
+    # Purpose      : Execute a knowledge graph query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; use_cache: bool (default=True)
+    # Outputs      : GraphQueryResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query_text: str, use_cache: bool = True) -> GraphQueryResult:
         """
         Execute a knowledge graph query
@@ -504,6 +929,23 @@ class GraphAgent:
                 execution_time=execution_time
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent._parse_results
+    # Requirement  : `_parse_results` shall parse raw Cypher results into GraphNode and GraphRelationship objects
+    # Purpose      : Parse raw Cypher results into GraphNode and GraphRelationship objects
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : raw_results: List[Dict[str, Any]]
+    # Outputs      : Tuple[List[GraphNode], List[GraphRelationship]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_results(self, raw_results: List[Dict[str, Any]]) -> Tuple[List[GraphNode], List[GraphRelationship]]:
         """Parse raw Cypher results into GraphNode and GraphRelationship objects"""
         nodes = []
@@ -545,6 +987,23 @@ class GraphAgent:
 
         return nodes, relationships
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent._extract_paths
+    # Requirement  : `_extract_paths` shall extract paths from nodes and relationships
+    # Purpose      : Extract paths from nodes and relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[GraphNode]; relationships: List[GraphRelationship]
+    # Outputs      : List[GraphPath]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_paths(self, nodes: List[GraphNode], relationships: List[GraphRelationship]) -> List[GraphPath]:
         """Extract paths from nodes and relationships"""
         paths = []
@@ -568,6 +1027,23 @@ class GraphAgent:
 
         return paths
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent._build_subgraph
+    # Requirement  : `_build_subgraph` shall build subgraph representation for visualization
+    # Purpose      : Build subgraph representation for visualization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[GraphNode]; relationships: List[GraphRelationship]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_subgraph(self, nodes: List[GraphNode], relationships: List[GraphRelationship]) -> Dict[str, Any]:
         """Build subgraph representation for visualization"""
         return {
@@ -597,6 +1073,23 @@ class GraphAgent:
             }
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -620,6 +1113,23 @@ class GraphAgent:
             )
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.graph_agent.graph_agent.GraphAgent.clear_cache
+    # Requirement  : `clear_cache` shall clear query cache
+    # Purpose      : Clear query cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear query cache"""
         self.query_cache.clear()

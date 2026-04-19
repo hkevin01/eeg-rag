@@ -21,6 +21,23 @@ from .europepmc_client import EuropePMCClient, EuropePMCArticle
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.pipeline.UnifiedDocument
+# Requirement  : `UnifiedDocument` class shall be instantiable and expose the documented interface
+# Purpose      : Unified document format for all sources
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate UnifiedDocument with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class UnifiedDocument:
     """
@@ -79,14 +96,65 @@ class UnifiedDocument:
     # Ingestion metadata
     ingested_at: str = ""
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.UnifiedDocument.__post_init__
+    # Requirement  : `__post_init__` shall execute as specified
+    # Purpose      :   post init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.ingested_at:
             self.ingested_at = datetime.now().isoformat()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.UnifiedDocument.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for JSON serialization
+    # Purpose      : Convert to dictionary for JSON serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return asdict(self)
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.UnifiedDocument.get_embedding_text
+    # Requirement  : `get_embedding_text` shall get text for embedding generation
+    # Purpose      : Get text for embedding generation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_embedding_text(self) -> str:
         """Get text for embedding generation."""
         parts = [self.title]
@@ -99,12 +167,46 @@ class UnifiedDocument:
         return " ".join(parts)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.pipeline.IngestionPipeline
+# Requirement  : `IngestionPipeline` class shall be instantiable and expose the documented interface
+# Purpose      : Master pipeline for collecting data from all sources
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate IngestionPipeline with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class IngestionPipeline:
     """
     Master pipeline for collecting data from all sources.
     Handles deduplication, normalization, and storage.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.__init__
+    # Requirement  : `__init__` shall initialize ingestion pipeline
+    # Purpose      : Initialize ingestion pipeline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_dir: str (default='data/raw'); pubmed_api_key: Optional[str] (default=None); semantic_scholar_api_key: Optional[str] (default=None); email: str (default='your-email@example.com')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         output_dir: str = "data/raw",
@@ -137,6 +239,23 @@ class IngestionPipeline:
         self.seen_pmids: set[str] = set()
         self.seen_titles: set[str] = set()  # Normalized titles for fuzzy matching
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._normalize_title
+    # Requirement  : `_normalize_title` shall normalize title for deduplication
+    # Purpose      : Normalize title for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : title: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _normalize_title(self, title: str) -> str:
         """Normalize title for deduplication."""
         import re
@@ -146,6 +265,23 @@ class IngestionPipeline:
         title = ' '.join(title.split())
         return title
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._generate_doc_id
+    # Requirement  : `_generate_doc_id` shall generate unique document ID
+    # Purpose      : Generate unique document ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: UnifiedDocument
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_doc_id(self, doc: UnifiedDocument) -> str:
         """Generate unique document ID."""
         # Prefer stable IDs
@@ -164,6 +300,23 @@ class IngestionPipeline:
         title_hash = hashlib.md5(doc.title.encode()).hexdigest()[:12]
         return f"hash:{title_hash}"
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._is_duplicate
+    # Requirement  : `_is_duplicate` shall check if document is a duplicate
+    # Purpose      : Check if document is a duplicate
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: UnifiedDocument
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _is_duplicate(self, doc: UnifiedDocument) -> bool:
         """Check if document is a duplicate."""
         if doc.doi and doc.doi in self.seen_dois:
@@ -177,6 +330,23 @@ class IngestionPipeline:
 
         return False
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._mark_seen
+    # Requirement  : `_mark_seen` shall mark document as seen for deduplication
+    # Purpose      : Mark document as seen for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doc: UnifiedDocument
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _mark_seen(self, doc: UnifiedDocument):
         """Mark document as seen for deduplication."""
         if doc.doi:
@@ -185,6 +355,23 @@ class IngestionPipeline:
             self.seen_pmids.add(doc.pmid)
         self.seen_titles.add(self._normalize_title(doc.title))
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_pubmed
+    # Requirement  : `_convert_pubmed` shall convert PubMed article to unified format
+    # Purpose      : Convert PubMed article to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: PubMedArticle
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_pubmed(self, article: PubMedArticle) -> UnifiedDocument:
         """Convert PubMed article to unified format."""
         doc = UnifiedDocument(
@@ -214,6 +401,23 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_scholar
+    # Requirement  : `_convert_scholar` shall convert Semantic Scholar article to unified format
+    # Purpose      : Convert Semantic Scholar article to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: ScholarArticle
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_scholar(self, article: ScholarArticle) -> UnifiedDocument:
         """Convert Semantic Scholar article to unified format."""
         doc = UnifiedDocument(
@@ -239,6 +443,23 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_arxiv
+    # Requirement  : `_convert_arxiv` shall convert arXiv paper to unified format
+    # Purpose      : Convert arXiv paper to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: ArxivPaper
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_arxiv(self, paper: ArxivPaper) -> UnifiedDocument:
         """Convert arXiv paper to unified format."""
         doc = UnifiedDocument(
@@ -259,6 +480,23 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_openalex
+    # Requirement  : `_convert_openalex` shall convert OpenAlex work to unified format
+    # Purpose      : Convert OpenAlex work to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : work: OpenAlexWork
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_openalex(self, work: OpenAlexWork) -> UnifiedDocument:
         """Convert OpenAlex work to unified format."""
         doc = UnifiedDocument(
@@ -284,6 +522,23 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_clinicaltrial
+    # Requirement  : `_convert_clinicaltrial` shall convert ClinicalTrials.gov record to unified format
+    # Purpose      : Convert ClinicalTrials.gov record to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : trial: ClinicalTrial
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_clinicaltrial(self, trial: ClinicalTrial) -> UnifiedDocument:
         """Convert ClinicalTrials.gov record to unified format."""
         # Build a rich abstract-like field from available text
@@ -310,6 +565,23 @@ class IngestionPipeline:
         doc.doc_id = f"nct:{trial.nct_id}"
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._convert_europepmc
+    # Requirement  : `_convert_europepmc` shall convert Europe PMC article to unified format
+    # Purpose      : Convert Europe PMC article to unified format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: EuropePMCArticle
+    # Outputs      : UnifiedDocument
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _convert_europepmc(self, article: EuropePMCArticle) -> UnifiedDocument:
         """Convert Europe PMC article to unified format."""
         doc = UnifiedDocument(
@@ -332,6 +604,23 @@ class IngestionPipeline:
         doc.doc_id = self._generate_doc_id(doc)
         return doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_pubmed
+    # Requirement  : `ingest_pubmed` shall ingest from PubMed
+    # Purpose      : Ingest from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : years_back: int (default=10); max_per_query: int (default=5000); include_full_text: bool (default=True)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_pubmed(
         self,
         years_back: int = 10,
@@ -362,6 +651,23 @@ class IngestionPipeline:
                 self._mark_seen(doc)
                 yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_semantic_scholar
+    # Requirement  : `ingest_semantic_scholar` shall ingest from Semantic Scholar
+    # Purpose      : Ingest from Semantic Scholar
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_per_query: int (default=1000); year_start: int (default=2014)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_semantic_scholar(
         self,
         max_per_query: int = 1000,
@@ -389,6 +695,23 @@ class IngestionPipeline:
                 self._mark_seen(doc)
                 yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_arxiv
+    # Requirement  : `ingest_arxiv` shall ingest from arXiv
+    # Purpose      : Ingest from arXiv
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_results: int (default=5000); years_back: int (default=5)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_arxiv(
         self,
         max_results: int = 5000,
@@ -416,6 +739,23 @@ class IngestionPipeline:
                 self._mark_seen(doc)
                 yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_openalex
+    # Requirement  : `ingest_openalex` shall ingest from OpenAlex
+    # Purpose      : Ingest from OpenAlex
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : from_year: int (default=2014); max_results: int (default=50000)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_openalex(
         self,
         from_year: int = 2014,
@@ -443,6 +783,23 @@ class IngestionPipeline:
                 self._mark_seen(doc)
                 yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_clinicaltrials
+    # Requirement  : `ingest_clinicaltrials` shall ingest EEG-relevant clinical trials from ClinicalTrials.gov
+    # Purpose      : Ingest EEG-relevant clinical trials from ClinicalTrials.gov
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_results: int (default=500); status_filter: Optional[list[str]] (default=None)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_clinicaltrials(
         self,
         max_results: int = 500,
@@ -469,6 +826,23 @@ class IngestionPipeline:
                     self._mark_seen(doc)
                     yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.ingest_europepmc
+    # Requirement  : `ingest_europepmc` shall ingest EEG open-access articles from Europe PMC
+    # Purpose      : Ingest EEG open-access articles from Europe PMC
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_results: int (default=1000); min_year: int (default=2010); fetch_full_text: bool (default=False)
+    # Outputs      : AsyncIterator[UnifiedDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def ingest_europepmc(
         self,
         max_results: int = 1000,
@@ -498,6 +872,23 @@ class IngestionPipeline:
                     self._mark_seen(doc)
                     yield doc
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.run_full_ingestion
+    # Requirement  : `run_full_ingestion` shall run full ingestion from all sources
+    # Purpose      : Run full ingestion from all sources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sources: list[str] (default=None); save_interval: int (default=1000)
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_full_ingestion(
         self,
         sources: list[str] = None,
@@ -526,6 +917,23 @@ class IngestionPipeline:
         all_docs: list[UnifiedDocument] = []
         output_file = self.output_dir / f"eeg_corpus_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
 
+        # ---------------------------------------------------------------------------
+        # ID           : ingestion.pipeline.IngestionPipeline.process_source
+        # Requirement  : `process_source` shall execute as specified
+        # Purpose      : Process source
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : source: str; iterator: AsyncIterator[UnifiedDocument]
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         async def process_source(source: str, iterator: AsyncIterator[UnifiedDocument]):
             nonlocal all_docs
             async for doc in iterator:
@@ -563,6 +971,23 @@ class IngestionPipeline:
         logger.info("Ingestion complete: %s", stats)
         return stats
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline._save_documents
+    # Requirement  : `_save_documents` shall save documents to JSONL file
+    # Purpose      : Save documents to JSONL file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : docs: list[UnifiedDocument]; output_file: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _save_documents(self, docs: list[UnifiedDocument], output_file: Path):
         """Save documents to JSONL file."""
         with open(output_file, "w") as f:
@@ -570,6 +995,23 @@ class IngestionPipeline:
                 f.write(json.dumps(doc.to_dict()) + "\n")
         logger.info(f"Saved {len(docs)} documents to {output_file}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.pipeline.IngestionPipeline.reset_deduplication
+    # Requirement  : `reset_deduplication` shall reset deduplication tracking for a fresh run
+    # Purpose      : Reset deduplication tracking for a fresh run
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset_deduplication(self):
         """Reset deduplication tracking for a fresh run."""
         self.seen_dois.clear()
@@ -578,6 +1020,23 @@ class IngestionPipeline:
 
 
 # CLI interface
+# ---------------------------------------------------------------------------
+# ID           : ingestion.pipeline.main
+# Requirement  : `main` shall cLI entry point for ingestion pipeline
+# Purpose      : CLI entry point for ingestion pipeline
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def main():
     """CLI entry point for ingestion pipeline."""
     import argparse

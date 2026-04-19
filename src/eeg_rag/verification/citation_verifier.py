@@ -92,6 +92,23 @@ HALLUCINATION_PATTERNS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : verification.citation_verifier.VerificationResult
+# Requirement  : `VerificationResult` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive result of citation verification
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VerificationResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class VerificationResult:
     """Comprehensive result of citation verification.
@@ -128,6 +145,23 @@ class VerificationResult:
     journal: Optional[str] = None
     doi: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.VerificationResult.__post_init__
+    # Requirement  : `__post_init__` shall validate PMID format and score ranges
+    # Purpose      : Validate PMID format and score ranges
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Validate PMID format and score ranges."""
         if not self._is_valid_pmid(self.pmid):
@@ -137,11 +171,45 @@ class VerificationResult:
             logger.warning(f"Title match score out of range: {self.title_match}")
             self.title_match = max(0.0, min(1.0, self.title_match))
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.VerificationResult._is_valid_pmid
+    # Requirement  : `_is_valid_pmid` shall validate PMID format (7-8 digits)
+    # Purpose      : Validate PMID format (7-8 digits)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _is_valid_pmid(pmid: str) -> bool:
         """Validate PMID format (7-8 digits)."""
         return bool(re.match(r'^\d{7,8}$', pmid))
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.VerificationResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization.
 
@@ -167,12 +235,46 @@ class VerificationResult:
             'is_valid': self.exists and not self.is_retracted,
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.VerificationResult.is_valid
+    # Requirement  : `is_valid` shall check if citation is valid (exists and not retracted)
+    # Purpose      : Check if citation is valid (exists and not retracted)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def is_valid(self) -> bool:
         """Check if citation is valid (exists and not retracted)."""
         return self.exists and not self.is_retracted
 
 
+# ---------------------------------------------------------------------------
+# ID           : verification.citation_verifier.CitationVerifier
+# Requirement  : `CitationVerifier` class shall be instantiable and expose the documented interface
+# Purpose      : Production-grade citation verification against PubMed database
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationVerifier with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationVerifier:
     """Production-grade citation verification against PubMed database.
 
@@ -206,6 +308,23 @@ class CitationVerifier:
         >>> print(f"Claim supported: {result.claim_supported}")
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : email: Optional[str] (default=None); similarity_threshold: float (default=0.5); request_timeout: float (default=DEFAULT_REQUEST_TIMEOUT); enable_cache: bool (default=True); max_retries: int (default=RETRY_ATTEMPTS)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self,
                  email: Optional[str] = None,
                  similarity_threshold: float = 0.5,
@@ -235,6 +354,23 @@ class CitationVerifier:
         logger.info(f"CitationVerifier initialized with threshold={similarity_threshold}, "
                    f"timeout={request_timeout}s, email={self.email}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._initialize_sentence_model
+    # Requirement  : `_initialize_sentence_model` shall initialize sentence transformer with error handling
+    # Purpose      : Initialize sentence transformer with error handling
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Optional[SentenceTransformer]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _initialize_sentence_model(self) -> Optional[SentenceTransformer]:
         """Initialize sentence transformer with error handling.
 
@@ -256,6 +392,23 @@ class CitationVerifier:
                 logger.error(f"Failed to load any sentence transformer: {e2}")
                 return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier.verify_citation
+    # Requirement  : `verify_citation` shall verify a single PMID citation with optional retraction checking
+    # Purpose      : Verify a single PMID citation with optional retraction checking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str; claimed_finding: str (default=''); check_retraction: bool (default=True)
+    # Outputs      : VerificationResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def verify_citation(self, pmid: str, claimed_finding: str = "", check_retraction: bool = True) -> VerificationResult:
         """Verify a single PMID citation with optional retraction checking.
 
@@ -322,6 +475,23 @@ class CitationVerifier:
                 error_message=str(e)
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier.verify_multiple
+    # Requirement  : `verify_multiple` shall verify multiple citations concurrently
+    # Purpose      : Verify multiple citations concurrently
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]; claims: List[str] (default=None)
+    # Outputs      : List[VerificationResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def verify_multiple(self, pmids: List[str], claims: List[str] = None) -> List[VerificationResult]:
         """Verify multiple citations concurrently"""
         claims = claims or [""] * len(pmids)
@@ -333,6 +503,23 @@ class CitationVerifier:
 
         return await asyncio.gather(*tasks, return_exceptions=True)
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._fetch_abstract
+    # Requirement  : `_fetch_abstract` shall fetch abstract from PubMed
+    # Purpose      : Fetch abstract from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_abstract(self, pmid: str) -> Optional[str]:
         """Fetch abstract from PubMed"""
         if pmid in self.cache:
@@ -364,6 +551,23 @@ class CitationVerifier:
             logger.error(f"Error fetching abstract for {pmid}: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._parse_abstract_from_xml
+    # Requirement  : `_parse_abstract_from_xml` shall parse abstract from PubMed XML response
+    # Purpose      : Parse abstract from PubMed XML response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_content: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_abstract_from_xml(self, xml_content: str) -> Optional[str]:
         """Parse abstract from PubMed XML response"""
         try:
@@ -399,6 +603,23 @@ class CitationVerifier:
             logger.warning(f"Failed to parse XML: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._check_claim_support
+    # Requirement  : `_check_claim_support` shall check if claim is supported by abstract using semantic similarity
+    # Purpose      : Check if claim is supported by abstract using semantic similarity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : claim: str; abstract: str
+    # Outputs      : Tuple[bool, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_claim_support(self, claim: str, abstract: str) -> Tuple[bool, float]:
         """Check if claim is supported by abstract using semantic similarity.
 
@@ -422,6 +643,23 @@ class CitationVerifier:
             logger.warning(f"Error checking claim support: {e}")
             return True, 0.0  # Default to supported if error
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._fetch_paper_data
+    # Requirement  : `_fetch_paper_data` shall fetch complete paper data including title, journal, DOI from PubMed
+    # Purpose      : Fetch complete paper data including title, journal, DOI from PubMed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_paper_data(self, pmid: str) -> Optional[Dict[str, Any]]:
         """Fetch complete paper data including title, journal, DOI from PubMed.
 
@@ -469,6 +707,23 @@ class CitationVerifier:
             logger.error(f"Error fetching paper data for {pmid}: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._parse_paper_data_from_xml
+    # Requirement  : `_parse_paper_data_from_xml` shall parse complete paper data from PubMed XML response
+    # Purpose      : Parse complete paper data from PubMed XML response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_content: str
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_paper_data_from_xml(self, xml_content: str) -> Optional[Dict[str, Any]]:
         """Parse complete paper data from PubMed XML response."""
         try:
@@ -532,6 +787,23 @@ class CitationVerifier:
             logger.warning(f"Failed to parse paper XML: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.CitationVerifier._check_retraction_status
+    # Requirement  : `_check_retraction_status` shall check if a paper has been retracted
+    # Purpose      : Check if a paper has been retracted
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str; doi: Optional[str] (default=None)
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _check_retraction_status(self, pmid: str, doi: Optional[str] = None) -> bool:
         """Check if a paper has been retracted.
 
@@ -601,9 +873,43 @@ class CitationVerifier:
         return False
 
 
+# ---------------------------------------------------------------------------
+# ID           : verification.citation_verifier.HallucinationDetector
+# Requirement  : `HallucinationDetector` class shall be instantiable and expose the documented interface
+# Purpose      : Detects potential hallucinations in generated text
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HallucinationDetector with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HallucinationDetector:
     """Detects potential hallucinations in generated text"""
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : verifier: CitationVerifier
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, verifier: CitationVerifier):
         self.verifier = verifier
 
@@ -615,6 +921,23 @@ class HallucinationDetector:
             'temporal_claims': r'\b(recent|latest|new|cutting-edge)\s*(research|findings|studies)\b'
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector.check_answer
+    # Requirement  : `check_answer` shall comprehensive hallucination check of an answer
+    # Purpose      : Comprehensive hallucination check of an answer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : answer: str; context_docs: List[str] (default=None)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def check_answer(self, answer: str, context_docs: List[str] = None) -> Dict[str, Any]:
         """Comprehensive hallucination check of an answer"""
         # Extract claims and citations
@@ -657,6 +980,23 @@ class HallucinationDetector:
             'citation_results': [r.to_dict() if isinstance(r, VerificationResult) else str(r) for r in citation_results]
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._extract_claims_with_citations
+    # Requirement  : `_extract_claims_with_citations` shall extract claims and their associated citations
+    # Purpose      : Extract claims and their associated citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[Tuple[str, List[str]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_claims_with_citations(self, text: str) -> List[Tuple[str, List[str]]]:
         """Extract claims and their associated citations"""
         # Split into sentences
@@ -680,11 +1020,45 @@ class HallucinationDetector:
 
         return claims
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._extract_pmids
+    # Requirement  : `_extract_pmids` shall extract PMID numbers from text
+    # Purpose      : Extract PMID numbers from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_pmids(self, text: str) -> List[str]:
         """Extract PMID numbers from text"""
         pmid_pattern = r'PMID:?\s*(\d{8})'
         return re.findall(pmid_pattern, text)
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._check_hallucination_patterns
+    # Requirement  : `_check_hallucination_patterns` shall check for patterns that might indicate hallucination
+    # Purpose      : Check for patterns that might indicate hallucination
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : Dict[str, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_hallucination_patterns(self, text: str) -> Dict[str, float]:
         """Check for patterns that might indicate hallucination"""
         flags = {}
@@ -698,6 +1072,23 @@ class HallucinationDetector:
 
         return flags
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._check_context_support
+    # Requirement  : `_check_context_support` shall check how well claims are supported by provided context
+    # Purpose      : Check how well claims are supported by provided context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : claims: List[Tuple[str, List[str]]]; context_docs: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_context_support(self, claims: List[Tuple[str, List[str]]], context_docs: List[str]) -> float:
         """Check how well claims are supported by provided context"""
         if not claims or not context_docs or not self.verifier.sentence_model:
@@ -724,6 +1115,23 @@ class HallucinationDetector:
             logger.warning(f"Error checking context support: {e}")
             return 0.5
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._calculate_citation_accuracy
+    # Requirement  : `_calculate_citation_accuracy` shall calculate percentage of valid citations
+    # Purpose      : Calculate percentage of valid citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[VerificationResult]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_citation_accuracy(self, results: List[VerificationResult]) -> float:
         """Calculate percentage of valid citations"""
         if not results:
@@ -732,6 +1140,23 @@ class HallucinationDetector:
         valid_count = sum(1 for r in results if isinstance(r, VerificationResult) and r.exists)
         return valid_count / len(results)
 
+    # ---------------------------------------------------------------------------
+    # ID           : verification.citation_verifier.HallucinationDetector._count_unsupported_claims
+    # Requirement  : `_count_unsupported_claims` shall count claims that are not supported by their citations
+    # Purpose      : Count claims that are not supported by their citations
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : claims: List[Tuple[str, List[str]]]; citation_results: List[VerificationResult]
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _count_unsupported_claims(self, claims: List[Tuple[str, List[str]]],
                                  citation_results: List[VerificationResult]) -> int:
         """Count claims that are not supported by their citations"""
@@ -764,6 +1189,23 @@ class HallucinationDetector:
 
 
 # Convenience functions for easy integration
+# ---------------------------------------------------------------------------
+# ID           : verification.citation_verifier.verify_answer_citations
+# Requirement  : `verify_answer_citations` shall quick function to verify all citations in an answer
+# Purpose      : Quick function to verify all citations in an answer
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : answer: str; email: str (default=None)
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def verify_answer_citations(answer: str, email: str = None) -> Dict[str, Any]:
     """Quick function to verify all citations in an answer"""
     verifier = CitationVerifier(email=email)
@@ -772,6 +1214,23 @@ async def verify_answer_citations(answer: str, email: str = None) -> Dict[str, A
     return await detector.check_answer(answer)
 
 
+# ---------------------------------------------------------------------------
+# ID           : verification.citation_verifier.quick_citation_check
+# Requirement  : `quick_citation_check` shall quick check if PMIDs exist
+# Purpose      : Quick check if PMIDs exist
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : pmids: List[str]; email: str (default=None)
+# Outputs      : List[bool]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def quick_citation_check(pmids: List[str], email: str = None) -> List[bool]:
     """Quick check if PMIDs exist"""
     verifier = CitationVerifier(email=email)

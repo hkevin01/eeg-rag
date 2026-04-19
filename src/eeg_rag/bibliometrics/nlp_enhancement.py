@@ -23,6 +23,23 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.nlp_enhancement.ExtractedKeywords
+# Requirement  : `ExtractedKeywords` class shall be instantiable and expose the documented interface
+# Purpose      : Container for extracted keywords with metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ExtractedKeywords with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ExtractedKeywords:
     """
@@ -39,10 +56,44 @@ class ExtractedKeywords:
     method: str = "keybert"
     ngram_range: Tuple[int, int] = (1, 2)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.ExtractedKeywords.get_top_n
+    # Requirement  : `get_top_n` shall get top N keywords by score
+    # Purpose      : Get top N keywords by score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : n: int (default=10)
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_top_n(self, n: int = 10) -> List[str]:
         """Get top N keywords by score."""
         return [kw for kw, _ in sorted(self.keywords, key=lambda x: x[1], reverse=True)[:n]]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.ExtractedKeywords.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -53,6 +104,23 @@ class ExtractedKeywords:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.nlp_enhancement.TopicCluster
+# Requirement  : `TopicCluster` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a topic cluster from topic modeling
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TopicCluster with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class TopicCluster:
     """
@@ -70,6 +138,23 @@ class TopicCluster:
     coherence_score: float = 0.0
     label: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.TopicCluster.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -81,6 +166,23 @@ class TopicCluster:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer
+# Requirement  : `EEGNLPEnhancer` class shall be instantiable and expose the documented interface
+# Purpose      : NLP enhancement engine for EEG bibliometric data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGNLPEnhancer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGNLPEnhancer:
     """
     NLP enhancement engine for EEG bibliometric data.
@@ -119,6 +221,23 @@ class EEGNLPEnhancer:
         "electrodes": ["10-20", "10-10", "channel", "electrode", "montage", "reference"],
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.__init__
+    # Requirement  : `__init__` shall initialize NLP enhancer
+    # Purpose      : Initialize NLP enhancer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_keybert: bool (default=True); use_spacy: bool (default=True); spacy_model: str (default='en_core_web_sm')
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         use_keybert: bool = True,
@@ -144,6 +263,23 @@ class EEGNLPEnhancer:
         self._keybert_available = self._check_keybert()
         self._spacy_available = self._check_spacy()
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer._check_keybert
+    # Requirement  : `_check_keybert` shall check if KeyBERT is available
+    # Purpose      : Check if KeyBERT is available
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_keybert(self) -> bool:
         """Check if KeyBERT is available."""
         if not self.use_keybert:
@@ -155,6 +291,23 @@ class EEGNLPEnhancer:
             logger.warning("KeyBERT not available. Install with: pip install keybert")
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer._check_spacy
+    # Requirement  : `_check_spacy` shall check if spaCy is available
+    # Purpose      : Check if spaCy is available
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _check_spacy(self) -> bool:
         """Check if spaCy is available."""
         if not self.use_spacy:
@@ -166,6 +319,23 @@ class EEGNLPEnhancer:
             logger.warning("spaCy not available. Install with: pip install spacy")
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer._get_keybert
+    # Requirement  : `_get_keybert` shall get or initialize KeyBERT model
+    # Purpose      : Get or initialize KeyBERT model
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_keybert(self):
         """Get or initialize KeyBERT model."""
         if self._keybert is None and self._keybert_available:
@@ -174,6 +344,23 @@ class EEGNLPEnhancer:
             logger.info("Initialized KeyBERT model")
         return self._keybert
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer._get_spacy_nlp
+    # Requirement  : `_get_spacy_nlp` shall get or initialize spaCy NLP pipeline
+    # Purpose      : Get or initialize spaCy NLP pipeline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_spacy_nlp(self):
         """Get or initialize spaCy NLP pipeline."""
         if self._nlp is None and self._spacy_available:
@@ -188,6 +375,23 @@ class EEGNLPEnhancer:
                 self._nlp = spacy.load(self.spacy_model)
         return self._nlp
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.lemmatize_text
+    # Requirement  : `lemmatize_text` shall lemmatize text using spaCy
+    # Purpose      : Lemmatize text using spaCy
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def lemmatize_text(self, text: str) -> str:
         """
         Lemmatize text using spaCy.
@@ -214,6 +418,23 @@ class EEGNLPEnhancer:
         ])
         return lemmatized
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.extract_keywords_from_text
+    # Requirement  : `extract_keywords_from_text` shall extract keywords from a single text using KeyBERT
+    # Purpose      : Extract keywords from a single text using KeyBERT
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; top_n: int (default=10); ngram_range: Tuple[int, int] (default=(1, 2)); diversity: float (default=0.5); use_eeg_boost: bool (default=True)
+    # Outputs      : ExtractedKeywords
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_keywords_from_text(
         self,
         text: str,
@@ -289,6 +510,23 @@ class EEGNLPEnhancer:
             ngram_range=ngram_range,
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer._fallback_keyword_extraction
+    # Requirement  : `_fallback_keyword_extraction` shall fallback keyword extraction using term frequency
+    # Purpose      : Fallback keyword extraction using term frequency
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; top_n: int; ngram_range: Tuple[int, int]
+    # Outputs      : ExtractedKeywords
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _fallback_keyword_extraction(
         self,
         text: str,
@@ -341,6 +579,23 @@ class EEGNLPEnhancer:
             ngram_range=ngram_range,
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.extract_keywords_from_articles
+    # Requirement  : `extract_keywords_from_articles` shall extract keywords from multiple articles
+    # Purpose      : Extract keywords from multiple articles
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; top_n: int (default=10); aggregate: bool (default=True)
+    # Outputs      : Union[Dict[str, ExtractedKeywords], ExtractedKeywords]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def extract_keywords_from_articles(
         self,
         articles: List[Any],
@@ -404,6 +659,23 @@ class EEGNLPEnhancer:
             method="aggregated_keybert" if self._keybert_available else "aggregated_frequency",
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.get_keyword_trends
+    # Requirement  : `get_keyword_trends` shall get keyword trends over time
+    # Purpose      : Get keyword trends over time
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; interval: str (default='year'); top_n: int (default=10)
+    # Outputs      : Dict[str, Dict[str, float]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_keyword_trends(
         self,
         articles: List[Any],
@@ -474,6 +746,23 @@ class EEGNLPEnhancer:
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.expand_query
+    # Requirement  : `expand_query` shall expand a query with related terms
+    # Purpose      : Expand a query with related terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; method: str (default='synonyms'); max_expansions: int (default=5)
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def expand_query(
         self,
         query: str,
@@ -543,6 +832,23 @@ class EEGNLPEnhancer:
         
         return unique_expanded[:max_expansions + 1]  # Include original
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.categorize_by_topic
+    # Requirement  : `categorize_by_topic` shall categorize articles by topic using keyword matching
+    # Purpose      : Categorize articles by topic using keyword matching
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]; categories: Optional[Dict[str, List[str]]] (default=None)
+    # Outputs      : Dict[str, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def categorize_by_topic(
         self,
         articles: List[Any],
@@ -597,6 +903,23 @@ class EEGNLPEnhancer:
         
         return categorized
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.nlp_enhancement.EEGNLPEnhancer.compute_text_similarity
+    # Requirement  : `compute_text_similarity` shall compute similarity between two texts
+    # Purpose      : Compute similarity between two texts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text1: str; text2: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_text_similarity(
         self,
         text1: str,
@@ -632,6 +955,23 @@ class EEGNLPEnhancer:
         return intersection / union if union > 0 else 0.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.nlp_enhancement.extract_eeg_keywords
+# Requirement  : `extract_eeg_keywords` shall convenience function to extract keywords from EEG articles
+# Purpose      : Convenience function to extract keywords from EEG articles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[Any]; top_n: int (default=20)
+# Outputs      : ExtractedKeywords
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def extract_eeg_keywords(
     articles: List[Any],
     top_n: int = 20,
@@ -650,6 +990,23 @@ def extract_eeg_keywords(
     return nlp.extract_keywords_from_articles(articles, top_n=top_n, aggregate=True)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.nlp_enhancement.expand_eeg_query
+# Requirement  : `expand_eeg_query` shall convenience function to expand an EEG query
+# Purpose      : Convenience function to expand an EEG query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str
+# Outputs      : List[str]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def expand_eeg_query(query: str) -> List[str]:
     """
     Convenience function to expand an EEG query.

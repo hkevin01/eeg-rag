@@ -25,6 +25,23 @@ from .graph_interface import Neo4jInterface, NodeType, RelationType
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_visualizer.VisualizationNode
+# Requirement  : `VisualizationNode` class shall be instantiable and expose the documented interface
+# Purpose      : Node for visualization
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VisualizationNode with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class VisualizationNode:
     """Node for visualization."""
@@ -36,6 +53,23 @@ class VisualizationNode:
     properties: Dict[str, Any]
     
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_visualizer.VisualizationEdge
+# Requirement  : `VisualizationEdge` class shall be instantiable and expose the documented interface
+# Purpose      : Edge for visualization
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VisualizationEdge with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class VisualizationEdge:
     """Edge for visualization."""
@@ -48,6 +82,23 @@ class VisualizationEdge:
     properties: Dict[str, Any]
     
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_visualizer.VisualizationData
+# Requirement  : `VisualizationData` class shall be instantiable and expose the documented interface
+# Purpose      : Complete visualization data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VisualizationData with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class VisualizationData:
     """Complete visualization data."""
@@ -56,9 +107,43 @@ class VisualizationData:
     metadata: Dict[str, Any]
     
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_visualizer.GraphVisualizer
+# Requirement  : `GraphVisualizer` class shall be instantiable and expose the documented interface
+# Purpose      : Interactive knowledge graph visualizer
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphVisualizer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GraphVisualizer:
     """Interactive knowledge graph visualizer."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.__init__
+    # Requirement  : `__init__` shall initialize graph visualizer
+    # Purpose      : Initialize graph visualizer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : neo4j_interface: Neo4jInterface
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, neo4j_interface: Neo4jInterface):
         """Initialize graph visualizer.
         
@@ -94,6 +179,23 @@ class GraphVisualizer:
             RelationType.CLASSIFIED_AS.value: '#34495e'
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.create_research_network_visualization
+    # Requirement  : `create_research_network_visualization` shall create visualization for research network around query terms
+    # Purpose      : Create visualization for research network around query terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_terms: List[str]; max_nodes: int (default=100); max_depth: int (default=2)
+    # Outputs      : VisualizationData
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def create_research_network_visualization(
         self,
         query_terms: List[str],
@@ -134,6 +236,23 @@ class GraphVisualizer:
         
         return VisualizationData(nodes, edges, metadata)
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.create_citation_network_visualization
+    # Requirement  : `create_citation_network_visualization` shall create citation network visualization
+    # Purpose      : Create citation network visualization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : seed_pmids: List[str]; max_depth: int (default=2)
+    # Outputs      : VisualizationData
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def create_citation_network_visualization(
         self,
         seed_pmids: List[str],
@@ -195,6 +314,23 @@ class GraphVisualizer:
         
         return VisualizationData(vis_nodes, vis_edges, metadata)
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.create_entity_relationship_map
+    # Requirement  : `create_entity_relationship_map` shall create entity relationship map
+    # Purpose      : Create entity relationship map
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entity_types: List[str]; min_connection_strength: float (default=0.1)
+    # Outputs      : VisualizationData
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def create_entity_relationship_map(
         self,
         entity_types: List[str],
@@ -261,6 +397,23 @@ class GraphVisualizer:
         
         return VisualizationData(vis_nodes, vis_edges, metadata)
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.create_temporal_analysis_view
+    # Requirement  : `create_temporal_analysis_view` shall create temporal analysis visualization data
+    # Purpose      : Create temporal analysis visualization data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : start_year: int; end_year: int; time_granularity: str (default='year')
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def create_temporal_analysis_view(
         self,
         start_year: int,
@@ -298,6 +451,23 @@ class GraphVisualizer:
             }
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._find_papers_by_terms
+    # Requirement  : `_find_papers_by_terms` shall find papers containing query terms
+    # Purpose      : Find papers containing query terms
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_terms: List[str]; max_papers: int
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _find_papers_by_terms(
         self,
         query_terms: List[str],
@@ -329,6 +499,23 @@ class GraphVisualizer:
         
         return papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._get_connected_entities
+    # Requirement  : `_get_connected_entities` shall get entities connected to papers
+    # Purpose      : Get entities connected to papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; max_depth: int
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_connected_entities(
         self,
         papers: List[Dict[str, Any]],
@@ -359,6 +546,23 @@ class GraphVisualizer:
         
         return entities
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._build_network_visualization
+    # Requirement  : `_build_network_visualization` shall build network visualization from nodes
+    # Purpose      : Build network visualization from nodes
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : all_nodes: List[Dict[str, Any]]
+    # Outputs      : Tuple[List[VisualizationNode], List[VisualizationEdge]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _build_network_visualization(
         self,
         all_nodes: List[Dict[str, Any]]
@@ -414,6 +618,23 @@ class GraphVisualizer:
         
         return vis_nodes, vis_edges
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._build_citation_network
+    # Requirement  : `_build_citation_network` shall build citation network from seed PMIDs
+    # Purpose      : Build citation network from seed PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : seed_pmids: List[str]; max_depth: int
+    # Outputs      : Tuple[Dict[str, Dict], List[Dict]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _build_citation_network(
         self,
         seed_pmids: List[str],
@@ -482,6 +703,23 @@ class GraphVisualizer:
         
         return citation_nodes, citation_edges
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._get_entities_by_types
+    # Requirement  : `_get_entities_by_types` shall get entities by their types
+    # Purpose      : Get entities by their types
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entity_types: List[str]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_entities_by_types(
         self,
         entity_types: List[str]
@@ -507,6 +745,23 @@ class GraphVisualizer:
         
         return entities
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._get_entity_relationships
+    # Requirement  : `_get_entity_relationships` shall get relationships between entities
+    # Purpose      : Get relationships between entities
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entities: List[Dict[str, Any]]; min_strength: float
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_entity_relationships(
         self,
         entities: List[Dict[str, Any]],
@@ -544,6 +799,23 @@ class GraphVisualizer:
         
         return relationships
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._get_temporal_research_data
+    # Requirement  : `_get_temporal_research_data` shall get temporal research data
+    # Purpose      : Get temporal research data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : start_year: int; end_year: int; granularity: str
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_temporal_research_data(
         self,
         start_year: int,
@@ -571,6 +843,23 @@ class GraphVisualizer:
         
         return temporal_data
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._process_temporal_data
+    # Requirement  : `_process_temporal_data` shall process temporal data for visualization
+    # Purpose      : Process temporal data for visualization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : temporal_data: List[Dict[str, Any]]; granularity: str
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _process_temporal_data(
         self,
         temporal_data: List[Dict[str, Any]],
@@ -591,6 +880,23 @@ class GraphVisualizer:
         
         return timeline_data
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._calculate_layout_properties
+    # Requirement  : `_calculate_layout_properties` shall calculate layout properties for nodes
+    # Purpose      : Calculate layout properties for nodes
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[VisualizationNode]; edges: List[VisualizationEdge]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_layout_properties(self, nodes: List[VisualizationNode], edges: List[VisualizationEdge]):
         """Calculate layout properties for nodes."""
         # Simple force-directed layout principles
@@ -614,6 +920,23 @@ class GraphVisualizer:
             connectivity_factor = 1 + (degree / max_degree) * 0.5
             node.size *= connectivity_factor
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._calculate_node_size
+    # Requirement  : `_calculate_node_size` shall calculate node size based on properties
+    # Purpose      : Calculate node size based on properties
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : node: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_node_size(self, node: Dict[str, Any]) -> float:
         """Calculate node size based on properties."""
         base_size = 10.0
@@ -633,6 +956,23 @@ class GraphVisualizer:
         else:
             return base_size * 0.8
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._calculate_citation_node_size
+    # Requirement  : `_calculate_citation_node_size` shall calculate node size for citation network
+    # Purpose      : Calculate node size for citation network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : node_data: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_citation_node_size(self, node_data: Dict[str, Any]) -> float:
         """Calculate node size for citation network."""
         base_size = 15.0
@@ -643,6 +983,23 @@ class GraphVisualizer:
         
         return base_size * depth_factor
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._get_citation_node_color
+    # Requirement  : `_get_citation_node_color` shall get color for citation network node based on depth
+    # Purpose      : Get color for citation network node based on depth
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : node_data: Dict[str, Any]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_citation_node_color(self, node_data: Dict[str, Any]) -> str:
         """Get color for citation network node based on depth."""
         depth = node_data.get('depth', 0)
@@ -657,6 +1014,23 @@ class GraphVisualizer:
         else:
             return '#d5dbdb'  # Gray for distant
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer._calculate_entity_node_size
+    # Requirement  : `_calculate_entity_node_size` shall calculate entity node size
+    # Purpose      : Calculate entity node size
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entity: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_entity_node_size(self, entity: Dict[str, Any]) -> float:
         """Calculate entity node size."""
         base_size = 12.0
@@ -674,6 +1048,23 @@ class GraphVisualizer:
         else:
             return base_size
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.export_to_json
+    # Requirement  : `export_to_json` shall export visualization data to JSON file
+    # Purpose      : Export visualization data to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : visualization_data: VisualizationData; output_path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_to_json(self, visualization_data: VisualizationData, output_path: Path):
         """Export visualization data to JSON file."""
         export_data = {
@@ -687,6 +1078,23 @@ class GraphVisualizer:
         
         logger.info(f"Visualization data exported to {output_path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_visualizer.GraphVisualizer.export_to_cytoscape
+    # Requirement  : `export_to_cytoscape` shall export visualization data in Cytoscape.js format
+    # Purpose      : Export visualization data in Cytoscape.js format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : visualization_data: VisualizationData; output_path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_to_cytoscape(
         self,
         visualization_data: VisualizationData,

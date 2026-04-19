@@ -20,6 +20,23 @@ logger = logging.getLogger(__name__)
 
 # ============== Authentication Middleware ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.middleware.JWTAuthMiddleware
+# Requirement  : `JWTAuthMiddleware` class shall be instantiable and expose the documented interface
+# Purpose      : JWT token-based authentication middleware
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate JWTAuthMiddleware with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     """
     JWT token-based authentication middleware.
@@ -30,11 +47,45 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
     
     PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.JWTAuthMiddleware.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : app; secret_key: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, app, secret_key: Optional[str] = None):
         super().__init__(app)
         self.secret_key = secret_key or os.getenv("JWT_SECRET_KEY", "dev-secret-change-in-prod")
         self.algorithm = "HS256"
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.JWTAuthMiddleware.dispatch
+    # Requirement  : `dispatch` shall process request with JWT validation
+    # Purpose      : Process request with JWT validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : request: Request; call_next: Callable
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def dispatch(self, request: Request, call_next: Callable):
         """Process request with JWT validation."""
         
@@ -79,6 +130,23 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.middleware.create_access_token
+# Requirement  : `create_access_token` shall generate JWT access token
+# Purpose      : Generate JWT access token
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : user_id: str; username: str; roles: list; expires_in_hours: int (default=24)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def create_access_token(user_id: str, username: str, roles: list, 
                        expires_in_hours: int = 24) -> str:
     """
@@ -109,6 +177,23 @@ def create_access_token(user_id: str, username: str, roles: list,
 
 # ============== Rate Limiting Middleware ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.middleware.RateLimitMiddleware
+# Requirement  : `RateLimitMiddleware` class shall be instantiable and expose the documented interface
+# Purpose      : Token bucket rate limiting per user/IP
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RateLimitMiddleware with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
     Token bucket rate limiting per user/IP.
@@ -118,6 +203,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     - Premium tier: 100 requests/minute, 1000/hour
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.RateLimitMiddleware.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : app
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, app):
         super().__init__(app)
         self.requests: Dict[str, list] = defaultdict(list)
@@ -127,6 +229,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             "admin": {"minute": 1000, "hour": 10000}
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.RateLimitMiddleware.dispatch
+    # Requirement  : `dispatch` shall apply rate limiting
+    # Purpose      : Apply rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : request: Request; call_next: Callable
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def dispatch(self, request: Request, call_next: Callable):
         """Apply rate limiting."""
         
@@ -185,6 +304,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 # ============== Request Telemetry Middleware ==============
 
+# ---------------------------------------------------------------------------
+# ID           : api.middleware.TelemetryMiddleware
+# Requirement  : `TelemetryMiddleware` class shall be instantiable and expose the documented interface
+# Purpose      : Request telemetry and performance tracking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TelemetryMiddleware with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class TelemetryMiddleware(BaseHTTPMiddleware):
     """
     Request telemetry and performance tracking.
@@ -196,6 +332,23 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
     - Error rates
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.TelemetryMiddleware.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : app
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, app):
         super().__init__(app)
         self.metrics = {
@@ -205,6 +358,23 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
             "status_codes": defaultdict(int)
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.TelemetryMiddleware.dispatch
+    # Requirement  : `dispatch` shall track request metrics
+    # Purpose      : Track request metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : request: Request; call_next: Callable
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def dispatch(self, request: Request, call_next: Callable):
         """Track request metrics."""
         
@@ -240,6 +410,23 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
             logger.error(f"Request error: {e}")
             raise
     
+    # ---------------------------------------------------------------------------
+    # ID           : api.middleware.TelemetryMiddleware.get_metrics
+    # Requirement  : `get_metrics` shall get current metrics snapshot
+    # Purpose      : Get current metrics snapshot
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_metrics(self) -> Dict:
         """Get current metrics snapshot."""
         response_times = self.metrics["response_times"]

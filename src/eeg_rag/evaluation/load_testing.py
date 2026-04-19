@@ -30,6 +30,23 @@ from ..monitoring import PerformanceMonitor, monitor_performance
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.load_testing.LoadTestConfig
+# Requirement  : `LoadTestConfig` class shall be instantiable and expose the documented interface
+# Purpose      : Configuration for load testing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LoadTestConfig with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class LoadTestConfig:
     """Configuration for load testing."""
@@ -47,6 +64,23 @@ class LoadTestConfig:
     max_memory_mb: float = 2048.0
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.load_testing.QueryResult
+# Requirement  : `QueryResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from a single query execution
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate QueryResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class QueryResult:
     """Result from a single query execution."""
@@ -59,6 +93,23 @@ class QueryResult:
     timestamp: float = 0.0
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.load_testing.LoadTestResults
+# Requirement  : `LoadTestResults` class shall be instantiable and expose the documented interface
+# Purpose      : Complete results from load testing
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LoadTestResults with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class LoadTestResults:
     """Complete results from load testing."""
@@ -96,9 +147,43 @@ class LoadTestResults:
     passed_thresholds: bool = False
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.load_testing.LoadTester
+# Requirement  : `LoadTester` class shall be instantiable and expose the documented interface
+# Purpose      : Load testing framework for EEG-RAG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LoadTester with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LoadTester:
     """Load testing framework for EEG-RAG system."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester.__init__
+    # Requirement  : `__init__` shall initialize load tester
+    # Purpose      : Initialize load tester
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : orchestrator: OrchestratorAgent; test_queries: Optional[List[str]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         orchestrator: OrchestratorAgent,
@@ -117,6 +202,23 @@ class LoadTester:
         # System monitoring
         self.process = psutil.Process()
         
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester._get_default_test_queries
+    # Requirement  : `_get_default_test_queries` shall get default test queries covering various scenarios
+    # Purpose      : Get default test queries covering various scenarios
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_default_test_queries(self) -> List[str]:
         """Get default test queries covering various scenarios."""
         return [
@@ -142,6 +244,23 @@ class LoadTester:
             "How does age affect normal EEG patterns?"
         ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester.run_load_test
+    # Requirement  : `run_load_test` shall run comprehensive load test
+    # Purpose      : Run comprehensive load test
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: LoadTestConfig; progress_callback: Optional[Callable[[float], None]] (default=None)
+    # Outputs      : LoadTestResults
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_load_test(
         self,
         config: LoadTestConfig,
@@ -171,6 +290,23 @@ class LoadTester:
         query_results = []
         completed_tasks = 0
         
+        # ---------------------------------------------------------------------------
+        # ID           : evaluation.load_testing.LoadTester.execute_query_with_semaphore
+        # Requirement  : `execute_query_with_semaphore` shall execute as specified
+        # Purpose      : Execute query with semaphore
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : task_info
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         async def execute_query_with_semaphore(task_info):
             nonlocal completed_tasks
             
@@ -218,6 +354,23 @@ class LoadTester:
         
         return test_results
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester._generate_task_schedule
+    # Requirement  : `_generate_task_schedule` shall generate schedule of query tasks
+    # Purpose      : Generate schedule of query tasks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: LoadTestConfig
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _generate_task_schedule(self, config: LoadTestConfig) -> List[Dict[str, Any]]:
         """Generate schedule of query tasks."""
         tasks = []
@@ -237,6 +390,23 @@ class LoadTester:
         
         return tasks
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester._execute_single_query
+    # Requirement  : `_execute_single_query` shall execute a single query and measure performance
+    # Purpose      : Execute a single query and measure performance
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; timeout: float
+    # Outputs      : QueryResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _execute_single_query(
         self,
         query_text: str,
@@ -303,6 +473,23 @@ class LoadTester:
                 timestamp=end_time
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester._calculate_results
+    # Requirement  : `_calculate_results` shall calculate aggregate results from individual query results
+    # Purpose      : Calculate aggregate results from individual query results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: LoadTestConfig; query_results: List[QueryResult]; start_time: float; end_time: float
+    # Outputs      : LoadTestResults
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_results(
         self,
         config: LoadTestConfig,
@@ -386,6 +573,23 @@ class LoadTester:
             passed_thresholds=passed_thresholds
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester._calculate_performance_score
+    # Requirement  : `_calculate_performance_score` shall calculate performance score from 0-100
+    # Purpose      : Calculate performance score from 0-100
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : config: LoadTestConfig; avg_response_time: float; error_rate: float; max_memory: float
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_performance_score(
         self,
         config: LoadTestConfig,
@@ -405,6 +609,23 @@ class LoadTester:
         
         return (response_score * 0.4) + (error_score * 0.4) + (memory_score * 0.2)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.load_testing.LoadTester.export_results
+    # Requirement  : `export_results` shall export results to JSON file
+    # Purpose      : Export results to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: LoadTestResults; output_path: Path; include_details: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_results(
         self,
         results: LoadTestResults,
@@ -438,6 +659,23 @@ class LoadTester:
         logger.info(f"Results exported to {output_path}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.load_testing.run_load_test_suite
+# Requirement  : `run_load_test_suite` shall run complete load testing suite with different configurations
+# Purpose      : Run complete load testing suite with different configurations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : orchestrator: OrchestratorAgent; output_dir: Path; test_queries: Optional[List[str]] (default=None)
+# Outputs      : Dict[str, LoadTestResults]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def run_load_test_suite(
     orchestrator: OrchestratorAgent,
     output_dir: Path,

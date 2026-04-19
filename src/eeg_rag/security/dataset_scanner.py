@@ -24,6 +24,23 @@ from enum import Enum
 from pathlib import Path
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.dataset_scanner.ThreatLevel
+# Requirement  : `ThreatLevel` class shall be instantiable and expose the documented interface
+# Purpose      : Threat severity levels
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ThreatLevel with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ThreatLevel(Enum):
     """Threat severity levels"""
     SAFE = "safe"
@@ -33,6 +50,23 @@ class ThreatLevel(Enum):
     CRITICAL = "critical"
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.dataset_scanner.ThreatType
+# Requirement  : `ThreatType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of security threats
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ThreatType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ThreatType(Enum):
     """Types of security threats"""
     SVG_POISONING = "svg_poisoning"
@@ -44,6 +78,23 @@ class ThreatType(Enum):
     SUSPICIOUS_METADATA = "suspicious_metadata"
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.dataset_scanner.SecurityThreat
+# Requirement  : `SecurityThreat` class shall be instantiable and expose the documented interface
+# Purpose      : Detected security threat
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SecurityThreat with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SecurityThreat:
     """
@@ -65,6 +116,23 @@ class SecurityThreat:
     mitigation: str
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.dataset_scanner.ScanResult
+# Requirement  : `ScanResult` class shall be instantiable and expose the documented interface
+# Purpose      : Results of security scan
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ScanResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ScanResult:
     """
@@ -84,6 +152,23 @@ class ScanResult:
     hash: str
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.dataset_scanner.DatasetSecurityScanner
+# Requirement  : `DatasetSecurityScanner` class shall be instantiable and expose the documented interface
+# Purpose      : Security scanner for research datasets
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DatasetSecurityScanner with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class DatasetSecurityScanner:
     """
     Security scanner for research datasets
@@ -149,6 +234,23 @@ class DatasetSecurityScanner:
         r'\[INST\]',  # Llama instruction injection
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.__init__
+    # Requirement  : `__init__` shall initialize security scanner
+    # Purpose      : Initialize security scanner
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : trusted_domains: Optional[List[str]] (default=None); enable_aggressive_scanning: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         trusted_domains: Optional[List[str]] = None,
@@ -177,6 +279,23 @@ class DatasetSecurityScanner:
         self.svg_patterns = [re.compile(p, re.IGNORECASE) for p in self.SVG_SCRIPT_PATTERNS]
         self.injection_patterns = [re.compile(p, re.IGNORECASE) for p in self.INJECTION_PATTERNS]
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.scan_svg
+    # Requirement  : `scan_svg` shall scan SVG content for poisoning attacks
+    # Purpose      : Scan SVG content for poisoning attacks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : svg_content: str; document_id: str (default='unknown')
+    # Outputs      : ScanResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def scan_svg(self, svg_content: str, document_id: str = "unknown") -> ScanResult:
         """
         Scan SVG content for poisoning attacks
@@ -232,6 +351,23 @@ class DatasetSecurityScanner:
             hash=doc_hash
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.scan_pdf
+    # Requirement  : `scan_pdf` shall scan PDF file for malware
+    # Purpose      : Scan PDF file for malware
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pdf_path: str
+    # Outputs      : ScanResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def scan_pdf(self, pdf_path: str) -> ScanResult:
         """
         Scan PDF file for malware
@@ -292,6 +428,23 @@ class DatasetSecurityScanner:
             hash=doc_hash
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.scan_text
+    # Requirement  : `scan_text` shall scan text for prompt injection attempts
+    # Purpose      : Scan text for prompt injection attempts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; document_id: str (default='unknown')
+    # Outputs      : ScanResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def scan_text(self, text: str, document_id: str = "unknown") -> ScanResult:
         """
         Scan text for prompt injection attempts
@@ -333,6 +486,23 @@ class DatasetSecurityScanner:
             hash=doc_hash
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.verify_domain
+    # Requirement  : `verify_domain` shall verify URL is from trusted domain
+    # Purpose      : Verify URL is from trusted domain
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def verify_domain(self, url: str) -> bool:
         """
         Verify URL is from trusted domain
@@ -359,6 +529,23 @@ class DatasetSecurityScanner:
         
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.scan_complete_dataset
+    # Requirement  : `scan_complete_dataset` shall scan complete dataset of documents
+    # Purpose      : Scan complete dataset of documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict[str, Any]]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def scan_complete_dataset(
         self,
         documents: List[Dict[str, Any]]
@@ -429,6 +616,23 @@ class DatasetSecurityScanner:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.dataset_scanner.DatasetSecurityScanner.get_statistics
+    # Requirement  : `get_statistics` shall get scanner configuration statistics
+    # Purpose      : Get scanner configuration statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get scanner configuration statistics"""
         return {

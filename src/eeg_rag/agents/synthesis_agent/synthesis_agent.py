@@ -28,6 +28,23 @@ from .gap_detector import GapDetector, ResearchGap
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.synthesis_agent.SynthesisResult
+# Requirement  : `SynthesisResult` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive synthesis result
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SynthesisResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SynthesisResult:
     """Comprehensive synthesis result."""
@@ -39,6 +56,23 @@ class SynthesisResult:
     confidence: float
     methodology_notes: List[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -52,6 +86,23 @@ class SynthesisResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent
+# Requirement  : `SynthesisAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Enhanced synthesis agent for evidence aggregation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SynthesisAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SynthesisAgent(BaseAgent):
     """
     Enhanced synthesis agent for evidence aggregation.
@@ -119,6 +170,23 @@ class SynthesisAgent(BaseAgent):
         ],
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.__init__
+    # Requirement  : `__init__` shall initialize synthesis agent
+    # Purpose      : Initialize synthesis agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='SynthesisAgent'); llm_client: Optional[Any] (default=None); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "SynthesisAgent",
@@ -156,6 +224,23 @@ class SynthesisAgent(BaseAgent):
         
         logger.info(f"SynthesisAgent initialized (llm={'yes' if llm_client else 'no'})")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.execute
+    # Requirement  : `execute` shall execute evidence synthesis
+    # Purpose      : Execute evidence synthesis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute evidence synthesis.
@@ -217,6 +302,23 @@ class SynthesisAgent(BaseAgent):
                 elapsed_time=elapsed
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.synthesize
+    # Requirement  : `synthesize` shall synthesize evidence from papers
+    # Purpose      : Synthesize evidence from papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; query: str (default=''); include_gaps: bool (default=True); min_evidence_level: Optional[str] (default=None)
+    # Outputs      : SynthesisResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def synthesize(
         self,
         papers: List[Dict[str, Any]],
@@ -285,6 +387,23 @@ class SynthesisAgent(BaseAgent):
             methodology_notes=methodology_notes
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_themes
+    # Requirement  : `_extract_themes` shall extract and cluster papers by theme
+    # Purpose      : Extract and cluster papers by theme
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_themes(
         self,
         papers: List[Dict[str, Any]]
@@ -331,6 +450,23 @@ class SynthesisAgent(BaseAgent):
         
         return themes
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_citations
+    # Requirement  : `_extract_citations` shall extract formatted citations from papers
+    # Purpose      : Extract formatted citations from papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_citations(self, papers: List[Dict[str, Any]]) -> List[str]:
         """Extract formatted citations from papers."""
         citations = []
@@ -374,6 +510,23 @@ class SynthesisAgent(BaseAgent):
         
         return citations
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._generate_summary
+    # Requirement  : `_generate_summary` shall generate synthesis summary
+    # Purpose      : Generate synthesis summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; themes: List[Dict[str, Any]]; query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _generate_summary(
         self,
         papers: List[Dict[str, Any]],
@@ -393,6 +546,23 @@ class SynthesisAgent(BaseAgent):
         # Fall back to template-based summarization
         return self._template_summarize(papers, themes, query)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._llm_summarize
+    # Requirement  : `_llm_summarize` shall generate LLM-based summary
+    # Purpose      : Generate LLM-based summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; themes: List[Dict[str, Any]]; query: str
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _llm_summarize(
         self,
         papers: List[Dict[str, Any]],
@@ -433,6 +603,23 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         # For now, return None to use template
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._template_summarize
+    # Requirement  : `_template_summarize` shall generate template-based summary
+    # Purpose      : Generate template-based summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; themes: List[Dict[str, Any]]; query: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _template_summarize(
         self,
         papers: List[Dict[str, Any]],
@@ -489,6 +676,23 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         
         return "".join(parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._calculate_confidence
+    # Requirement  : `_calculate_confidence` shall calculate overall synthesis confidence
+    # Purpose      : Calculate overall synthesis confidence
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; evidence_summary: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_confidence(
         self,
         papers: List[Dict[str, Any]],
@@ -517,6 +721,23 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         
         return min(1.0, confidence)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_methodology_notes
+    # Requirement  : `_extract_methodology_notes` shall extract methodology notes from papers
+    # Purpose      : Extract methodology notes from papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _extract_methodology_notes(
         self,
         papers: List[Dict[str, Any]]
@@ -542,12 +763,46 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         
         return list(notes)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._get_paper_text
+    # Requirement  : `_get_paper_text` shall get searchable text from paper
+    # Purpose      : Get searchable text from paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_paper_text(self, paper: Dict[str, Any]) -> str:
         """Get searchable text from paper."""
         title = paper.get("title", "") or ""
         abstract = paper.get("abstract", "") or ""
         return f"{title} {abstract}"
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics."""
         base_stats = super().get_statistics()

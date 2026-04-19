@@ -25,6 +25,23 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.VenueMetrics
+# Requirement  : `VenueMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Quality metrics for a publication venue (journal/conference)
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VenueMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class VenueMetrics:
     """
@@ -45,6 +62,23 @@ class VenueMetrics:
     h_index: int = 0
     top_authors: List[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.VenueMetrics.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -57,6 +91,23 @@ class VenueMetrics:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.InstitutionMetrics
+# Requirement  : `InstitutionMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Metrics for a research institution
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate InstitutionMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class InstitutionMetrics:
     """
@@ -77,6 +128,23 @@ class InstitutionMetrics:
     total_citations: int = 0
     collaborators: List[str] = field(default_factory=list)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.InstitutionMetrics.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -89,6 +157,23 @@ class InstitutionMetrics:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.AuthorProductivity
+# Requirement  : `AuthorProductivity` class shall be instantiable and expose the documented interface
+# Purpose      : Author productivity metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AuthorProductivity with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AuthorProductivity:
     """
@@ -117,6 +202,23 @@ class AuthorProductivity:
     venues: List[str] = field(default_factory=list)
     years_active: Tuple[int, int] = (0, 0)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.AuthorProductivity.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -133,6 +235,23 @@ class AuthorProductivity:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.EEGResearchExporter
+# Requirement  : `EEGResearchExporter` class shall be instantiable and expose the documented interface
+# Purpose      : Research export engine for EEG bibliometric data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGResearchExporter with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGResearchExporter:
     """
     Research export engine for EEG bibliometric data.
@@ -156,6 +275,23 @@ class EEGResearchExporter:
         "Source", "EID",
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.__init__
+    # Requirement  : `__init__` shall initialize research exporter
+    # Purpose      : Initialize research exporter
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : articles: List[Any]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, articles: List[Any]) -> None:
         """
         Initialize research exporter.
@@ -167,6 +303,23 @@ class EEGResearchExporter:
         self._processed_articles: List[Dict[str, Any]] = []
         self._process_articles()
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter._process_articles
+    # Requirement  : `_process_articles` shall process articles into standard dict format
+    # Purpose      : Process articles into standard dict format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _process_articles(self) -> None:
         """Process articles into standard dict format."""
         self._processed_articles = []
@@ -181,6 +334,23 @@ class EEGResearchExporter:
             
             self._processed_articles.append(data)
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter._compute_h_index
+    # Requirement  : `_compute_h_index` shall compute h-index from list of citation counts
+    # Purpose      : Compute h-index from list of citation counts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_counts: List[int]
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compute_h_index(self, citation_counts: List[int]) -> int:
         """
         Compute h-index from list of citation counts.
@@ -203,6 +373,23 @@ class EEGResearchExporter:
                 break
         return h
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.export_to_scopus_csv
+    # Requirement  : `export_to_scopus_csv` shall export articles to Scopus-compatible CSV format
+    # Purpose      : Export articles to Scopus-compatible CSV format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Union[str, Path]; include_abstracts: bool (default=True)
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_to_scopus_csv(
         self,
         output_path: Union[str, Path],
@@ -234,6 +421,23 @@ class EEGResearchExporter:
         logger.info(f"Exported {len(self._processed_articles)} articles to {output_path}")
         return output_path
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter._format_scopus_row
+    # Requirement  : `_format_scopus_row` shall format article data as Scopus CSV row
+    # Purpose      : Format article data as Scopus CSV row
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: Dict[str, Any]; include_abstracts: bool
+    # Outputs      : Dict[str, str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _format_scopus_row(self, article: Dict[str, Any], include_abstracts: bool) -> Dict[str, str]:
         """Format article data as Scopus CSV row."""
         authors = article.get('authors', [])
@@ -281,6 +485,23 @@ class EEGResearchExporter:
             "EID": article.get('openalex_id', '').split('/')[-1],
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.export_authors_csv
+    # Requirement  : `export_authors_csv` shall export author data to CSV
+    # Purpose      : Export author data to CSV
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Union[str, Path]
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_authors_csv(
         self,
         output_path: Union[str, Path],
@@ -329,6 +550,23 @@ class EEGResearchExporter:
         logger.info(f"Exported {len(author_metrics)} authors to {output_path}")
         return output_path
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.export_venues_csv
+    # Requirement  : `export_venues_csv` shall export venue metrics to CSV
+    # Purpose      : Export venue metrics to CSV
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Union[str, Path]
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_venues_csv(
         self,
         output_path: Union[str, Path],
@@ -371,6 +609,23 @@ class EEGResearchExporter:
         logger.info(f"Exported {len(venue_metrics)} venues to {output_path}")
         return output_path
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.export_institutions_csv
+    # Requirement  : `export_institutions_csv` shall export institution metrics to CSV
+    # Purpose      : Export institution metrics to CSV
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Union[str, Path]
+    # Outputs      : Path
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_institutions_csv(
         self,
         output_path: Union[str, Path],
@@ -413,6 +668,23 @@ class EEGResearchExporter:
         logger.info(f"Exported {len(institution_metrics)} institutions to {output_path}")
         return output_path
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.export_all
+    # Requirement  : `export_all` shall export all data types to CSV files
+    # Purpose      : Export all data types to CSV files
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_dir: Union[str, Path]; prefix: str (default='eeg_research')
+    # Outputs      : Dict[str, Path]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_all(
         self,
         output_dir: Union[str, Path],
@@ -462,6 +734,23 @@ class EEGResearchExporter:
         logger.info(f"Exported all data to {output_dir}")
         return outputs
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.compute_venue_metrics
+    # Requirement  : `compute_venue_metrics` shall compute quality metrics for publication venues
+    # Purpose      : Compute quality metrics for publication venues
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : top_n: int (default=50)
+    # Outputs      : List[VenueMetrics]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_venue_metrics(self, top_n: int = 50) -> List[VenueMetrics]:
         """
         Compute quality metrics for publication venues.
@@ -515,6 +804,23 @@ class EEGResearchExporter:
         metrics.sort(key=lambda x: x.article_count, reverse=True)
         return metrics[:top_n]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.compute_institution_metrics
+    # Requirement  : `compute_institution_metrics` shall compute metrics for research institutions
+    # Purpose      : Compute metrics for research institutions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : top_n: int (default=50)
+    # Outputs      : List[InstitutionMetrics]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_institution_metrics(self, top_n: int = 50) -> List[InstitutionMetrics]:
         """
         Compute metrics for research institutions.
@@ -582,6 +888,23 @@ class EEGResearchExporter:
         metrics.sort(key=lambda x: x.article_count, reverse=True)
         return metrics[:top_n]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.compute_author_productivity
+    # Requirement  : `compute_author_productivity` shall compute productivity metrics for authors
+    # Purpose      : Compute productivity metrics for authors
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : top_n: int (default=100)
+    # Outputs      : List[AuthorProductivity]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_author_productivity(self, top_n: int = 100) -> List[AuthorProductivity]:
         """
         Compute productivity metrics for authors.
@@ -665,6 +988,23 @@ class EEGResearchExporter:
         metrics.sort(key=lambda x: x.article_count, reverse=True)
         return metrics[:top_n]
     
+    # ---------------------------------------------------------------------------
+    # ID           : bibliometrics.research_export.EEGResearchExporter.get_collaboration_network_data
+    # Requirement  : `get_collaboration_network_data` shall get data for building an institutional collaboration network
+    # Purpose      : Get data for building an institutional collaboration network
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_collaboration_network_data(self) -> Dict[str, Any]:
         """
         Get data for building an institutional collaboration network.
@@ -704,6 +1044,23 @@ class EEGResearchExporter:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.export_eeg_research
+# Requirement  : `export_eeg_research` shall convenience function to export all EEG research data
+# Purpose      : Convenience function to export all EEG research data
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[Any]; output_dir: Union[str, Path]; prefix: str (default='eeg_research')
+# Outputs      : Dict[str, Path]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def export_eeg_research(
     articles: List[Any],
     output_dir: Union[str, Path],
@@ -724,6 +1081,23 @@ def export_eeg_research(
     return exporter.export_all(output_dir, prefix)
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.compute_eeg_venue_metrics
+# Requirement  : `compute_eeg_venue_metrics` shall convenience function to compute venue metrics
+# Purpose      : Convenience function to compute venue metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[Any]
+# Outputs      : List[VenueMetrics]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def compute_eeg_venue_metrics(articles: List[Any]) -> List[VenueMetrics]:
     """
     Convenience function to compute venue metrics.
@@ -738,6 +1112,23 @@ def compute_eeg_venue_metrics(articles: List[Any]) -> List[VenueMetrics]:
     return exporter.compute_venue_metrics()
 
 
+# ---------------------------------------------------------------------------
+# ID           : bibliometrics.research_export.compute_eeg_author_productivity
+# Requirement  : `compute_eeg_author_productivity` shall convenience function to compute author productivity
+# Purpose      : Convenience function to compute author productivity
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : articles: List[Any]
+# Outputs      : List[AuthorProductivity]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def compute_eeg_author_productivity(articles: List[Any]) -> List[AuthorProductivity]:
     """
     Convenience function to compute author productivity.

@@ -17,6 +17,23 @@ from sentence_transformers import SentenceTransformer
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : storage.vector_db.SearchResult
+# Requirement  : `SearchResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from vector search
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SearchResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SearchResult:
     """Result from vector search."""
@@ -26,6 +43,23 @@ class SearchResult:
     chunk_id: Optional[str] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : storage.vector_db.VectorDB
+# Requirement  : `VectorDB` class shall be instantiable and expose the documented interface
+# Purpose      : Vector database interface using Qdrant + sentence-transformers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VectorDB with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class VectorDB:
     """
     Vector database interface using Qdrant + sentence-transformers.
@@ -37,6 +71,23 @@ class VectorDB:
     - Hybrid search ready (dense + BM25 fusion)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.__init__
+    # Requirement  : `__init__` shall initialize vector database
+    # Purpose      : Initialize vector database
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : qdrant_url: str (default='http://localhost:6333'); collection_name: str (default='eeg_papers'); embedding_model: str (default='all-MiniLM-L6-v2')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         qdrant_url: str = "http://localhost:6333",
@@ -64,6 +115,23 @@ class VectorDB:
         # Qdrant client will be initialized when needed
         self._client = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.client
+    # Requirement  : `client` shall lazy initialization of Qdrant client
+    # Purpose      : Lazy initialization of Qdrant client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def client(self):
         """Lazy initialization of Qdrant client."""
@@ -83,6 +151,23 @@ class VectorDB:
         
         return self._client
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.create_collection
+    # Requirement  : `create_collection` shall create Qdrant collection with proper schema
+    # Purpose      : Create Qdrant collection with proper schema
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : recreate: bool (default=False)
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def create_collection(self, recreate: bool = False) -> bool:
         """
         Create Qdrant collection with proper schema.
@@ -125,6 +210,23 @@ class VectorDB:
             logger.error(f"Failed to create collection: {e}")
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.embed_texts
+    # Requirement  : `embed_texts` shall generate embeddings for texts
+    # Purpose      : Generate embeddings for texts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : texts: List[str]; batch_size: int (default=32)
+    # Outputs      : np.ndarray
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def embed_texts(self, texts: List[str], batch_size: int = 32) -> np.ndarray:
         """
         Generate embeddings for texts.
@@ -149,6 +251,23 @@ class VectorDB:
         
         return embeddings
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.embed_query
+    # Requirement  : `embed_query` shall generate embedding for a single query
+    # Purpose      : Generate embedding for a single query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : np.ndarray
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def embed_query(self, query: str) -> np.ndarray:
         """
         Generate embedding for a single query.
@@ -161,6 +280,23 @@ class VectorDB:
         """
         return self.embed_texts([query])[0]
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.index_documents
+    # Requirement  : `index_documents` shall index documents into Qdrant
+    # Purpose      : Index documents into Qdrant
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict[str, Any]]; text_field: str (default='text'); batch_size: int (default=100)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def index_documents(
         self,
         documents: List[Dict[str, Any]],
@@ -228,6 +364,23 @@ class VectorDB:
             logger.error(f"Failed to index documents: {e}")
             return 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.search
+    # Requirement  : `search` shall search for similar documents
+    # Purpose      : Search for similar documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=10); score_threshold: Optional[float] (default=None); filter_conditions: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : List[SearchResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -292,6 +445,23 @@ class VectorDB:
             logger.error(f"Search failed: {e}")
             return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.get_collection_info
+    # Requirement  : `get_collection_info` shall get information about the collection
+    # Purpose      : Get information about the collection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the collection."""
         try:
@@ -310,6 +480,23 @@ class VectorDB:
             logger.error(f"Failed to get collection info: {e}")
             return {}
     
+    # ---------------------------------------------------------------------------
+    # ID           : storage.vector_db.VectorDB.delete_collection
+    # Requirement  : `delete_collection` shall delete the collection
+    # Purpose      : Delete the collection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def delete_collection(self) -> bool:
         """Delete the collection."""
         try:
@@ -321,6 +508,23 @@ class VectorDB:
             return False
 
 
+# ---------------------------------------------------------------------------
+# ID           : storage.vector_db.test_vector_db
+# Requirement  : `test_vector_db` shall test the vector database functionality
+# Purpose      : Test the vector database functionality
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def test_vector_db():
     """Test the vector database functionality."""
     logger.info("Testing VectorDB...")

@@ -37,6 +37,23 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.production_monitor.SystemMetrics
+# Requirement  : `SystemMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : System resource metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystemMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SystemMetrics:
     """System resource metrics."""
@@ -49,6 +66,23 @@ class SystemMetrics:
     timestamp: datetime = field(default_factory=datetime.now)
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.production_monitor.ApplicationMetrics
+# Requirement  : `ApplicationMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Application-specific metrics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ApplicationMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ApplicationMetrics:
     """Application-specific metrics."""
@@ -62,6 +96,23 @@ class ApplicationMetrics:
     timestamp: datetime = field(default_factory=datetime.now)
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.production_monitor.HealthStatus
+# Requirement  : `HealthStatus` class shall be instantiable and expose the documented interface
+# Purpose      : System health status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HealthStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class HealthStatus:
     """System health status."""
@@ -71,9 +122,43 @@ class HealthStatus:
     timestamp: datetime = field(default_factory=datetime.now)
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.production_monitor.ProductionMonitor
+# Requirement  : `ProductionMonitor` class shall be instantiable and expose the documented interface
+# Purpose      : Production monitoring system for EEG-RAG
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProductionMonitor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ProductionMonitor:
     """Production monitoring system for EEG-RAG."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.__init__
+    # Requirement  : `__init__` shall initialize production monitor
+    # Purpose      : Initialize production monitor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : metrics_retention_hours: int (default=24); health_check_interval: int (default=30); prometheus_port: Optional[int] (default=None); sentry_dsn: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         metrics_retention_hours: int = 24,
@@ -127,6 +212,23 @@ class ProductionMonitor:
         self._monitoring_task = None
         self._running = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._setup_prometheus
+    # Requirement  : `_setup_prometheus` shall setup Prometheus metrics collection
+    # Purpose      : Setup Prometheus metrics collection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : port: int
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _setup_prometheus(self, port: int):
         """Setup Prometheus metrics collection."""
         try:
@@ -151,6 +253,23 @@ class ProductionMonitor:
         except Exception as e:
             logger.error(f"Failed to setup Prometheus: {str(e)}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._setup_sentry
+    # Requirement  : `_setup_sentry` shall setup Sentry error tracking
+    # Purpose      : Setup Sentry error tracking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : dsn: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _setup_sentry(self, dsn: str):
         """Setup Sentry error tracking."""
         try:
@@ -163,6 +282,23 @@ class ProductionMonitor:
         except Exception as e:
             logger.error(f"Failed to setup Sentry: {str(e)}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.start_monitoring
+    # Requirement  : `start_monitoring` shall start the monitoring background task
+    # Purpose      : Start the monitoring background task
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def start_monitoring(self):
         """Start the monitoring background task."""
         if self._running:
@@ -172,6 +308,23 @@ class ProductionMonitor:
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         logger.info("Production monitoring started")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.stop_monitoring
+    # Requirement  : `stop_monitoring` shall stop the monitoring background task
+    # Purpose      : Stop the monitoring background task
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def stop_monitoring(self):
         """Stop the monitoring background task."""
         self._running = False
@@ -183,6 +336,23 @@ class ProductionMonitor:
                 pass
         logger.info("Production monitoring stopped")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._monitoring_loop
+    # Requirement  : `_monitoring_loop` shall main monitoring loop
+    # Purpose      : Main monitoring loop
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _monitoring_loop(self):
         """Main monitoring loop."""
         while self._running:
@@ -211,6 +381,23 @@ class ProductionMonitor:
                 logger.error(f"Error in monitoring loop: {str(e)}")
                 await asyncio.sleep(self.health_check_interval)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._collect_system_metrics
+    # Requirement  : `_collect_system_metrics` shall collect system resource metrics
+    # Purpose      : Collect system resource metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : SystemMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_system_metrics(self) -> SystemMetrics:
         """Collect system resource metrics."""
         # CPU usage
@@ -236,6 +423,23 @@ class ProductionMonitor:
             disk_free_gb=disk_free_gb
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._collect_app_metrics
+    # Requirement  : `_collect_app_metrics` shall collect application metrics
+    # Purpose      : Collect application metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : ApplicationMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _collect_app_metrics(self) -> ApplicationMetrics:
         """Collect application metrics."""
         current_time = time.time()
@@ -275,6 +479,23 @@ class ProductionMonitor:
             query_success_rate=query_success_rate
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._run_health_checks
+    # Requirement  : `_run_health_checks` shall run all registered health checks
+    # Purpose      : Run all registered health checks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : HealthStatus
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _run_health_checks(self) -> HealthStatus:
         """Run all registered health checks."""
         checks = {}
@@ -313,6 +534,23 @@ class ProductionMonitor:
             overall_score=overall_score
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor._update_prometheus_metrics
+    # Requirement  : `_update_prometheus_metrics` shall update Prometheus metrics
+    # Purpose      : Update Prometheus metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : system_metrics: SystemMetrics; app_metrics: ApplicationMetrics
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _update_prometheus_metrics(self, system_metrics: SystemMetrics, app_metrics: ApplicationMetrics):
         """Update Prometheus metrics."""
         if not self.prometheus_registry:
@@ -323,11 +561,45 @@ class ProductionMonitor:
         self.prometheus_memory.set(system_metrics.memory_percent)
         self.prometheus_disk.set(system_metrics.disk_usage_percent)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.register_health_check
+    # Requirement  : `register_health_check` shall register a health check function
+    # Purpose      : Register a health check function
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str; check_func
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def register_health_check(self, name: str, check_func):
         """Register a health check function."""
         self.health_checks[name] = check_func
         logger.info(f"Registered health check: {name}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_request
+    # Requirement  : `record_request` shall record a request with its response time
+    # Purpose      : Record a request with its response time
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : response_time: float
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_request(self, response_time: float):
         """Record a request with its response time."""
         self.request_count += 1
@@ -339,6 +611,23 @@ class ProductionMonitor:
             self.prometheus_requests.inc()
             self.prometheus_response_time.observe(response_time)
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_error
+    # Requirement  : `record_error` shall record an error occurrence
+    # Purpose      : Record an error occurrence
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : error_type: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_error(self, error_type: str):
         """Record an error occurrence."""
         self.error_count[error_type] += 1
@@ -347,6 +636,23 @@ class ProductionMonitor:
         if self.prometheus_registry:
             self.prometheus_errors.labels(error_type=error_type).inc()
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_cache_hit
+    # Requirement  : `record_cache_hit` shall record a cache hit
+    # Purpose      : Record a cache hit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_cache_hit(self):
         """Record a cache hit."""
         self.cache_hits += 1
@@ -354,6 +660,23 @@ class ProductionMonitor:
         if self.prometheus_registry:
             self.prometheus_cache_hits.inc()
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_cache_miss
+    # Requirement  : `record_cache_miss` shall record a cache miss
+    # Purpose      : Record a cache miss
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_cache_miss(self):
         """Record a cache miss."""
         self.cache_misses += 1
@@ -361,14 +684,65 @@ class ProductionMonitor:
         if self.prometheus_registry:
             self.prometheus_cache_misses.inc()
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_query_success
+    # Requirement  : `record_query_success` shall record a successful query
+    # Purpose      : Record a successful query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_query_success(self):
         """Record a successful query."""
         self.query_success += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.record_query_failure
+    # Requirement  : `record_query_failure` shall record a failed query
+    # Purpose      : Record a failed query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_query_failure(self):
         """Record a failed query."""
         self.query_failures += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.get_current_metrics
+    # Requirement  : `get_current_metrics` shall get current system metrics
+    # Purpose      : Get current system metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_current_metrics(self) -> Dict[str, Any]:
         """Get current system metrics."""
         if not self.system_metrics or not self.app_metrics:
@@ -401,6 +775,23 @@ class ProductionMonitor:
             'timestamp': datetime.now().isoformat()
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : monitoring.production_monitor.ProductionMonitor.get_metrics_summary
+    # Requirement  : `get_metrics_summary` shall get metrics summary for the last N hours
+    # Purpose      : Get metrics summary for the last N hours
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : hours: int (default=1)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_metrics_summary(self, hours: int = 1) -> Dict[str, Any]:
         """Get metrics summary for the last N hours."""
         cutoff_time = datetime.now() - timedelta(hours=hours)
@@ -440,6 +831,23 @@ class ProductionMonitor:
 _monitor: Optional[ProductionMonitor] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : monitoring.production_monitor.get_monitor
+# Requirement  : `get_monitor` shall get global monitor instance
+# Purpose      : Get global monitor instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : **kwargs
+# Outputs      : ProductionMonitor
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_monitor(**kwargs) -> ProductionMonitor:
     """Get global monitor instance."""
     global _monitor

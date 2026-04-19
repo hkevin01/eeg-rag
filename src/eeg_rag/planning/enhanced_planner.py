@@ -22,6 +22,23 @@ from .query_planner import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : planning.enhanced_planner.EnhancedQueryPlanner
+# Requirement  : `EnhancedQueryPlanner` class shall be instantiable and expose the documented interface
+# Purpose      : Enhanced query planner with advanced reasoning and adaptive optimization
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EnhancedQueryPlanner with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EnhancedQueryPlanner(QueryPlanner):
     """
     Enhanced query planner with advanced reasoning and adaptive optimization
@@ -32,6 +49,23 @@ class EnhancedQueryPlanner(QueryPlanner):
     REQ-PLAN-028: Context-aware query decomposition
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -78,6 +112,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         self.logger.info("Enhanced query planner initialized with advanced reasoning")
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner.plan_query_enhanced
+    # Requirement  : `plan_query_enhanced` shall enhanced query planning with adaptive optimization
+    # Purpose      : Enhanced query planning with adaptive optimization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; context: Optional[Dict[str, Any]] (default=None); user_preferences: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : QueryPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def plan_query_enhanced(
         self,
         query_text: str,
@@ -143,6 +194,23 @@ class EnhancedQueryPlanner(QueryPlanner):
             # Fallback to standard planning
             return await self.plan_query(query_text, context)
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner.plan_query
+    # Requirement  : `plan_query` shall standard plan_query method for compatibility
+    # Purpose      : Standard plan_query method for compatibility
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; context: Dict[str, Any] (default=None)
+    # Outputs      : QueryPlan
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def plan_query(self, query_text: str, context: Dict[str, Any] = None) -> QueryPlan:
         """Standard plan_query method for compatibility"""
         if context is None:
@@ -180,6 +248,23 @@ class EnhancedQueryPlanner(QueryPlanner):
                 estimated_latency=5.0
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._classify_intent_enhanced
+    # Requirement  : `_classify_intent_enhanced` shall enhanced intent classification with context awareness
+    # Purpose      : Enhanced intent classification with context awareness
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; context: Dict[str, Any]
+    # Outputs      : QueryIntent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _classify_intent_enhanced(
         self,
         query_text: str,
@@ -219,6 +304,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return QueryIntent.UNKNOWN
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._infer_intent_from_context
+    # Requirement  : `_infer_intent_from_context` shall infer intent from conversation context
+    # Purpose      : Infer intent from conversation context
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : context: Dict[str, Any]
+    # Outputs      : QueryIntent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _infer_intent_from_context(self, context: Dict[str, Any]) -> QueryIntent:
         """Infer intent from conversation context"""
         
@@ -240,6 +342,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return QueryIntent.UNKNOWN
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._assess_complexity_enhanced
+    # Requirement  : `_assess_complexity_enhanced` shall enhanced complexity assessment with context awareness
+    # Purpose      : Enhanced complexity assessment with context awareness
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; context: Dict[str, Any]
+    # Outputs      : QueryComplexity
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _assess_complexity_enhanced(
         self,
         query_text: str,
@@ -286,6 +405,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         else:
             return QueryComplexity.SIMPLE
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._decompose_query_enhanced
+    # Requirement  : `_decompose_query_enhanced` shall enhanced query decomposition with context awareness
+    # Purpose      : Enhanced query decomposition with context awareness
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; intent: QueryIntent; complexity: QueryComplexity; context: Dict[str, Any]
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _decompose_query_enhanced(
         self,
         query_text: str,
@@ -353,6 +489,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return sub_queries
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._apply_cached_pattern
+    # Requirement  : `_apply_cached_pattern` shall apply cached pattern to new query
+    # Purpose      : Apply cached pattern to new query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; pattern: Dict[str, Any]
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _apply_cached_pattern(self, query_text: str, pattern: Dict[str, Any]) -> List[SubQuery]:
         """Apply cached pattern to new query"""
         sub_queries = []
@@ -373,6 +526,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return sub_queries
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._enhanced_chain_of_thought
+    # Requirement  : `_enhanced_chain_of_thought` shall enhanced Chain-of-Thought reasoning with confidence tracking
+    # Purpose      : Enhanced Chain-of-Thought reasoning with confidence tracking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; sub_queries: List[SubQuery]; context: Dict[str, Any]
+    # Outputs      : List[CoTStep]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _enhanced_chain_of_thought(
         self,
         query_text: str,
@@ -427,6 +597,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return steps
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._plan_actions_adaptive
+    # Requirement  : `_plan_actions_adaptive` shall adaptive action planning with user preferences
+    # Purpose      : Adaptive action planning with user preferences
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sub_queries: List[SubQuery]; cot_steps: List[CoTStep]; user_preferences: Dict[str, Any]
+    # Outputs      : List[ReActAction]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _plan_actions_adaptive(
         self,
         sub_queries: List[SubQuery],
@@ -464,6 +651,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return actions
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._optimize_actions_from_history
+    # Requirement  : `_optimize_actions_from_history` shall optimize actions based on execution history
+    # Purpose      : Optimize actions based on execution history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : actions: List[ReActAction]; query_text: str
+    # Outputs      : List[ReActAction]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _optimize_actions_from_history(self, actions: List[ReActAction], query_text: str) -> List[ReActAction]:
         """Optimize actions based on execution history"""
         
@@ -505,6 +709,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return actions
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner.record_execution_result
+    # Requirement  : `record_execution_result` shall record execution result for adaptive learning
+    # Purpose      : Record execution result for adaptive learning
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str; plan: QueryPlan; success: bool; execution_time: float; successful_agents: List[str]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_execution_result(
         self,
         query_text: str,
@@ -529,6 +750,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         self.execution_history.append(execution_record)
         self.logger.debug(f"Recorded execution result: success={success}, agents={len(successful_agents)}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._select_agents_for_query
+    # Requirement  : `_select_agents_for_query` shall select optimal agents for sub-query
+    # Purpose      : Select optimal agents for sub-query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sub_query: SubQuery; preferred_agents: List[str]
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _select_agents_for_query(self, sub_query: SubQuery, preferred_agents: List[str]) -> List[str]:
         """Select optimal agents for sub-query"""
         
@@ -542,6 +780,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return selected or ['local_data']  # Fallback
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._estimate_execution_time_enhanced
+    # Requirement  : `_estimate_execution_time_enhanced` shall enhanced execution time estimation with historical data
+    # Purpose      : Enhanced execution time estimation with historical data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : actions: List[ReActAction]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_execution_time_enhanced(self, actions: List[ReActAction]) -> float:
         """Enhanced execution time estimation with historical data"""
         
@@ -563,6 +818,23 @@ class EnhancedQueryPlanner(QueryPlanner):
         
         return self._estimate_execution_time(actions)
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._decompose_comparison_query
+    # Requirement  : `_decompose_comparison_query` shall decompose comparison queries
+    # Purpose      : Decompose comparison queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _decompose_comparison_query(self, query_text: str) -> List[SubQuery]:
         """Decompose comparison queries"""
         return [
@@ -587,6 +859,23 @@ class EnhancedQueryPlanner(QueryPlanner):
             )
         ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._decompose_analysis_query
+    # Requirement  : `_decompose_analysis_query` shall decompose analysis queries
+    # Purpose      : Decompose analysis queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _decompose_analysis_query(self, query_text: str) -> List[SubQuery]:
         """Decompose analysis queries"""
         return [
@@ -605,6 +894,23 @@ class EnhancedQueryPlanner(QueryPlanner):
             )
         ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : planning.enhanced_planner.EnhancedQueryPlanner._decompose_multi_part_query
+    # Requirement  : `_decompose_multi_part_query` shall decompose multi-part queries
+    # Purpose      : Decompose multi-part queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : List[SubQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _decompose_multi_part_query(self, query_text: str) -> List[SubQuery]:
         """Decompose multi-part queries"""
         # Simple split on question marks or 'and' keywords

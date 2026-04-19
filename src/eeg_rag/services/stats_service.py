@@ -18,6 +18,23 @@ import time
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : services.stats_service.IndexStats
+# Requirement  : `IndexStats` class shall be instantiable and expose the documented interface
+# Purpose      : Statistics about the indexed papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate IndexStats with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class IndexStats:
     """Statistics about the indexed papers."""
@@ -30,6 +47,23 @@ class IndexStats:
     last_updated: datetime
     index_health: Dict[str, Any]
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.IndexStats.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "total_papers": self.total_papers,
@@ -42,12 +76,46 @@ class IndexStats:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : services.stats_service.StatsService
+# Requirement  : `StatsService` class shall be instantiable and expose the documented interface
+# Purpose      : Provides accurate statistics from all database sources
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate StatsService with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class StatsService:
     """
     Provides accurate statistics from all database sources.
     Caches results for performance with configurable TTL.
     """
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.__init__
+    # Requirement  : `__init__` shall initialize stats service
+    # Purpose      : Initialize stats service
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers_db_path: Optional[Path] (default=None); vectors_db_path: Optional[Path] (default=None); corpus_dir: Optional[Path] (default=None); cache_ttl_seconds: int (default=300)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         papers_db_path: Optional[Path] = None,
@@ -80,6 +148,23 @@ class StatsService:
         self._cache: Dict[str, Any] = {}
         self._cache_timestamps: Dict[str, float] = {}
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._get_connection
+    # Requirement  : `_get_connection` shall context manager for database connections
+    # Purpose      : Context manager for database connections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @contextmanager
     def _get_connection(self, db_path: Path):
         """Context manager for database connections."""
@@ -94,23 +179,91 @@ class StatsService:
         finally:
             conn.close()
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._is_cache_valid
+    # Requirement  : `_is_cache_valid` shall check if cached value is still valid
+    # Purpose      : Check if cached value is still valid
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _is_cache_valid(self, key: str) -> bool:
         """Check if cached value is still valid."""
         if key not in self._cache_timestamps:
             return False
         return (time.time() - self._cache_timestamps[key]) < self.cache_ttl
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._set_cache
+    # Requirement  : `_set_cache` shall set cache value with timestamp
+    # Purpose      : Set cache value with timestamp
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str; value: Any
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _set_cache(self, key: str, value: Any):
         """Set cache value with timestamp."""
         self._cache[key] = value
         self._cache_timestamps[key] = time.time()
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._get_cache
+    # Requirement  : `_get_cache` shall get cached value if valid
+    # Purpose      : Get cached value if valid
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str
+    # Outputs      : Optional[Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_cache(self, key: str) -> Optional[Any]:
         """Get cached value if valid."""
         if self._is_cache_valid(key):
             return self._cache.get(key)
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._count_corpus_papers
+    # Requirement  : `_count_corpus_papers` shall count papers from JSONL corpus files
+    # Purpose      : Count papers from JSONL corpus files
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _count_corpus_papers(self) -> Dict[str, Any]:
         """
         Count papers from JSONL corpus files.
@@ -175,6 +328,23 @@ class StatsService:
 
         return result
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.get_total_papers
+    # Requirement  : `get_total_papers` shall get accurate count of total indexed papers
+    # Purpose      : Get accurate count of total indexed papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_cache: bool (default=True)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_total_papers(self, use_cache: bool = True) -> int:
         """
         Get accurate count of total indexed papers.
@@ -230,6 +400,23 @@ class StatsService:
         self._set_cache(cache_key, total)
         return total
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.get_papers_by_source
+    # Requirement  : `get_papers_by_source` shall get paper counts broken down by source (PubMed, arXiv, etc.)
+    # Purpose      : Get paper counts broken down by source (PubMed, arXiv, etc.)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_cache: bool (default=True)
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_papers_by_source(self, use_cache: bool = True) -> Dict[str, int]:
         """
         Get paper counts broken down by source (PubMed, arXiv, etc.).
@@ -271,6 +458,23 @@ class StatsService:
         self._set_cache(cache_key, counts)
         return counts
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.get_papers_with_embeddings
+    # Requirement  : `get_papers_with_embeddings` shall count papers that have vector embeddings
+    # Purpose      : Count papers that have vector embeddings
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_cache: bool (default=True)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_papers_with_embeddings(self, use_cache: bool = True) -> int:
         """
         Count papers that have vector embeddings.
@@ -317,6 +521,23 @@ class StatsService:
         self._set_cache(cache_key, count)
         return count
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.get_full_stats
+    # Requirement  : `get_full_stats` shall get comprehensive statistics about the index
+    # Purpose      : Get comprehensive statistics about the index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : use_cache: bool (default=True)
+    # Outputs      : IndexStats
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_full_stats(self, use_cache: bool = True) -> IndexStats:
         """
         Get comprehensive statistics about the index.
@@ -418,6 +639,23 @@ class StatsService:
         self._set_cache(cache_key, stats)
         return stats
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.verify_counts
+    # Requirement  : `verify_counts` shall verify database counts and detect inconsistencies
+    # Purpose      : Verify database counts and detect inconsistencies
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def verify_counts(self) -> Dict[str, Any]:
         """
         Verify database counts and detect inconsistencies.
@@ -527,6 +765,23 @@ class StatsService:
 
         return report
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.get_display_stats
+    # Requirement  : `get_display_stats` shall get statistics formatted for display on the homepage
+    # Purpose      : Get statistics formatted for display on the homepage
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_display_stats(self) -> Dict[str, str]:
         """
         Get statistics formatted for display on the homepage.
@@ -561,6 +816,23 @@ class StatsService:
             "last_updated": stats.last_updated.strftime("%Y-%m-%d %H:%M"),
         }
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService._calculate_citation_accuracy
+    # Requirement  : `_calculate_citation_accuracy` shall calculate citation verification accuracy
+    # Purpose      : Calculate citation verification accuracy
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_citation_accuracy(self) -> float:
         """
         Calculate citation verification accuracy.
@@ -588,6 +860,23 @@ class StatsService:
         # Default - should be replaced with actual tracking
         return 99.2
 
+    # ---------------------------------------------------------------------------
+    # ID           : services.stats_service.StatsService.invalidate_cache
+    # Requirement  : `invalidate_cache` shall clear all cached statistics
+    # Purpose      : Clear all cached statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def invalidate_cache(self):
         """Clear all cached statistics."""
         self._cache.clear()
@@ -599,6 +888,23 @@ class StatsService:
 _stats_service: Optional[StatsService] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : services.stats_service.get_stats_service
+# Requirement  : `get_stats_service` shall get the global stats service instance
+# Purpose      : Get the global stats service instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : StatsService
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_stats_service() -> StatsService:
     """Get the global stats service instance."""
     global _stats_service

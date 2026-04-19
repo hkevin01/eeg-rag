@@ -32,6 +32,23 @@ from ..monitoring import PerformanceMonitor, monitor_performance
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.BenchmarkQuery
+# Requirement  : `BenchmarkQuery` class shall be instantiable and expose the documented interface
+# Purpose      : Query with expected characteristics for benchmarking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BenchmarkQuery with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BenchmarkQuery:
     """Query with expected characteristics for benchmarking."""
@@ -43,6 +60,23 @@ class BenchmarkQuery:
     category: str
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.RetrievalBenchmarkResult
+# Requirement  : `RetrievalBenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Results from retrieval benchmarking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RetrievalBenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RetrievalBenchmarkResult:
     """Results from retrieval benchmarking."""
@@ -53,6 +87,23 @@ class RetrievalBenchmarkResult:
     citation_accuracy: float
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.GenerationBenchmarkResult
+# Requirement  : `GenerationBenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Results from generation benchmarking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GenerationBenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class GenerationBenchmarkResult:
     """Results from generation benchmarking."""
@@ -65,6 +116,23 @@ class GenerationBenchmarkResult:
     factual_accuracy: float
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.EndToEndBenchmarkResult
+# Requirement  : `EndToEndBenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Results from end-to-end benchmarking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EndToEndBenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EndToEndBenchmarkResult:
     """Results from end-to-end benchmarking."""
@@ -78,6 +146,23 @@ class EndToEndBenchmarkResult:
     cpu_usage_percent: float
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.BenchmarkSuite
+# Requirement  : `BenchmarkSuite` class shall be instantiable and expose the documented interface
+# Purpose      : Complete benchmark results
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BenchmarkSuite with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BenchmarkSuite:
     """Complete benchmark results."""
@@ -98,9 +183,43 @@ class BenchmarkSuite:
     overall_score: float = 0.0
     
 
+# ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.EEGRAGBenchmark
+# Requirement  : `EEGRAGBenchmark` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive benchmarking suite for EEG-RAG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGRAGBenchmark with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGRAGBenchmark:
     """Comprehensive benchmarking suite for EEG-RAG system."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark.__init__
+    # Requirement  : `__init__` shall initialize benchmarking suite
+    # Purpose      : Initialize benchmarking suite
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : orchestrator: OrchestratorAgent; local_agent: Optional[LocalDataAgent] (default=None); web_agent: Optional[WebSearchAgent] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         orchestrator: OrchestratorAgent,
@@ -124,6 +243,23 @@ class EEGRAGBenchmark:
         # Load benchmark queries
         self.benchmark_queries = self._create_benchmark_queries()
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._create_benchmark_queries
+    # Requirement  : `_create_benchmark_queries` shall create comprehensive set of benchmark queries
+    # Purpose      : Create comprehensive set of benchmark queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[BenchmarkQuery]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_benchmark_queries(self) -> List[BenchmarkQuery]:
         """Create comprehensive set of benchmark queries."""
         return [
@@ -208,6 +344,23 @@ class EEGRAGBenchmark:
             )
         ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark.run_full_benchmark
+    # Requirement  : `run_full_benchmark` shall run complete benchmarking suite
+    # Purpose      : Run complete benchmarking suite
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : BenchmarkSuite
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_full_benchmark(self) -> BenchmarkSuite:
         """Run complete benchmarking suite."""
         logger.info("Starting comprehensive benchmark suite...")
@@ -237,6 +390,23 @@ class EEGRAGBenchmark:
         
         return suite_results
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._benchmark_retrieval
+    # Requirement  : `_benchmark_retrieval` shall benchmark retrieval performance
+    # Purpose      : Benchmark retrieval performance
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[RetrievalBenchmarkResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _benchmark_retrieval(self) -> List[RetrievalBenchmarkResult]:
         """Benchmark retrieval performance."""
         results = []
@@ -288,6 +458,23 @@ class EEGRAGBenchmark:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._benchmark_generation
+    # Requirement  : `_benchmark_generation` shall benchmark generation quality
+    # Purpose      : Benchmark generation quality
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[GenerationBenchmarkResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _benchmark_generation(self) -> List[GenerationBenchmarkResult]:
         """Benchmark generation quality."""
         results = []
@@ -346,6 +533,23 @@ class EEGRAGBenchmark:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._benchmark_end_to_end
+    # Requirement  : `_benchmark_end_to_end` shall benchmark end-to-end performance across different agents
+    # Purpose      : Benchmark end-to-end performance across different agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[EndToEndBenchmarkResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _benchmark_end_to_end(self) -> List[EndToEndBenchmarkResult]:
         """Benchmark end-to-end performance across different agents."""
         results = []
@@ -417,6 +621,23 @@ class EEGRAGBenchmark:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_relevance_score
+    # Requirement  : `_calculate_relevance_score` shall calculate relevance score for retrieved documents
+    # Purpose      : Calculate relevance score for retrieved documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : benchmark_query: BenchmarkQuery; sources: List[Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _calculate_relevance_score(
         self,
         benchmark_query: BenchmarkQuery,
@@ -443,6 +664,23 @@ class EEGRAGBenchmark:
         
         return min(1.0, total_score / len(sources))
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_citation_accuracy
+    # Requirement  : `_calculate_citation_accuracy` shall calculate citation accuracy for sources
+    # Purpose      : Calculate citation accuracy for sources
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sources: List[Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _calculate_citation_accuracy(self, sources: List[Any]) -> float:
         """Calculate citation accuracy for sources."""
         if not sources:
@@ -464,6 +702,23 @@ class EEGRAGBenchmark:
         
         return valid_citations / total_citations if total_citations > 0 else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._validate_citations
+    # Requirement  : `_validate_citations` shall validate citation PMIDs
+    # Purpose      : Validate citation PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _validate_citations(self, citations: List[str]) -> float:
         """Validate citation PMIDs."""
         if not citations:
@@ -483,6 +738,23 @@ class EEGRAGBenchmark:
         
         return valid_count / len(citations)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_coherence_score
+    # Requirement  : `_calculate_coherence_score` shall calculate coherence score for generated content
+    # Purpose      : Calculate coherence score for generated content
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_coherence_score(self, content: str) -> float:
         """Calculate coherence score for generated content."""
         # Simple coherence metrics
@@ -508,6 +780,23 @@ class EEGRAGBenchmark:
         
         return (coherence + length_score) / 2
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_factual_accuracy
+    # Requirement  : `_calculate_factual_accuracy` shall calculate factual accuracy score
+    # Purpose      : Calculate factual accuracy score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : benchmark_query: BenchmarkQuery; content: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _calculate_factual_accuracy(
         self,
         benchmark_query: BenchmarkQuery,
@@ -545,6 +834,23 @@ class EEGRAGBenchmark:
         
         return (topic_accuracy + fact_accuracy) / 2
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_response_quality
+    # Requirement  : `_calculate_response_quality` shall calculate overall response quality
+    # Purpose      : Calculate overall response quality
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : benchmark_query: BenchmarkQuery; response: Any
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _calculate_response_quality(
         self,
         benchmark_query: BenchmarkQuery,
@@ -567,6 +873,23 @@ class EEGRAGBenchmark:
         # Weighted average
         return (length_score * 0.3) + (citation_score * 0.3) + (factual_score * 0.4)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_citation_quality
+    # Requirement  : `_calculate_citation_quality` shall calculate citation quality score
+    # Purpose      : Calculate citation quality score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citations: List[str]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _calculate_citation_quality(self, citations: List[str]) -> float:
         """Calculate citation quality score."""
         if not citations:
@@ -585,6 +908,23 @@ class EEGRAGBenchmark:
         
         return (validity_score + format_score) / 2
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_user_satisfaction
+    # Requirement  : `_calculate_user_satisfaction` shall calculate user satisfaction score
+    # Purpose      : Calculate user satisfaction score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : benchmark_query: BenchmarkQuery; response: Any
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_user_satisfaction(
         self,
         benchmark_query: BenchmarkQuery,
@@ -607,6 +947,23 @@ class EEGRAGBenchmark:
         
         return (topic_coverage * 0.5) + (has_citations * 0.25) + (length_appropriate * 0.25)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_aggregate_metrics
+    # Requirement  : `_calculate_aggregate_metrics` shall calculate aggregate metrics from individual results
+    # Purpose      : Calculate aggregate metrics from individual results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : retrieval_results: List[RetrievalBenchmarkResult]; generation_results: List[GenerationBenchmarkResult]; end_to_end_results: List[EndToEndBenchmarkResult]
+    # Outputs      : BenchmarkSuite
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_aggregate_metrics(
         self,
         retrieval_results: List[RetrievalBenchmarkResult],
@@ -653,6 +1010,23 @@ class EEGRAGBenchmark:
             overall_score=overall_score
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_retrieval_score
+    # Requirement  : `_calculate_retrieval_score` shall calculate overall retrieval performance score
+    # Purpose      : Calculate overall retrieval performance score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[RetrievalBenchmarkResult]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_retrieval_score(self, results: List[RetrievalBenchmarkResult]) -> float:
         """Calculate overall retrieval performance score."""
         if not results:
@@ -685,6 +1059,23 @@ class EEGRAGBenchmark:
         
         return statistics.mean(scores)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_generation_score
+    # Requirement  : `_calculate_generation_score` shall calculate overall generation performance score
+    # Purpose      : Calculate overall generation performance score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: List[GenerationBenchmarkResult]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_generation_score(self, results: List[GenerationBenchmarkResult]) -> float:
         """Calculate overall generation performance score."""
         if not results:
@@ -727,6 +1118,23 @@ class EEGRAGBenchmark:
         
         return statistics.mean(scores)
     
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark.export_benchmark_results
+    # Requirement  : `export_benchmark_results` shall export benchmark results to JSON file
+    # Purpose      : Export benchmark results to JSON file
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : results: BenchmarkSuite; output_path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_benchmark_results(
         self,
         results: BenchmarkSuite,

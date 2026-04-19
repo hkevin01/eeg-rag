@@ -17,6 +17,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.paper_store.Paper
+# Requirement  : `Paper` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a research paper with full metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Paper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Paper:
     """Represents a research paper with full metadata."""
@@ -44,9 +61,43 @@ class Paper:
     # Full-text content if available
     full_text: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.Paper.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.Paper.from_dict
+    # Requirement  : `from_dict` shall execute as specified
+    # Purpose      : From dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : 'Paper'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Paper":
         # Handle authors as string or list
@@ -96,6 +147,23 @@ class Paper:
             full_text=data.get('full_text')
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.Paper.get_primary_id
+    # Requirement  : `get_primary_id` shall get the most authoritative ID for this paper
+    # Purpose      : Get the most authoritative ID for this paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_primary_id(self) -> str:
         """Get the most authoritative ID for this paper."""
         if self.pmid:
@@ -111,6 +179,23 @@ class Paper:
         return self.paper_id
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.paper_store.PaperStore
+# Requirement  : `PaperStore` class shall be instantiable and expose the documented interface
+# Purpose      : SQLite-based paper storage optimized for 500K+ papers
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperStore with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PaperStore:
     """
     SQLite-based paper storage optimized for 500K+ papers.
@@ -123,6 +208,23 @@ class PaperStore:
     - Statistics and analytics
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.__init__
+    # Requirement  : `__init__` shall initialize the paper store
+    # Purpose      : Initialize the paper store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Optional[Path] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, db_path: Optional[Path] = None):
         """
         Initialize the paper store.
@@ -139,6 +241,23 @@ class PaperStore:
         self._init_db()
         logger.info(f"PaperStore initialized at {self.db_path}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore._get_connection
+    # Requirement  : `_get_connection` shall context manager for database connections
+    # Purpose      : Context manager for database connections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @contextmanager
     def _get_connection(self):
         """Context manager for database connections."""
@@ -157,6 +276,23 @@ class PaperStore:
         finally:
             conn.close()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore._init_db
+    # Requirement  : `_init_db` shall initialize database schema with FTS5 for full-text search
+    # Purpose      : Initialize database schema with FTS5 for full-text search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _init_db(self):
         """Initialize database schema with FTS5 for full-text search."""
         with self._get_connection() as conn:
@@ -249,11 +385,45 @@ class PaperStore:
                 )
             """)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore._compute_hash
+    # Requirement  : `_compute_hash` shall compute a content hash for deduplication
+    # Purpose      : Compute a content hash for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : title: str; abstract: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compute_hash(self, title: str, abstract: str) -> str:
         """Compute a content hash for deduplication."""
         content = f"{title.lower().strip()[:200]}|{abstract.lower().strip()[:500]}"
         return hashlib.md5(content.encode()).hexdigest()
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.add_paper
+    # Requirement  : `add_paper` shall add a single paper to the store
+    # Purpose      : Add a single paper to the store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Paper; update_if_exists: bool (default=False)
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_paper(self, paper: Paper, update_if_exists: bool = False) -> bool:
         """
         Add a single paper to the store.
@@ -320,6 +490,23 @@ class PaperStore:
             
             return True
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.add_papers_batch
+    # Requirement  : `add_papers_batch` shall add multiple papers efficiently in batches
+    # Purpose      : Add multiple papers efficiently in batches
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Paper]; batch_size: int (default=1000); update_if_exists: bool (default=False)
+    # Outputs      : Tuple[int, int, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_papers_batch(
         self, 
         papers: List[Paper], 
@@ -408,6 +595,23 @@ class PaperStore:
         
         return added, updated, skipped
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore._update_stats
+    # Requirement  : `_update_stats` shall update ingestion statistics
+    # Purpose      : Update ingestion statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : source: str; added: int; updated: int; skipped: int
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _update_stats(self, source: str, added: int, updated: int, skipped: int):
         """Update ingestion statistics."""
         with self._get_connection() as conn:
@@ -422,10 +626,44 @@ class PaperStore:
                     last_ingestion = CURRENT_TIMESTAMP
             """, (source, added, updated, skipped))
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_paper
+    # Requirement  : `get_paper` shall get a paper by its unique ID. Alias for get_paper_by_id
+    # Purpose      : Get a paper by its unique ID. Alias for get_paper_by_id
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : Optional[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_paper(self, paper_id: str) -> Optional[Paper]:
         """Get a paper by its unique ID. Alias for get_paper_by_id."""
         return self.get_paper_by_id(paper_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_paper_by_id
+    # Requirement  : `get_paper_by_id` shall get a paper by its unique ID
+    # Purpose      : Get a paper by its unique ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : Optional[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_paper_by_id(self, paper_id: str) -> Optional[Paper]:
         """Get a paper by its unique ID."""
         with self._get_connection() as conn:
@@ -434,6 +672,23 @@ class PaperStore:
             row = cursor.fetchone()
             return Paper.from_dict(dict(row)) if row else None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.delete_paper
+    # Requirement  : `delete_paper` shall delete a paper by its unique ID
+    # Purpose      : Delete a paper by its unique ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper_id: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def delete_paper(self, paper_id: str) -> bool:
         """
         Delete a paper by its unique ID.
@@ -449,6 +704,23 @@ class PaperStore:
             cursor.execute("DELETE FROM papers WHERE paper_id = ?", (paper_id,))
             return cursor.rowcount > 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_papers
+    # Requirement  : `get_papers` shall get papers with pagination
+    # Purpose      : Get papers with pagination
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : limit: int (default=100); offset: int (default=0); source: Optional[str] (default=None); year: Optional[int] (default=None)
+    # Outputs      : List[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_papers(
         self,
         limit: int = 100,
@@ -488,6 +760,23 @@ class PaperStore:
             cursor.execute(sql, params)
             return [Paper.from_dict(dict(row)) for row in cursor.fetchall()]
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.close
+    # Requirement  : `close` shall close the paper store (releases any resources)
+    # Purpose      : Close the paper store (releases any resources)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def close(self):
         """Close the paper store (releases any resources)."""
         # SQLite connections are managed per-operation, but we reset singleton
@@ -495,6 +784,23 @@ class PaperStore:
         if _paper_store is self:
             _paper_store = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_paper_by_pmid
+    # Requirement  : `get_paper_by_pmid` shall get a paper by its PubMed ID
+    # Purpose      : Get a paper by its PubMed ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str
+    # Outputs      : Optional[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_paper_by_pmid(self, pmid: str) -> Optional[Paper]:
         """Get a paper by its PubMed ID."""
         with self._get_connection() as conn:
@@ -503,6 +809,23 @@ class PaperStore:
             row = cursor.fetchone()
             return Paper.from_dict(dict(row)) if row else None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_paper_by_doi
+    # Requirement  : `get_paper_by_doi` shall get a paper by its DOI
+    # Purpose      : Get a paper by its DOI
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : doi: str
+    # Outputs      : Optional[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_paper_by_doi(self, doi: str) -> Optional[Paper]:
         """Get a paper by its DOI."""
         with self._get_connection() as conn:
@@ -511,6 +834,23 @@ class PaperStore:
             row = cursor.fetchone()
             return Paper.from_dict(dict(row)) if row else None
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.search_papers
+    # Requirement  : `search_papers` shall full-text search across papers
+    # Purpose      : Full-text search across papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=100); offset: int (default=0); year_from: Optional[int] (default=None); year_to: Optional[int] (default=None); sources: Optional[List[str]] (default=None)
+    # Outputs      : List[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search_papers(
         self,
         query: str,
@@ -581,6 +921,23 @@ class PaperStore:
                 logger.warning(f"FTS5 search error for query '{query}': {e}")
                 return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_total_count
+    # Requirement  : `get_total_count` shall get total number of papers in the store
+    # Purpose      : Get total number of papers in the store
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_total_count(self) -> int:
         """Get total number of papers in the store."""
         with self._get_connection() as conn:
@@ -588,6 +945,23 @@ class PaperStore:
             cursor.execute("SELECT COUNT(*) FROM papers")
             return cursor.fetchone()[0]
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_counts_by_source
+    # Requirement  : `get_counts_by_source` shall get paper counts grouped by source
+    # Purpose      : Get paper counts grouped by source
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_counts_by_source(self) -> Dict[str, int]:
         """Get paper counts grouped by source."""
         with self._get_connection() as conn:
@@ -597,6 +971,23 @@ class PaperStore:
             """)
             return {row['source']: row['count'] for row in cursor.fetchall()}
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_counts_by_year
+    # Requirement  : `get_counts_by_year` shall get paper counts grouped by year
+    # Purpose      : Get paper counts grouped by year
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : year_from: int (default=1990); year_to: int (default=2030)
+    # Outputs      : Dict[int, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_counts_by_year(self, year_from: int = 1990, year_to: int = 2030) -> Dict[int, int]:
         """Get paper counts grouped by year."""
         with self._get_connection() as conn:
@@ -608,6 +999,23 @@ class PaperStore:
             """, (year_from, year_to))
             return {row['year']: row['count'] for row in cursor.fetchall()}
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.get_statistics
+    # Requirement  : `get_statistics` shall get comprehensive store statistics
+    # Purpose      : Get comprehensive store statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get comprehensive store statistics."""
         with self._get_connection() as conn:
@@ -661,6 +1069,23 @@ class PaperStore:
                 'db_size_mb': round(self.db_path.stat().st_size / 1024 / 1024, 2) if self.db_path.exists() else 0
             }
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.iter_papers
+    # Requirement  : `iter_papers` shall iterate over all papers efficiently
+    # Purpose      : Iterate over all papers efficiently
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : batch_size: int (default=1000); source: Optional[str] (default=None)
+    # Outputs      : Iterator[Paper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def iter_papers(
         self, 
         batch_size: int = 1000,
@@ -703,6 +1128,23 @@ class PaperStore:
                 
                 offset += batch_size
     
+    # ---------------------------------------------------------------------------
+    # ID           : db.paper_store.PaperStore.export_to_jsonl
+    # Requirement  : `export_to_jsonl` shall export papers to JSONL format for embedding generation
+    # Purpose      : Export papers to JSONL format for embedding generation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : output_path: Path; source: Optional[str] (default=None)
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_to_jsonl(self, output_path: Path, source: Optional[str] = None) -> int:
         """Export papers to JSONL format for embedding generation."""
         count = 0
@@ -718,6 +1160,23 @@ class PaperStore:
 _paper_store: Optional[PaperStore] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : db.paper_store.get_paper_store
+# Requirement  : `get_paper_store` shall get or create the singleton PaperStore instance
+# Purpose      : Get or create the singleton PaperStore instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : db_path: Optional[Path] (default=None)
+# Outputs      : PaperStore
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_store(db_path: Optional[Path] = None) -> PaperStore:
     """Get or create the singleton PaperStore instance."""
     global _paper_store

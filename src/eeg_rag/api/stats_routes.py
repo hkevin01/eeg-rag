@@ -14,6 +14,23 @@ from eeg_rag.services.stats_service import get_stats_service, IndexStats
 router = APIRouter(prefix="/api/stats", tags=["statistics"])
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.DisplayStatsResponse
+# Requirement  : `DisplayStatsResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Response model for display statistics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate DisplayStatsResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class DisplayStatsResponse(BaseModel):
     """Response model for display statistics."""
 
@@ -26,6 +43,23 @@ class DisplayStatsResponse(BaseModel):
     raw_count: int
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.FullStatsResponse
+# Requirement  : `FullStatsResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Response model for full statistics
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate FullStatsResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class FullStatsResponse(BaseModel):
     """Response model for full statistics."""
 
@@ -38,6 +72,23 @@ class FullStatsResponse(BaseModel):
     last_updated: str
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.VerificationResponse
+# Requirement  : `VerificationResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Response model for verification report
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate VerificationResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class VerificationResponse(BaseModel):
     """Response model for verification report."""
 
@@ -49,6 +100,23 @@ class VerificationResponse(BaseModel):
     recommendations: list
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.HealthResponse
+# Requirement  : `HealthResponse` class shall be instantiable and expose the documented interface
+# Purpose      : Response model for health status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HealthResponse with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HealthResponse(BaseModel):
     """Response model for health status."""
 
@@ -58,6 +126,23 @@ class HealthResponse(BaseModel):
     recommendations: list
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.get_display_stats
+# Requirement  : `get_display_stats` shall get statistics formatted for homepage display
+# Purpose      : Get statistics formatted for homepage display
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @router.get("/display", response_model=DisplayStatsResponse)
 async def get_display_stats():
     """
@@ -83,6 +168,23 @@ async def get_display_stats():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.get_full_stats
+# Requirement  : `get_full_stats` shall get comprehensive statistics about the paper index
+# Purpose      : Get comprehensive statistics about the paper index
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @router.get("/full", response_model=FullStatsResponse)
 async def get_full_stats():
     """
@@ -114,6 +216,23 @@ async def get_full_stats():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.verify_stats
+# Requirement  : `verify_stats` shall run verification on database statistics
+# Purpose      : Run verification on database statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @router.get("/verify", response_model=VerificationResponse)
 async def verify_stats():
     """
@@ -140,6 +259,23 @@ async def verify_stats():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.refresh_stats
+# Requirement  : `refresh_stats` shall force refresh of cached statistics
+# Purpose      : Force refresh of cached statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @router.post("/refresh")
 async def refresh_stats():
     """
@@ -165,6 +301,23 @@ async def refresh_stats():
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : api.stats_routes.get_health
+# Requirement  : `get_health` shall get index health status
+# Purpose      : Get index health status
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @router.get("/health", response_model=HealthResponse)
 async def get_health():
     """

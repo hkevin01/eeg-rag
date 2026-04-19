@@ -26,6 +26,23 @@ from ..utils.logging_utils import PerformanceTimer
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.cross_encoder_reranker.RerankingResult
+# Requirement  : `RerankingResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from cross-encoder reranking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RerankingResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RerankingResult:
     """Result from cross-encoder reranking."""
@@ -38,6 +55,23 @@ class RerankingResult:
     metadata: Optional[Dict] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.cross_encoder_reranker.RerankingMetrics
+# Requirement  : `RerankingMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Metrics from reranking operation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RerankingMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class RerankingMetrics:
     """Metrics from reranking operation."""
@@ -49,9 +83,43 @@ class RerankingMetrics:
     average_position_change: float
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker
+# Requirement  : `CrossEncoderReranker` class shall be instantiable and expose the documented interface
+# Purpose      : Cross-encoder based document reranker for EEG domain
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CrossEncoderReranker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CrossEncoderReranker:
     """Cross-encoder based document reranker for EEG domain."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker.__init__
+    # Requirement  : `__init__` shall initialize cross-encoder reranker
+    # Purpose      : Initialize cross-encoder reranker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default='cross-encoder/ms-marco-MiniLM-L-6-v2'); cache_dir: Optional[str] (default=None); batch_size: int (default=16); max_length: int (default=512); device: str (default='auto'); enable_caching: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
@@ -115,6 +183,23 @@ class CrossEncoderReranker:
             'cache_misses': 0
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker.rerank_documents
+    # Requirement  : `rerank_documents` shall rerank documents using cross-encoder
+    # Purpose      : Rerank documents using cross-encoder
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; documents: List[Dict[str, Any]]; top_k: Optional[int] (default=None); score_threshold: float (default=0.0); alpha: float (default=0.7)
+    # Outputs      : Tuple[List[RerankingResult], RerankingMetrics]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def rerank_documents(
         self,
         query: str,
@@ -167,6 +252,23 @@ class CrossEncoderReranker:
         
         return results, metrics
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._prepare_pairs
+    # Requirement  : `_prepare_pairs` shall prepare query-document pairs for cross-encoder
+    # Purpose      : Prepare query-document pairs for cross-encoder
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; documents: List[Dict]
+    # Outputs      : List[Tuple[str, str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _prepare_pairs(self, query: str, documents: List[Dict]) -> List[Tuple[str, str]]:
         """Prepare query-document pairs for cross-encoder."""
         pairs = []
@@ -182,6 +284,23 @@ class CrossEncoderReranker:
         
         return pairs
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._get_rerank_scores
+    # Requirement  : `_get_rerank_scores` shall get reranking scores for query-document pairs
+    # Purpose      : Get reranking scores for query-document pairs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pairs: List[Tuple[str, str]]
+    # Outputs      : List[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_rerank_scores(self, pairs: List[Tuple[str, str]]) -> List[float]:
         """Get reranking scores for query-document pairs."""
         if not pairs:
@@ -231,6 +350,23 @@ class CrossEncoderReranker:
             # No caching - compute all scores
             return await self._compute_scores(pairs)
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._compute_scores
+    # Requirement  : `_compute_scores` shall compute cross-encoder scores for pairs
+    # Purpose      : Compute cross-encoder scores for pairs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pairs: List[Tuple[str, str]]
+    # Outputs      : List[float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _compute_scores(self, pairs: List[Tuple[str, str]]) -> List[float]:
         """Compute cross-encoder scores for pairs."""
         try:
@@ -247,6 +383,23 @@ class CrossEncoderReranker:
             logger.error(f"Cross-encoder prediction failed: {str(e)}")
             return [0.5] * len(pairs)  # Fallback to neutral scores
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._predict_batch
+    # Requirement  : `_predict_batch` shall predict scores for batch of pairs
+    # Purpose      : Predict scores for batch of pairs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pairs: List[Tuple[str, str]]
+    # Outputs      : np.ndarray
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _predict_batch(self, pairs: List[Tuple[str, str]]) -> np.ndarray:
         """Predict scores for batch of pairs."""
         all_scores = []
@@ -259,6 +412,23 @@ class CrossEncoderReranker:
         
         return np.array(all_scores)
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._combine_scores
+    # Requirement  : `_combine_scores` shall combine original and rerank scores
+    # Purpose      : Combine original and rerank scores
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; documents: List[Dict]; rerank_scores: List[float]; alpha: float
+    # Outputs      : List[RerankingResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _combine_scores(
         self,
         query: str,
@@ -308,6 +478,23 @@ class CrossEncoderReranker:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._calculate_domain_boost
+    # Requirement  : `_calculate_domain_boost` shall calculate EEG domain relevance boost
+    # Purpose      : Calculate EEG domain relevance boost
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; content: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_domain_boost(self, query: str, content: str) -> float:
         """Calculate EEG domain relevance boost."""
         query_lower = query.lower()
@@ -328,6 +515,23 @@ class CrossEncoderReranker:
         
         return min(boost, 0.2)  # Cap boost at 0.2
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._make_cache_key
+    # Requirement  : `_make_cache_key` shall create cache key for query-document pair
+    # Purpose      : Create cache key for query-document pair
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pair: Tuple[str, str]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _make_cache_key(self, pair: Tuple[str, str]) -> str:
         """Create cache key for query-document pair."""
         query, content = pair
@@ -336,6 +540,23 @@ class CrossEncoderReranker:
         combined = f"{query}||{content[:500]}"  # Use first 500 chars
         return hashlib.md5(combined.encode()).hexdigest()
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._calculate_metrics
+    # Requirement  : `_calculate_metrics` shall calculate reranking metrics
+    # Purpose      : Calculate reranking metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : original_docs: List[Dict]; reranked_results: List[RerankingResult]; processing_time: float
+    # Outputs      : RerankingMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_metrics(
         self,
         original_docs: List[Dict],
@@ -373,6 +594,23 @@ class CrossEncoderReranker:
             average_position_change=avg_position_change
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._create_fallback_results
+    # Requirement  : `_create_fallback_results` shall create fallback results when reranking is disabled
+    # Purpose      : Create fallback results when reranking is disabled
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict]
+    # Outputs      : List[RerankingResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_fallback_results(self, documents: List[Dict]) -> List[RerankingResult]:
         """Create fallback results when reranking is disabled."""
         results = []
@@ -388,6 +626,23 @@ class CrossEncoderReranker:
             ))
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._create_empty_metrics
+    # Requirement  : `_create_empty_metrics` shall create empty metrics object
+    # Purpose      : Create empty metrics object
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : RerankingMetrics
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_empty_metrics(self) -> RerankingMetrics:
         """Create empty metrics object."""
         return RerankingMetrics(
@@ -399,6 +654,23 @@ class CrossEncoderReranker:
             average_position_change=0.0
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker._update_stats
+    # Requirement  : `_update_stats` shall update internal statistics
+    # Purpose      : Update internal statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : num_documents: int; rerank_scores: List[float]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _update_stats(self, num_documents: int, rerank_scores: List[float]):
         """Update internal statistics."""
         self.reranking_stats['total_queries'] += 1
@@ -413,6 +685,23 @@ class CrossEncoderReranker:
                 (current_avg * (query_count - 1) + avg_score) / query_count
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker.get_stats
+    # Requirement  : `get_stats` shall get reranking statistics
+    # Purpose      : Get reranking statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_stats(self) -> Dict[str, Any]:
         """Get reranking statistics."""
         stats = self.reranking_stats.copy()
@@ -426,6 +715,23 @@ class CrossEncoderReranker:
         
         return stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.cross_encoder_reranker.CrossEncoderReranker.clear_cache
+    # Requirement  : `clear_cache` shall clear the score cache
+    # Purpose      : Clear the score cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear_cache(self):
         """Clear the score cache."""
         if self.enable_caching and self._score_cache:
@@ -437,6 +743,23 @@ class CrossEncoderReranker:
 _reranker: Optional[CrossEncoderReranker] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.cross_encoder_reranker.get_reranker
+# Requirement  : `get_reranker` shall get global reranker instance
+# Purpose      : Get global reranker instance
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : **kwargs
+# Outputs      : CrossEncoderReranker
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_reranker(**kwargs) -> CrossEncoderReranker:
     """Get global reranker instance."""
     global _reranker

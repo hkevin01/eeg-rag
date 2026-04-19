@@ -46,6 +46,23 @@ logger = get_logger(__name__)
 F = TypeVar('F', bound=Callable[..., Any])
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.TimeUnits
+# Requirement  : `TimeUnits` class shall be instantiable and expose the documented interface
+# Purpose      : Standardized time units for consistent measurement across the application
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TimeUnits with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class TimeUnits(Enum):
     """
     Standardized time units for consistent measurement across the application.
@@ -63,10 +80,44 @@ class TimeUnits(Enum):
     MINUTES = ("min", 60.0)
     HOURS = ("hr", 3600.0)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimeUnits.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : symbol: str; seconds_multiplier: float
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, symbol: str, seconds_multiplier: float):
         self.symbol = symbol
         self.seconds_multiplier = seconds_multiplier
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimeUnits.from_string
+    # Requirement  : `from_string` shall parse a time unit from string representation
+    # Purpose      : Parse a time unit from string representation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : unit_string: str
+    # Outputs      : 'TimeUnits'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_string(cls, unit_string: str) -> "TimeUnits":
         """
@@ -118,6 +169,23 @@ class TimeUnits(Enum):
         return unit_map[normalized]
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.convert_time
+# Requirement  : `convert_time` shall convert a time value between different units
+# Purpose      : Convert a time value between different units
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: float; from_unit: TimeUnits; to_unit: TimeUnits
+# Outputs      : float
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def convert_time(
     value: float,
     from_unit: TimeUnits,
@@ -154,6 +222,23 @@ def convert_time(
     return seconds / to_unit.seconds_multiplier
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.format_duration
+# Requirement  : `format_duration` shall format a duration in seconds to a human-readable string
+# Purpose      : Format a duration in seconds to a human-readable string
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : duration_seconds: float; precision: int (default=2); auto_scale: bool (default=True)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def format_duration(
     duration_seconds: float,
     precision: int = 2,
@@ -207,6 +292,23 @@ def format_duration(
         return f"{hours:.{precision}f}hr"
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.TimingStats
+# Requirement  : `TimingStats` class shall be instantiable and expose the documented interface
+# Purpose      : Statistics for a series of timed operations
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TimingStats with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class TimingStats:
     """
@@ -223,35 +325,154 @@ class TimingStats:
     samples: List[float] = field(default_factory=list)
     unit: TimeUnits = TimeUnits.MILLISECONDS
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.add_sample
+    # Requirement  : `add_sample` shall add a timing sample
+    # Purpose      : Add a timing sample
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : duration_seconds: float
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_sample(self, duration_seconds: float) -> None:
         """Add a timing sample."""
         self.samples.append(duration_seconds)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.count
+    # Requirement  : `count` shall number of samples collected
+    # Purpose      : Number of samples collected
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def count(self) -> int:
         """Number of samples collected."""
         return len(self.samples)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.total_seconds
+    # Requirement  : `total_seconds` shall total time across all samples
+    # Purpose      : Total time across all samples
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def total_seconds(self) -> float:
         """Total time across all samples."""
         return sum(self.samples) if self.samples else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.mean_seconds
+    # Requirement  : `mean_seconds` shall mean duration in seconds
+    # Purpose      : Mean duration in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def mean_seconds(self) -> float:
         """Mean duration in seconds."""
         return self.total_seconds / self.count if self.samples else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.min_seconds
+    # Requirement  : `min_seconds` shall minimum duration in seconds
+    # Purpose      : Minimum duration in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def min_seconds(self) -> float:
         """Minimum duration in seconds."""
         return min(self.samples) if self.samples else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.max_seconds
+    # Requirement  : `max_seconds` shall maximum duration in seconds
+    # Purpose      : Maximum duration in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def max_seconds(self) -> float:
         """Maximum duration in seconds."""
         return max(self.samples) if self.samples else 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.percentile
+    # Requirement  : `percentile` shall calculate the p-th percentile of samples
+    # Purpose      : Calculate the p-th percentile of samples
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : p: float
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def percentile(self, p: float) -> float:
         """
         Calculate the p-th percentile of samples.
@@ -279,21 +500,89 @@ class TimingStats:
         weight = index - lower
         return sorted_samples[lower] * (1 - weight) + sorted_samples[upper] * weight
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.p50
+    # Requirement  : `p50` shall 50th percentile (median) in seconds
+    # Purpose      : 50th percentile (median) in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def p50(self) -> float:
         """50th percentile (median) in seconds."""
         return self.percentile(50)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.p95
+    # Requirement  : `p95` shall 95th percentile in seconds
+    # Purpose      : 95th percentile in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def p95(self) -> float:
         """95th percentile in seconds."""
         return self.percentile(95)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.p99
+    # Requirement  : `p99` shall 99th percentile in seconds
+    # Purpose      : 99th percentile in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def p99(self) -> float:
         """99th percentile in seconds."""
         return self.percentile(99)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.to_dict
+    # Requirement  : `to_dict` shall convert statistics to dictionary format
+    # Purpose      : Convert statistics to dictionary format
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert statistics to dictionary format.
@@ -314,6 +603,23 @@ class TimingStats:
             'p99': round(self.p99 * multiplier, 3),
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.TimingStats.__str__
+    # Requirement  : `__str__` shall human-readable summary
+    # Purpose      : Human-readable summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __str__(self) -> str:
         """Human-readable summary."""
         if not self.samples:
@@ -329,6 +635,23 @@ class TimingStats:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.Timer
+# Requirement  : `Timer` class shall be instantiable and expose the documented interface
+# Purpose      : High-precision context manager for timing code blocks
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Timer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class Timer:
     """
     High-precision context manager for timing code blocks.
@@ -357,6 +680,23 @@ class Timer:
         >>> print(f"Took {timer.elapsed_ms:.2f}ms")
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.__init__
+    # Requirement  : `__init__` shall initialize timer
+    # Purpose      : Initialize timer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, name: Optional[str] = None):
         """
         Initialize timer.
@@ -369,6 +709,23 @@ class Timer:
         self._end_time: Optional[float] = None
         self._is_running: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.start
+    # Requirement  : `start` shall start the timer
+    # Purpose      : Start the timer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'Timer'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def start(self) -> "Timer":
         """
         Start the timer.
@@ -381,6 +738,23 @@ class Timer:
         self._is_running = True
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.stop
+    # Requirement  : `stop` shall stop the timer
+    # Purpose      : Stop the timer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def stop(self) -> float:
         """
         Stop the timer.
@@ -398,6 +772,23 @@ class Timer:
         self._is_running = False
         return self.elapsed
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.elapsed
+    # Requirement  : `elapsed` shall get elapsed time in seconds
+    # Purpose      : Get elapsed time in seconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def elapsed(self) -> float:
         """
@@ -411,43 +802,179 @@ class Timer:
         end = self._end_time if self._end_time is not None else time.perf_counter()
         return end - self._start_time
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.elapsed_ms
+    # Requirement  : `elapsed_ms` shall elapsed time in milliseconds
+    # Purpose      : Elapsed time in milliseconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def elapsed_ms(self) -> float:
         """Elapsed time in milliseconds."""
         return self.elapsed * 1000
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.elapsed_us
+    # Requirement  : `elapsed_us` shall elapsed time in microseconds
+    # Purpose      : Elapsed time in microseconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def elapsed_us(self) -> float:
         """Elapsed time in microseconds."""
         return self.elapsed * 1_000_000
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.elapsed_ns
+    # Requirement  : `elapsed_ns` shall elapsed time in nanoseconds
+    # Purpose      : Elapsed time in nanoseconds
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def elapsed_ns(self) -> float:
         """Elapsed time in nanoseconds."""
         return self.elapsed * 1_000_000_000
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.is_running
+    # Requirement  : `is_running` shall check if timer is currently running
+    # Purpose      : Check if timer is currently running
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def is_running(self) -> bool:
         """Check if timer is currently running."""
         return self._is_running
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.__enter__
+    # Requirement  : `__enter__` shall enter context manager
+    # Purpose      : Enter context manager
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'Timer'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __enter__(self) -> "Timer":
         """Enter context manager."""
         self.start()
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.__exit__
+    # Requirement  : `__exit__` shall exit context manager
+    # Purpose      : Exit context manager
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : *args
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __exit__(self, *args) -> None:
         """Exit context manager."""
         self.stop()
         if self.name:
             logger.debug(f"Timer '{self.name}': {format_duration(self.elapsed)}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.Timer.__str__
+    # Requirement  : `__str__` shall human-readable representation
+    # Purpose      : Human-readable representation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __str__(self) -> str:
         """Human-readable representation."""
         status = "running" if self._is_running else "stopped"
         return f"Timer({self.name or 'unnamed'}, {status}, {format_duration(self.elapsed)})"
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.timed
+# Requirement  : `timed` shall decorator for timing function execution
+# Purpose      : Decorator for timing function execution
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : name: Optional[str] (default=None); log_level: str (default='DEBUG'); threshold_ms: Optional[float] (default=None)
+# Outputs      : Callable[[F], F]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def timed(
     name: Optional[str] = None,
     log_level: str = "DEBUG",
@@ -475,9 +1002,43 @@ def timed(
         ... def slow_function():
         ...     pass
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.time_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: F
+    # Outputs      : F
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: F) -> F:
         timer_name = name or func.__name__
         
+        # ---------------------------------------------------------------------------
+        # ID           : utils.time_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         def wrapper(*args, **kwargs):
             with Timer(timer_name) as timer:
@@ -492,6 +1053,23 @@ def timed(
             
             return result
         
+        # ---------------------------------------------------------------------------
+        # ID           : utils.time_utils.async_wrapper
+        # Requirement  : `async_wrapper` shall execute as specified
+        # Purpose      : Async wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             with Timer(timer_name) as timer:
@@ -515,6 +1093,23 @@ def timed(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.get_utc_timestamp
+# Requirement  : `get_utc_timestamp` shall get current UTC timestamp in ISO 8601 format
+# Purpose      : Get current UTC timestamp in ISO 8601 format
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_utc_timestamp() -> str:
     """
     Get current UTC timestamp in ISO 8601 format.
@@ -531,6 +1126,23 @@ def get_utc_timestamp() -> str:
     return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.get_unix_timestamp
+# Requirement  : `get_unix_timestamp` shall get current Unix timestamp with millisecond precision
+# Purpose      : Get current Unix timestamp with millisecond precision
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : float
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_unix_timestamp() -> float:
     """
     Get current Unix timestamp with millisecond precision.
@@ -541,6 +1153,23 @@ def get_unix_timestamp() -> float:
     return time.time()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.get_unix_timestamp_ms
+# Requirement  : `get_unix_timestamp_ms` shall get current Unix timestamp in milliseconds
+# Purpose      : Get current Unix timestamp in milliseconds
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : int
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_unix_timestamp_ms() -> int:
     """
     Get current Unix timestamp in milliseconds.
@@ -555,6 +1184,23 @@ def get_unix_timestamp_ms() -> int:
 _timing_registry: Dict[str, TimingStats] = {}
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.record_timing
+# Requirement  : `record_timing` shall record a timing sample in the global registry
+# Purpose      : Record a timing sample in the global registry
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : name: str; duration_seconds: float
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def record_timing(name: str, duration_seconds: float) -> None:
     """
     Record a timing sample in the global registry.
@@ -570,6 +1216,23 @@ def record_timing(name: str, duration_seconds: float) -> None:
     _timing_registry[name].add_sample(duration_seconds)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.get_timing_stats
+# Requirement  : `get_timing_stats` shall get timing statistics for an operation
+# Purpose      : Get timing statistics for an operation
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : name: str
+# Outputs      : Optional[TimingStats]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_timing_stats(name: str) -> Optional[TimingStats]:
     """
     Get timing statistics for an operation.
@@ -583,6 +1246,23 @@ def get_timing_stats(name: str) -> Optional[TimingStats]:
     return _timing_registry.get(name)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.get_all_timing_stats
+# Requirement  : `get_all_timing_stats` shall get all timing statistics as a dictionary
+# Purpose      : Get all timing statistics as a dictionary
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, Dict[str, Any]]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_all_timing_stats() -> Dict[str, Dict[str, Any]]:
     """
     Get all timing statistics as a dictionary.
@@ -593,6 +1273,23 @@ def get_all_timing_stats() -> Dict[str, Dict[str, Any]]:
     return {name: stats.to_dict() for name, stats in _timing_registry.items()}
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.clear_timing_stats
+# Requirement  : `clear_timing_stats` shall clear all timing statistics
+# Purpose      : Clear all timing statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : None
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def clear_timing_stats() -> None:
     """Clear all timing statistics."""
     _timing_registry.clear()
@@ -608,6 +1305,23 @@ LATENCY_THRESHOLDS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.time_utils.check_latency_threshold
+# Requirement  : `check_latency_threshold` shall check if an operation exceeded its latency threshold
+# Purpose      : Check if an operation exceeded its latency threshold
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : operation: str; duration_seconds: float; warn: bool (default=True)
+# Outputs      : bool
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def check_latency_threshold(
     operation: str,
     duration_seconds: float,

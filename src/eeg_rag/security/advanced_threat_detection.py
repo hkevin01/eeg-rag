@@ -32,6 +32,23 @@ from eeg_rag.utils.common_utils import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.advanced_threat_detection.SecurityEvent
+# Requirement  : `SecurityEvent` class shall be instantiable and expose the documented interface
+# Purpose      : Security event for threat tracking
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SecurityEvent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SecurityEvent:
     """Security event for threat tracking"""
@@ -44,6 +61,23 @@ class SecurityEvent:
     metadata: Dict[str, Any] = field(default_factory=dict)
     resolved: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.SecurityEvent.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -58,6 +92,23 @@ class SecurityEvent:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.advanced_threat_detection.BehavioralPattern
+# Requirement  : `BehavioralPattern` class shall be instantiable and expose the documented interface
+# Purpose      : Behavioral pattern for anomaly detection
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BehavioralPattern with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BehavioralPattern:
     """Behavioral pattern for anomaly detection"""
@@ -67,6 +118,23 @@ class BehavioralPattern:
     current_frequency: float
     anomaly_threshold: float = 3.0  # Standard deviations
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.BehavioralPattern.is_anomalous
+    # Requirement  : `is_anomalous` shall check if current frequency is anomalous
+    # Purpose      : Check if current frequency is anomalous
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def is_anomalous(self) -> bool:
         """Check if current frequency is anomalous"""
@@ -78,12 +146,46 @@ class BehavioralPattern:
         return deviation > threshold
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.advanced_threat_detection.AdvancedThreatDetector
+# Requirement  : `AdvancedThreatDetector` class shall be instantiable and expose the documented interface
+# Purpose      : Advanced threat detection system with behavioral analysis
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AdvancedThreatDetector with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AdvancedThreatDetector:
     """
     Advanced threat detection system with behavioral analysis
     and real-time monitoring capabilities
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.__init__
+    # Requirement  : `__init__` shall initialize advanced threat detector
+    # Purpose      : Initialize advanced threat detector
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : monitoring_window_hours: float (default=24.0); anomaly_threshold: float (default=3.0); max_events_history: int (default=10000); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         monitoring_window_hours: float = 24.0,
@@ -134,6 +236,23 @@ class AdvancedThreatDetector:
             f"threshold={self.anomaly_threshold}"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector._load_attack_signatures
+    # Requirement  : `_load_attack_signatures` shall load known attack signature patterns
+    # Purpose      : Load known attack signature patterns
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, List[str]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_attack_signatures(self) -> Dict[str, List[str]]:
         """Load known attack signature patterns"""
         return {
@@ -166,6 +285,23 @@ class AdvancedThreatDetector:
             ]
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.start_monitoring
+    # Requirement  : `start_monitoring` shall start real-time threat monitoring
+    # Purpose      : Start real-time threat monitoring
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def start_monitoring(self) -> None:
         """Start real-time threat monitoring"""
         if not self.monitoring_active:
@@ -173,6 +309,23 @@ class AdvancedThreatDetector:
             self.monitoring_stats["monitoring_start_time"] = datetime.now()
             self.logger.info("Started real-time threat monitoring")
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.stop_monitoring
+    # Requirement  : `stop_monitoring` shall stop real-time threat monitoring
+    # Purpose      : Stop real-time threat monitoring
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def stop_monitoring(self) -> None:
         """Stop real-time threat monitoring"""
         if self.monitoring_active:
@@ -180,6 +333,23 @@ class AdvancedThreatDetector:
             duration = datetime.now() - self.monitoring_stats["monitoring_start_time"]
             self.logger.info(f"Stopped threat monitoring after {duration}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.detect_threats
+    # Requirement  : `detect_threats` shall detect threats in content using advanced pattern matching
+    # Purpose      : Detect threats in content using advanced pattern matching
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str; source: str (default='unknown'); metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : List[SecurityEvent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def detect_threats(
         self, 
         content: str, 
@@ -250,6 +420,23 @@ class AdvancedThreatDetector:
             self.logger.error(error_msg)
             return []
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector._create_security_event
+    # Requirement  : `_create_security_event` shall create a security event
+    # Purpose      : Create a security event
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : threat_type: ThreatType; threat_level: ThreatLevel; source: str; description: str; metadata: Dict[str, Any]
+    # Outputs      : SecurityEvent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _create_security_event(
         self,
         threat_type: ThreatType,
@@ -272,6 +459,23 @@ class AdvancedThreatDetector:
             metadata=metadata
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector._detect_behavioral_anomalies
+    # Requirement  : `_detect_behavioral_anomalies` shall detect behavioral anomalies in content patterns
+    # Purpose      : Detect behavioral anomalies in content patterns
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str; source: str; metadata: Dict[str, Any]
+    # Outputs      : List[SecurityEvent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_behavioral_anomalies(
         self, 
         content: str, 
@@ -322,6 +526,23 @@ class AdvancedThreatDetector:
         
         return anomalies
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector._detect_repetitive_patterns
+    # Requirement  : `_detect_repetitive_patterns` shall detect repetitive patterns that might indicate flooding
+    # Purpose      : Detect repetitive patterns that might indicate flooding
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_repetitive_patterns(self, content: str) -> bool:
         """Detect repetitive patterns that might indicate flooding"""
         if len(content) < 100:
@@ -341,6 +562,23 @@ class AdvancedThreatDetector:
         max_count = max(word_counts.values()) if word_counts else 0
         return max_count > len(words) * 0.5
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector._update_behavioral_patterns
+    # Requirement  : `_update_behavioral_patterns` shall update behavioral patterns for anomaly detection
+    # Purpose      : Update behavioral patterns for anomaly detection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str; source: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _update_behavioral_patterns(self, content: str, source: str) -> None:
         """Update behavioral patterns for anomaly detection"""
         pattern_id = f"{source}_content_length"
@@ -358,6 +596,23 @@ class AdvancedThreatDetector:
                 current_frequency=content_length
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.analyze_threat_landscape
+    # Requirement  : `analyze_threat_landscape` shall analyze the current threat landscape based on collected events
+    # Purpose      : Analyze the current threat landscape based on collected events
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def analyze_threat_landscape(self) -> Dict[str, Any]:
         """
         Analyze the current threat landscape based on collected events
@@ -432,6 +687,23 @@ class AdvancedThreatDetector:
             "monitoring_stats": self.monitoring_stats.copy()
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.get_threat_report
+    # Requirement  : `get_threat_report` shall generate comprehensive threat report
+    # Purpose      : Generate comprehensive threat report
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : include_resolved: bool (default=False); threat_level_filter: Optional[ThreatLevel] (default=None)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_threat_report(
         self, 
         include_resolved: bool = False,
@@ -470,6 +742,23 @@ class AdvancedThreatDetector:
             "threat_landscape": self.analyze_threat_landscape()
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.resolve_threat
+    # Requirement  : `resolve_threat` shall mark a threat as resolved
+    # Purpose      : Mark a threat as resolved
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : event_id: str; resolution_note: str (default='')
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def resolve_threat(self, event_id: str, resolution_note: str = "") -> bool:
         """
         Mark a threat as resolved
@@ -494,6 +783,23 @@ class AdvancedThreatDetector:
         
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.AdvancedThreatDetector.export_threat_intelligence
+    # Requirement  : `export_threat_intelligence` shall export threat intelligence data
+    # Purpose      : Export threat intelligence data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : filepath: Path
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_threat_intelligence(self, filepath: Path) -> None:
         """
         Export threat intelligence data
@@ -527,11 +833,45 @@ class AdvancedThreatDetector:
         self.logger.info(f"Exported threat intelligence to {filepath}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : security.advanced_threat_detection.SecurityOrchestrator
+# Requirement  : `SecurityOrchestrator` class shall be instantiable and expose the documented interface
+# Purpose      : Orchestrates multiple security components for comprehensive protection
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SecurityOrchestrator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SecurityOrchestrator:
     """
     Orchestrates multiple security components for comprehensive protection
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.SecurityOrchestrator.__init__
+    # Requirement  : `__init__` shall initialize security orchestrator
+    # Purpose      : Initialize security orchestrator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize security orchestrator"""
         self.threat_detector = AdvancedThreatDetector()
@@ -545,6 +885,23 @@ class SecurityOrchestrator:
             "max_threat_events_per_hour": 100
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.SecurityOrchestrator.comprehensive_security_scan
+    # Requirement  : `comprehensive_security_scan` shall perform comprehensive security scanning
+    # Purpose      : Perform comprehensive security scanning
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str; source: str (default='unknown'); metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def comprehensive_security_scan(
         self, 
         content: str, 
@@ -596,6 +953,23 @@ class SecurityOrchestrator:
             "scan_passed": max_threat_level in [ThreatLevel.SAFE, ThreatLevel.LOW]
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : security.advanced_threat_detection.SecurityOrchestrator._apply_security_policies
+    # Requirement  : `_apply_security_policies` shall apply security policies based on detected threats
+    # Purpose      : Apply security policies based on detected threats
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : threats: List[SecurityEvent]; max_threat_level: ThreatLevel
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _apply_security_policies(
         self, 
         threats: List[SecurityEvent], 

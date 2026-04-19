@@ -41,6 +41,23 @@ from eeg_rag.planning.query_planner import QueryComplexity
 
 
 # REQ-AGT-006: Define agent types for routing and identification
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentType
+# Requirement  : `AgentType` class shall be instantiable and expose the documented interface
+# Purpose      : Enumeration of agent types in the system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentType(Enum):
     """Enumeration of agent types in the system"""
     ORCHESTRATOR = "orchestrator"
@@ -52,6 +69,23 @@ class AgentType(Enum):
 
 
 # REQ-AGT-007: Agent status tracking for monitoring
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentStatus
+# Requirement  : `AgentStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Agent execution status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentStatus(Enum):
     """Agent execution status"""
     IDLE = "idle"
@@ -67,6 +101,23 @@ class AgentStatus(Enum):
     THROTTLED = "throttled"
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentResult
+# Requirement  : `AgentResult` class shall be instantiable and expose the documented interface
+# Purpose      : Standardized result from agent execution
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentResult:
     """
@@ -101,6 +152,23 @@ class AgentResult:
     load_balancer_node: Optional[str] = None
     confidence_score: float = 1.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentResult.to_dict
+    # Requirement  : `to_dict` shall convert result to dictionary for logging/serialization
+    # Purpose      : Convert result to dictionary for logging/serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary for logging/serialization"""
         return {
@@ -123,6 +191,23 @@ class AgentResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentQuery
+# Requirement  : `AgentQuery` class shall be instantiable and expose the documented interface
+# Purpose      : Standardized query structure for agents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentQuery with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentQuery:
     """
@@ -143,6 +228,23 @@ class AgentQuery:
     query_id: Optional[str] = None
     timestamp: datetime = field(default_factory=datetime.now)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentQuery.__post_init__
+    # Requirement  : `__post_init__` shall validate query fields after initialization
+    # Purpose      : Validate query fields after initialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Validate query fields after initialization"""
         # REQ-AGT-031: Validate query text
@@ -171,6 +273,23 @@ class AgentQuery:
                 prefix="query"
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentQuery.to_dict
+    # Requirement  : `to_dict` shall convert query to dictionary with validation
+    # Purpose      : Convert query to dictionary with validation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert query to dictionary with validation"""
         try:
@@ -185,6 +304,23 @@ class AgentQuery:
         except Exception as e:
             raise ValueError(f"Failed to serialize AgentQuery: {str(e)}") from e
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentQuery.get_context_value
+    # Requirement  : `get_context_value` shall safely get value from context dictionary
+    # Purpose      : Safely get value from context dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str; default: Any (default=None)
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_context_value(self, key: str, default: Any = None) -> Any:
         """
         Safely get value from context dictionary
@@ -198,6 +334,23 @@ class AgentQuery:
         """
         return self.context.get(key, default)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentQuery.get_parameter_value
+    # Requirement  : `get_parameter_value` shall safely get value from parameters dictionary
+    # Purpose      : Safely get value from parameters dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str; default: Any (default=None)
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_parameter_value(self, key: str, default: Any = None) -> Any:
         """
         Safely get value from parameters dictionary
@@ -212,6 +365,23 @@ class AgentQuery:
         return self.parameters.get(key, default)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.BaseAgent
+# Requirement  : `BaseAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Abstract base class for all agents in the EEG-RAG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BaseAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BaseAgent(ABC):
     """
     Abstract base class for all agents in the EEG-RAG system
@@ -230,6 +400,23 @@ class BaseAgent(ABC):
     REQ-AGT-031: Enhanced validation and error handling
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.__init__
+    # Requirement  : `__init__` shall initialize base agent
+    # Purpose      : Initialize base agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_type: AgentType; name: Optional[str] (default=None); config: Optional[Dict[str, Any]] (default=None); logger: Optional[logging.Logger] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         agent_type: AgentType,
@@ -291,6 +478,23 @@ class BaseAgent(ABC):
             f"Initialized {self.name} (type: {agent_type.value})"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.execute
+    # Requirement  : `execute` shall execute agent-specific logic (must be implemented by subclasses)
+    # Purpose      : Execute agent-specific logic (must be implemented by subclasses)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @abstractmethod
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
@@ -311,6 +515,23 @@ class BaseAgent(ABC):
         """
         pass
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.run
+    # Requirement  : `run` shall main entry point for agent execution with error handling and timing
+    # Purpose      : Main entry point for agent execution with error handling and timing
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run(self, query: AgentQuery) -> AgentResult:
         """
         Main entry point for agent execution with error handling and timing
@@ -427,6 +648,23 @@ class BaseAgent(ABC):
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.get_statistics
+    # Requirement  : `get_statistics` shall get comprehensive agent performance statistics
+    # Purpose      : Get comprehensive agent performance statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get comprehensive agent performance statistics
@@ -493,6 +731,23 @@ class BaseAgent(ABC):
         base_stats.update(timing_stats)
         return base_stats
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.get_performance_summary
+    # Requirement  : `get_performance_summary` shall get human-readable performance summary
+    # Purpose      : Get human-readable performance summary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_performance_summary(self) -> str:
         """
         Get human-readable performance summary
@@ -519,6 +774,23 @@ class BaseAgent(ABC):
         
         return " | ".join(summary_parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.reset_statistics
+    # Requirement  : `reset_statistics` shall reset agent statistics including timing data
+    # Purpose      : Reset agent statistics including timing data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset_statistics(self) -> None:
         """
         Reset agent statistics including timing data
@@ -538,6 +810,23 @@ class BaseAgent(ABC):
         
         self.logger.info(f"[{self.name}] Statistics reset")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.BaseAgent.__repr__
+    # Requirement  : `__repr__` shall string representation of agent
+    # Purpose      : String representation of agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __repr__(self) -> str:
         """String representation of agent"""
         return (
@@ -547,6 +836,23 @@ class BaseAgent(ABC):
 
 
 # REQ-AGT-025: Agent registry for managing multiple agents
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentRegistry
+# Requirement  : `AgentRegistry` class shall be instantiable and expose the documented interface
+# Purpose      : Registry for managing and accessing agents
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentRegistry with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentRegistry:
     """
     Registry for managing and accessing agents
@@ -554,11 +860,45 @@ class AgentRegistry:
     REQ-AGT-026: Centralized agent management
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.__init__
+    # Requirement  : `__init__` shall initialize empty agent registry
+    # Purpose      : Initialize empty agent registry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize empty agent registry"""
         self._agents: Dict[str, BaseAgent] = {}
         self.logger = logging.getLogger("eeg_rag.agents.registry")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.register
+    # Requirement  : `register` shall register an agent
+    # Purpose      : Register an agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent: BaseAgent
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def register(self, agent: BaseAgent) -> None:
         """
         Register an agent
@@ -578,6 +918,23 @@ class AgentRegistry:
             f"Registered agent: {agent.name} (type: {agent.agent_type.value})"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.get
+    # Requirement  : `get` shall get agent by name
+    # Purpose      : Get agent by name
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str
+    # Outputs      : Optional[BaseAgent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get(self, name: str) -> Optional[BaseAgent]:
         """
         Get agent by name
@@ -590,6 +947,23 @@ class AgentRegistry:
         """
         return self._agents.get(name)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.get_by_type
+    # Requirement  : `get_by_type` shall get all agents of a specific type
+    # Purpose      : Get all agents of a specific type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_type: AgentType
+    # Outputs      : List[BaseAgent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_by_type(self, agent_type: AgentType) -> List[BaseAgent]:
         """
         Get all agents of a specific type
@@ -607,10 +981,44 @@ class AgentRegistry:
             if agent.agent_type == agent_type
         ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.get_all
+    # Requirement  : `get_all` shall get all registered agents
+    # Purpose      : Get all registered agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[BaseAgent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_all(self) -> List[BaseAgent]:
         """Get all registered agents"""
         return list(self._agents.values())
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentRegistry.get_statistics
+    # Requirement  : `get_statistics` shall get statistics for all agents
+    # Purpose      : Get statistics for all agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get statistics for all agents
@@ -642,6 +1050,23 @@ __all__ = [
 
 
 # Advanced Coordination Infrastructure
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.CircuitBreakerState
+# Requirement  : `CircuitBreakerState` class shall be instantiable and expose the documented interface
+# Purpose      : Circuit breaker states
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreakerState with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CircuitBreakerState(Enum):
     """Circuit breaker states"""
     CLOSED = "closed"      # Normal operation
@@ -649,6 +1074,23 @@ class CircuitBreakerState(Enum):
     HALF_OPEN = "half_open"  # Testing recovery
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.CircuitBreakerMetrics
+# Requirement  : `CircuitBreakerMetrics` class shall be instantiable and expose the documented interface
+# Purpose      : Metrics for circuit breaker
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreakerMetrics with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class CircuitBreakerMetrics:
     """Metrics for circuit breaker"""
@@ -659,6 +1101,23 @@ class CircuitBreakerMetrics:
     consecutive_failures: int = 0
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.CircuitBreaker
+# Requirement  : `CircuitBreaker` class shall be instantiable and expose the documented interface
+# Purpose      : Circuit breaker pattern for agent resilience
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreaker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CircuitBreaker:
     """
     Circuit breaker pattern for agent resilience
@@ -666,6 +1125,23 @@ class CircuitBreaker:
     REQ-AGT-034: Prevent cascade failures across agents
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.CircuitBreaker.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : failure_threshold: int (default=5); timeout_seconds: float (default=60.0); test_requests: int (default=3)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         failure_threshold: int = 5,
@@ -682,6 +1158,23 @@ class CircuitBreaker:
         
         self.logger = logging.getLogger("eeg_rag.agents.circuit_breaker")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.CircuitBreaker.can_execute
+    # Requirement  : `can_execute` shall check if request can proceed
+    # Purpose      : Check if request can proceed
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def can_execute(self) -> bool:
         """Check if request can proceed"""
         if self.state == CircuitBreakerState.CLOSED:
@@ -702,6 +1195,23 @@ class CircuitBreaker:
         
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.CircuitBreaker.record_success
+    # Requirement  : `record_success` shall record successful execution
+    # Purpose      : Record successful execution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_success(self) -> None:
         """Record successful execution"""
         self.metrics.total_requests += 1
@@ -714,6 +1224,23 @@ class CircuitBreaker:
                 self.state = CircuitBreakerState.CLOSED
                 self.logger.info("Circuit breaker reset to CLOSED")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.CircuitBreaker.record_failure
+    # Requirement  : `record_failure` shall record failed execution
+    # Purpose      : Record failed execution
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_failure(self) -> None:
         """Record failed execution"""
         self.metrics.total_requests += 1
@@ -730,6 +1257,23 @@ class CircuitBreaker:
             self.logger.warning(f"Circuit breaker opened after {self.metrics.consecutive_failures} failures")
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.LoadBalancerNode
+# Requirement  : `LoadBalancerNode` class shall be instantiable and expose the documented interface
+# Purpose      : Node in load balancer
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LoadBalancerNode with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class LoadBalancerNode:
     """Node in load balancer"""
@@ -741,6 +1285,23 @@ class LoadBalancerNode:
     health_score: float = 1.0  # 0.0 to 1.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.LoadBalancer
+# Requirement  : `LoadBalancer` class shall be instantiable and expose the documented interface
+# Purpose      : Intelligent load balancer for agent instances
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate LoadBalancer with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class LoadBalancer:
     """
     Intelligent load balancer for agent instances
@@ -748,24 +1309,92 @@ class LoadBalancer:
     REQ-AGT-035: Distribute load across agent replicas
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : strategy: str (default='weighted_round_robin')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, strategy: str = "weighted_round_robin"):
         self.strategy = strategy
         self.nodes: Dict[str, LoadBalancerNode] = {}
         self.current_index = 0
         self.logger = logging.getLogger("eeg_rag.agents.load_balancer")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer.add_node
+    # Requirement  : `add_node` shall add agent to load balancer
+    # Purpose      : Add agent to load balancer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent: BaseAgent; weight: float (default=1.0)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_node(self, agent: BaseAgent, weight: float = 1.0) -> None:
         """Add agent to load balancer"""
         node = LoadBalancerNode(agent=agent, weight=weight)
         self.nodes[agent.name] = node
         self.logger.info(f"Added node {agent.name} with weight {weight}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer.remove_node
+    # Requirement  : `remove_node` shall remove agent from load balancer
+    # Purpose      : Remove agent from load balancer
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_name: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def remove_node(self, agent_name: str) -> None:
         """Remove agent from load balancer"""
         if agent_name in self.nodes:
             del self.nodes[agent_name]
             self.logger.info(f"Removed node {agent_name}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer.select_agent
+    # Requirement  : `select_agent` shall select agent based on load balancing strategy
+    # Purpose      : Select agent based on load balancing strategy
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Optional[BaseAgent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def select_agent(self) -> Optional[BaseAgent]:
         """Select agent based on load balancing strategy"""
         if not self.nodes:
@@ -792,6 +1421,23 @@ class LoadBalancer:
             # Default to round robin
             return self._round_robin_selection(healthy_nodes)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer._round_robin_selection
+    # Requirement  : `_round_robin_selection` shall simple round robin selection
+    # Purpose      : Simple round robin selection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[LoadBalancerNode]
+    # Outputs      : BaseAgent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _round_robin_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
         """Simple round robin selection"""
         if self.current_index >= len(nodes):
@@ -801,6 +1447,23 @@ class LoadBalancer:
         self.current_index += 1
         return selected.agent
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer._weighted_round_robin_selection
+    # Requirement  : `_weighted_round_robin_selection` shall weighted round robin based on health and capacity
+    # Purpose      : Weighted round robin based on health and capacity
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[LoadBalancerNode]
+    # Outputs      : BaseAgent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _weighted_round_robin_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
         """Weighted round robin based on health and capacity"""
         total_weight = sum(node.weight * node.health_score for node in nodes)
@@ -820,14 +1483,65 @@ class LoadBalancer:
         # Fallback to last node
         return nodes[-1].agent
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer._least_connections_selection
+    # Requirement  : `_least_connections_selection` shall select node with least active connections
+    # Purpose      : Select node with least active connections
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[LoadBalancerNode]
+    # Outputs      : BaseAgent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _least_connections_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
         """Select node with least active connections"""
         return min(nodes, key=lambda n: n.active_requests).agent
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer._response_time_selection
+    # Requirement  : `_response_time_selection` shall select node with best response time
+    # Purpose      : Select node with best response time
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nodes: List[LoadBalancerNode]
+    # Outputs      : BaseAgent
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _response_time_selection(self, nodes: List[LoadBalancerNode]) -> BaseAgent:
         """Select node with best response time"""
         return min(nodes, key=lambda n: n.avg_response_time or float('inf')).agent
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.LoadBalancer.update_node_stats
+    # Requirement  : `update_node_stats` shall update node statistics after request
+    # Purpose      : Update node statistics after request
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_name: str; response_time: float; success: bool
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def update_node_stats(self, agent_name: str, response_time: float, success: bool) -> None:
         """Update node statistics after request"""
         if agent_name not in self.nodes:
@@ -851,6 +1565,23 @@ class LoadBalancer:
             node.health_score = max(0.0, node.health_score - 0.2)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.RetryManager
+# Requirement  : `RetryManager` class shall be instantiable and expose the documented interface
+# Purpose      : Intelligent retry management with exponential backoff
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate RetryManager with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class RetryManager:
     """
     Intelligent retry management with exponential backoff
@@ -858,6 +1589,23 @@ class RetryManager:
     REQ-AGT-036: Smart retry logic for failed operations
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.RetryManager.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : max_retries: int (default=3); base_delay: float (default=1.0); max_delay: float (default=60.0); exponential_base: float (default=2.0); jitter: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         max_retries: int = 3,
@@ -874,6 +1622,23 @@ class RetryManager:
         
         self.logger = logging.getLogger("eeg_rag.agents.retry_manager")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.RetryManager.execute_with_retry
+    # Requirement  : `execute_with_retry` shall execute operation with intelligent retry
+    # Purpose      : Execute operation with intelligent retry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation: callable; *args; **kwargs
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_with_retry(
         self,
         operation: callable,
@@ -914,6 +1679,23 @@ class RetryManager:
         if last_exception:
             raise last_exception
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.RetryManager._calculate_delay
+    # Requirement  : `_calculate_delay` shall calculate delay with exponential backoff and jitter
+    # Purpose      : Calculate delay with exponential backoff and jitter
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : attempt: int
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_delay(self, attempt: int) -> float:
         """Calculate delay with exponential backoff and jitter"""
         delay = self.base_delay * (self.exponential_base ** (attempt - 1))
@@ -926,6 +1708,23 @@ class RetryManager:
         
         return delay
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.RetryManager._is_retryable_error
+    # Requirement  : `_is_retryable_error` shall determine if error is retryable
+    # Purpose      : Determine if error is retryable
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : error: Exception
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _is_retryable_error(self, error: Exception) -> bool:
         """Determine if error is retryable"""
         retryable_types = (
@@ -950,6 +1749,23 @@ class RetryManager:
         return any(msg in error_str for msg in retryable_messages)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.base_agent.AgentCoordinator
+# Requirement  : `AgentCoordinator` class shall be instantiable and expose the documented interface
+# Purpose      : Advanced agent coordination with circuit breakers, load balancing, and retry logic
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentCoordinator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentCoordinator:
     """
     Advanced agent coordination with circuit breakers, load balancing, and retry logic
@@ -957,6 +1773,23 @@ class AgentCoordinator:
     REQ-AGT-037: Comprehensive agent orchestration
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentCoordinator.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.circuit_breakers: Dict[str, CircuitBreaker] = {}
         self.load_balancers: Dict[str, LoadBalancer] = {}
@@ -964,14 +1797,65 @@ class AgentCoordinator:
         
         self.logger = logging.getLogger("eeg_rag.agents.coordinator")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentCoordinator.add_circuit_breaker
+    # Requirement  : `add_circuit_breaker` shall add circuit breaker for agent
+    # Purpose      : Add circuit breaker for agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_name: str; **kwargs
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_circuit_breaker(self, agent_name: str, **kwargs) -> None:
         """Add circuit breaker for agent"""
         self.circuit_breakers[agent_name] = CircuitBreaker(**kwargs)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentCoordinator.add_load_balancer
+    # Requirement  : `add_load_balancer` shall add load balancer for agent type
+    # Purpose      : Add load balancer for agent type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_type: str; strategy: str (default='weighted_round_robin')
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_load_balancer(self, agent_type: str, strategy: str = "weighted_round_robin") -> None:
         """Add load balancer for agent type"""
         self.load_balancers[agent_type] = LoadBalancer(strategy=strategy)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.base_agent.AgentCoordinator.execute_with_coordination
+    # Requirement  : `execute_with_coordination` shall execute agent with full coordination features
+    # Purpose      : Execute agent with full coordination features
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent: BaseAgent; query: AgentQuery; use_circuit_breaker: bool (default=True); use_retry: bool (default=True)
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute_with_coordination(
         self,
         agent: BaseAgent,

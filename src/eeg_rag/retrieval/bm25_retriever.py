@@ -16,6 +16,23 @@ from rank_bm25 import BM25Okapi
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.bm25_retriever.BM25Result
+# Requirement  : `BM25Result` class shall be instantiable and expose the documented interface
+# Purpose      : Result from BM25 search
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BM25Result with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BM25Result:
     """Result from BM25 search."""
@@ -25,6 +42,23 @@ class BM25Result:
     metadata: Dict[str, Any]
 
 
+# ---------------------------------------------------------------------------
+# ID           : retrieval.bm25_retriever.BM25Retriever
+# Requirement  : `BM25Retriever` class shall be instantiable and expose the documented interface
+# Purpose      : Sparse retrieval using BM25 algorithm
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BM25Retriever with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class BM25Retriever:
     """
     Sparse retrieval using BM25 algorithm.
@@ -43,6 +77,23 @@ class BM25Retriever:
         >>> print(results[0].doc_id, results[0].score)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever.__init__
+    # Requirement  : `__init__` shall initialize BM25 retriever
+    # Purpose      : Initialize BM25 retriever
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : cache_dir: Optional[str] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, cache_dir: Optional[str] = None):
         """
         Initialize BM25 retriever.
@@ -57,6 +108,23 @@ class BM25Retriever:
         
         logger.info(f"Initialized BM25Retriever with cache_dir={self.cache_dir}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever._tokenize
+    # Requirement  : `_tokenize` shall tokenize text into words
+    # Purpose      : Tokenize text into words
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _tokenize(self, text: str) -> List[str]:
         """
         Tokenize text into words.
@@ -72,6 +140,23 @@ class BM25Retriever:
         """
         return text.lower().split()
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever.index_documents
+    # Requirement  : `index_documents` shall index documents for BM25 search
+    # Purpose      : Index documents for BM25 search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Dict[str, Any]]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def index_documents(self, documents: List[Dict[str, Any]]) -> None:
         """
         Index documents for BM25 search.
@@ -99,6 +184,23 @@ class BM25Retriever:
         # Cache the index
         self._save_cache()
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever.search
+    # Requirement  : `search` shall search documents using BM25
+    # Purpose      : Search documents using BM25
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; top_k: int (default=10); filter_fn: Optional[callable] (default=None)
+    # Outputs      : List[BM25Result]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search(
         self,
         query: str,
@@ -160,6 +262,23 @@ class BM25Retriever:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever._save_cache
+    # Requirement  : `_save_cache` shall save BM25 index to disk
+    # Purpose      : Save BM25 index to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _save_cache(self) -> None:
         """Save BM25 index to disk."""
         if not self.bm25:
@@ -179,6 +298,23 @@ class BM25Retriever:
         except Exception as e:
             logger.warning(f"Failed to save BM25 cache: {e}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : retrieval.bm25_retriever.BM25Retriever._load_cache
+    # Requirement  : `_load_cache` shall load BM25 index from disk
+    # Purpose      : Load BM25 index from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_cache(self) -> None:
         """Load BM25 index from disk."""
         cache_path = os.path.join(self.cache_dir, "bm25_index.pkl")

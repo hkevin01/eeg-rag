@@ -63,6 +63,23 @@ from .query_builder import PubMedQueryBuilder
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.pubmed_agent.pubmed_agent.PubMedPaper
+# Requirement  : `PubMedPaper` class shall be instantiable and expose the documented interface
+# Purpose      : Structured PubMed paper data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedPaper with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PubMedPaper:
     """Structured PubMed paper data."""
@@ -79,6 +96,23 @@ class PubMedPaper:
     affiliations: List[str] = field(default_factory=list)
     pmc_id: Optional[str] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedPaper.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -98,6 +132,23 @@ class PubMedPaper:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent
+# Requirement  : `PubMedAgent` class shall be instantiable and expose the documented interface
+# Purpose      : Enhanced PubMed agent with:
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedAgent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedAgent(BaseAgent):
     """
     Enhanced PubMed agent with:
@@ -110,6 +161,23 @@ class PubMedAgent(BaseAgent):
 
     EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.__init__
+    # Requirement  : `__init__` shall initialize PubMed agent
+    # Purpose      : Initialize PubMed agent
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str (default='PubMedAgent'); api_key: Optional[str] (default=None); email: str (default='researcher@example.com'); tool: str (default='eeg-rag'); config: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         name: str = "PubMedAgent",
@@ -167,6 +235,23 @@ class PubMedAgent(BaseAgent):
 
         logger.info(f"PubMedAgent initialized (api_key={'yes' if api_key else 'no'})")
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._get_session
+    # Requirement  : `_get_session` shall get or create aiohttp session
+    # Purpose      : Get or create aiohttp session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : aiohttp.ClientSession
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session."""
         if self._session is None or self._session.closed:
@@ -175,6 +260,23 @@ class PubMedAgent(BaseAgent):
             self._owns_session = True
         return self._session
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._get_citation_crawler
+    # Requirement  : `_get_citation_crawler` shall get or create citation crawler
+    # Purpose      : Get or create citation crawler
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : CitationCrawler
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_citation_crawler(self) -> CitationCrawler:
         """Get or create citation crawler."""
         if self._citation_crawler is None:
@@ -186,6 +288,23 @@ class PubMedAgent(BaseAgent):
             )
         return self._citation_crawler
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.close
+    # Requirement  : `close` shall close HTTP session
+    # Purpose      : Close HTTP session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self) -> None:
         """Close HTTP session."""
         if self._citation_crawler:
@@ -193,6 +312,23 @@ class PubMedAgent(BaseAgent):
         if self._owns_session and self._session and not self._session.closed:
             await self._session.close()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._rate_limit
+    # Requirement  : `_rate_limit` shall enforce rate limiting
+    # Purpose      : Enforce rate limiting
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _rate_limit(self) -> None:
         """Enforce rate limiting."""
         async with self._request_lock:
@@ -203,6 +339,23 @@ class PubMedAgent(BaseAgent):
                 await asyncio.sleep(self.min_request_interval - elapsed)
             self._last_request_time = time.time()
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._build_params
+    # Requirement  : `_build_params` shall add common parameters to request
+    # Purpose      : Add common parameters to request
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : params: Dict[str, Any]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _build_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Add common parameters to request."""
         params["email"] = self.email
@@ -211,6 +364,23 @@ class PubMedAgent(BaseAgent):
             params["api_key"] = self.api_key
         return params
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._get_cache
+    # Requirement  : `_get_cache` shall get value from cache if not expired
+    # Purpose      : Get value from cache if not expired
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str
+    # Outputs      : Optional[Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_cache(self, key: str) -> Optional[Any]:
         """Get value from cache if not expired."""
         if key in self._cache:
@@ -222,10 +392,44 @@ class PubMedAgent(BaseAgent):
         self.cache_misses += 1
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._set_cache
+    # Requirement  : `_set_cache` shall set value in cache
+    # Purpose      : Set value in cache
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : key: str; value: Any
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _set_cache(self, key: str, value: Any) -> None:
         """Set value in cache."""
         self._cache[key] = (value, datetime.now())
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.execute
+    # Requirement  : `execute` shall execute PubMed search
+    # Purpose      : Execute PubMed search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: AgentQuery
+    # Outputs      : AgentResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute PubMed search.
@@ -331,6 +535,23 @@ class PubMedAgent(BaseAgent):
                 elapsed_time=elapsed
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._search
+    # Requirement  : `_search` shall execute ESearch to get PMIDs
+    # Purpose      : Execute ESearch to get PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; max_results: int (default=50)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _search(
         self,
         query: str,
@@ -386,6 +607,23 @@ class PubMedAgent(BaseAgent):
             logger.error(f"ESearch error: {e}")
             return {"pmids": [], "total_count": 0}
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._fetch_papers
+    # Requirement  : `_fetch_papers` shall fetch paper details for PMIDs
+    # Purpose      : Fetch paper details for PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]; batch_size: int (default=50)
+    # Outputs      : List[PubMedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch_papers(
         self,
         pmids: List[str],
@@ -433,6 +671,23 @@ class PubMedAgent(BaseAgent):
 
         return all_papers
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._parse_xml
+    # Requirement  : `_parse_xml` shall parse PubMed XML response
+    # Purpose      : Parse PubMed XML response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : xml_content: str
+    # Outputs      : List[PubMedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_xml(self, xml_content: str) -> List[PubMedPaper]:
         """Parse PubMed XML response."""
         papers = []
@@ -454,6 +709,23 @@ class PubMedAgent(BaseAgent):
 
         return papers
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._parse_article
+    # Requirement  : `_parse_article` shall parse a single PubmedArticle element
+    # Purpose      : Parse a single PubmedArticle element
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : article: ElementTree.Element
+    # Outputs      : Optional[PubMedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_article(self, article: ElementTree.Element) -> Optional[PubMedPaper]:
         """Parse a single PubmedArticle element."""
         medline = article.find(".//MedlineCitation")
@@ -565,6 +837,23 @@ class PubMedAgent(BaseAgent):
             pmc_id=pmc_id
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.get_citation_network
+    # Requirement  : `get_citation_network` shall get citation network for a paper
+    # Purpose      : Get citation network for a paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str; direction: str (default='both')
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_citation_network(
         self,
         pmid: str,
@@ -583,6 +872,23 @@ class PubMedAgent(BaseAgent):
         crawler = await self._get_citation_crawler()
         return await crawler.get_full_citation_network(pmid, direction=direction)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.get_similar_papers
+    # Requirement  : `get_similar_papers` shall get papers similar to a given paper
+    # Purpose      : Get papers similar to a given paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmid: str; max_results: int (default=10)
+    # Outputs      : List[PubMedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_similar_papers(
         self,
         pmid: str,
@@ -605,6 +911,23 @@ class PubMedAgent(BaseAgent):
             return await self._fetch_papers(similar_pmids)
         return []
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.fetch_by_pmids
+    # Requirement  : `fetch_by_pmids` shall fetch papers by their PMIDs
+    # Purpose      : Fetch papers by their PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]
+    # Outputs      : List[PubMedPaper]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_by_pmids(self, pmids: List[str]) -> List[PubMedPaper]:
         """
         Fetch papers by their PMIDs.
@@ -617,6 +940,23 @@ class PubMedAgent(BaseAgent):
         """
         return await self._fetch_papers(pmids)
 
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent.get_statistics
+    # Requirement  : `get_statistics` shall get agent statistics
+    # Purpose      : Get agent statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics."""
         base_stats = super().get_statistics()

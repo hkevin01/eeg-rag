@@ -46,6 +46,23 @@ logger = get_logger(__name__)
 T = TypeVar('T')
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.MemoryUsage
+# Requirement  : `MemoryUsage` class shall be instantiable and expose the documented interface
+# Purpose      : Current memory usage snapshot
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryUsage with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class MemoryUsage:
     """
@@ -66,6 +83,23 @@ class MemoryUsage:
     available_mb: float
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryUsage.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -76,10 +110,44 @@ class MemoryUsage:
             'timestamp': self.timestamp,
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryUsage.__str__
+    # Requirement  : `__str__` shall execute as specified
+    # Purpose      :   str  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __str__(self) -> str:
         return f"Memory(RSS={self.rss_mb:.1f}MB, VMS={self.vms_mb:.1f}MB, {self.percent:.1f}%)"
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.MemoryProfile
+# Requirement  : `MemoryProfile` class shall be instantiable and expose the documented interface
+# Purpose      : Memory profiling result for an operation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryProfile with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class MemoryProfile:
     """
@@ -105,11 +173,45 @@ class MemoryProfile:
     gc_collections: int = 0
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryProfile.leaked
+    # Requirement  : `leaked` shall check if there's a potential memory leak (significant positive delta)
+    # Purpose      : Check if there's a potential memory leak (significant positive delta)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def leaked(self) -> bool:
         """Check if there's a potential memory leak (significant positive delta)."""
         return self.delta_mb > 10.0  # More than 10MB retained
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryProfile.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -125,6 +227,23 @@ class MemoryProfile:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.get_memory_usage
+# Requirement  : `get_memory_usage` shall get current memory usage
+# Purpose      : Get current memory usage
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : MemoryUsage
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_memory_usage() -> MemoryUsage:
     """
     Get current memory usage.
@@ -146,6 +265,23 @@ def get_memory_usage() -> MemoryUsage:
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.get_system_memory
+# Requirement  : `get_system_memory` shall get system-wide memory information
+# Purpose      : Get system-wide memory information
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, float]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_system_memory() -> Dict[str, float]:
     """
     Get system-wide memory information.
@@ -165,6 +301,23 @@ def get_system_memory() -> Dict[str, float]:
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.force_gc
+# Requirement  : `force_gc` shall force garbage collection and return statistics
+# Purpose      : Force garbage collection and return statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, int]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def force_gc() -> Dict[str, int]:
     """
     Force garbage collection and return statistics.
@@ -190,6 +343,23 @@ def force_gc() -> Dict[str, int]:
     return collected
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.get_object_count
+# Requirement  : `get_object_count` shall get count of objects by type
+# Purpose      : Get count of objects by type
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, int]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_object_count() -> Dict[str, int]:
     """
     Get count of objects by type.
@@ -211,6 +381,23 @@ def get_object_count() -> Dict[str, int]:
     return dict(sorted_counts[:20])
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.MemoryMonitor
+# Requirement  : `MemoryMonitor` class shall be instantiable and expose the documented interface
+# Purpose      : Context manager for memory monitoring
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryMonitor with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MemoryMonitor:
     """
     Context manager for memory monitoring.
@@ -223,6 +410,23 @@ class MemoryMonitor:
         >>> print(f"Used {monitor.peak_mb:.2f} MB peak")
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor.__init__
+    # Requirement  : `__init__` shall initialize memory monitor
+    # Purpose      : Initialize memory monitor
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : operation: str; log_result: bool (default=True); gc_before: bool (default=False); gc_after: bool (default=False); track_peak: bool (default=True); peak_interval: float (default=0.1)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         operation: str,
@@ -259,6 +463,23 @@ class MemoryMonitor:
         self._stop_tracking = threading.Event()
         self._tracker_thread: Optional[threading.Thread] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor.__enter__
+    # Requirement  : `__enter__` shall start monitoring
+    # Purpose      : Start monitoring
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'MemoryMonitor'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __enter__(self) -> 'MemoryMonitor':
         """Start monitoring."""
         if self.gc_before:
@@ -273,6 +494,23 @@ class MemoryMonitor:
         
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor.__exit__
+    # Requirement  : `__exit__` shall stop monitoring and log results
+    # Purpose      : Stop monitoring and log results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Stop monitoring and log results."""
         if self.track_peak:
@@ -289,10 +527,44 @@ class MemoryMonitor:
         
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor._start_peak_tracking
+    # Requirement  : `_start_peak_tracking` shall start background peak memory tracking
+    # Purpose      : Start background peak memory tracking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _start_peak_tracking(self):
         """Start background peak memory tracking."""
         self._stop_tracking.clear()
         
+        # ---------------------------------------------------------------------------
+        # ID           : utils.memory_utils.MemoryMonitor.track
+        # Requirement  : `track` shall execute as specified
+        # Purpose      : Track
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : None
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def track():
             while not self._stop_tracking.is_set():
                 current = get_memory_usage().rss_mb
@@ -302,12 +574,46 @@ class MemoryMonitor:
         self._tracker_thread = threading.Thread(target=track, daemon=True)
         self._tracker_thread.start()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor._stop_peak_tracking
+    # Requirement  : `_stop_peak_tracking` shall stop background peak memory tracking
+    # Purpose      : Stop background peak memory tracking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _stop_peak_tracking(self):
         """Stop background peak memory tracking."""
         self._stop_tracking.set()
         if self._tracker_thread:
             self._tracker_thread.join(timeout=1.0)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor._log_result
+    # Requirement  : `_log_result` shall log monitoring results
+    # Purpose      : Log monitoring results
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : duration: float
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _log_result(self, duration: float):
         """Log monitoring results."""
         delta = self.end_mb - self.start_mb
@@ -318,6 +624,23 @@ class MemoryMonitor:
             f"Duration={duration:.2f}s"
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryMonitor.get_profile
+    # Requirement  : `get_profile` shall get memory profile for this operation
+    # Purpose      : Get memory profile for this operation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : MemoryProfile
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_profile(self) -> MemoryProfile:
         """Get memory profile for this operation."""
         return MemoryProfile(
@@ -331,6 +654,23 @@ class MemoryMonitor:
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.MemoryLeakDetector
+# Requirement  : `MemoryLeakDetector` class shall be instantiable and expose the documented interface
+# Purpose      : Detects potential memory leaks by tracking object references
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryLeakDetector with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MemoryLeakDetector:
     """
     Detects potential memory leaks by tracking object references.
@@ -345,10 +685,44 @@ class MemoryLeakDetector:
         >>> leaks = detector.compare("before", "after")
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryLeakDetector.__init__
+    # Requirement  : `__init__` shall initialize leak detector
+    # Purpose      : Initialize leak detector
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize leak detector."""
         self._snapshots: Dict[str, Dict[str, int]] = {}
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryLeakDetector.snapshot
+    # Requirement  : `snapshot` shall take a snapshot of current object counts
+    # Purpose      : Take a snapshot of current object counts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def snapshot(self, name: str):
         """
         Take a snapshot of current object counts.
@@ -360,6 +734,23 @@ class MemoryLeakDetector:
         self._snapshots[name] = get_object_count()
         logger.debug(f"Memory snapshot '{name}' taken")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryLeakDetector.compare
+    # Requirement  : `compare` shall compare two snapshots to detect leaks
+    # Purpose      : Compare two snapshots to detect leaks
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : before: str; after: str; threshold: int (default=100)
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compare(
         self,
         before: str,
@@ -392,11 +783,45 @@ class MemoryLeakDetector:
         
         return leaks
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryLeakDetector.clear
+    # Requirement  : `clear` shall clear all snapshots
+    # Purpose      : Clear all snapshots
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear(self):
         """Clear all snapshots."""
         self._snapshots.clear()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.memory_efficient
+# Requirement  : `memory_efficient` shall decorator for memory-efficient function execution
+# Purpose      : Decorator for memory-efficient function execution
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : max_mb: Optional[float] (default=None); gc_after: bool (default=True); log_usage: bool (default=True)
+# Outputs      : Callable
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def memory_efficient(
     max_mb: Optional[float] = None,
     gc_after: bool = True,
@@ -420,7 +845,41 @@ def memory_efficient(
         ... def process_large_data():
         ...     ...
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable[..., T]
+    # Outputs      : Callable[..., T]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.memory_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : T
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         def wrapper(*args, **kwargs) -> T:
             start_usage = get_memory_usage()
@@ -451,6 +910,23 @@ def memory_efficient(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.low_memory_mode
+# Requirement  : `low_memory_mode` shall context manager for low-memory operations
+# Purpose      : Context manager for low-memory operations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @contextmanager
 def low_memory_mode():
     """
@@ -480,6 +956,23 @@ def low_memory_mode():
         gc.collect()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.MemoryPool
+# Requirement  : `MemoryPool` class shall be instantiable and expose the documented interface
+# Purpose      : Simple object pool for reusing expensive objects
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MemoryPool with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MemoryPool:
     """
     Simple object pool for reusing expensive objects.
@@ -493,6 +986,23 @@ class MemoryPool:
         >>> pool.release(arr)
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryPool.__init__
+    # Requirement  : `__init__` shall initialize memory pool
+    # Purpose      : Initialize memory pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : create_fn: Callable[[], T]; max_size: int (default=10); reset_fn: Optional[Callable[[T], None]] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         create_fn: Callable[[], T],
@@ -515,6 +1025,23 @@ class MemoryPool:
         self._total_created = 0
         self._total_reused = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryPool.acquire
+    # Requirement  : `acquire` shall acquire an object from the pool or create a new one
+    # Purpose      : Acquire an object from the pool or create a new one
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : T
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def acquire(self) -> T:
         """
         Acquire an object from the pool or create a new one.
@@ -531,6 +1058,23 @@ class MemoryPool:
             self._total_created += 1
             return self.create_fn()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryPool.release
+    # Requirement  : `release` shall return an object to the pool
+    # Purpose      : Return an object to the pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : obj: T
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def release(self, obj: T):
         """
         Return an object to the pool.
@@ -544,11 +1088,45 @@ class MemoryPool:
                     self.reset_fn(obj)
                 self._pool.append(obj)
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryPool.clear
+    # Requirement  : `clear` shall clear the pool
+    # Purpose      : Clear the pool
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def clear(self):
         """Clear the pool."""
         with self._lock:
             self._pool.clear()
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.memory_utils.MemoryPool.stats
+    # Requirement  : `stats` shall get pool statistics
+    # Purpose      : Get pool statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def stats(self) -> Dict[str, int]:
         """Get pool statistics."""
         with self._lock:
@@ -571,6 +1149,23 @@ MEMORY_THRESHOLDS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.check_memory_health
+# Requirement  : `check_memory_health` shall check overall memory health
+# Purpose      : Check overall memory health
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def check_memory_health() -> Dict[str, Any]:
     """
     Check overall memory health.
@@ -613,6 +1208,23 @@ _global_profiles: List[MemoryProfile] = []
 _global_profiles_lock = threading.Lock()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.record_memory_profile
+# Requirement  : `record_memory_profile` shall record a memory profile globally
+# Purpose      : Record a memory profile globally
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : profile: MemoryProfile
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def record_memory_profile(profile: MemoryProfile):
     """Record a memory profile globally."""
     with _global_profiles_lock:
@@ -622,12 +1234,46 @@ def record_memory_profile(profile: MemoryProfile):
             _global_profiles.pop(0)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.get_memory_profiles
+# Requirement  : `get_memory_profiles` shall get all recorded memory profiles
+# Purpose      : Get all recorded memory profiles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : List[Dict[str, Any]]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_memory_profiles() -> List[Dict[str, Any]]:
     """Get all recorded memory profiles."""
     with _global_profiles_lock:
         return [p.to_dict() for p in _global_profiles]
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.memory_utils.clear_memory_profiles
+# Requirement  : `clear_memory_profiles` shall clear all recorded memory profiles
+# Purpose      : Clear all recorded memory profiles
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def clear_memory_profiles():
     """Clear all recorded memory profiles."""
     with _global_profiles_lock:

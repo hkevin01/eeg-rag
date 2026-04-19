@@ -24,6 +24,23 @@ import logging
 from datetime import datetime
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.embeddings.EmbeddingResult
+# Requirement  : `EmbeddingResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from embedding generation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EmbeddingResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EmbeddingResult:
     """Result from embedding generation"""
@@ -34,6 +51,23 @@ class EmbeddingResult:
     processing_time: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.EmbeddingResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary (without full embedding array)
+    # Purpose      : Convert to dictionary (without full embedding array)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary (without full embedding array)"""
         return {
@@ -46,6 +80,23 @@ class EmbeddingResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.embeddings.BatchEmbeddingResult
+# Requirement  : `BatchEmbeddingResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from batch embedding generation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate BatchEmbeddingResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class BatchEmbeddingResult:
     """Result from batch embedding generation"""
@@ -56,6 +107,23 @@ class BatchEmbeddingResult:
     model_name: str
     batch_size: int
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.BatchEmbeddingResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -68,13 +136,64 @@ class BatchEmbeddingResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.embeddings.MockEmbeddingModel
+# Requirement  : `MockEmbeddingModel` class shall be instantiable and expose the documented interface
+# Purpose      : Mock embedding model for testing without downloading PubMedBERT
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate MockEmbeddingModel with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class MockEmbeddingModel:
     """Mock embedding model for testing without downloading PubMedBERT"""
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.MockEmbeddingModel.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : embedding_dim: int (default=768)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, embedding_dim: int = 768):
         self.embedding_dim = embedding_dim
         self.model_name = "mock-pubmedbert"
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.MockEmbeddingModel.encode
+    # Requirement  : `encode` shall generate mock embeddings
+    # Purpose      : Generate mock embeddings
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : texts: List[str]; batch_size: int (default=32); show_progress_bar: bool (default=False)
+    # Outputs      : np.ndarray
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def encode(
         self,
         texts: List[str],
@@ -99,6 +218,23 @@ class MockEmbeddingModel:
         return np.array(embeddings)
 
 
+# ---------------------------------------------------------------------------
+# ID           : rag.embeddings.PubMedBERTEmbedder
+# Requirement  : `PubMedBERTEmbedder` class shall be instantiable and expose the documented interface
+# Purpose      : Embedding generator using PubMedBERT
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedBERTEmbedder with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedBERTEmbedder:
     """
     Embedding generator using PubMedBERT
@@ -111,6 +247,23 @@ class PubMedBERTEmbedder:
     DEFAULT_MODEL = "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext"
     EMBEDDING_DIM = 768
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.__init__
+    # Requirement  : `__init__` shall initialize embedding generator
+    # Purpose      : Initialize embedding generator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: Optional[str] (default=None); batch_size: int (default=32); use_gpu: bool (default=True); use_mock: bool (default=True); cache_dir: Optional[Path] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         model_name: Optional[str] = None,
@@ -154,6 +307,23 @@ class PubMedBERTEmbedder:
 
         self.logger = logging.getLogger(__name__)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder._load_model
+    # Requirement  : `_load_model` shall load PubMedBERT model (real implementation)
+    # Purpose      : Load PubMedBERT model (real implementation)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_model(self):
         """Load PubMedBERT model (real implementation)"""
         try:
@@ -175,6 +345,23 @@ class PubMedBERTEmbedder:
             self.model = MockEmbeddingModel(self.EMBEDDING_DIM)
             self.use_mock = True
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.embed_texts
+    # Requirement  : `embed_texts` shall generate embeddings for a list of texts
+    # Purpose      : Generate embeddings for a list of texts
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : texts: List[str]; chunk_ids: Optional[List[str]] (default=None); show_progress: bool (default=True)
+    # Outputs      : BatchEmbeddingResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def embed_texts(
         self,
         texts: List[str],
@@ -253,6 +440,23 @@ class PubMedBERTEmbedder:
             batch_size=self.batch_size
         )
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.embed_chunks
+    # Requirement  : `embed_chunks` shall embed text chunks from structured data
+    # Purpose      : Embed text chunks from structured data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[Dict[str, Any]]; text_field: str (default='text'); id_field: str (default='chunk_id')
+    # Outputs      : BatchEmbeddingResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def embed_chunks(
         self,
         chunks: List[Dict[str, Any]],
@@ -275,6 +479,23 @@ class PubMedBERTEmbedder:
 
         return self.embed_texts(texts, chunk_ids)
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.save_embeddings
+    # Requirement  : `save_embeddings` shall save embeddings to disk
+    # Purpose      : Save embeddings to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : embeddings; output_path: Path
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def save_embeddings(
         self,
         embeddings,  # Can be BatchEmbeddingResult or List[EmbeddingResult]
@@ -332,6 +553,23 @@ class PubMedBERTEmbedder:
 
         self.logger.info(f"Embeddings saved to {output_path}")
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.load_embeddings
+    # Requirement  : `load_embeddings` shall load embeddings from disk
+    # Purpose      : Load embeddings from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : input_path: Path
+    # Outputs      : List[np.ndarray]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def load_embeddings(self, input_path: Path) -> List[np.ndarray]:
         """
         Load embeddings from disk
@@ -347,6 +585,23 @@ class PubMedBERTEmbedder:
         # Return list of embedding arrays
         return [data['embeddings'][i] for i in range(len(data['embeddings']))]
 
+    # ---------------------------------------------------------------------------
+    # ID           : rag.embeddings.PubMedBERTEmbedder.get_statistics
+    # Requirement  : `get_statistics` shall get embedding statistics
+    # Purpose      : Get embedding statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get embedding statistics"""
         return {

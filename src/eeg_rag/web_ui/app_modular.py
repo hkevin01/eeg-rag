@@ -256,6 +256,23 @@ st.markdown(
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.initialize_session_state
+# Requirement  : `initialize_session_state` shall initialize session state variables
+# Purpose      : Initialize session state variables
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def initialize_session_state():
     """Initialize session state variables."""
 
@@ -273,6 +290,23 @@ def initialize_session_state():
             st.session_state[key] = value
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_welcome_banner
+# Requirement  : `render_welcome_banner` shall render welcome banner for first-time users
+# Purpose      : Render welcome banner for first-time users
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_welcome_banner():
     """Render welcome banner for first-time users."""
 
@@ -303,6 +337,23 @@ def render_welcome_banner():
                 st.rerun()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_system_status_bar
+# Requirement  : `render_system_status_bar` shall render real-time system status bar
+# Purpose      : Render real-time system status bar
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_system_status_bar():
     """Render real-time system status bar."""
 
@@ -380,6 +431,23 @@ def render_system_status_bar():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_query_tab
+# Requirement  : `render_query_tab` shall render the main query tab content
+# Purpose      : Render the main query tab content
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_query_tab():
     """Render the main query tab content."""
 
@@ -405,6 +473,23 @@ def render_query_tab():
     render_query_interface()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_agent_pipeline_tab
+# Requirement  : `render_agent_pipeline_tab` shall render the agent pipeline visualization tab
+# Purpose      : Render the agent pipeline visualization tab
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_pipeline_tab():
     """Render the agent pipeline visualization tab."""
 
@@ -429,6 +514,23 @@ def render_agent_pipeline_tab():
     render_agent_monitor()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_results_tab
+# Requirement  : `render_results_tab` shall render the results history tab
+# Purpose      : Render the results history tab
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_results_tab():
     """Render the results history tab."""
 
@@ -482,6 +584,23 @@ def render_results_tab():
                     st.markdown(f"- {verified} PMID: {cite.get('pmid', 'N/A')}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_analytics_tab
+# Requirement  : `render_analytics_tab` shall render analytics and insights tab
+# Purpose      : Render analytics and insights tab
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_analytics_tab():
     """Render analytics and insights tab."""
 
@@ -526,6 +645,23 @@ def render_analytics_tab():
         st.markdown(f"- Highest confidence: {max(confs):.0%}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.render_citation_card
+# Requirement  : `render_citation_card` shall render a citation card with verification status
+# Purpose      : Render a citation card with verification status
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : pmid: str; title: str; journal: str; year: int; verified: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_citation_card(
     pmid: str, title: str, journal: str, year: int, verified: bool
 ):
@@ -551,6 +687,23 @@ def render_citation_card(
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_modular.main
+# Requirement  : `main` shall main application entry point
+# Purpose      : Main application entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main application entry point."""
 

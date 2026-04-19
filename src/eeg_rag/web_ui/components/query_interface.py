@@ -14,6 +14,23 @@ from eeg_rag.web_ui.components.history_sidebar import get_or_create_session
 from eeg_rag.web_ui.components.agents_showcase import AI_AGENTS, get_agent_info
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_query_interface
+# Requirement  : `render_query_interface` shall render the main query input interface with options
+# Purpose      : Render the main query input interface with options
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_query_interface():
     """Render the main query input interface with options."""
 
@@ -184,6 +201,23 @@ def render_query_interface():
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.execute_query_with_monitoring
+# Requirement  : `execute_query_with_monitoring` shall execute query with detailed live agent monitoring that shows completion status
+# Purpose      : Execute query with detailed live agent monitoring that shows completion status
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; mode: str; max_sources: int; include_trials: bool; validate: bool; relevance_threshold: float (default=0.7)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def execute_query_with_monitoring(
     query: str,
     mode: str,
@@ -331,6 +365,23 @@ def execute_query_with_monitoring(
     render_comprehensive_response(query, query_id, max_sources, relevance_threshold)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.get_agent_processing_details
+# Requirement  : `get_agent_processing_details` shall get detailed processing status for each agent
+# Purpose      : Get detailed processing status for each agent
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent_id: str; query: str
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_agent_processing_details(agent_id: str, query: str) -> str:
     """Get detailed processing status for each agent."""
     details = {
@@ -346,6 +397,23 @@ def get_agent_processing_details(agent_id: str, query: str) -> str:
     return details.get(agent_id, "Processing...")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.determine_query_type
+# Requirement  : `determine_query_type` shall determine the type of query for routing
+# Purpose      : Determine the type of query for routing
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def determine_query_type(query: str) -> str:
     """Determine the type of query for routing."""
     query_lower = query.lower()
@@ -363,6 +431,23 @@ def determine_query_type(query: str) -> str:
         return "factual"
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.extract_entities_preview
+# Requirement  : `extract_entities_preview` shall extract potential EEG entities from query for preview
+# Purpose      : Extract potential EEG entities from query for preview
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str
+# Outputs      : list
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def extract_entities_preview(query: str) -> list:
     """Extract potential EEG entities from query for preview."""
     eeg_terms = [
@@ -399,6 +484,23 @@ def extract_entities_preview(query: str) -> list:
     return found[:5]
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.generate_mock_papers
+# Requirement  : `generate_mock_papers` shall generate extended mock paper list for demonstration
+# Purpose      : Generate extended mock paper list for demonstration
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; max_papers: int (default=25)
+# Outputs      : list
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def generate_mock_papers(query: str, max_papers: int = 25) -> list:
     """Generate extended mock paper list for demonstration."""
 
@@ -704,6 +806,23 @@ def generate_mock_papers(query: str, max_papers: int = 25) -> list:
     return base_papers[:max_papers]
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_comprehensive_response
+# Requirement  : `render_comprehensive_response` shall render comprehensive response with detailed summaries and pagination
+# Purpose      : Render comprehensive response with detailed summaries and pagination
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; query_id: str; max_sources: int; relevance_threshold: float
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_comprehensive_response(
     query: str, query_id: str, max_sources: int, relevance_threshold: float
 ):
@@ -879,6 +998,23 @@ def render_comprehensive_response(
     render_follow_up_suggestions(entities)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_comprehensive_summary
+# Requirement  : `render_comprehensive_summary` shall render a comprehensive multi-paragraph AI summary (minimum 3 paragraphs)
+# Purpose      : Render a comprehensive multi-paragraph AI summary (minimum 3 paragraphs)
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; entities: list
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_comprehensive_summary(query: str, entities: list):
     """Render a comprehensive multi-paragraph AI summary (minimum 3 paragraphs)."""
 
@@ -958,6 +1094,23 @@ However, several challenges remain before widespread clinical adoption:
             )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_papers_summary
+# Requirement  : `render_papers_summary` shall render a summary section before listing individual papers
+# Purpose      : Render a summary section before listing individual papers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : papers: list; threshold: float
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_papers_summary(papers: list, threshold: float):
     """Render a summary section before listing individual papers."""
 
@@ -1007,6 +1160,23 @@ def render_papers_summary(papers: list, threshold: float):
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_paper_card
+# Requirement  : `render_paper_card` shall render a single paper card with full details
+# Purpose      : Render a single paper card with full details
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : paper: dict; rank: int
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_paper_card(paper: dict, rank: int):
     """Render a single paper card with full details."""
 
@@ -1075,6 +1245,23 @@ def render_paper_card(paper: dict, rank: int):
             st.markdown(paper["abstract"])
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_pagination
+# Requirement  : `render_pagination` shall render pagination controls with clickable page numbers
+# Purpose      : Render pagination controls with clickable page numbers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : current_page: int; total_pages: int
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_pagination(current_page: int, total_pages: int):
     """Render pagination controls with clickable page numbers."""
 
@@ -1155,6 +1342,23 @@ def render_pagination(current_page: int, total_pages: int):
             st.rerun()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_quality_metrics
+# Requirement  : `render_quality_metrics` shall render response quality metrics
+# Purpose      : Render response quality metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_quality_metrics():
     """Render response quality metrics."""
 
@@ -1203,6 +1407,23 @@ def render_quality_metrics():
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.query_interface.render_follow_up_suggestions
+# Requirement  : `render_follow_up_suggestions` shall render follow-up question suggestions
+# Purpose      : Render follow-up question suggestions
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : entities: list
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_follow_up_suggestions(entities: list):
     """Render follow-up question suggestions."""
 

@@ -12,6 +12,23 @@ from dataclasses import dataclass, asdict
 import hashlib
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.search_history.HistorySession
+# Requirement  : `HistorySession` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a conversation session
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HistorySession with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class HistorySession:
     """Represents a conversation session."""
@@ -24,6 +41,23 @@ class HistorySession:
     query_count: int = 0
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.search_history.HistoryMessage
+# Requirement  : `HistoryMessage` class shall be instantiable and expose the documented interface
+# Purpose      : Represents a single query/response in history
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HistoryMessage with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class HistoryMessage:
     """Represents a single query/response in history."""
@@ -38,9 +72,43 @@ class HistoryMessage:
     relevance_threshold: float = 0.7
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.search_history.HistoryManager
+# Requirement  : `HistoryManager` class shall be instantiable and expose the documented interface
+# Purpose      : Manages conversation history with SQLite storage
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate HistoryManager with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class HistoryManager:
     """Manages conversation history with SQLite storage."""
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.__init__
+    # Requirement  : `__init__` shall initialize history manager
+    # Purpose      : Initialize history manager
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : db_path: Optional[Path] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, db_path: Optional[Path] = None):
         """Initialize history manager."""
         if db_path is None:
@@ -50,6 +118,23 @@ class HistoryManager:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager._init_database
+    # Requirement  : `_init_database` shall initialize database schema
+    # Purpose      : Initialize database schema
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _init_database(self):
         """Initialize database schema."""
         with sqlite3.connect(self.db_path) as conn:
@@ -112,6 +197,23 @@ class HistoryManager:
 
             conn.commit()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.create_session
+    # Requirement  : `create_session` shall create a new conversation session
+    # Purpose      : Create a new conversation session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : title: str; tags: Optional[List[str]] (default=None)
+    # Outputs      : HistorySession
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def create_session(
         self, title: str, tags: Optional[List[str]] = None
     ) -> HistorySession:
@@ -144,6 +246,23 @@ class HistoryManager:
 
         return session
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.add_message
+    # Requirement  : `add_message` shall add a message to a session
+    # Purpose      : Add a message to a session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session_id: str; role: str; content: str; paper_count: int (default=0); execution_time: float (default=0.0); relevance_threshold: float (default=0.7); citations: Optional[List[Dict[str, Any]]] (default=None)
+    # Outputs      : HistoryMessage
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_message(
         self,
         session_id: str,
@@ -222,6 +341,23 @@ class HistoryManager:
 
         return message
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.get_sessions
+    # Requirement  : `get_sessions` shall get recent sessions
+    # Purpose      : Get recent sessions
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : limit: int (default=50)
+    # Outputs      : List[HistorySession]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_sessions(self, limit: int = 50) -> List[HistorySession]:
         """Get recent sessions."""
         with sqlite3.connect(self.db_path) as conn:
@@ -250,6 +386,23 @@ class HistoryManager:
 
             return sessions
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.get_session_messages
+    # Requirement  : `get_session_messages` shall get all messages for a session
+    # Purpose      : Get all messages for a session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session_id: str
+    # Outputs      : List[HistoryMessage]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_session_messages(self, session_id: str) -> List[HistoryMessage]:
         """Get all messages for a session."""
         with sqlite3.connect(self.db_path) as conn:
@@ -280,6 +433,23 @@ class HistoryManager:
 
             return messages
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.delete_session
+    # Requirement  : `delete_session` shall delete a session and all its messages
+    # Purpose      : Delete a session and all its messages
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def delete_session(self, session_id: str):
         """Delete a session and all its messages."""
         with sqlite3.connect(self.db_path) as conn:
@@ -302,6 +472,23 @@ class HistoryManager:
 
             conn.commit()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.search_history
+    # Requirement  : `search_history` shall search across all history (simple text search)
+    # Purpose      : Search across all history (simple text search)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; limit: int (default=20)
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def search_history(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """Search across all history (simple text search)."""
         with sqlite3.connect(self.db_path) as conn:
@@ -334,6 +521,23 @@ class HistoryManager:
 
             return results
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.components.search_history.HistoryManager.get_statistics
+    # Requirement  : `get_statistics` shall get usage statistics
+    # Purpose      : Get usage statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get usage statistics."""
         with sqlite3.connect(self.db_path) as conn:
@@ -361,6 +565,23 @@ class HistoryManager:
 
 
 # Backward compatibility functions for app_enhanced.py
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.search_history.initialize_search_state
+# Requirement  : `initialize_search_state` shall initialize search state (backward compatibility stub)
+# Purpose      : Initialize search state (backward compatibility stub)
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def initialize_search_state():
     """Initialize search state (backward compatibility stub)."""
     import streamlit as st
@@ -369,6 +590,23 @@ def initialize_search_state():
         st.session_state.search_initialized = True
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.search_history.render_search_history
+# Requirement  : `render_search_history` shall render search history tab (backward compatibility stub)
+# Purpose      : Render search history tab (backward compatibility stub)
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_search_history():
     """Render search history tab (backward compatibility stub)."""
     import streamlit as st

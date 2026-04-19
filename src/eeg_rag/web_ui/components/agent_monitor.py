@@ -10,6 +10,23 @@ from dataclasses import dataclass
 from typing import Optional
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.get_paper_count_for_agent
+# Requirement  : `get_paper_count_for_agent` shall get formatted paper count for agent display
+# Purpose      : Get formatted paper count for agent display
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_count_for_agent() -> str:
     """Get formatted paper count for agent display."""
     try:
@@ -21,6 +38,23 @@ def get_paper_count_for_agent() -> str:
         return "0"
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.AgentStatus
+# Requirement  : `AgentStatus` class shall be instantiable and expose the documented interface
+# Purpose      : Agent execution status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentStatus(Enum):
     """Agent execution status."""
     IDLE = "idle"
@@ -30,6 +64,23 @@ class AgentStatus(Enum):
     SKIPPED = "skipped"
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.AgentInfo
+# Requirement  : `AgentInfo` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive agent information
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentInfo with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentInfo:
     """Comprehensive agent information."""
@@ -321,6 +372,23 @@ AGENTS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.render_agent_monitor
+# Requirement  : `render_agent_monitor` shall render the comprehensive agent monitor component
+# Purpose      : Render the comprehensive agent monitor component
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_monitor():
     """Render the comprehensive agent monitor component."""
     
@@ -340,6 +408,23 @@ def render_agent_monitor():
         render_agents_overview()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.render_pipeline_diagram
+# Requirement  : `render_pipeline_diagram` shall render visual pipeline diagram showing data flow
+# Purpose      : Render visual pipeline diagram showing data flow
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_pipeline_diagram():
     """Render visual pipeline diagram showing data flow."""
     
@@ -441,6 +526,23 @@ def render_pipeline_diagram():
         """)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.render_agent_detail
+# Requirement  : `render_agent_detail` shall render detailed view of a selected agent
+# Purpose      : Render detailed view of a selected agent
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_detail():
     """Render detailed view of a selected agent."""
     
@@ -510,6 +612,23 @@ def render_agent_detail():
             st.markdown(f"• {src}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.agent_monitor.render_agents_overview
+# Requirement  : `render_agents_overview` shall render overview of all agents with live-style status
+# Purpose      : Render overview of all agents with live-style status
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agents_overview():
     """Render overview of all agents with live-style status."""
     

@@ -28,6 +28,23 @@ except ImportError:
     PAPER_STORE_AVAILABLE = False
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_paper_store_stats
+# Requirement  : `get_paper_store_stats` shall get statistics directly from the paper database
+# Purpose      : Get statistics directly from the paper database
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_store_stats() -> Dict[str, Any]:
     """Get statistics directly from the paper database."""
     if not PAPER_STORE_AVAILABLE:
@@ -56,6 +73,23 @@ def get_paper_store_stats() -> Dict[str, Any]:
     return {}
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_corpus_stats
+# Requirement  : `get_corpus_stats` shall load actual corpus statistics - prioritizes database
+# Purpose      : Load actual corpus statistics - prioritizes database
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_corpus_stats() -> Dict[str, Any]:
     """Load actual corpus statistics - prioritizes database."""
 
@@ -103,6 +137,23 @@ def get_corpus_stats() -> Dict[str, Any]:
     return get_default_stats()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.normalize_stats
+# Requirement  : `normalize_stats` shall normalize stats from various metadata formats
+# Purpose      : Normalize stats from various metadata formats
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : data: Dict
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def normalize_stats(data: Dict) -> Dict[str, Any]:
     """Normalize stats from various metadata formats."""
     return {
@@ -123,6 +174,23 @@ def normalize_stats(data: Dict) -> Dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.normalize_checkpoint_stats
+# Requirement  : `normalize_checkpoint_stats` shall normalize stats from checkpoint file (in-progress ingestion)
+# Purpose      : Normalize stats from checkpoint file (in-progress ingestion)
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : data: Dict
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def normalize_checkpoint_stats(data: Dict) -> Dict[str, Any]:
     """Normalize stats from checkpoint file (in-progress ingestion)."""
     return {
@@ -141,6 +209,23 @@ def normalize_checkpoint_stats(data: Dict) -> Dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.count_actual_papers
+# Requirement  : `count_actual_papers` shall count actual papers from all corpus directories
+# Purpose      : Count actual papers from all corpus directories
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : int
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def count_actual_papers() -> int:
     """Count actual papers from all corpus directories."""
     total = 0
@@ -183,11 +268,45 @@ def count_actual_papers() -> int:
     return total if total > 0 else 0
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_target_paper_count
+# Requirement  : `get_target_paper_count` shall get target paper count (500K) for display when corpus is small
+# Purpose      : Get target paper count (500K) for display when corpus is small
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : int
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_target_paper_count() -> int:
     """Get target paper count (500K) for display when corpus is small."""
     return 500000
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_display_paper_count
+# Requirement  : `get_display_paper_count` shall get the paper count to display and whether it's actual or target
+# Purpose      : Get the paper count to display and whether it's actual or target
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : tuple[int, bool]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_display_paper_count() -> tuple[int, bool]:
     """
     Get the paper count to display and whether it's actual or target.
@@ -227,6 +346,23 @@ def get_display_paper_count() -> tuple[int, bool]:
         return actual if actual > 0 else get_target_paper_count(), actual > 0
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_header_display_stats
+# Requirement  : `get_header_display_stats` shall get all stats for header display using StatsService
+# Purpose      : Get all stats for header display using StatsService
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, str]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_header_display_stats() -> Dict[str, str]:
     """
     Get all stats for header display using StatsService.
@@ -251,6 +387,23 @@ def get_header_display_stats() -> Dict[str, str]:
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.get_default_stats
+# Requirement  : `get_default_stats` shall return stats by scanning actual data directories
+# Purpose      : Return stats by scanning actual data directories
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_default_stats() -> Dict[str, Any]:
     """Return stats by scanning actual data directories."""
     actual_count = count_actual_papers()
@@ -270,6 +423,23 @@ def get_default_stats() -> Dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.render_corpus_stats_banner
+# Requirement  : `render_corpus_stats_banner` shall render dynamic corpus statistics banner in the UI
+# Purpose      : Render dynamic corpus statistics banner in the UI
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_corpus_stats_banner():
     """Render dynamic corpus statistics banner in the UI."""
 
@@ -348,6 +518,23 @@ def render_corpus_stats_banner():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.render_corpus_coverage
+# Requirement  : `render_corpus_coverage` shall render detailed corpus coverage breakdown by research area
+# Purpose      : Render detailed corpus coverage breakdown by research area
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_corpus_coverage():
     """Render detailed corpus coverage breakdown by research area."""
 
@@ -404,6 +591,23 @@ def render_corpus_coverage():
         )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.render_ingestion_progress
+# Requirement  : `render_ingestion_progress` shall render ingestion progress if ingestion is in progress
+# Purpose      : Render ingestion progress if ingestion is in progress
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_ingestion_progress():
     """Render ingestion progress if ingestion is in progress."""
 
@@ -445,6 +649,23 @@ def render_ingestion_progress():
     return True
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.corpus_stats.render_corpus_stats_tab
+# Requirement  : `render_corpus_stats_tab` shall render the full corpus statistics tab
+# Purpose      : Render the full corpus statistics tab
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_corpus_stats_tab():
     """Render the full corpus statistics tab."""
 

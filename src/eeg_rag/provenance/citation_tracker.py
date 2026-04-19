@@ -23,6 +23,23 @@ from typing import Dict, List, Optional, Any
 from enum import Enum
 
 
+# ---------------------------------------------------------------------------
+# ID           : provenance.citation_tracker.ProvenanceEventType
+# Requirement  : `ProvenanceEventType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of provenance events in citation lifecycle
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProvenanceEventType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ProvenanceEventType(Enum):
     """Types of provenance events in citation lifecycle"""
     RETRIEVED = "retrieved"  # Citation first retrieved from source
@@ -32,6 +49,23 @@ class ProvenanceEventType(Enum):
     EXPORTED = "exported"  # Citation exported to output
 
 
+# ---------------------------------------------------------------------------
+# ID           : provenance.citation_tracker.SourceType
+# Requirement  : `SourceType` class shall be instantiable and expose the documented interface
+# Purpose      : Types of citation sources
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SourceType with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SourceType(Enum):
     """Types of citation sources"""
     PUBMED = "pubmed"
@@ -42,6 +76,23 @@ class SourceType(Enum):
     KNOWLEDGE_GRAPH = "knowledge_graph"
 
 
+# ---------------------------------------------------------------------------
+# ID           : provenance.citation_tracker.ProvenanceEvent
+# Requirement  : `ProvenanceEvent` class shall be instantiable and expose the documented interface
+# Purpose      : Single event in citation provenance chain
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProvenanceEvent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ProvenanceEvent:
     """
@@ -69,11 +120,45 @@ class ProvenanceEvent:
     hash: Optional[str] = None
     opentimestamp: Optional[str] = None  # OTS proof URL
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.ProvenanceEvent.__post_init__
+    # Requirement  : `__post_init__` shall generate hash after initialization
+    # Purpose      : Generate hash after initialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Generate hash after initialization"""
         if self.hash is None:
             self.hash = self.compute_hash()
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.ProvenanceEvent.compute_hash
+    # Requirement  : `compute_hash` shall compute SHA-256 hash of event data for integrity verification
+    # Purpose      : Compute SHA-256 hash of event data for integrity verification
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_hash(self) -> str:
         """
         Compute SHA-256 hash of event data for integrity verification
@@ -89,6 +174,23 @@ class ProvenanceEvent:
         )
         return hashlib.sha256(data_string.encode()).hexdigest()
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.ProvenanceEvent.verify_integrity
+    # Requirement  : `verify_integrity` shall verify event has not been tampered with
+    # Purpose      : Verify event has not been tampered with
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def verify_integrity(self) -> bool:
         """
         Verify event has not been tampered with
@@ -99,6 +201,23 @@ class ProvenanceEvent:
         current_hash = self.compute_hash()
         return current_hash == self.hash
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.ProvenanceEvent.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         data = asdict(self)
@@ -107,6 +226,23 @@ class ProvenanceEvent:
         return data
 
 
+# ---------------------------------------------------------------------------
+# ID           : provenance.citation_tracker.CitationProvenance
+# Requirement  : `CitationProvenance` class shall be instantiable and expose the documented interface
+# Purpose      : Complete provenance record for a single citation
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationProvenance with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class CitationProvenance:
     """
@@ -140,6 +276,23 @@ class CitationProvenance:
     verified: bool = False
     verification_timestamp: Optional[str] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenance.add_event
+    # Requirement  : `add_event` shall add provenance event to chain
+    # Purpose      : Add provenance event to chain
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : event: ProvenanceEvent
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_event(self, event: ProvenanceEvent) -> None:
         """
         Add provenance event to chain
@@ -165,6 +318,23 @@ class CitationProvenance:
             self.verified = True
             self.verification_timestamp = event.timestamp
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenance.get_chain_of_custody
+    # Requirement  : `get_chain_of_custody` shall get complete chain of custody for citation
+    # Purpose      : Get complete chain of custody for citation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[ProvenanceEvent]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_chain_of_custody(self) -> List[ProvenanceEvent]:
         """
         Get complete chain of custody for citation
@@ -174,6 +344,23 @@ class CitationProvenance:
         """
         return sorted(self.events, key=lambda e: e.timestamp)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenance.verify_chain_integrity
+    # Requirement  : `verify_chain_integrity` shall verify entire provenance chain has not been tampered with
+    # Purpose      : Verify entire provenance chain has not been tampered with
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def verify_chain_integrity(self) -> bool:
         """
         Verify entire provenance chain has not been tampered with
@@ -183,6 +370,23 @@ class CitationProvenance:
         """
         return all(event.verify_integrity() for event in self.events)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenance.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
@@ -204,6 +408,23 @@ class CitationProvenance:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : provenance.citation_tracker.CitationProvenanceTracker
+# Requirement  : `CitationProvenanceTracker` class shall be instantiable and expose the documented interface
+# Purpose      : Main provenance tracking system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CitationProvenanceTracker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CitationProvenanceTracker:
     """
     Main provenance tracking system
@@ -236,6 +457,23 @@ class CitationProvenanceTracker:
         report = tracker.export_provenance_report("PMID:12345678")
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.__init__
+    # Requirement  : `__init__` shall initialize provenance tracker
+    # Purpose      : Initialize provenance tracker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : storage_path: Optional[str] (default=None); enable_opentimestamps: bool (default=False)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         storage_path: Optional[str] = None,
@@ -259,6 +497,23 @@ class CitationProvenanceTracker:
         # Load existing records
         self._load_records()
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker._load_records
+    # Requirement  : `_load_records` shall load provenance records from disk
+    # Purpose      : Load provenance records from disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_records(self) -> None:
         """Load provenance records from disk"""
         for file_path in self.storage_path.glob("*.json"):
@@ -306,6 +561,23 @@ class CitationProvenanceTracker:
             except Exception as e:
                 print(f"Warning: Could not load provenance record {file_path}: {e}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker._save_record
+    # Requirement  : `_save_record` shall save single provenance record to disk
+    # Purpose      : Save single provenance record to disk
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _save_record(self, citation_id: str) -> None:
         """Save single provenance record to disk"""
         if citation_id not in self.citations:
@@ -318,6 +590,23 @@ class CitationProvenanceTracker:
         with open(file_path, 'w') as f:
             json.dump(provenance.to_dict(), f, indent=2)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.record_retrieval
+    # Requirement  : `record_retrieval` shall record citation retrieval event
+    # Purpose      : Record citation retrieval event
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str; citation_data: Dict[str, Any]; source_type: SourceType; agent_id: str; user_id: Optional[str] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_retrieval(
         self,
         citation_id: str,
@@ -364,6 +653,23 @@ class CitationProvenanceTracker:
         self.citations[citation_id].add_event(event)
         self._save_record(citation_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.record_usage
+    # Requirement  : `record_usage` shall record citation usage in generated content
+    # Purpose      : Record citation usage in generated content
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str; agent_id: str; document_id: str; user_id: Optional[str] (default=None); context: Optional[str] (default=None)
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def record_usage(
         self,
         citation_id: str,
@@ -404,6 +710,23 @@ class CitationProvenanceTracker:
         self.citations[citation_id].add_event(event)
         self._save_record(citation_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.get_provenance
+    # Requirement  : `get_provenance` shall get complete provenance record for citation
+    # Purpose      : Get complete provenance record for citation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str
+    # Outputs      : Optional[CitationProvenance]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_provenance(self, citation_id: str) -> Optional[CitationProvenance]:
         """
         Get complete provenance record for citation
@@ -416,6 +739,23 @@ class CitationProvenanceTracker:
         """
         return self.citations.get(citation_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.export_provenance_report
+    # Requirement  : `export_provenance_report` shall export provenance report for legal/regulatory compliance
+    # Purpose      : Export provenance report for legal/regulatory compliance
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : citation_id: str; format: str (default='json')
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def export_provenance_report(
         self,
         citation_id: str,
@@ -471,6 +811,23 @@ class CitationProvenanceTracker:
         
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : provenance.citation_tracker.CitationProvenanceTracker.get_statistics
+    # Requirement  : `get_statistics` shall get provenance tracking statistics
+    # Purpose      : Get provenance tracking statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get provenance tracking statistics

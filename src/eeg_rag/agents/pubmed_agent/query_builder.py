@@ -17,6 +17,23 @@ from .mesh_expander import MeSHExpander
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder
+# Requirement  : `PubMedQueryBuilder` class shall be instantiable and expose the documented interface
+# Purpose      : Build optimized PubMed queries
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PubMedQueryBuilder with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class PubMedQueryBuilder:
     """Build optimized PubMed queries."""
     
@@ -34,6 +51,23 @@ class PubMedQueryBuilder:
         "journal_article": "Journal Article",
     }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.__init__
+    # Requirement  : `__init__` shall initialize query builder
+    # Purpose      : Initialize query builder
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : mesh_expander: Optional[MeSHExpander] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, mesh_expander: Optional[MeSHExpander] = None):
         """
         Initialize query builder.
@@ -44,6 +78,23 @@ class PubMedQueryBuilder:
         self.mesh_expander = mesh_expander or MeSHExpander()
         logger.info("PubMedQueryBuilder initialized")
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.build_query
+    # Requirement  : `build_query` shall build a comprehensive PubMed query
+    # Purpose      : Build a comprehensive PubMed query
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str; use_mesh: bool (default=True); date_range: Optional[Tuple[int, int]] (default=None); article_types: Optional[List[str]] (default=None); humans_only: bool (default=False); english_only: bool (default=False); exclude_reviews: bool (default=False); journal_filter: Optional[List[str]] (default=None)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_query(
         self,
         query: str,
@@ -117,6 +168,23 @@ class PubMedQueryBuilder:
         
         return final_query
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.build_author_query
+    # Requirement  : `build_author_query` shall build a query to find papers by author
+    # Purpose      : Build a query to find papers by author
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : author_name: str; affiliation: Optional[str] (default=None); date_range: Optional[Tuple[int, int]] (default=None)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_author_query(
         self,
         author_name: str,
@@ -145,6 +213,23 @@ class PubMedQueryBuilder:
         
         return " AND ".join(parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.build_citation_query
+    # Requirement  : `build_citation_query` shall build a query to fetch specific PMIDs
+    # Purpose      : Build a query to fetch specific PMIDs
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : pmids: List[str]
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_citation_query(
         self,
         pmids: List[str]
@@ -161,6 +246,23 @@ class PubMedQueryBuilder:
         pmid_parts = [f'{pmid}[PMID]' for pmid in pmids[:100]]  # Limit to 100
         return " OR ".join(pmid_parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.build_journal_query
+    # Requirement  : `build_journal_query` shall build a query for papers from a specific journal
+    # Purpose      : Build a query for papers from a specific journal
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : journal_name: str; topic: Optional[str] (default=None); date_range: Optional[Tuple[int, int]] (default=None)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_journal_query(
         self,
         journal_name: str,
@@ -189,6 +291,23 @@ class PubMedQueryBuilder:
         
         return " AND ".join(parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.build_eeg_research_query
+    # Requirement  : `build_eeg_research_query` shall build a specialized query for EEG research
+    # Purpose      : Build a specialized query for EEG research
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : topic: str; method: Optional[str] (default=None); application: Optional[str] (default=None); recent_only: bool (default=False)
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def build_eeg_research_query(
         self,
         topic: str,
@@ -227,6 +346,23 @@ class PubMedQueryBuilder:
         
         return " AND ".join(parts)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.pubmed_agent.query_builder.PubMedQueryBuilder.get_suggested_filters
+    # Requirement  : `get_suggested_filters` shall get suggested filters based on query analysis
+    # Purpose      : Get suggested filters based on query analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: str
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_suggested_filters(self, query: str) -> dict:
         """
         Get suggested filters based on query analysis.

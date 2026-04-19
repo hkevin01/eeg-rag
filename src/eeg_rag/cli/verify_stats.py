@@ -21,6 +21,23 @@ from eeg_rag.services.stats_service import StatsService, get_stats_service
 console = Console() if RICH_AVAILABLE else None
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats._print
+# Requirement  : `_print` shall execute as specified
+# Purpose      :  print
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : msg: str; style: str (default=None)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _print(msg: str, style: str = None):
     if RICH_AVAILABLE and console:
         console.print(msg, style=style)
@@ -28,12 +45,46 @@ def _print(msg: str, style: str = None):
         print(msg)
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.stats
+# Requirement  : `stats` shall statistics verification and management
+# Purpose      : Statistics verification and management
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @click.group()
 def stats():
     """Statistics verification and management."""
     pass
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.verify
+# Requirement  : `verify` shall verify database counts and detect issues
+# Purpose      : Verify database counts and detect issues
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : db_path: str; as_json: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @stats.command()
 @click.option('--db-path', type=click.Path(), help='Path to papers database')
 @click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
@@ -97,6 +148,23 @@ def verify(db_path: str, as_json: bool):
                 print(f"  - {issue}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.show
+# Requirement  : `show` shall show current statistics
+# Purpose      : Show current statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : no_cache: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @stats.command()
 @click.option('--no-cache', is_flag=True, help='Bypass cache for fresh data')
 def show(no_cache: bool):
@@ -159,6 +227,23 @@ def show(no_cache: bool):
         print(f"  Total Papers: {stats_data.total_papers:,}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.refresh
+# Requirement  : `refresh` shall refresh cached statistics
+# Purpose      : Refresh cached statistics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @stats.command()
 def refresh():
     """Refresh cached statistics."""
@@ -172,6 +257,23 @@ def refresh():
     _print(f"  Total papers: {stats_data.total_papers:,}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.fix
+# Requirement  : `fix` shall fix common database issues
+# Purpose      : Fix common database issues
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : fix_duplicates: bool; fix_null_sources: bool; dry_run: bool
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @stats.command()
 @click.option('--fix-duplicates', is_flag=True, help='Remove duplicate papers')
 @click.option('--fix-null-sources', is_flag=True, help='Set default source for NULL entries')
@@ -210,6 +312,23 @@ def fix(fix_duplicates: bool, fix_null_sources: bool, dry_run: bool):
             _print("  Would set source='unknown' for NULL entries")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.verify_stats.main
+# Requirement  : `main` shall main entry point
+# Purpose      : Main entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main entry point."""
     stats()

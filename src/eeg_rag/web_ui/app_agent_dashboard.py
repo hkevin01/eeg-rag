@@ -34,6 +34,23 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.AgentStatusEnum
+# Requirement  : `AgentStatusEnum` class shall be instantiable and expose the documented interface
+# Purpose      : Agent execution status for UI display
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentStatusEnum with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentStatusEnum(Enum):
     """Agent execution status for UI display."""
 
@@ -44,6 +61,23 @@ class AgentStatusEnum(Enum):
     WAITING = "waiting"
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.AgentDisplayState
+# Requirement  : `AgentDisplayState` class shall be instantiable and expose the documented interface
+# Purpose      : State for displaying an agent in the UI
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentDisplayState with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class AgentDisplayState:
     """State for displaying an agent in the UI."""
@@ -58,6 +92,23 @@ class AgentDisplayState:
     results_count: int = 0
     elapsed_ms: float = 0.0
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentDisplayState.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -72,6 +123,23 @@ class AgentDisplayState:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.TimelineEvent
+# Requirement  : `TimelineEvent` class shall be instantiable and expose the documented interface
+# Purpose      : Event in the execution timeline
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TimelineEvent with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class TimelineEvent:
     """Event in the execution timeline."""
@@ -81,6 +149,23 @@ class TimelineEvent:
     message: str
     event_type: str = "info"  # info, success, error, warning
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.TimelineEvent.to_dict
+    # Requirement  : `to_dict` shall execute as specified
+    # Purpose      : To dict
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
@@ -91,6 +176,23 @@ class TimelineEvent:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.AgentActivityTracker
+# Requirement  : `AgentActivityTracker` class shall be instantiable and expose the documented interface
+# Purpose      : Tracks agent activity and provides real-time updates to the UI
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate AgentActivityTracker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class AgentActivityTracker:
     """
     Tracks agent activity and provides real-time updates to the UI.
@@ -156,6 +258,23 @@ class AgentActivityTracker:
         ),
     ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         self.agents: Dict[str, AgentDisplayState] = {
             a.id: AgentDisplayState(
@@ -173,6 +292,23 @@ class AgentActivityTracker:
         }
         self._lock = threading.Lock()
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.reset
+    # Requirement  : `reset` shall reset all agents to idle state
+    # Purpose      : Reset all agents to idle state
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset(self):
         """Reset all agents to idle state."""
         with self._lock:
@@ -191,6 +327,23 @@ class AgentActivityTracker:
                 "cache_hits": 0,
             }
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.update_agent
+    # Requirement  : `update_agent` shall update an agent's display state
+    # Purpose      : Update an agent's display state
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_id: str; status: Optional[AgentStatusEnum] (default=None); progress: Optional[int] (default=None); details: Optional[str] (default=None); results_count: Optional[int] (default=None); elapsed_ms: Optional[float] (default=None)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def update_agent(
         self,
         agent_id: str,
@@ -216,6 +369,23 @@ class AgentActivityTracker:
             if elapsed_ms is not None:
                 agent.elapsed_ms = elapsed_ms
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.add_timeline_event
+    # Requirement  : `add_timeline_event` shall add an event to the timeline
+    # Purpose      : Add an event to the timeline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : agent_name: str; message: str; event_type: str (default='info')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def add_timeline_event(
         self, agent_name: str, message: str, event_type: str = "info"
     ):
@@ -230,6 +400,23 @@ class AgentActivityTracker:
                 )
             )
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.update_metrics
+    # Requirement  : `update_metrics` shall update query metrics
+    # Purpose      : Update query metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : **kwargs
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def update_metrics(self, **kwargs):
         """Update query metrics."""
         with self._lock:
@@ -237,16 +424,67 @@ class AgentActivityTracker:
                 if key in self.metrics:
                     self.metrics[key] = value
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.get_agents_snapshot
+    # Requirement  : `get_agents_snapshot` shall get current state of all agents
+    # Purpose      : Get current state of all agents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_agents_snapshot(self) -> List[Dict[str, Any]]:
         """Get current state of all agents."""
         with self._lock:
             return [a.to_dict() for a in self.agents.values()]
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.get_timeline_snapshot
+    # Requirement  : `get_timeline_snapshot` shall get current timeline events
+    # Purpose      : Get current timeline events
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_timeline_snapshot(self) -> List[Dict[str, Any]]:
         """Get current timeline events."""
         with self._lock:
             return [e.to_dict() for e in self.timeline]
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.AgentActivityTracker.get_metrics_snapshot
+    # Requirement  : `get_metrics_snapshot` shall get current metrics
+    # Purpose      : Get current metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_metrics_snapshot(self) -> Dict[str, Any]:
         """Get current metrics."""
         with self._lock:
@@ -258,6 +496,23 @@ class AgentActivityTracker:
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.execute_with_agent_tracking
+# Requirement  : `execute_with_agent_tracking` shall execute a RAG query with full agent activity tracking
+# Purpose      : Execute a RAG query with full agent activity tracking
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; tracker: AgentActivityTracker; max_sources: int (default=5)
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def execute_with_agent_tracking(
     query: str, tracker: AgentActivityTracker, max_sources: int = 5
 ) -> Dict[str, Any]:
@@ -278,6 +533,23 @@ async def execute_with_agent_tracking(
         return await _execute_simulated(query, tracker, max_sources)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard._execute_with_real_agents
+# Requirement  : `_execute_with_real_agents` shall execute using real agent system
+# Purpose      : Execute using real agent system
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; tracker: AgentActivityTracker; max_sources: int
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def _execute_with_real_agents(
     query: str, tracker: AgentActivityTracker, max_sources: int
 ) -> Dict[str, Any]:
@@ -319,6 +591,23 @@ async def _execute_with_real_agents(
         return {"success": False, "error": result.error}
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard._execute_simulated
+# Requirement  : `_execute_simulated` shall simulate agent execution for demo/development
+# Purpose      : Simulate agent execution for demo/development
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; tracker: AgentActivityTracker; max_sources: int
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def _execute_simulated(
     query: str, tracker: AgentActivityTracker, max_sources: int
 ) -> Dict[str, Any]:
@@ -578,6 +867,23 @@ async def _execute_simulated(
     }
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard._generate_demo_response
+# Requirement  : `_generate_demo_response` shall generate a realistic demo response based on the query
+# Purpose      : Generate a realistic demo response based on the query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; num_sources: int
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def _generate_demo_response(query: str, num_sources: int) -> Dict[str, Any]:
     """Generate a realistic demo response based on the query."""
 
@@ -743,6 +1049,23 @@ For new EEG classification projects, consider EEGNet as a strong baseline, with 
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_agent_card
+# Requirement  : `render_agent_card` shall render a single agent status card
+# Purpose      : Render a single agent status card
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : agent: Dict[str, Any]; expanded: bool (default=False)
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_agent_card(agent: Dict[str, Any], expanded: bool = False):
     """Render a single agent status card."""
     status = agent["status"]
@@ -821,6 +1144,23 @@ def render_agent_card(agent: Dict[str, Any], expanded: bool = False):
     return card_html
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_timeline
+# Requirement  : `render_timeline` shall render the execution timeline
+# Purpose      : Render the execution timeline
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : events: List[Dict[str, Any]]
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_timeline(events: List[Dict[str, Any]]):
     """Render the execution timeline."""
     if not events:
@@ -860,6 +1200,23 @@ def render_timeline(events: List[Dict[str, Any]]):
     return "".join(html_parts)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_metrics
+# Requirement  : `render_metrics` shall render query metrics
+# Purpose      : Render query metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : metrics: Dict[str, Any]
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_metrics(metrics: Dict[str, Any]):
     """Render query metrics."""
     if not metrics.get("total_latency_ms"):
@@ -883,6 +1240,23 @@ def render_metrics(metrics: Dict[str, Any]):
     """
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_info_tooltip
+# Requirement  : `render_info_tooltip` shall render an informational tooltip/card
+# Purpose      : Render an informational tooltip/card
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : title: str; content: str; icon: str (default='ℹ️')
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_info_tooltip(title: str, content: str, icon: str = "ℹ️") -> str:
     """Render an informational tooltip/card."""
     return f"""
@@ -904,6 +1278,23 @@ def render_info_tooltip(title: str, content: str, icon: str = "ℹ️") -> str:
     """
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_llm_info_panel
+# Requirement  : `render_llm_info_panel` shall render LLM configuration and generation info panel
+# Purpose      : Render LLM configuration and generation info panel
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : llm_config: Dict[str, Any]
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_llm_info_panel(llm_config: Dict[str, Any]) -> str:
     """Render LLM configuration and generation info panel."""
     model = llm_config.get("model", "Mistral-7B")
@@ -953,6 +1344,23 @@ def render_llm_info_panel(llm_config: Dict[str, Any]) -> str:
     """
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_query_understanding
+# Requirement  : `render_query_understanding` shall render what the system understood from the query
+# Purpose      : Render what the system understood from the query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str; extracted_info: Dict[str, Any]
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_query_understanding(query: str, extracted_info: Dict[str, Any]) -> str:
     """Render what the system understood from the query."""
     intent = extracted_info.get("intent", "Research Query")
@@ -1021,6 +1429,23 @@ def render_query_understanding(query: str, extracted_info: Dict[str, Any]) -> st
     """
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.render_confidence_breakdown
+# Requirement  : `render_confidence_breakdown` shall render confidence score breakdown
+# Purpose      : Render confidence score breakdown
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : confidence_data: Dict[str, Any]
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_confidence_breakdown(confidence_data: Dict[str, Any]) -> str:
     """Render confidence score breakdown."""
     overall = confidence_data.get("overall", 0.85)
@@ -1028,6 +1453,23 @@ def render_confidence_breakdown(confidence_data: Dict[str, Any]) -> str:
     citation = confidence_data.get("citation", 0.95)
     synthesis = confidence_data.get("synthesis", 0.75)
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.score_color
+    # Requirement  : `score_color` shall execute as specified
+    # Purpose      : Score color
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : score: float
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def score_color(score: float) -> str:
         if score >= 0.8:
             return "#10B981"
@@ -1036,6 +1478,23 @@ def render_confidence_breakdown(confidence_data: Dict[str, Any]) -> str:
         else:
             return "#EF4444"
 
+    # ---------------------------------------------------------------------------
+    # ID           : web_ui.app_agent_dashboard.render_bar
+    # Requirement  : `render_bar` shall execute as specified
+    # Purpose      : Render bar
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : label: str; score: float; description: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def render_bar(label: str, score: float, description: str) -> str:
         color = score_color(score)
         return f"""
@@ -1087,6 +1546,23 @@ def render_confidence_breakdown(confidence_data: Dict[str, Any]) -> str:
     """
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.extract_query_info
+# Requirement  : `extract_query_info` shall extract structured information from the query
+# Purpose      : Extract structured information from the query
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : query: str
+# Outputs      : Dict[str, Any]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def extract_query_info(query: str) -> Dict[str, Any]:
     """Extract structured information from the query."""
     query_lower = query.lower()
@@ -1167,6 +1643,23 @@ def extract_query_info(query: str) -> Dict[str, Any]:
 # =============================================================================
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.init_session_state
+# Requirement  : `init_session_state` shall initialize session state
+# Purpose      : Initialize session state
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def init_session_state():
     """Initialize session state."""
     if "tracker" not in st.session_state:
@@ -1179,6 +1672,23 @@ def init_session_state():
         st.session_state.is_searching = False
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.app_agent_dashboard.main
+# Requirement  : `main` shall main application entry point
+# Purpose      : Main application entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Main application entry point."""
     st.set_page_config(

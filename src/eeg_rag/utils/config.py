@@ -20,6 +20,23 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.config.Config
+# Requirement  : `Config` class shall be instantiable and expose the documented interface
+# Purpose      : Central configuration class for EEG-RAG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate Config with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class Config:
     """
@@ -114,6 +131,23 @@ class Config:
     debug: bool = False
     profile_performance: bool = False
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config.__post_init__
+    # Requirement  : `__post_init__` shall validate configuration after initialization
+    # Purpose      : Validate configuration after initialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self) -> None:
         """
         Validate configuration after initialization.
@@ -133,6 +167,23 @@ class Config:
             logger.debug(f"Embedding model: {self.embedding_model}")
             logger.debug(f"Chunk size: {self.chunk_size}, Overlap: {self.chunk_overlap}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config._validate_critical_config
+    # Requirement  : `_validate_critical_config` shall validate critical configuration that must be present
+    # Purpose      : Validate critical configuration that must be present
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _validate_critical_config(self) -> None:
         """
         Validate critical configuration that must be present.
@@ -155,6 +206,23 @@ class Config:
                 "Valid keys typically start with 'sk-'"
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config._validate_numeric_bounds
+    # Requirement  : `_validate_numeric_bounds` shall validate that numeric configuration values are within valid ranges
+    # Purpose      : Validate that numeric configuration values are within valid ranges
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _validate_numeric_bounds(self) -> None:
         """
         Validate that numeric configuration values are within valid ranges.
@@ -224,6 +292,23 @@ class Config:
                 f"pubmed_rate_limit must be positive, got {self.pubmed_rate_limit}"
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config._validate_paths
+    # Requirement  : `_validate_paths` shall validate and create necessary directories
+    # Purpose      : Validate and create necessary directories
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _validate_paths(self) -> None:
         """
         Validate and create necessary directories.
@@ -257,6 +342,23 @@ class Config:
                     f"Failed to create log directory {self.log_file.parent}: {exc}"
                 ) from exc
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config.from_env
+    # Requirement  : `from_env` shall create configuration from environment variables
+    # Purpose      : Create configuration from environment variables
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : env_file: Optional[str] (default='.env')
+    # Outputs      : 'Config'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_env(cls, env_file: Optional[str] = ".env") -> "Config":
         """
@@ -288,6 +390,23 @@ class Config:
             logger.debug(f"No .env file found at {env_file}, using environment variables")
         
         # Helper function to safely get and convert environment variables
+        # ---------------------------------------------------------------------------
+        # ID           : utils.config.Config.get_env
+        # Requirement  : `get_env` shall get environment variable with type conversion and default
+        # Purpose      : Get environment variable with type conversion and default
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : key: str; default: Any; convert_fn (default=str)
+        # Outputs      : Any
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def get_env(key: str, default: Any, convert_fn=str) -> Any:
             """Get environment variable with type conversion and default."""
             value = os.getenv(key)
@@ -303,11 +422,45 @@ class Config:
                 return default
         
         # Helper for boolean conversion
+        # ---------------------------------------------------------------------------
+        # ID           : utils.config.Config.str_to_bool
+        # Requirement  : `str_to_bool` shall convert string to boolean
+        # Purpose      : Convert string to boolean
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : value: str
+        # Outputs      : bool
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def str_to_bool(value: str) -> bool:
             """Convert string to boolean."""
             return value.lower() in ("true", "1", "yes", "on")
         
         # Helper for Path conversion
+        # ---------------------------------------------------------------------------
+        # ID           : utils.config.Config.str_to_path
+        # Requirement  : `str_to_path` shall convert string to Path
+        # Purpose      : Convert string to Path
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : value: str
+        # Outputs      : Path
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         def str_to_path(value: str) -> Path:
             """Convert string to Path."""
             return Path(value)
@@ -378,6 +531,23 @@ class Config:
             profile_performance=get_env("PROFILE_PERFORMANCE", False, str_to_bool),
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.config.Config.to_dict
+    # Requirement  : `to_dict` shall convert configuration to dictionary
+    # Purpose      : Convert configuration to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : include_secrets: bool (default=False)
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self, include_secrets: bool = False) -> Dict[str, Any]:
         """
         Convert configuration to dictionary.

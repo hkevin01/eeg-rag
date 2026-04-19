@@ -25,11 +25,45 @@ from eeg_rag.monitoring import PerformanceMonitor, monitor_performance
 from eeg_rag.utils.common_utils import check_system_health, SystemStatus
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.main.EEGRAGCLIApp
+# Requirement  : `EEGRAGCLIApp` class shall be instantiable and expose the documented interface
+# Purpose      : Interactive CLI application for EEG-RAG system
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EEGRAGCLIApp with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EEGRAGCLIApp:
     """
     Interactive CLI application for EEG-RAG system
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.__init__
+    # Requirement  : `__init__` shall initialize CLI application
+    # Purpose      : Initialize CLI application
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize CLI application"""
         self.setup_logging()
@@ -60,6 +94,23 @@ class EEGRAGCLIApp:
         print("🧠 EEG-RAG: AI-Powered EEG Research Assistant")
         print("=" * 50)
         
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.setup_logging
+    # Requirement  : `setup_logging` shall configure logging for CLI
+    # Purpose      : Configure logging for CLI
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def setup_logging(self):
         """Configure logging for CLI"""
         logging.basicConfig(
@@ -68,6 +119,23 @@ class EEGRAGCLIApp:
         )
         self.logger = logging.getLogger("eeg_rag_cli")
         
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.initialize_system
+    # Requirement  : `initialize_system` shall initialize the EEG-RAG system
+    # Purpose      : Initialize the EEG-RAG system
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def initialize_system(self) -> bool:
         """
         Initialize the EEG-RAG system
@@ -113,6 +181,23 @@ class EEGRAGCLIApp:
             self.logger.error(f"Initialization error: {e}")
             return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.display_help
+    # Requirement  : `display_help` shall display available commands
+    # Purpose      : Display available commands
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def display_help(self):
         """Display available commands"""
         help_text = """
@@ -133,6 +218,23 @@ Example Usage:
 """
         print(help_text)
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.display_examples
+    # Requirement  : `display_examples` shall display example queries
+    # Purpose      : Display example queries
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def display_examples(self):
         """Display example queries"""
         examples = """
@@ -160,6 +262,23 @@ Example Queries:
 """
         print(examples)
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.process_query
+    # Requirement  : `process_query` shall process a user query through the EEG-RAG system
+    # Purpose      : Process a user query through the EEG-RAG system
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query_text: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def process_query(self, query_text: str) -> Dict[str, Any]:
         """
         Process a user query through the EEG-RAG system
@@ -218,6 +337,23 @@ Example Queries:
                 "error": f"Unexpected error: {str(e)}"
             }
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.format_response
+    # Requirement  : `format_response` shall format and display query response
+    # Purpose      : Format and display query response
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : response: Dict[str, Any]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def format_response(self, response: Dict[str, Any]):
         """Format and display query response"""
         if not response["success"]:
@@ -249,6 +385,23 @@ Example Queries:
         if "sources" in response and response["sources"]:
             print(f"📚 Sources: {len(response['sources'])} documents")
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.show_stats
+    # Requirement  : `show_stats` shall display system statistics
+    # Purpose      : Display system statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def show_stats(self):
         """Display system statistics"""
         print("\n📊 EEG-RAG System Statistics")
@@ -277,6 +430,23 @@ Example Queries:
         print(f"   Memory: {health.memory_percent:.1f}%") 
         print(f"   Disk: {health.disk_percent:.1f}%")
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.clear_memory
+    # Requirement  : `clear_memory` shall clear conversation history
+    # Purpose      : Clear conversation history
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def clear_memory(self):
         """Clear conversation history"""
         try:
@@ -287,6 +457,23 @@ Example Queries:
         except Exception as e:
             print(f"❌ Error clearing memory: {e}")
     
+    # ---------------------------------------------------------------------------
+    # ID           : cli.main.EEGRAGCLIApp.run_interactive
+    # Requirement  : `run_interactive` shall run interactive CLI session
+    # Purpose      : Run interactive CLI session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def run_interactive(self):
         """Run interactive CLI session"""
         if not await self.initialize_system():
@@ -352,6 +539,23 @@ Example Queries:
                 self.logger.error(f"Interactive error: {e}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.main.create_argument_parser
+# Requirement  : `create_argument_parser` shall create CLI argument parser
+# Purpose      : Create CLI argument parser
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : argparse.ArgumentParser
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def create_argument_parser() -> argparse.ArgumentParser:
     """Create CLI argument parser"""
     parser = argparse.ArgumentParser(
@@ -400,6 +604,23 @@ Examples:
     return parser
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.main.cli_main
+# Requirement  : `cli_main` shall main CLI entry point
+# Purpose      : Main CLI entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def cli_main():
     """Main CLI entry point"""
     try:
@@ -407,6 +628,23 @@ async def cli_main():
         # Use Click CLI if available for extended commands
         from .commands import add_extended_commands
         
+        # ---------------------------------------------------------------------------
+        # ID           : cli.main.main_cli
+        # Requirement  : `main_cli` shall eEG-RAG: AI-Powered EEG Research Assistant
+        # Purpose      : EEG-RAG: AI-Powered EEG Research Assistant
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : None
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @click.group()
         def main_cli():
             """EEG-RAG: AI-Powered EEG Research Assistant"""
@@ -416,6 +654,23 @@ async def cli_main():
         add_extended_commands(main_cli)
         
         # Add basic interactive command
+        # ---------------------------------------------------------------------------
+        # ID           : cli.main.interactive
+        # Requirement  : `interactive` shall start interactive CLI session
+        # Purpose      : Start interactive CLI session
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : verbose; json_output
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Must be awaited (async)
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @main_cli.command()
         @click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
         @click.option('--json', 'json_output', is_flag=True, help='Output in JSON format')
@@ -483,6 +738,23 @@ async def cli_main():
     await app.run_interactive()
 
 
+# ---------------------------------------------------------------------------
+# ID           : cli.main.main
+# Requirement  : `main` shall synchronous entry point
+# Purpose      : Synchronous entry point
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Synchronous entry point"""
     try:

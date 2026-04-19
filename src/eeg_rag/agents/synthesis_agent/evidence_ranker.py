@@ -18,6 +18,23 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.evidence_ranker.EvidenceLevel
+# Requirement  : `EvidenceLevel` class shall be instantiable and expose the documented interface
+# Purpose      : Evidence quality levels based on study design
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EvidenceLevel with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EvidenceLevel(Enum):
     """Evidence quality levels based on study design."""
     LEVEL_1A = "1a"  # Systematic review of RCTs
@@ -30,6 +47,23 @@ class EvidenceLevel(Enum):
     LEVEL_5 = "5"    # Expert opinion
     UNKNOWN = "unknown"
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceLevel.numeric_score
+    # Requirement  : `numeric_score` shall convert to numeric score (0-1)
+    # Purpose      : Convert to numeric score (0-1)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @property
     def numeric_score(self) -> float:
         """Convert to numeric score (0-1)."""
@@ -43,6 +77,23 @@ class EvidenceLevel(Enum):
         return scores.get(self.value, 0.0)
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.evidence_ranker.EvidenceScore
+# Requirement  : `EvidenceScore` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive evidence quality score
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EvidenceScore with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class EvidenceScore:
     """Comprehensive evidence quality score."""
@@ -56,6 +107,23 @@ class EvidenceScore:
     clinical_relevance: float = 0.0
     confidence: float = 0.0
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceScore.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -71,6 +139,23 @@ class EvidenceScore:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker
+# Requirement  : `EvidenceRanker` class shall be instantiable and expose the documented interface
+# Purpose      : Ranks evidence quality based on multiple factors
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate EvidenceRanker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class EvidenceRanker:
     """
     Ranks evidence quality based on multiple factors.
@@ -166,6 +251,23 @@ class EvidenceRanker:
         (0, 0.1),
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker.__init__
+    # Requirement  : `__init__` shall initialize evidence ranker
+    # Purpose      : Initialize evidence ranker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self):
         """Initialize evidence ranker."""
         # Compile patterns for efficiency
@@ -181,6 +283,23 @@ class EvidenceRanker:
             for name, (pattern, weight) in self.EEG_QUALITY_INDICATORS.items()
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker.rank_evidence
+    # Requirement  : `rank_evidence` shall calculate comprehensive evidence score for a paper
+    # Purpose      : Calculate comprehensive evidence score for a paper
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : EvidenceScore
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rank_evidence(self, paper: Dict[str, Any]) -> EvidenceScore:
         """
         Calculate comprehensive evidence score for a paper.
@@ -232,6 +351,23 @@ class EvidenceRanker:
             confidence=type_confidence
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._detect_study_type
+    # Requirement  : `_detect_study_type` shall detect study type from text
+    # Purpose      : Detect study type from text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : Tuple[str, float]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _detect_study_type(self, text: str) -> Tuple[str, float]:
         """
         Detect study type from text.
@@ -254,6 +390,23 @@ class EvidenceRanker:
         
         return best_type, best_score
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._calculate_sample_size_score
+    # Requirement  : `_calculate_sample_size_score` shall calculate sample size score
+    # Purpose      : Calculate sample size score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_sample_size_score(self, paper: Dict[str, Any]) -> float:
         """Calculate sample size score."""
         # Try to extract sample size from paper data
@@ -283,6 +436,23 @@ class EvidenceRanker:
         
         return 0.1
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._calculate_methodology_score
+    # Requirement  : `_calculate_methodology_score` shall calculate methodology quality score based on EEG-specific indicators
+    # Purpose      : Calculate methodology quality score based on EEG-specific indicators
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_methodology_score(self, text: str) -> float:
         """Calculate methodology quality score based on EEG-specific indicators."""
         score = 0.5  # Base score
@@ -293,6 +463,23 @@ class EvidenceRanker:
         
         return min(1.0, score)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._calculate_recency_score
+    # Requirement  : `_calculate_recency_score` shall calculate recency score
+    # Purpose      : Calculate recency score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : year: Optional[int]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_recency_score(self, year: Optional[int]) -> float:
         """Calculate recency score."""
         if not year:
@@ -315,6 +502,23 @@ class EvidenceRanker:
         else:
             return 0.1
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._calculate_citation_score
+    # Requirement  : `_calculate_citation_score` shall calculate citation impact score
+    # Purpose      : Calculate citation impact score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: Dict[str, Any]
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_citation_score(self, paper: Dict[str, Any]) -> float:
         """Calculate citation impact score."""
         citations = paper.get("citation_count", 0) or 0
@@ -351,6 +555,23 @@ class EvidenceRanker:
         else:
             return 0.1
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker._calculate_clinical_relevance
+    # Requirement  : `_calculate_clinical_relevance` shall calculate clinical relevance score
+    # Purpose      : Calculate clinical relevance score
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : float
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _calculate_clinical_relevance(self, text: str) -> float:
         """Calculate clinical relevance score."""
         clinical_indicators = [
@@ -371,6 +592,23 @@ class EvidenceRanker:
         
         return min(1.0, score)
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker.rank_papers
+    # Requirement  : `rank_papers` shall rank a list of papers by evidence quality
+    # Purpose      : Rank a list of papers by evidence quality
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]; min_evidence_level: Optional[EvidenceLevel] (default=None)
+    # Outputs      : List[Tuple[Dict[str, Any], EvidenceScore]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def rank_papers(
         self,
         papers: List[Dict[str, Any]],
@@ -403,6 +641,23 @@ class EvidenceRanker:
         
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.evidence_ranker.EvidenceRanker.get_evidence_summary
+    # Requirement  : `get_evidence_summary` shall get summary statistics for a set of papers
+    # Purpose      : Get summary statistics for a set of papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[Dict[str, Any]]
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_evidence_summary(
         self,
         papers: List[Dict[str, Any]]

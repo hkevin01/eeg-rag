@@ -11,12 +11,46 @@ from eeg_rag.web_ui.components.corpus_stats import (
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.get_paper_count_formatted
+# Requirement  : `get_paper_count_formatted` shall get formatted paper count
+# Purpose      : Get formatted paper count
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def get_paper_count_formatted() -> str:
     """Get formatted paper count."""
     count, is_actual = get_display_paper_count()
     return f"{count:,}" if count > 0 else "0"
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_educational_content
+# Requirement  : `render_educational_content` shall render comprehensive educational content about EEG-RAG
+# Purpose      : Render comprehensive educational content about EEG-RAG
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_educational_content():
     """Render comprehensive educational content about EEG-RAG."""
 
@@ -63,6 +97,23 @@ def render_educational_content():
         render_limitations()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_rag_basics
+# Requirement  : `render_rag_basics` shall explain RAG fundamentals for researchers
+# Purpose      : Explain RAG fundamentals for researchers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_rag_basics():
     """Explain RAG fundamentals for researchers."""
 
@@ -129,6 +180,23 @@ def render_rag_basics():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_eeg_domain
+# Requirement  : `render_eeg_domain` shall explain EEG-specific domain knowledge encoded in the system
+# Purpose      : Explain EEG-specific domain knowledge encoded in the system
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_eeg_domain():
     """Explain EEG-specific domain knowledge encoded in the system."""
 
@@ -216,6 +284,23 @@ def render_eeg_domain():
         st.caption("Concept connections")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_query_strategies
+# Requirement  : `render_query_strategies` shall teach effective query formulation strategies
+# Purpose      : Teach effective query formulation strategies
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_query_strategies():
     """Teach effective query formulation strategies."""
 
@@ -295,6 +380,23 @@ def render_query_strategies():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_interpreting_results
+# Requirement  : `render_interpreting_results` shall guide users on interpreting EEG-RAG responses
+# Purpose      : Guide users on interpreting EEG-RAG responses
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_interpreting_results():
     """Guide users on interpreting EEG-RAG responses."""
 
@@ -395,6 +497,23 @@ def render_interpreting_results():
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.components.educational.render_limitations
+# Requirement  : `render_limitations` shall transparently communicate system limitations
+# Purpose      : Transparently communicate system limitations
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_limitations():
     """Transparently communicate system limitations."""
 

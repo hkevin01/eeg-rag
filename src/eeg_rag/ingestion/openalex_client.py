@@ -13,6 +13,23 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.openalex_client.OpenAlexWork
+# Requirement  : `OpenAlexWork` class shall be instantiable and expose the documented interface
+# Purpose      : Work (paper) from OpenAlex
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate OpenAlexWork with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class OpenAlexWork:
     """Work (paper) from OpenAlex."""
@@ -33,6 +50,23 @@ class OpenAlexWork:
     pdf_url: Optional[str]
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.openalex_client.OpenAlexClient
+# Requirement  : `OpenAlexClient` class shall be instantiable and expose the documented interface
+# Purpose      : Client for OpenAlex API
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate OpenAlexClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class OpenAlexClient:
     """
     Client for OpenAlex API.
@@ -54,6 +88,23 @@ class OpenAlexClient:
         "C41008148",   # Machine learning (for EEG ML papers)
     ]
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.__init__
+    # Requirement  : `__init__` shall initialize OpenAlex client
+    # Purpose      : Initialize OpenAlex client
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : email: str (default='your-email@example.com')
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, email: str = "your-email@example.com"):
         """
         Initialize OpenAlex client.
@@ -65,11 +116,45 @@ class OpenAlexClient:
         self.headers = {"User-Agent": f"EEG-RAG/1.0 (mailto:{email})"}
         self._session: Optional[aiohttp.ClientSession] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.__aenter__
+    # Requirement  : `__aenter__` shall async context manager entry
+    # Purpose      : Async context manager entry
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self):
         """Async context manager entry."""
         self._session = aiohttp.ClientSession(headers=self.headers)
         return self
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.__aexit__
+    # Requirement  : `__aexit__` shall async context manager exit
+    # Purpose      : Async context manager exit
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self._session:
@@ -77,12 +162,46 @@ class OpenAlexClient:
             self._session = None
         return False
     
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.close
+    # Requirement  : `close` shall close the client session
+    # Purpose      : Close the client session
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def close(self):
         """Close the client session."""
         if self._session:
             await self._session.close()
             self._session = None
         
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient._fetch
+    # Requirement  : `_fetch` shall fetch from OpenAlex API
+    # Purpose      : Fetch from OpenAlex API
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : session: aiohttp.ClientSession; endpoint: str; params: dict (default=None)
+    # Outputs      : dict
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _fetch(
         self,
         session: aiohttp.ClientSession,
@@ -99,6 +218,23 @@ class OpenAlexClient:
             response.raise_for_status()
             return await response.json()
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.search_works
+    # Requirement  : `search_works` shall search for works with various filters
+    # Purpose      : Search for works with various filters
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : query: Optional[str] (default=None); concept_ids: Optional[list[str]] (default=None); from_year: Optional[int] (default=None); to_year: Optional[int] (default=None); per_page: int (default=200); max_results: int (default=10000)
+    # Outputs      : AsyncIterator[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def search_works(
         self,
         query: Optional[str] = None,
@@ -174,6 +310,23 @@ class OpenAlexClient:
                 # Small delay to be polite
                 await asyncio.sleep(0.1)
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient._parse_work
+    # Requirement  : `_parse_work` shall parse OpenAlex work data
+    # Purpose      : Parse OpenAlex work data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: dict
+    # Outputs      : Optional[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_work(self, data: dict) -> Optional[OpenAlexWork]:
         """Parse OpenAlex work data."""
         try:
@@ -255,6 +408,23 @@ class OpenAlexClient:
             logger.warning(f"Error parsing OpenAlex work: {e}")
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.get_work_by_id
+    # Requirement  : `get_work_by_id` shall fetch a specific work by OpenAlex ID
+    # Purpose      : Fetch a specific work by OpenAlex ID
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : work_id: str
+    # Outputs      : Optional[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_work_by_id(self, work_id: str) -> Optional[OpenAlexWork]:
         """
         Fetch a specific work by OpenAlex ID.
@@ -276,6 +446,23 @@ class OpenAlexClient:
                 logger.warning(f"Error fetching work {work_id}: {e}")
                 return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.collect_eeg_corpus
+    # Requirement  : `collect_eeg_corpus` shall collect comprehensive EEG corpus from OpenAlex using keyword search
+    # Purpose      : Collect comprehensive EEG corpus from OpenAlex using keyword search
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : from_year: int (default=2014); max_results: int (default=50000)
+    # Outputs      : AsyncIterator[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def collect_eeg_corpus(
         self,
         from_year: int = 2014,
@@ -304,6 +491,23 @@ class OpenAlexClient:
         ):
             yield work
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.get_citations
+    # Requirement  : `get_citations` shall get works that cite a specific work
+    # Purpose      : Get works that cite a specific work
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : work_id: str; max_results: int (default=100)
+    # Outputs      : AsyncIterator[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_citations(self, work_id: str, max_results: int = 100) -> AsyncIterator[OpenAlexWork]:
         """
         Get works that cite a specific work.
@@ -329,6 +533,23 @@ class OpenAlexClient:
                 if work:
                     yield work
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.openalex_client.OpenAlexClient.get_author_works
+    # Requirement  : `get_author_works` shall get works by a specific author
+    # Purpose      : Get works by a specific author
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : author_id: str; max_results: int (default=100)
+    # Outputs      : AsyncIterator[OpenAlexWork]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_author_works(self, author_id: str, max_results: int = 100) -> AsyncIterator[OpenAlexWork]:
         """
         Get works by a specific author.

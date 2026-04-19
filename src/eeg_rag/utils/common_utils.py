@@ -53,6 +53,23 @@ ERROR_MESSAGES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.validate_non_empty_string
+# Requirement  : `validate_non_empty_string` shall validate that a string is not None, empty, or whitespace-only
+# Purpose      : Validate that a string is not None, empty, or whitespace-only
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Optional[str]; field_name: str (default='value'); allow_none: bool (default=False)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_non_empty_string(
     value: Optional[str],
     field_name: str = "value",
@@ -96,6 +113,23 @@ def validate_non_empty_string(
     return value.strip()
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.validate_positive_number
+# Requirement  : `validate_positive_number` shall validate that a number is positive
+# Purpose      : Validate that a number is positive
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Union[int, float]; field_name: str (default='value'); allow_zero: bool (default=False); min_value: Optional[float] (default=None)
+# Outputs      : Union[int, float]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_positive_number(
     value: Union[int, float],
     field_name: str = "value",
@@ -146,6 +180,23 @@ def validate_positive_number(
     return value
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.validate_range
+# Requirement  : `validate_range` shall validate that a number is within a specified range
+# Purpose      : Validate that a number is within a specified range
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : value: Union[int, float]; min_val: Union[int, float]; max_val: Union[int, float]; field_name: str (default='value'); inclusive: bool (default=True)
+# Outputs      : Union[int, float]
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def validate_range(
     value: Union[int, float],
     min_val: Union[int, float],
@@ -195,6 +246,23 @@ def validate_range(
     return value
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.standardize_time_unit
+# Requirement  : `standardize_time_unit` shall convert time values between different units, always returning seconds
+# Purpose      : Convert time values between different units, always returning seconds
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : time_value: float; from_unit: str; to_unit: str (default='seconds')
+# Outputs      : float
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def standardize_time_unit(
     time_value: float,
     from_unit: str,
@@ -260,6 +328,23 @@ def standardize_time_unit(
     return seconds_value
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.safe_divide
+# Requirement  : `safe_divide` shall perform safe division with handling for zero denominator
+# Purpose      : Perform safe division with handling for zero denominator
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : numerator: Union[int, float]; denominator: Union[int, float]; default: Union[int, float] (default=0.0); field_name: str (default='division')
+# Outputs      : float
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def safe_divide(
     numerator: Union[int, float],
     denominator: Union[int, float],
@@ -287,6 +372,23 @@ def safe_divide(
     return float(numerator) / float(denominator)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.safe_get_nested
+# Requirement  : `safe_get_nested` shall safely access nested dictionary values
+# Purpose      : Safely access nested dictionary values
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : data: Dict[str, Any]; keys: List[str]; default: Any (default=None)
+# Outputs      : Any
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def safe_get_nested(
     data: Dict[str, Any],
     keys: List[str],
@@ -324,6 +426,23 @@ def safe_get_nested(
     return current
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.compute_content_hash
+# Requirement  : `compute_content_hash` shall compute hash of content for deduplication
+# Purpose      : Compute hash of content for deduplication
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : content: str; algorithm: str (default='md5'); prefix: Optional[str] (default=None)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def compute_content_hash(
     content: str,
     algorithm: str = "md5",
@@ -364,6 +483,23 @@ def compute_content_hash(
     return hash_value
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.retry_with_backoff
+# Requirement  : `retry_with_backoff` shall decorator for retrying operations with exponential backoff
+# Purpose      : Decorator for retrying operations with exponential backoff
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : max_retries: int (default=3); initial_delay: float (default=1.0); backoff_factor: float (default=2.0); max_delay: float (default=60.0); exceptions: tuple (default=(Exception,))
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def retry_with_backoff(
     max_retries: int = 3,
     initial_delay: float = 1.0,
@@ -389,7 +525,41 @@ def retry_with_backoff(
             # Code that might fail
             pass
     """
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.decorator
+    # Requirement  : `decorator` shall execute as specified
+    # Purpose      : Decorator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable
+    # Outputs      : Callable
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def decorator(func: Callable) -> Callable:
+        # ---------------------------------------------------------------------------
+        # ID           : utils.common_utils.wrapper
+        # Requirement  : `wrapper` shall execute as specified
+        # Purpose      : Wrapper
+        # Rationale    : Implements domain-specific logic per system design; see referenced specs
+        # Inputs       : *args; **kwargs
+        # Outputs      : Implicitly None or see body
+        # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+        # Postcond.    : Return value satisfies documented output type and range
+        # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+        # Side Effects : May update instance state or perform I/O; see body
+        # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+        # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+        # Constraints  : Synchronous — must not block event loop
+        # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+        # References   : EEG-RAG system design specification; see module docstring
+        # ---------------------------------------------------------------------------
         @wraps(func)
         def wrapper(*args, **kwargs):
             last_exception = None
@@ -421,6 +591,23 @@ def retry_with_backoff(
         
         # Handle async functions
         if asyncio.iscoroutinefunction(func):
+            # ---------------------------------------------------------------------------
+            # ID           : utils.common_utils.async_wrapper
+            # Requirement  : `async_wrapper` shall execute as specified
+            # Purpose      : Async wrapper
+            # Rationale    : Implements domain-specific logic per system design; see referenced specs
+            # Inputs       : *args; **kwargs
+            # Outputs      : Implicitly None or see body
+            # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+            # Postcond.    : Return value satisfies documented output type and range
+            # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+            # Side Effects : May update instance state or perform I/O; see body
+            # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+            # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+            # Constraints  : Must be awaited (async)
+            # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+            # References   : EEG-RAG system design specification; see module docstring
+            # ---------------------------------------------------------------------------
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
                 last_exception = None
@@ -453,6 +640,23 @@ def retry_with_backoff(
     return decorator
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.handle_database_operation
+# Requirement  : `handle_database_operation` shall handle database operations with proper error handling and logging
+# Purpose      : Handle database operations with proper error handling and logging
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : operation: Callable; db_path: Path; operation_name: str (default='database operation'); logger: Optional[logging.Logger] (default=None)
+# Outputs      : Any
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def handle_database_operation(
     operation: Callable,
     db_path: Path,
@@ -495,6 +699,23 @@ def handle_database_operation(
         raise RuntimeError(error_msg) from e
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.ensure_directory_exists
+# Requirement  : `ensure_directory_exists` shall ensure a directory exists, creating it if necessary
+# Purpose      : Ensure a directory exists, creating it if necessary
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : path: Path; create_parents: bool (default=True); logger: Optional[logging.Logger] (default=None)
+# Outputs      : Path
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def ensure_directory_exists(
     path: Path,
     create_parents: bool = True,
@@ -534,6 +755,23 @@ def ensure_directory_exists(
         raise OSError(error_msg) from e
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.format_error_message
+# Requirement  : `format_error_message` shall format standardized error messages
+# Purpose      : Format standardized error messages
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : operation: str; error: Exception; context: Optional[Dict[str, Any]] (default=None); include_traceback: bool (default=False)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def format_error_message(
     operation: str,
     error: Exception,
@@ -574,6 +812,23 @@ def format_error_message(
     return " | ".join(message_parts)
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.format_duration_human_readable
+# Requirement  : `format_duration_human_readable` shall format duration in human-readable format
+# Purpose      : Format duration in human-readable format
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : seconds: float; precision: int (default=2)
+# Outputs      : str
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def format_duration_human_readable(seconds: float, precision: int = 2) -> str:
     """
     Format duration in human-readable format.
@@ -610,6 +865,23 @@ def format_duration_human_readable(seconds: float, precision: int = 2) -> str:
 # System Health Monitoring
 # ============================================================================
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.SystemStatus
+# Requirement  : `SystemStatus` class shall be instantiable and expose the documented interface
+# Purpose      : System health status levels
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystemStatus with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SystemStatus(Enum):
     """System health status levels"""
     HEALTHY = "healthy"
@@ -618,6 +890,23 @@ class SystemStatus(Enum):
     UNKNOWN = "unknown"
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.SystemHealth
+# Requirement  : `SystemHealth` class shall be instantiable and expose the documented interface
+# Purpose      : System health metrics and status
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SystemHealth with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class SystemHealth:
     """
@@ -633,6 +922,23 @@ class SystemHealth:
     warnings: List[str]
     metrics: Dict[str, Any]
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.SystemHealth.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for logging/serialization
+    # Purpose      : Convert to dictionary for logging/serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for logging/serialization"""
         return {
@@ -646,6 +952,23 @@ class SystemHealth:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.check_system_health
+# Requirement  : `check_system_health` shall check current system health metrics
+# Purpose      : Check current system health metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : cpu_warning_threshold: float (default=80.0); cpu_critical_threshold: float (default=95.0); memory_warning_threshold: float (default=85.0); memory_critical_threshold: float (default=95.0); disk_warning_threshold: float (default=90.0); disk_critical_threshold: float (default=98.0)
+# Outputs      : SystemHealth
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def check_system_health(
     cpu_warning_threshold: float = 80.0,
     cpu_critical_threshold: float = 95.0,
@@ -732,6 +1055,23 @@ def check_system_health(
     )
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.CircuitBreakerState
+# Requirement  : `CircuitBreakerState` class shall be instantiable and expose the documented interface
+# Purpose      : Circuit breaker states for external service protection
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreakerState with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CircuitBreakerState(Enum):
     """Circuit breaker states for external service protection"""
     CLOSED = "closed"      # Normal operation
@@ -739,6 +1079,23 @@ class CircuitBreakerState(Enum):
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.CircuitBreaker
+# Requirement  : `CircuitBreaker` class shall be instantiable and expose the documented interface
+# Purpose      : Circuit breaker implementation for external service resilience
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreaker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class CircuitBreaker:
     """
@@ -753,10 +1110,44 @@ class CircuitBreaker:
     failure_count: int = 0
     last_failure_time: Optional[datetime] = None
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.CircuitBreaker.__post_init__
+    # Requirement  : `__post_init__` shall initialize circuit breaker
+    # Purpose      : Initialize circuit breaker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Initialize circuit breaker"""
         self.logger = logging.getLogger(f"eeg_rag.circuit_breaker.{self.name}")
         
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.CircuitBreaker.call
+    # Requirement  : `call` shall execute function with circuit breaker protection
+    # Purpose      : Execute function with circuit breaker protection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : func: Callable; *args; **kwargs
+    # Outputs      : Any
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def call(self, func: Callable, *args, **kwargs) -> Any:
         """
         Execute function with circuit breaker protection
@@ -815,6 +1206,23 @@ class CircuitBreaker:
             
             raise
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.CircuitBreaker._should_attempt_reset
+    # Requirement  : `_should_attempt_reset` shall check if enough time has passed to attempt reset
+    # Purpose      : Check if enough time has passed to attempt reset
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _should_attempt_reset(self) -> bool:
         """Check if enough time has passed to attempt reset"""
         if self.last_failure_time is None:
@@ -823,6 +1231,23 @@ class CircuitBreaker:
         time_since_failure = (datetime.now() - self.last_failure_time).total_seconds()
         return time_since_failure >= self.timeout_seconds
     
+    # ---------------------------------------------------------------------------
+    # ID           : utils.common_utils.CircuitBreaker.reset
+    # Requirement  : `reset` shall manually reset circuit breaker
+    # Purpose      : Manually reset circuit breaker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def reset(self) -> None:
         """Manually reset circuit breaker"""
         self.state = CircuitBreakerState.CLOSED
@@ -831,11 +1256,45 @@ class CircuitBreaker:
         self.logger.info(f"Circuit breaker {self.name} manually reset")
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.CircuitBreakerOpenError
+# Requirement  : `CircuitBreakerOpenError` class shall be instantiable and expose the documented interface
+# Purpose      : Raised when circuit breaker is open
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate CircuitBreakerOpenError with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class CircuitBreakerOpenError(Exception):
     """Raised when circuit breaker is open"""
     pass
 
 
+# ---------------------------------------------------------------------------
+# ID           : utils.common_utils.create_circuit_breaker
+# Requirement  : `create_circuit_breaker` shall factory function for creating circuit breakers
+# Purpose      : Factory function for creating circuit breakers
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : name: str; **kwargs
+# Outputs      : CircuitBreaker
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def create_circuit_breaker(name: str, **kwargs) -> CircuitBreaker:
     """
     Factory function for creating circuit breakers

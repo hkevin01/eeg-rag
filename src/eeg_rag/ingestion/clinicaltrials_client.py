@@ -19,6 +19,23 @@ import aiohttp
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.clinicaltrials_client.ClinicalTrial
+# Requirement  : `ClinicalTrial` class shall be instantiable and expose the documented interface
+# Purpose      : Structured clinical trial record from ClinicalTrials.gov
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalTrial with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ClinicalTrial:
     """Structured clinical trial record from ClinicalTrials.gov."""
@@ -45,6 +62,23 @@ class ClinicalTrial:
     eeg_relevant: bool = False          # Flagged by EEG keyword scan
     eeg_methods_mentioned: List[str] = field(default_factory=list)
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrial.to_dict
+    # Requirement  : `to_dict` shall convert to unified document dict for ingestion pipeline
+    # Purpose      : Convert to unified document dict for ingestion pipeline
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to unified document dict for ingestion pipeline."""
         return {
@@ -75,6 +109,23 @@ class ClinicalTrial:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient
+# Requirement  : `ClinicalTrialsClient` class shall be instantiable and expose the documented interface
+# Purpose      : Async client for ClinicalTrials.gov REST API v2
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ClinicalTrialsClient with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ClinicalTrialsClient:
     """
     Async client for ClinicalTrials.gov REST API v2.
@@ -133,6 +184,23 @@ class ClinicalTrialsClient:
         "scalp electrode",
     ]
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient.__init__
+    # Requirement  : `__init__` shall execute as specified
+    # Purpose      :   init  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : page_size: int (default=100); timeout: float (default=30.0)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         page_size: int = 100,
@@ -142,10 +210,44 @@ class ClinicalTrialsClient:
         self.timeout = aiohttp.ClientTimeout(total=timeout)
         self._session: Optional[aiohttp.ClientSession] = None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient.__aenter__
+    # Requirement  : `__aenter__` shall execute as specified
+    # Purpose      :   aenter  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : 'ClinicalTrialsClient'
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aenter__(self) -> "ClinicalTrialsClient":
         self._session = aiohttp.ClientSession(timeout=self.timeout)
         return self
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient.__aexit__
+    # Requirement  : `__aexit__` shall execute as specified
+    # Purpose      :   aexit  
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : exc_type; exc_val; exc_tb
+    # Outputs      : bool
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> bool:
         if self._session:
             await self._session.close()
@@ -191,6 +293,23 @@ class ClinicalTrialsClient:
                     yield trial
                     yielded += 1
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient.fetch_by_nct_id
+    # Requirement  : `fetch_by_nct_id` shall fetch a single trial by NCT identifier
+    # Purpose      : Fetch a single trial by NCT identifier
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : nct_id: str
+    # Outputs      : Optional[ClinicalTrial]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def fetch_by_nct_id(self, nct_id: str) -> Optional[ClinicalTrial]:
         """Fetch a single trial by NCT identifier."""
         url = f"{self.BASE_URL}/studies/{nct_id}"
@@ -248,6 +367,23 @@ class ClinicalTrialsClient:
 
             await asyncio.sleep(0.34)  # ~3 req/s polite rate
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient._parse_study
+    # Requirement  : `_parse_study` shall parse a ClinicalTrials API v2 study record
+    # Purpose      : Parse a ClinicalTrials API v2 study record
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : data: Dict[str, Any]
+    # Outputs      : Optional[ClinicalTrial]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _parse_study(self, data: Dict[str, Any]) -> Optional[ClinicalTrial]:
         """Parse a ClinicalTrials API v2 study record."""
         try:
@@ -372,6 +508,23 @@ class ClinicalTrialsClient:
             logger.warning("Failed to parse study record: %s", exc)
             return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient._parse_date
+    # Requirement  : `_parse_date` shall parse date strings like 'January 2021' or '2021-01-15'
+    # Purpose      : Parse date strings like 'January 2021' or '2021-01-15'
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : date_str: Optional[str]
+    # Outputs      : Optional[datetime]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     @staticmethod
     def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
         """Parse date strings like 'January 2021' or '2021-01-15'."""
@@ -384,6 +537,23 @@ class ClinicalTrialsClient:
                 continue
         return None
 
+    # ---------------------------------------------------------------------------
+    # ID           : ingestion.clinicaltrials_client.ClinicalTrialsClient._get_json
+    # Requirement  : `_get_json` shall perform a GET request and return parsed JSON
+    # Purpose      : Perform a GET request and return parsed JSON
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : url: str; params: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : Optional[Dict[str, Any]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _get_json(
         self,
         url: str,

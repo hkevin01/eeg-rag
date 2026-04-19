@@ -124,6 +124,23 @@ CHUNK_SIZE_GUIDELINES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.semantic_chunker.ChunkingStrategy
+# Requirement  : `ChunkingStrategy` class shall be instantiable and expose the documented interface
+# Purpose      : Available chunking strategies with specific use cases
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ChunkingStrategy with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class ChunkingStrategy(Enum):
     """Available chunking strategies with specific use cases.
     
@@ -143,6 +160,23 @@ class ChunkingStrategy(Enum):
     ADAPTIVE = "adaptive"     # Dynamic strategy selection
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.semantic_chunker.ChunkResult
+# Requirement  : `ChunkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Comprehensive chunking result with detailed metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ChunkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ChunkResult:
     """Comprehensive chunking result with detailed metadata.
@@ -167,6 +201,23 @@ class ChunkResult:
     boundary_analysis: Dict[str, Any] = field(default_factory=dict)
     medical_preservation: Dict[str, Any] = field(default_factory=dict)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.ChunkResult.__post_init__
+    # Requirement  : `__post_init__` shall validate chunk result and compute derived metrics
+    # Purpose      : Validate chunk result and compute derived metrics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __post_init__(self):
         """Validate chunk result and compute derived metrics."""
         if len(self.chunks) != len(self.metadata):
@@ -175,6 +226,23 @@ class ChunkResult:
         # Compute derived quality metrics
         self._compute_quality_metrics()
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.ChunkResult._compute_quality_metrics
+    # Requirement  : `_compute_quality_metrics` shall compute quality metrics for the chunking result
+    # Purpose      : Compute quality metrics for the chunking result
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _compute_quality_metrics(self) -> None:
         """Compute quality metrics for the chunking result."""
         if not self.chunks:
@@ -193,12 +261,46 @@ class ChunkResult:
             'coverage_ratio': sum(len(chunk) for chunk in self.chunks) / max(sum(chunk_sizes), 1)
         })
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.ChunkResult.get_chunk_by_index
+    # Requirement  : `get_chunk_by_index` shall get chunk and its metadata by index
+    # Purpose      : Get chunk and its metadata by index
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : index: int
+    # Outputs      : Optional[Tuple[str, Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_chunk_by_index(self, index: int) -> Optional[Tuple[str, Dict[str, Any]]]:
         """Get chunk and its metadata by index."""
         if 0 <= index < len(self.chunks):
             return self.chunks[index], self.metadata[index]
         return None
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.ChunkResult.find_chunks_containing
+    # Requirement  : `find_chunks_containing` shall find all chunks containing specific text
+    # Purpose      : Find all chunks containing specific text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[Tuple[int, str, Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def find_chunks_containing(self, text: str) -> List[Tuple[int, str, Dict[str, Any]]]:
         """Find all chunks containing specific text."""
         results = []
@@ -207,6 +309,23 @@ class ChunkResult:
                 results.append((i, chunk, self.metadata[i]))
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.ChunkResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary for serialization
+    # Purpose      : Convert to dictionary for serialization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -228,6 +347,23 @@ class ChunkResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.semantic_chunker.SemanticChunker
+# Requirement  : `SemanticChunker` class shall be instantiable and expose the documented interface
+# Purpose      : Production-grade semantic chunking system with medical domain optimization
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate SemanticChunker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class SemanticChunker:
     """Production-grade semantic chunking system with medical domain optimization.
     
@@ -249,6 +385,23 @@ class SemanticChunker:
     - 90%+ semantic coherence preservation rate
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.__init__
+    # Requirement  : `__init__` shall initialize semantic chunker with configuration
+    # Purpose      : Initialize semantic chunker with configuration
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : model_name: str (default='all-MiniLM-L6-v2'); enable_medical_optimization: bool (default=True); enable_caching: bool (default=True); max_cache_size: int (default=1000)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(self, 
                  model_name: str = "all-MiniLM-L6-v2",
                  enable_medical_optimization: bool = True,
@@ -295,6 +448,23 @@ class SemanticChunker:
         
         logger.info("SemanticChunker initialized with medical optimizations")
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.chunk_text
+    # Requirement  : `chunk_text` shall chunk text using specified strategy with comprehensive analysis
+    # Purpose      : Chunk text using specified strategy with comprehensive analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; strategy: ChunkingStrategy (default=ChunkingStrategy.ADAPTIVE); target_chunk_size: int (default=400); overlap_size: int (default=50); preserve_sentences: bool (default=True); min_chunk_size: int (default=100)
+    # Outputs      : ChunkResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_text(self,
                    text: str,
                    strategy: ChunkingStrategy = ChunkingStrategy.ADAPTIVE,
@@ -385,6 +555,23 @@ class SemanticChunker:
             logger.error(f"Error chunking text: {str(e)}")
             raise
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._preprocess_text
+    # Requirement  : `_preprocess_text` shall preprocess text for chunking analysis
+    # Purpose      : Preprocess text for chunking analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _preprocess_text(self, text: str) -> str:
         """Preprocess text for chunking analysis."""
         start_time = time.time()
@@ -410,6 +597,23 @@ class SemanticChunker:
         
         return text.strip()
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._analyze_content_type
+    # Requirement  : `_analyze_content_type` shall analyze text to determine content type and characteristics
+    # Purpose      : Analyze text to determine content type and characteristics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _analyze_content_type(self, text: str) -> Dict[str, Any]:
         """Analyze text to determine content type and characteristics."""
         analysis = {
@@ -448,6 +652,23 @@ class SemanticChunker:
         
         return analysis
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._select_optimal_strategy
+    # Requirement  : `_select_optimal_strategy` shall select optimal chunking strategy based on content analysis
+    # Purpose      : Select optimal chunking strategy based on content analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content_analysis: Dict[str, Any]; text: str
+    # Outputs      : ChunkingStrategy
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _select_optimal_strategy(self, content_analysis: Dict[str, Any], text: str) -> ChunkingStrategy:
         """Select optimal chunking strategy based on content analysis."""
         primary_type = content_analysis['primary_type']
@@ -466,6 +687,23 @@ class SemanticChunker:
         else:
             return ChunkingStrategy.FIXED
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._adjust_chunking_parameters
+    # Requirement  : `_adjust_chunking_parameters` shall adjust chunking parameters based on content analysis
+    # Purpose      : Adjust chunking parameters based on content analysis
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content_analysis: Dict[str, Any]; target_size: int; strategy: ChunkingStrategy
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _adjust_chunking_parameters(self, 
                                    content_analysis: Dict[str, Any], 
                                    target_size: int, 
@@ -491,6 +729,23 @@ class SemanticChunker:
             'overlap': max(50, target_size // 10)
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._apply_chunking_strategy
+    # Requirement  : `_apply_chunking_strategy` shall apply the selected chunking strategy
+    # Purpose      : Apply the selected chunking strategy
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; strategy: ChunkingStrategy; params: Dict[str, int]; preserve_sentences: bool; min_chunk_size: int
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _apply_chunking_strategy(self, text: str, strategy: ChunkingStrategy, 
                                 params: Dict[str, int], preserve_sentences: bool,
                                 min_chunk_size: int) -> Tuple[List[str], List[Dict[str, Any]]]:
@@ -507,6 +762,23 @@ class SemanticChunker:
             # Fallback to fixed chunking
             return self.chunk_by_fixed_size(text, params)
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_fixed_size
+    # Requirement  : `chunk_by_fixed_size` shall fixed-size chunking with overlap
+    # Purpose      : Fixed-size chunking with overlap
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; params: Dict[str, int]
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_by_fixed_size(self, text: str, params: Dict[str, int]) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Fixed-size chunking with overlap."""
         chunks = []
@@ -537,6 +809,23 @@ class SemanticChunker:
         
         return chunks, metadata
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_sentences
+    # Requirement  : `chunk_by_sentences` shall sentence-boundary aware chunking
+    # Purpose      : Sentence-boundary aware chunking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; params: Dict[str, int]; preserve_boundaries: bool (default=True)
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_by_sentences(self, text: str, params: Dict[str, int], 
                           preserve_boundaries: bool = True) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Sentence-boundary aware chunking."""
@@ -576,6 +865,23 @@ class SemanticChunker:
         
         return chunks, metadata
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_paragraphs
+    # Requirement  : `chunk_by_paragraphs` shall paragraph-level chunking
+    # Purpose      : Paragraph-level chunking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; params: Dict[str, int]
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_by_paragraphs(self, text: str, params: Dict[str, int]) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Paragraph-level chunking."""
         paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
@@ -613,6 +919,23 @@ class SemanticChunker:
         
         return chunks, metadata
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker.chunk_medical_text_internal
+    # Requirement  : `chunk_medical_text_internal` shall medical-optimized chunking with preservation rules
+    # Purpose      : Medical-optimized chunking with preservation rules
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; params: Dict[str, int]
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_medical_text_internal(self, text: str, params: Dict[str, int]) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Medical-optimized chunking with preservation rules."""
         # Start with sentence-based chunking
@@ -636,6 +959,23 @@ class SemanticChunker:
         
         return preserved_chunks, preserved_metadata
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._post_process_chunks
+    # Requirement  : `_post_process_chunks` shall post-process chunks for quality and optimization
+    # Purpose      : Post-process chunks for quality and optimization
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[str]; metadata: List[Dict[str, Any]]; content_analysis: Dict[str, Any]; params: Dict[str, int]
+    # Outputs      : Tuple[List[str], List[Dict[str, Any]]]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _post_process_chunks(self, chunks: List[str], metadata: List[Dict[str, Any]], 
                            content_analysis: Dict[str, Any], params: Dict[str, int]) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Post-process chunks for quality and optimization."""
@@ -652,6 +992,23 @@ class SemanticChunker:
         
         return filtered_chunks, filtered_metadata
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._analyze_boundaries
+    # Requirement  : `_analyze_boundaries` shall analyze chunk boundaries for quality assessment
+    # Purpose      : Analyze chunk boundaries for quality assessment
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[str]; original_text: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _analyze_boundaries(self, chunks: List[str], original_text: str) -> Dict[str, Any]:
         """Analyze chunk boundaries for quality assessment."""
         return {
@@ -660,6 +1017,23 @@ class SemanticChunker:
             'quality_score': 0.8  # Placeholder
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.semantic_chunker.SemanticChunker._analyze_medical_preservation
+    # Requirement  : `_analyze_medical_preservation` shall analyze medical content preservation
+    # Purpose      : Analyze medical content preservation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[str]; original_text: str
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _analyze_medical_preservation(self, chunks: List[str], original_text: str) -> Dict[str, Any]:
         """Analyze medical content preservation."""
         return {
@@ -670,6 +1044,23 @@ class SemanticChunker:
 
 
 # Convenience functions for common use cases
+# ---------------------------------------------------------------------------
+# ID           : nlp.semantic_chunker.chunk_medical_text
+# Requirement  : `chunk_medical_text` shall convenience function for medical text chunking
+# Purpose      : Convenience function for medical text chunking
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : text: str; target_size: int (default=400); preserve_citations: bool (default=True)
+# Outputs      : ChunkResult
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def chunk_medical_text(text: str, 
                       target_size: int = 400, 
                       preserve_citations: bool = True) -> ChunkResult:

@@ -27,6 +27,23 @@ st.set_page_config(
 )
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.main
+# Requirement  : `main` shall render benchmarking page
+# Purpose      : Render benchmarking page
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def main():
     """Render benchmarking page."""
     st.title("📈 Performance Benchmarking")
@@ -56,6 +73,23 @@ def main():
         render_historical_trends()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.render_retrieval_benchmarks
+# Requirement  : `render_retrieval_benchmarks` shall render retrieval benchmarking interface
+# Purpose      : Render retrieval benchmarking interface
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_retrieval_benchmarks():
     """Render retrieval benchmarking interface."""
     st.subheader("Retrieval Quality Benchmarks")
@@ -94,6 +128,23 @@ def render_retrieval_benchmarks():
         display_latest_retrieval_results()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.render_generation_benchmarks
+# Requirement  : `render_generation_benchmarks` shall render generation quality benchmarks
+# Purpose      : Render generation quality benchmarks
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_generation_benchmarks():
     """Render generation quality benchmarks."""
     st.subheader("Generation Quality Benchmarks")
@@ -130,6 +181,23 @@ def render_generation_benchmarks():
         display_generation_metrics()
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.render_latency_benchmarks
+# Requirement  : `render_latency_benchmarks` shall render latency and performance benchmarks
+# Purpose      : Render latency and performance benchmarks
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_latency_benchmarks():
     """Render latency and performance benchmarks."""
     st.subheader("Latency & Performance Benchmarks")
@@ -173,6 +241,23 @@ def render_latency_benchmarks():
             st.metric(component, target)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.render_historical_trends
+# Requirement  : `render_historical_trends` shall render historical benchmark trends
+# Purpose      : Render historical benchmark trends
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def render_historical_trends():
     """Render historical benchmark trends."""
     st.subheader("Historical Benchmark Trends")
@@ -230,6 +315,23 @@ def render_historical_trends():
         st.plotly_chart(fig, use_container_width=True)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.run_retrieval_benchmark
+# Requirement  : `run_retrieval_benchmark` shall run retrieval benchmark
+# Purpose      : Run retrieval benchmark
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : benchmark_type; top_k; dataset
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def run_retrieval_benchmark(benchmark_type, top_k, dataset):
     """Run retrieval benchmark."""
     st.markdown("### Running Retrieval Benchmark...")
@@ -280,6 +382,23 @@ def run_retrieval_benchmark(benchmark_type, top_k, dataset):
             display_retrieval_results(demo_metrics)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.run_generation_benchmark
+# Requirement  : `run_generation_benchmark` shall run generation quality benchmark
+# Purpose      : Run generation quality benchmark
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : num_queries; metrics; llm_backend
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def run_generation_benchmark(num_queries, metrics, llm_backend):
     """Run generation quality benchmark."""
     st.markdown("### Running Generation Benchmark...")
@@ -307,6 +426,23 @@ def run_generation_benchmark(num_queries, metrics, llm_backend):
         st.success("✓ Benchmark complete")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.run_latency_benchmark
+# Requirement  : `run_latency_benchmark` shall run latency benchmark
+# Purpose      : Run latency benchmark
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : num_queries; concurrent_users; components
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def run_latency_benchmark(num_queries, concurrent_users, components):
     """Run latency benchmark."""
     st.markdown("### Running Performance Benchmark...")
@@ -337,6 +473,23 @@ def run_latency_benchmark(num_queries, concurrent_users, components):
         st.success("✓ Benchmark complete")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.display_latest_retrieval_results
+# Requirement  : `display_latest_retrieval_results` shall display latest retrieval benchmark results
+# Purpose      : Display latest retrieval benchmark results
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def display_latest_retrieval_results():
     """Display latest retrieval benchmark results."""
     history = load_benchmark_history()
@@ -356,6 +509,23 @@ def display_latest_retrieval_results():
             st.metric("NDCG", f"{latest.get('ndcg', 0):.3f}")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.display_generation_metrics
+# Requirement  : `display_generation_metrics` shall display generation quality metrics
+# Purpose      : Display generation quality metrics
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def display_generation_metrics():
     """Display generation quality metrics."""
     st.metric("Citation Accuracy", "92%")
@@ -363,6 +533,23 @@ def display_generation_metrics():
     st.metric("Hallucination Rate", "8%")
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.display_retrieval_results
+# Requirement  : `display_retrieval_results` shall display retrieval benchmark results
+# Purpose      : Display retrieval benchmark results
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : metrics
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def display_retrieval_results(metrics):
     """Display retrieval benchmark results."""
     st.markdown("### Results")
@@ -395,6 +582,23 @@ def display_retrieval_results(metrics):
     st.dataframe(pd.DataFrame([metrics]), use_container_width=True)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.parse_retrieval_metrics
+# Requirement  : `parse_retrieval_metrics` shall parse metrics from evaluation script output
+# Purpose      : Parse metrics from evaluation script output
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : output
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def parse_retrieval_metrics(output):
     """Parse metrics from evaluation script output."""
     import re
@@ -416,6 +620,23 @@ def parse_retrieval_metrics(output):
     return metrics
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.load_benchmark_history
+# Requirement  : `load_benchmark_history` shall load benchmark history from file
+# Purpose      : Load benchmark history from file
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : None
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def load_benchmark_history():
     """Load benchmark history from file."""
     history_file = Path("benchmark_history.json")
@@ -427,6 +648,23 @@ def load_benchmark_history():
         return json.load(f)
 
 
+# ---------------------------------------------------------------------------
+# ID           : web_ui.pages.2_Benchmarking.save_benchmark_result
+# Requirement  : `save_benchmark_result` shall save benchmark result to history
+# Purpose      : Save benchmark result to history
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : benchmark_type; metrics
+# Outputs      : Implicitly None or see body
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Synchronous — must not block event loop
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 def save_benchmark_result(benchmark_type, metrics):
     """Save benchmark result to history."""
     history = load_benchmark_history()

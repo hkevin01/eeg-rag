@@ -22,6 +22,23 @@ import hashlib
 from collections import defaultdict
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.chunking.TextChunk
+# Requirement  : `TextChunk` class shall be instantiable and expose the documented interface
+# Purpose      : A chunk of text with metadata
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TextChunk with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class TextChunk:
     """
@@ -44,6 +61,23 @@ class TextChunk:
     overlap_with_previous: int = 0
     overlap_with_next: int = 0
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunk.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -57,11 +91,45 @@ class TextChunk:
             'overlap_with_next': self.overlap_with_next
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunk.compute_hash
+    # Requirement  : `compute_hash` shall compute content hash for deduplication
+    # Purpose      : Compute content hash for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def compute_hash(self) -> str:
         """Compute content hash for deduplication"""
         return hashlib.md5(self.text.encode()).hexdigest()
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.chunking.ChunkingResult
+# Requirement  : `ChunkingResult` class shall be instantiable and expose the documented interface
+# Purpose      : Result from chunking a document
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ChunkingResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class ChunkingResult:
     """Result from chunking a document"""
@@ -73,6 +141,23 @@ class ChunkingResult:
     overlap_tokens: int
     processing_time: float
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.ChunkingResult.to_dict
+    # Requirement  : `to_dict` shall convert to dictionary
+    # Purpose      : Convert to dictionary
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -86,6 +171,23 @@ class ChunkingResult:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : nlp.chunking.TextChunker
+# Requirement  : `TextChunker` class shall be instantiable and expose the documented interface
+# Purpose      : Text chunking pipeline for RAG systems
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate TextChunker with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class TextChunker:
     """
     Text chunking pipeline for RAG systems
@@ -97,6 +199,23 @@ class TextChunker:
     - Deduplication
     """
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker.__init__
+    # Requirement  : `__init__` shall initialize text chunker
+    # Purpose      : Initialize text chunker
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunk_size: int (default=512); overlap: int (default=64); min_chunk_size: int (default=100); preserve_sentences: bool (default=True); deduplicate: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         chunk_size: int = 512,
@@ -132,6 +251,23 @@ class TextChunker:
             'total_tokens_processed': 0
         }
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker.chunk_text
+    # Requirement  : `chunk_text` shall chunk a single document
+    # Purpose      : Chunk a single document
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; document_id: str; metadata: Optional[Dict[str, Any]] (default=None)
+    # Outputs      : ChunkingResult
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_text(
         self,
         text: str,
@@ -196,6 +332,23 @@ class TextChunker:
             processing_time=time.time() - start_time
         )
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker.chunk_batch
+    # Requirement  : `chunk_batch` shall chunk multiple documents
+    # Purpose      : Chunk multiple documents
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : documents: List[Tuple[str, str, Dict[str, Any]]]
+    # Outputs      : List[ChunkingResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def chunk_batch(
         self,
         documents: List[Tuple[str, str, Dict[str, Any]]]
@@ -215,6 +368,23 @@ class TextChunker:
             results.append(result)
         return results
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._preprocess_text
+    # Requirement  : `_preprocess_text` shall preprocess text before chunking
+    # Purpose      : Preprocess text before chunking
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _preprocess_text(self, text: str) -> str:
         """Preprocess text before chunking"""
         # Normalize whitespace
@@ -229,6 +399,23 @@ class TextChunker:
         
         return text.strip()
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._chunk_by_sentences
+    # Requirement  : `_chunk_by_sentences` shall chunk text by sentences, respecting token limits
+    # Purpose      : Chunk text by sentences, respecting token limits
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; document_id: str; metadata: Dict[str, Any]
+    # Outputs      : List[TextChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _chunk_by_sentences(
         self,
         text: str,
@@ -297,6 +484,23 @@ class TextChunker:
         
         return chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._chunk_by_tokens
+    # Requirement  : `_chunk_by_tokens` shall chunk text by fixed token count (no sentence preservation)
+    # Purpose      : Chunk text by fixed token count (no sentence preservation)
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str; document_id: str; metadata: Dict[str, Any]
+    # Outputs      : List[TextChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _chunk_by_tokens(
         self,
         text: str,
@@ -342,6 +546,23 @@ class TextChunker:
         
         return chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._split_sentences
+    # Requirement  : `_split_sentences` shall split text into sentences
+    # Purpose      : Split text into sentences
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _split_sentences(self, text: str) -> List[str]:
         """Split text into sentences"""
         # Split on sentence boundaries
@@ -362,6 +583,23 @@ class TextChunker:
         
         return result
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._estimate_tokens
+    # Requirement  : `_estimate_tokens` shall estimate token count
+    # Purpose      : Estimate token count
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : text: str
+    # Outputs      : int
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _estimate_tokens(self, text: str) -> int:
         """
         Estimate token count
@@ -371,6 +609,23 @@ class TextChunker:
         """
         return len(text) // 4
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._get_overlap_sentences
+    # Requirement  : `_get_overlap_sentences` shall get sentences for overlap region
+    # Purpose      : Get sentences for overlap region
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : sentences: List[str]; target_overlap: int
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _get_overlap_sentences(self, sentences: List[str], target_overlap: int) -> List[str]:
         """Get sentences for overlap region"""
         overlap_sentences = []
@@ -387,6 +642,23 @@ class TextChunker:
         
         return overlap_sentences
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker._deduplicate_chunks
+    # Requirement  : `_deduplicate_chunks` shall remove duplicate chunks based on content hash
+    # Purpose      : Remove duplicate chunks based on content hash
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : chunks: List[TextChunk]
+    # Outputs      : List[TextChunk]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _deduplicate_chunks(self, chunks: List[TextChunk]) -> List[TextChunk]:
         """Remove duplicate chunks based on content hash"""
         seen_hashes = set()
@@ -404,6 +676,23 @@ class TextChunker:
         self.stats['duplicates_removed'] += duplicates_count
         return unique_chunks
     
+    # ---------------------------------------------------------------------------
+    # ID           : nlp.chunking.TextChunker.get_statistics
+    # Requirement  : `get_statistics` shall get chunking statistics
+    # Purpose      : Get chunking statistics
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def get_statistics(self) -> Dict[str, Any]:
         """Get chunking statistics"""
         return {

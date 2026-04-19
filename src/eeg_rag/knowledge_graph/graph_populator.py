@@ -27,6 +27,23 @@ from ..verification.citation_verifier import CitationVerifier
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_populator.PopulationStats
+# Requirement  : `PopulationStats` class shall be instantiable and expose the documented interface
+# Purpose      : Statistics from graph population
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PopulationStats with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PopulationStats:
     """Statistics from graph population."""
@@ -39,6 +56,23 @@ class PopulationStats:
     processing_time_ms: float = 0.0
 
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_populator.PaperData
+# Requirement  : `PaperData` class shall be instantiable and expose the documented interface
+# Purpose      : Structured paper data for graph population
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate PaperData with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 @dataclass
 class PaperData:
     """Structured paper data for graph population."""
@@ -54,9 +88,43 @@ class PaperData:
     full_text: Optional[str] = None
 
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_populator.GraphPopulator
+# Requirement  : `GraphPopulator` class shall be instantiable and expose the documented interface
+# Purpose      : Populates EEG knowledge graph with research data
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate GraphPopulator with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 class GraphPopulator:
     """Populates EEG knowledge graph with research data."""
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator.__init__
+    # Requirement  : `__init__` shall initialize graph populator
+    # Purpose      : Initialize graph populator
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : neo4j_interface: Neo4jInterface; batch_size: int (default=100); enable_ner: bool (default=True); enable_citation_resolution: bool (default=True)
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def __init__(
         self,
         neo4j_interface: Neo4jInterface,
@@ -102,6 +170,23 @@ class GraphPopulator:
         # Relationship tracking
         self.processed_relationships: Set[Tuple[str, str, str]] = set()
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator.populate_from_corpus
+    # Requirement  : `populate_from_corpus` shall populate graph from EEG corpus
+    # Purpose      : Populate graph from EEG corpus
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : corpus_path: Path; limit: Optional[int] (default=None)
+    # Outputs      : PopulationStats
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def populate_from_corpus(
         self,
         corpus_path: Path,
@@ -154,6 +239,23 @@ class GraphPopulator:
             self.stats.errors += 1
             raise
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._load_corpus_data
+    # Requirement  : `_load_corpus_data` shall load and parse corpus data
+    # Purpose      : Load and parse corpus data
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : corpus_path: Path; limit: Optional[int] (default=None)
+    # Outputs      : List[PaperData]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _load_corpus_data(
         self,
         corpus_path: Path,
@@ -190,6 +292,23 @@ class GraphPopulator:
         logger.info(f"Loaded {len(papers)} papers from corpus")
         return papers
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._process_paper_batch
+    # Requirement  : `_process_paper_batch` shall process a batch of papers
+    # Purpose      : Process a batch of papers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[PaperData]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _process_paper_batch(self, papers: List[PaperData]):
         """Process a batch of papers."""
         for paper in papers:
@@ -201,6 +320,23 @@ class GraphPopulator:
                 logger.error(f"Failed to process paper {paper.pmid}: {str(e)}")
                 self.stats.errors += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._process_single_paper
+    # Requirement  : `_process_single_paper` shall process a single paper and create graph nodes/relationships
+    # Purpose      : Process a single paper and create graph nodes/relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _process_single_paper(self, paper: PaperData):
         """Process a single paper and create graph nodes/relationships."""
         with log_time(logger, f"Processing paper {paper.pmid}"):
@@ -224,6 +360,23 @@ class GraphPopulator:
             if self.enable_citation_resolution:
                 await self._process_citations(paper, paper_node_id)
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_paper_node
+    # Requirement  : `_create_paper_node` shall create paper node in graph
+    # Purpose      : Create paper node in graph
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_paper_node(self, paper: PaperData) -> str:
         """Create paper node in graph."""
         properties = {
@@ -243,6 +396,23 @@ class GraphPopulator:
         
         return node_id
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_author_relationships
+    # Requirement  : `_create_author_relationships` shall create author nodes and authorship relationships
+    # Purpose      : Create author nodes and authorship relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_author_relationships(self, paper: PaperData, paper_node_id: str):
         """Create author nodes and authorship relationships."""
         for i, author_name in enumerate(paper.authors):
@@ -278,6 +448,23 @@ class GraphPopulator:
             )
             self.stats.relationships_created += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_journal_relationship
+    # Requirement  : `_create_journal_relationship` shall create journal node and publication relationship
+    # Purpose      : Create journal node and publication relationship
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_journal_relationship(self, paper: PaperData, paper_node_id: str):
         """Create journal node and publication relationship."""
         if not paper.journal:
@@ -310,6 +497,23 @@ class GraphPopulator:
         )
         self.stats.relationships_created += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._extract_and_create_entities
+    # Requirement  : `_extract_and_create_entities` shall extract entities and create nodes/relationships
+    # Purpose      : Extract entities and create nodes/relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _extract_and_create_entities(
         self,
         paper: PaperData,
@@ -339,6 +543,23 @@ class GraphPopulator:
                 entity_type, entity_list, paper_node_id
             )
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_entity_nodes
+    # Requirement  : `_create_entity_nodes` shall create entity nodes for a specific type
+    # Purpose      : Create entity nodes for a specific type
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : entity_type: EntityType; entities: List[Entity]; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_entity_nodes(
         self,
         entity_type: EntityType,
@@ -405,6 +626,23 @@ class GraphPopulator:
                 self.processed_relationships.add(relationship_key)
                 self.stats.relationships_created += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_mesh_relationships
+    # Requirement  : `_create_mesh_relationships` shall create MeSH term nodes and relationships
+    # Purpose      : Create MeSH term nodes and relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_mesh_relationships(self, paper: PaperData, paper_node_id: str):
         """Create MeSH term nodes and relationships."""
         if not paper.mesh_terms:
@@ -437,6 +675,23 @@ class GraphPopulator:
             )
             self.stats.relationships_created += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._process_citations
+    # Requirement  : `_process_citations` shall process and create citation relationships
+    # Purpose      : Process and create citation relationships
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : paper: PaperData; paper_node_id: str
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _process_citations(self, paper: PaperData, paper_node_id: str):
         """Process and create citation relationships."""
         if not paper.citations:
@@ -468,6 +723,23 @@ class GraphPopulator:
             self.stats.relationships_created += 1
             self.stats.citations_resolved += 1
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._create_cross_paper_relationships
+    # Requirement  : `_create_cross_paper_relationships` shall create relationships between papers based on shared entities
+    # Purpose      : Create relationships between papers based on shared entities
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : papers: List[PaperData]
+    # Outputs      : Implicitly None or see body
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def _create_cross_paper_relationships(self, papers: List[PaperData]):
         """Create relationships between papers based on shared entities."""
         logger.info("Creating cross-paper relationships...")
@@ -482,6 +754,23 @@ class GraphPopulator:
         
         pass  # Placeholder for now
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator._normalize_author_name
+    # Requirement  : `_normalize_author_name` shall normalize author name for deduplication
+    # Purpose      : Normalize author name for deduplication
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : name: str
+    # Outputs      : str
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     def _normalize_author_name(self, name: str) -> str:
         """Normalize author name for deduplication."""
         # Remove extra whitespace and standardize format
@@ -495,6 +784,23 @@ class GraphPopulator:
         
         return name.lower()
     
+    # ---------------------------------------------------------------------------
+    # ID           : knowledge_graph.graph_populator.GraphPopulator.get_population_progress
+    # Requirement  : `get_population_progress` shall get current population progress
+    # Purpose      : Get current population progress
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
     async def get_population_progress(self) -> Dict[str, Any]:
         """Get current population progress."""
         return {
@@ -512,6 +818,23 @@ class GraphPopulator:
         }
 
 
+# ---------------------------------------------------------------------------
+# ID           : knowledge_graph.graph_populator.populate_graph_from_corpus
+# Requirement  : `populate_graph_from_corpus` shall convenience function to populate graph from corpus
+# Purpose      : Convenience function to populate graph from corpus
+# Rationale    : Implements domain-specific logic per system design; see referenced specs
+# Inputs       : corpus_path: Path; neo4j_uri: str; neo4j_user: str; neo4j_password: str; limit: Optional[int] (default=None); batch_size: int (default=100)
+# Outputs      : PopulationStats
+# Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+# Postcond.    : Return value satisfies documented output type and range
+# Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+# Side Effects : May update instance state or perform I/O; see body
+# Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+# Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+# Constraints  : Must be awaited (async)
+# Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
 async def populate_graph_from_corpus(
     corpus_path: Path,
     neo4j_uri: str,
