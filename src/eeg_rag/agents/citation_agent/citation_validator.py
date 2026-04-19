@@ -53,7 +53,7 @@ class AccessType(Enum):
 class ImpactScore:
     """
     Impact score for a citation
-    
+
     Combines multiple metrics:
     - Citation count
     - Journal impact factor
@@ -65,19 +65,19 @@ class ImpactScore:
     year: Optional[int] = None
     h_index: int = 0
     field_normalized_score: float = 0.0
-    
+
     def calculate_total(self) -> float:
         """
         Calculate overall impact score (0-100)
-        
+
         Formula: weighted combination of metrics
         """
         # Base citation score (log scale, max 40 points)
         citation_score = min(40, (self.citation_count ** 0.5) * 2)
-        
+
         # Journal IF score (max 30 points)
         if_score = min(30, self.journal_impact_factor * 3)
-        
+
         # Recency score (max 20 points)
         if self.year:
             current_year = datetime.now().year
@@ -85,10 +85,10 @@ class ImpactScore:
             recency_score = max(0, 20 - age)
         else:
             recency_score = 0
-        
+
         # Field-normalized score (max 10 points)
         field_score = min(10, self.field_normalized_score * 10)
-        
+
         total = citation_score + if_score + recency_score + field_score
         return round(min(100, total), 2)
 
@@ -101,7 +101,7 @@ class CitationValidationResult:
     impact_score: ImpactScore
     validation_time: float
     confidence: float  # 0.0 - 1.0
-    
+
     # Metadata
     title: Optional[str] = None
     authors: List[str] = field(default_factory=list)
@@ -109,25 +109,25 @@ class CitationValidationResult:
     year: Optional[int] = None
     doi: Optional[str] = None
     pmid: Optional[str] = None
-    
+
     # Validation details
     is_retracted: bool = False
     retraction_notice: Optional[str] = None
     is_duplicate: bool = False
     duplicate_of: Optional[str] = None
     access_type: AccessType = AccessType.UNKNOWN
-    
+
     # Cross-references
     cited_by_count: int = 0
     references_count: int = 0
     cross_refs: List[str] = field(default_factory=list)
-    
+
     # Missing fields
     missing_fields: List[str] = field(default_factory=list)
-    
+
     # Errors
     errors: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -158,7 +158,7 @@ class CitationValidationResult:
 
 class MockValidationDatabase:
     """Mock validation database for testing"""
-    
+
     def __init__(self):
         self.known_citations = {
             '12345678': {
@@ -205,7 +205,7 @@ class MockValidationDatabase:
                 'references_count': 67
             }
         }
-    
+
     async def lookup(self, citation_id: str) -> Optional[Dict[str, Any]]:
         """Lookup citation in database"""
         await asyncio.sleep(0.05)  # Simulate network delay
@@ -215,11 +215,11 @@ class MockValidationDatabase:
 class CitationValidator:
     """
     Agent 4: Citation Validation Agent
-    
+
     Validates citations, calculates impact scores, and checks integrity.
     Integrates with PubMed, CrossRef, and other citation databases.
     """
-    
+
     def __init__(
         self,
         name: str = "CitationValidator",
@@ -229,7 +229,7 @@ class CitationValidator:
     ):
         """
         Initialize Citation Validation Agent
-        
+
         Args:
             name: Agent name
             agent_type: Agent type identifier
@@ -245,13 +245,13 @@ class CitationValidator:
             "duplicate_detection",
             "cross_reference_checking"
         ]
-        
+
         # Database connection (mock or real)
         if use_mock:
             self.db = MockValidationDatabase()
         else:
             self.db = PubMedValidationDatabase()
-        
+
         # Statistics
         self.stats = {
             'total_validations': 0,
@@ -262,16 +262,16 @@ class CitationValidator:
             'total_validation_time': 0.0,
             'average_validation_time': 0.0
         }
-        
+
         # Cache
         self.validation_cache: Dict[str, CitationValidationResult] = {}
         self.cache_hits = 0
         self.cache_misses = 0
-    
+
     def _cache_key(self, citation_id: str) -> str:
         """Generate cache key from citation ID"""
         return hashlib.md5(citation_id.encode()).hexdigest()
-    
+
     async def validate(
         self,
         citation_id: str,
@@ -279,29 +279,29 @@ class CitationValidator:
     ) -> CitationValidationResult:
         """
         Validate a single citation
-        
+
         Args:
             citation_id: PMID, DOI, or other citation identifier
             use_cache: Whether to use cached results
-            
+
         Returns:
             CitationValidationResult with validation details and impact score
         """
         start_time = time.time()
-        
+
         # Check cache
         cache_key = self._cache_key(citation_id)
         if use_cache and cache_key in self.validation_cache:
             self.cache_hits += 1
             return self.validation_cache[cache_key]
-        
+
         self.cache_misses += 1
         self.stats['total_validations'] += 1
-        
+
         try:
             # Lookup citation in database
             citation_data = await self.db.lookup(citation_id)
-            
+
             if not citation_data:
                 # Citation not found
                 result = CitationValidationResult(
@@ -319,7 +319,7 @@ class CitationValidator:
                 impact_score = self._calculate_impact_score(citation_data)
                 missing_fields = self._check_completeness(citation_data)
                 confidence = self._calculate_confidence(citation_data, missing_fields)
-                
+
                 result = CitationValidationResult(
                     citation_id=citation_id,
                     status=status,
@@ -339,7 +339,7 @@ class CitationValidator:
                     references_count=citation_data.get('references_count', 0),
                     missing_fields=missing_fields
                 )
-                
+
                 # Update statistics
                 if status == ValidationStatus.VALID:
                     self.stats['valid_citations'] += 1
@@ -347,20 +347,20 @@ class CitationValidator:
                     self.stats['retracted_citations'] += 1
                 else:
                     self.stats['invalid_citations'] += 1
-            
+
             # Update timing statistics
             validation_time = time.time() - start_time
             self.stats['total_validation_time'] += validation_time
             self.stats['average_validation_time'] = (
                 self.stats['total_validation_time'] / self.stats['total_validations']
             )
-            
+
             # Cache result
             if use_cache:
                 self.validation_cache[cache_key] = result
-            
+
             return result
-            
+
         except Exception as e:
             self.stats['invalid_citations'] += 1
             return CitationValidationResult(
@@ -371,7 +371,7 @@ class CitationValidator:
                 confidence=0.0,
                 errors=[f"Validation error: {str(e)}"]
             )
-    
+
     async def validate_batch(
         self,
         citation_ids: List[str],
@@ -379,18 +379,18 @@ class CitationValidator:
     ) -> List[CitationValidationResult]:
         """
         Validate multiple citations in parallel
-        
+
         Args:
             citation_ids: List of citation identifiers
             use_cache: Whether to use cached results
-            
+
         Returns:
             List of CitationValidationResult objects
         """
         tasks = [self.validate(cid, use_cache) for cid in citation_ids]
         results = await asyncio.gather(*tasks)
         return list(results)
-    
+
     def _determine_status(self, citation_data: Dict[str, Any]) -> ValidationStatus:
         """Determine validation status from citation data"""
         if citation_data.get('is_retracted', False):
@@ -401,7 +401,7 @@ class CitationValidator:
             return ValidationStatus.MISSING_DATA
         else:
             return ValidationStatus.VALID
-    
+
     def _calculate_impact_score(self, citation_data: Dict[str, Any]) -> ImpactScore:
         """Calculate impact score from citation data"""
         return ImpactScore(
@@ -411,20 +411,20 @@ class CitationValidator:
             h_index=citation_data.get('h_index', 0),
             field_normalized_score=citation_data.get('field_score', 0.5)
         )
-    
+
     def _check_completeness(self, citation_data: Dict[str, Any]) -> List[str]:
         """Check for missing required fields"""
         required_fields = ['title', 'authors', 'journal', 'year', 'doi']
         missing = []
-        
+
         for field in required_fields:
             if not citation_data.get(field):
                 missing.append(field)
             elif field == 'authors' and len(citation_data[field]) == 0:
                 missing.append(field)
-        
+
         return missing
-    
+
     def _calculate_confidence(
         self,
         citation_data: Dict[str, Any],
@@ -432,7 +432,7 @@ class CitationValidator:
     ) -> float:
         """
         Calculate confidence score for validation
-        
+
         Based on:
         - Data completeness
         - Source reliability
@@ -440,20 +440,20 @@ class CitationValidator:
         """
         # Base confidence
         confidence = 1.0
-        
+
         # Reduce for each missing field
         confidence -= len(missing_fields) * 0.1
-        
+
         # Boost for high citation count
         if citation_data.get('citation_count', 0) > 100:
             confidence = min(1.0, confidence + 0.1)
-        
+
         # Boost for recent publication
         if citation_data.get('year', 0) >= datetime.now().year - 2:
             confidence = min(1.0, confidence + 0.05)
-        
+
         return max(0.0, min(1.0, confidence))
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -476,7 +476,7 @@ class CitationValidator:
                 if (self.cache_hits + self.cache_misses) > 0 else 0.0
             )
         }
-    
+
     def clear_cache(self):
         """Clear validation cache"""
         self.validation_cache.clear()
