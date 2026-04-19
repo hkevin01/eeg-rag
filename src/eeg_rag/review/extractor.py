@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExtractionField:
     """Definition of a field to extract from papers."""
-    
+
     name: str
     description: str
     field_type: str  # "string", "number", "boolean", "list", "enum"
@@ -34,19 +34,19 @@ class ExtractionField:
 @dataclass
 class ExtractedData:
     """Container for extracted data from a single paper."""
-    
+
     paper_id: str
     title: str
     authors: List[str]
     year: int
     doi: Optional[str] = None
     pmid: Optional[str] = None
-    
+
     # Extracted fields
     extracted_fields: Dict[str, Any] = field(default_factory=dict)
     confidence_scores: Dict[str, float] = field(default_factory=dict)
     extraction_notes: Dict[str, str] = field(default_factory=dict)
-    
+
     # Metadata
     extraction_timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     extraction_success: bool = True
@@ -56,7 +56,7 @@ class ExtractedData:
 class SystematicReviewExtractor:
     """
     Extracts structured data from papers for systematic reviews.
-    
+
     Example:
         extractor = SystematicReviewExtractor(
             protocol="dl_eeg_review_schema.yaml",
@@ -66,7 +66,7 @@ class SystematicReviewExtractor:
         results = extractor.run(max_papers=500)
         results.to_csv("dl_eeg_papers.csv")
     """
-    
+
     def __init__(
         self,
         protocol: Union[str, Path, Dict],
@@ -78,7 +78,7 @@ class SystematicReviewExtractor:
     ):
         """
         Initialize systematic review extractor.
-        
+
         Args:
             protocol: Path to YAML schema file or dict defining extraction fields
             date_range: Tuple of (start_date, end_date) in YYYY-MM-DD format
@@ -92,19 +92,19 @@ class SystematicReviewExtractor:
         self.llm_backend = llm_backend
         self.model_name = model_name
         self.confidence_threshold = confidence_threshold
-        
+
         # Load protocol
         if isinstance(protocol, (str, Path)):
             with open(protocol) as f:
                 self.protocol = yaml.safe_load(f)
         else:
             self.protocol = protocol
-        
+
         self.fields = self._parse_protocol()
         self.results: List[ExtractedData] = []
-        
+
         logger.info(f"Initialized SystematicReviewExtractor with {len(self.fields)} fields")
-    
+
     def _parse_protocol(self) -> List[ExtractionField]:
         """Parse protocol definition into ExtractionField objects."""
         fields = []
@@ -118,7 +118,7 @@ class SystematicReviewExtractor:
                 extraction_prompt=field_def.get("extraction_prompt")
             ))
         return fields
-    
+
     def _build_extraction_prompt(
         self,
         paper: Dict[str, Any],
@@ -127,7 +127,7 @@ class SystematicReviewExtractor:
         """Build extraction prompt for a specific field."""
         title = paper.get("title", "")
         abstract = paper.get("abstract", "")
-        
+
         base_prompt = f"""Extract the following information from this research paper:
 
 Title: {title}
@@ -138,13 +138,13 @@ Field to extract: {field.name}
 Description: {field.description}
 Type: {field.field_type}
 """
-        
+
         if field.enum_values:
             base_prompt += f"\nAllowed values: {', '.join(field.enum_values)}"
-        
+
         if field.extraction_prompt:
             base_prompt += f"\n\n{field.extraction_prompt}"
-        
+
         base_prompt += """
 
 Provide your answer in JSON format with:
@@ -156,9 +156,150 @@ Provide your answer in JSON format with:
 }
 
 JSON:"""
-        
+
         return base_prompt
-    
+
+    # ------------------------------------------------------------------
+    # LLM backend helpers
+    # ------------------------------------------------------------------
+
+    def _call_llm_sync(self, prompt: str) -> Optional[str]:
+        """Call the configured LLM backend synchronously.
+
+        Supports ``ollama`` (local), ``openai``, and ``anthropic`` backends.
+        Returns the raw text response or ``None`` on failure.
+        """
+        try:
+            if self.llm_backend == "ollama":
+                return self._call_ollama(prompt)
+            elif self.llm_backend == "openai":
+                return self._call_openai(prompt)
+            elif self.llm_backend == "anthropic":
+                return self._call_anthropic(prompt)
+            else:
+                logger.warning(
+                    f"Unknown LLM backend '{self.llm_backend}'; using rule-based fallback"
+                )
+                return None
+        except Exception as e:
+            logger.warning(f"LLM call ({self.llm_backend}) failed: {e}")
+            return None
+
+    def _call_ollama(self, prompt: str) -> Optional[str]:
+        """Call a local Ollama instance via its REST API."""
+        import os
+        import urllib.request  # stdlib only — no extra dep required
+
+        base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        payload = json.dumps(
+            {"model": self.model_name, "prompt": prompt, "stream": False}
+        ).encode()
+        req = urllib.request.Request(
+            f"{base_url}/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            data = json.loads(resp.read())
+        return data.get("response", "").strip() or None
+
+    def _call_openai(self, prompt: str) -> Optional[str]:
+        """Call OpenAI chat completions API."""
+        import os
+        try:
+            import openai  # type: ignore
+        except ImportError:
+            logger.warning("openai package not installed; cannot use OpenAI backend")
+            return None
+
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            logger.warning("OPENAI_API_KEY not set")
+            return None
+
+        client = openai.OpenAI(api_key=api_key)
+        resp = client.chat.completions.create(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a scientific data extraction assistant. "
+                        "Extract structured information from EEG research papers."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,
+            max_tokens=256,
+        )
+        return resp.choices[0].message.content.strip() or None
+
+    def _call_anthropic(self, prompt: str) -> Optional[str]:
+        """Call Anthropic Messages API."""
+        import os
+        try:
+            import anthropic  # type: ignore
+        except ImportError:
+            logger.warning("anthropic package not installed; cannot use Anthropic backend")
+            return None
+
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            logger.warning("ANTHROPIC_API_KEY not set")
+            return None
+
+        client = anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model=self.model_name,
+            max_tokens=256,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return msg.content[0].text.strip() or None
+
+    @staticmethod
+    def _parse_llm_response(
+        raw: str, field: ExtractionField
+    ) -> Tuple[Any, float, str]:
+        """Parse a JSON LLM response into (value, confidence, note).
+
+        Falls back gracefully when the response is not valid JSON.
+        """
+        # Strip markdown fences if present
+        cleaned = re.sub(
+            r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.DOTALL
+        )
+        try:
+            parsed = json.loads(cleaned)
+        except json.JSONDecodeError:
+            # Try extracting the first JSON object via regex
+            m = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if not m:
+                return None, 0.0, f"LLM response not parseable: {raw[:80]}"
+            try:
+                parsed = json.loads(m.group())
+            except json.JSONDecodeError:
+                return None, 0.0, f"LLM response not parseable: {raw[:80]}"
+
+        value = parsed.get("value")
+        confidence = float(parsed.get("confidence", 0.5))
+        note = str(parsed.get("reasoning", parsed.get("quote", "LLM extraction")))
+
+        # Coerce type for numeric fields
+        if field.field_type == "number" and value is not None:
+            try:
+                value = float(value)
+            except (ValueError, TypeError):
+                value = None
+                confidence = 0.0
+
+        # Coerce booleans
+        if field.field_type == "boolean" and value is not None:
+            if isinstance(value, str):
+                value = value.lower() in ("true", "yes", "1")
+
+        return value, confidence, note
+
     def _extract_field_llm(
         self,
         paper: Dict[str, Any],
@@ -166,22 +307,26 @@ JSON:"""
     ) -> Tuple[Any, float, str]:
         """
         Extract a single field using LLM.
-        
+
         Returns:
             (value, confidence, note)
         """
         prompt = self._build_extraction_prompt(paper, field)
-        
+
         try:
-            # TODO: Integrate with actual LLM backend
-            # For now, return rule-based extraction
+            # Attempt LLM extraction via the configured backend
+            raw = self._call_llm_sync(prompt)
+            if raw:
+                value, confidence, note = self._parse_llm_response(raw, field)
+                return value, confidence, note
+            # LLM returned nothing — fall through to rule-based
             value, confidence, note = self._rule_based_extraction(paper, field)
             return value, confidence, note
-            
+
         except Exception as e:
             logger.error(f"LLM extraction failed for field {field.name}: {e}")
             return None, 0.0, f"Extraction error: {str(e)}"
-    
+
     def _rule_based_extraction(
         self,
         paper: Dict[str, Any],
@@ -189,7 +334,7 @@ JSON:"""
     ) -> Tuple[Any, float, str]:
         """Fallback rule-based extraction for common fields."""
         text = f"{paper.get('title', '')} {paper.get('abstract', '')}".lower()
-        
+
         # Architecture type
         if field.name == "architecture_type":
             patterns = {
@@ -203,7 +348,7 @@ JSON:"""
                 if re.search(pattern, text):
                     return arch, 0.8, f"Found pattern: {pattern}"
             return None, 0.0, "No architecture mentioned"
-        
+
         # Dataset name
         elif field.name == "dataset_name":
             datasets = [
@@ -213,14 +358,14 @@ JSON:"""
             for dataset in datasets:
                 if dataset.lower() in text:
                     return dataset, 0.9, f"Found dataset name: {dataset}"
-            
+
             # Generic extraction
             dataset_match = re.search(r'(?:dataset|database)[\s:]+([A-Z][A-Za-z0-9-]+)', text)
             if dataset_match:
                 return dataset_match.group(1), 0.6, "Extracted from pattern"
-            
+
             return None, 0.0, "No dataset identified"
-        
+
         # Reported accuracy
         elif field.name == "reported_accuracy":
             # Look for accuracy/F1/AUC values
@@ -238,9 +383,9 @@ JSON:"""
                     if value > 1:
                         value = value / 100
                     return value, 0.8, f"Extracted from pattern: {pattern}"
-            
+
             return None, 0.0, "No performance metric found"
-        
+
         # Code availability
         elif field.name == "code_available":
             if re.search(r'github\.com|gitlab\.com|bitbucket\.org', text):
@@ -251,14 +396,14 @@ JSON:"""
                 return "Code available upon publication", 0.6, "Future availability mentioned"
             else:
                 return "Not available", 0.5, "No availability statement"
-        
+
         # Sample size
         elif field.name == "sample_size":
             size_match = re.search(r'(\d{1,5})\s*(subjects?|patients?|participants?|recordings?)', text)
             if size_match:
                 return int(size_match.group(1)), 0.8, "Extracted from pattern"
             return None, 0.0, "No sample size found"
-        
+
         # Task type
         elif field.name == "task_type":
             tasks = {
@@ -272,10 +417,10 @@ JSON:"""
                 if re.search(pattern, text):
                     return task, 0.85, f"Matched pattern: {pattern}"
             return "Other", 0.3, "No specific task identified"
-        
+
         # Default
         return None, 0.0, "Field not supported by rule-based extraction"
-    
+
     def extract_from_paper(self, paper: Dict[str, Any]) -> ExtractedData:
         """Extract all fields from a single paper."""
         result = ExtractedData(
@@ -286,59 +431,178 @@ JSON:"""
             doi=paper.get("doi"),
             pmid=paper.get("pmid")
         )
-        
+
         for field in self.fields:
             try:
                 value, confidence, note = self._extract_field_llm(paper, field)
-                
+
                 result.extracted_fields[field.name] = value
                 result.confidence_scores[field.name] = confidence
                 result.extraction_notes[field.name] = note
-                
+
                 # Check if required field is missing
                 if field.required and (value is None or confidence < self.confidence_threshold):
                     result.extraction_errors.append(
                         f"Required field '{field.name}' extraction failed (confidence: {confidence})"
                     )
                     result.extraction_success = False
-                
+
             except Exception as e:
                 logger.error(f"Error extracting field {field.name}: {e}")
                 result.extraction_errors.append(f"{field.name}: {str(e)}")
                 result.extraction_success = False
-        
+
         return result
-    
+
     def run(self, papers: Optional[List[Dict]] = None, max_papers: int = 500) -> pd.DataFrame:
         """
         Run extraction on papers.
-        
+
         Args:
             papers: List of papers to process. If None, will retrieve using query.
             max_papers: Maximum number of papers to process
-        
+
         Returns:
             DataFrame with extracted data
         """
         if papers is None:
-            # TODO: Integrate with retrieval system
-            logger.warning("Paper retrieval not yet implemented. Use papers parameter.")
-            papers = []
-        
+            if self.query:
+                papers = self._retrieve_papers_for_query(self.query, max_papers)
+            else:
+                logger.warning(
+                    "No papers supplied and no query set; returning empty DataFrame."
+                )
+                papers = []
+
         logger.info(f"Starting extraction on {len(papers)} papers...")
-        
+
         self.results = []
         for i, paper in enumerate(papers[:max_papers]):
             if (i + 1) % 10 == 0:
                 logger.info(f"Processed {i+1}/{min(len(papers), max_papers)} papers")
-            
+
             result = self.extract_from_paper(paper)
             self.results.append(result)
-        
+
         logger.info(f"Extraction complete. {len(self.results)} papers processed")
-        
+
         return self.to_dataframe()
-    
+
+    def _retrieve_papers_for_query(
+        self, query: str, max_papers: int
+    ) -> List[Dict[str, Any]]:
+        """Retrieve papers using PubMed E-utilities when no papers are provided.
+
+        Falls back to an empty list with a warning if the network call fails.
+
+        Args:
+            query: Free-text search query.
+            max_papers: Maximum number of records to return.
+
+        Returns:
+            List of paper dicts with at minimum ``pmid``, ``title``, ``abstract``.
+        """
+        import urllib.request
+        import urllib.parse
+
+        base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+        papers: List[Dict[str, Any]] = []
+
+        try:
+            # 1. ESearch — get matching PMIDs
+            search_params = urllib.parse.urlencode(
+                {
+                    "db": "pubmed",
+                    "term": query,
+                    "retmax": min(max_papers, 500),
+                    "retmode": "json",
+                    "sort": "relevance",
+                }
+            )
+            with urllib.request.urlopen(
+                f"{base}/esearch.fcgi?{search_params}", timeout=30
+            ) as resp:
+                search_data = json.loads(resp.read())
+
+            pmids: List[str] = search_data.get("esearchresult", {}).get("idlist", [])
+            if not pmids:
+                logger.info("ESearch returned no results for query: %s", query)
+                return []
+
+            # Apply date range filter when provided
+            if self.date_range:
+                start, end = self.date_range
+                date_filter = f"{start}:{end}[dp]"
+                search_params_filtered = urllib.parse.urlencode(
+                    {
+                        "db": "pubmed",
+                        "term": f"({query}) AND {date_filter}",
+                        "retmax": min(max_papers, 500),
+                        "retmode": "json",
+                        "sort": "relevance",
+                    }
+                )
+                with urllib.request.urlopen(
+                    f"{base}/esearch.fcgi?{search_params_filtered}", timeout=30
+                ) as resp2:
+                    filtered = json.loads(resp2.read())
+                filtered_ids = filtered.get("esearchresult", {}).get("idlist", [])
+                if filtered_ids:
+                    pmids = filtered_ids
+
+            # 2. EFetch — retrieve full abstracts in JSON summary format
+            batch_size = 100
+            for i in range(0, len(pmids), batch_size):
+                batch = pmids[i : i + batch_size]
+                fetch_params = urllib.parse.urlencode(
+                    {
+                        "db": "pubmed",
+                        "id": ",".join(batch),
+                        "retmode": "json",
+                        "rettype": "abstract",
+                    }
+                )
+                with urllib.request.urlopen(
+                    f"{base}/esummary.fcgi?{fetch_params}", timeout=30
+                ) as resp3:
+                    summary = json.loads(resp3.read())
+
+                result_map = summary.get("result", {})
+                for pmid in batch:
+                    rec = result_map.get(pmid)
+                    if not rec or pmid == "uids":
+                        continue
+                    authors = [
+                        a.get("name", "") for a in rec.get("authors", [])
+                    ]
+                    papers.append(
+                        {
+                            "pmid": pmid,
+                            "title": rec.get("title", ""),
+                            "abstract": rec.get("source", ""),  # ESummary has source
+                            "authors": authors,
+                            "year": int(rec.get("pubdate", "0")[:4] or 0),
+                            "journal": rec.get("source", ""),
+                            "doi": next(
+                                (
+                                    uid.get("value")
+                                    for uid in rec.get("articleids", [])
+                                    if uid.get("idtype") == "doi"
+                                ),
+                                None,
+                            ),
+                        }
+                    )
+
+            logger.info(
+                "Retrieved %d papers from PubMed for query: %s", len(papers), query
+            )
+
+        except Exception as exc:
+            logger.warning("PubMed retrieval failed: %s — returning empty list.", exc)
+
+        return papers[:max_papers]
+
     def to_dataframe(self) -> pd.DataFrame:
         """Convert extraction results to DataFrame."""
         rows = []
@@ -353,20 +617,20 @@ JSON:"""
                 "extraction_success": result.extraction_success,
                 "extraction_timestamp": result.extraction_timestamp
             }
-            
+
             # Add extracted fields
             for field_name, value in result.extracted_fields.items():
                 row[field_name] = value
                 row[f"{field_name}_confidence"] = result.confidence_scores.get(field_name, 0.0)
-            
+
             rows.append(row)
-        
+
         return pd.DataFrame(rows)
-    
+
     def export(self, output_path: Union[str, Path], format: str = "csv"):
         """Export results to file."""
         df = self.to_dataframe()
-        
+
         if format == "csv":
             df.to_csv(output_path, index=False)
         elif format == "json":
@@ -375,15 +639,15 @@ JSON:"""
             df.to_excel(output_path, index=False)
         else:
             raise ValueError(f"Unsupported format: {format}")
-        
+
         logger.info(f"Exported results to {output_path}")
-    
+
     def get_low_confidence_extractions(self, threshold: float = 0.6) -> pd.DataFrame:
         """Get papers with low-confidence extractions for manual review."""
         df = self.to_dataframe()
-        
+
         # Find rows with any confidence score below threshold
         confidence_cols = [col for col in df.columns if col.endswith("_confidence")]
         low_conf_mask = (df[confidence_cols] < threshold).any(axis=1)
-        
+
         return df[low_conf_mask]
