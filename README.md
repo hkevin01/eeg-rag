@@ -269,20 +269,20 @@ EEG-RAG ships **12 specialized agents**, all extending `BaseAgent` via a common 
 
 ### Complete Agent Table
 
-| # | Agent | Module | Type | Focus | How It Works |
-|---|-------|--------|------|-------|--------------|
-| 1 | **OrchestratorAgent** | `agents/orchestrator/` | `ORCHESTRATOR` | Central coordinator | Receives a user query, builds a plan with `QueryPlanner`, fans out to relevant sub-agents in parallel via `asyncio.gather`, merges ranked results |
-| 2 | **LocalDataAgent** | `agents/local_agent/` | `LOCAL_DATA` | Fast in-corpus retrieval | Hybrid BM25 + FAISS dense search over the local 120K-paper corpus; < 100 ms for 10K docs via RRF fusion |
-| 3 | **PubMedAgent** | `agents/pubmed_agent/` | `CLOUD_KB` | Peer-reviewed biomedical literature | NCBI E-utilities with MeSH expansion, rate-limited to 3 req/s (10 req/s with API key), returns PMID-annotated results |
-| 4 | **SemanticScholarAgent** | `agents/semantic_scholar_agent/` | `CLOUD_KB` | Citation graph & paper influence | Queries the S2 Graph API for papers + citation counts + influential-citation flags; re-ranks by citation velocity |
-| 5 | **WebSearchAgent** | `agents/web_agent/` | `WEB_SEARCH` | General web / preprint search | Falls back to web search for EEG topics not well-covered by academic databases; handles arXiv and bioRxiv preprints |
-| 6 | **GraphAgent** | `agents/graph_agent/` | `CLOUD_KB` | Multi-hop knowledge reasoning | Runs Cypher queries on the Neo4j knowledge graph linking PAPER → BIOMARKER → CONDITION → OUTCOME nodes |
-| 7 | **CitationAgent** | `agents/citation_agent/` | `AGGREGATOR` | Citation validation & impact scoring | Validates PMIDs/DOIs against PubMed; computes impact score (log-scale citations + journal IF + recency); detects retractions, duplicates and missing metadata; supports batch validation of 100+ papers; results are cached |
-| 8 | **SynthesisAgent** | `agents/synthesis_agent/` | `AGGREGATOR` | Multi-LLM answer generation | Feeds ranked context chunks to a configurable LLM ensemble; includes `EvidenceRanker` (1a–5 OCEBM levels) and hallucination detection |
-| 9 | **MCPAgent** | `agents/mcp_agent/` | `MCP_SERVER` | MCP protocol tool bridge | Exposes all agents as callable tools via the Model Context Protocol (MCP), enabling integration with Claude Desktop and other MCP clients |
-| 10 | **ResearchAgent** | `agents/research_agent/` | `CLOUD_KB` | Parallel multi-source coordinator | **NEW** — runs PubMedAgent + SemanticScholarAgent + LocalDataAgent in parallel with `asyncio.gather`, isolates per-source errors, deduplicates by PMID/DOI/title, re-ranks with `EvidenceRanker`, applies 13-group EEG synonym expansion |
-| 11 | **SystematicReviewAgent** | `agents/systematic_review_agent/` | `AGGREGATOR` | PRISMA-compliant review automation | **NEW** — full PRISMA pipeline: dedup → abstract screening (keyword + year + human-subjects filters) → OCEBM evidence grading → thematic grouping (EEG freq bands, methods, clinical conditions) → evidence summary → gap detection |
-| 12 | **ClinicalMatchingAgent** | `agents/clinical_matching_agent/` | `LOCAL_DATA` | EEG pattern → clinical diagnosis | **NEW** — rule-based knowledge agent backed by ACNS terminology; 13-entry pattern knowledge base (spike-wave, hypsarrhythmia, LPDs, GRDA, LRDA, sleep stages, BCI markers, normal variants); applies age-group modifiers and drug-EEG effect lookup; returns ICD-10 codes, evidence PMIDs, and differential diagnoses |
+| # | Agent | Type | Focus | How It Works |
+|:-:|-------|:----:|-------|--------------|
+| 1 | **OrchestratorAgent**<br><sub>`agents/orchestrator/`</sub> | `ORCH` | Central coordinator | <sub>Receives a user query, builds a plan with `QueryPlanner`, fans out to sub-agents in parallel via `asyncio.gather`, merges ranked results</sub> |
+| 2 | **LocalDataAgent**<br><sub>`agents/local_agent/`</sub> | `LOCAL` | Fast in-corpus retrieval | <sub>Hybrid BM25 + FAISS dense search over the 120K-paper corpus; &lt;100 ms for 10K docs via RRF fusion</sub> |
+| 3 | **PubMedAgent**<br><sub>`agents/pubmed_agent/`</sub> | `CLOUD` | Peer-reviewed literature | <sub>NCBI E-utilities with MeSH expansion, rate-limited to 3 req/s (10 req/s with API key), returns PMID-annotated results</sub> |
+| 4 | **SemanticScholarAgent**<br><sub>`agents/semantic_scholar_agent/`</sub> | `CLOUD` | Citation graphs & influence | <sub>Queries the S2 Graph API for papers + citation counts + influential-citation flags; re-ranks by citation velocity</sub> |
+| 5 | **WebSearchAgent**<br><sub>`agents/web_agent/`</sub> | `WEB` | Web / preprint search | <sub>Falls back to web search for topics not covered by academic DBs; handles arXiv and bioRxiv preprints</sub> |
+| 6 | **GraphAgent**<br><sub>`agents/graph_agent/`</sub> | `CLOUD` | Multi-hop reasoning | <sub>Runs Cypher queries on Neo4j linking PAPER → BIOMARKER → CONDITION → OUTCOME nodes</sub> |
+| 7 | **CitationAgent**<br><sub>`agents/citation_agent/`</sub> | `AGG` | Citation validation & impact | <sub>Validates PMIDs/DOIs; computes impact score (citations + journal IF + recency); detects retractions; batch-validates 100+ papers with caching</sub> |
+| 8 | **SynthesisAgent**<br><sub>`agents/synthesis_agent/`</sub> | `AGG` | Multi-LLM answer generation | <sub>Feeds ranked context chunks to a configurable LLM ensemble; includes `EvidenceRanker` (1a–5 OCEBM) and hallucination detection</sub> |
+| 9 | **MCPAgent**<br><sub>`agents/mcp_agent/`</sub> | `MCP` | MCP protocol bridge | <sub>Exposes all agents as callable tools via Model Context Protocol; enables Claude Desktop and other MCP client integrations</sub> |
+| 10 | **ResearchAgent**<br><sub>`agents/research_agent/`</sub> | `CLOUD` | Multi-source coordinator ✨ | <sub>Runs PubMed + SemanticScholar + LocalData in parallel; isolates per-source errors; deduplicates by PMID/DOI/title; applies 13-group EEG synonym expansion</sub> |
+| 11 | **SystematicReviewAgent**<br><sub>`agents/systematic_review_agent/`</sub> | `AGG` | PRISMA automation ✨ | <sub>Full PRISMA pipeline: dedup → abstract screening → OCEBM grading → thematic grouping (freq bands, methods, conditions) → gap detection</sub> |
+| 12 | **ClinicalMatchingAgent**<br><sub>`agents/clinical_matching_agent/`</sub> | `LOCAL` | EEG → diagnosis ✨ | <sub>13-entry ACNS pattern KB (spike-wave, hypsarrhythmia, LPDs, GRDA, LRDA, sleep stages, BCI); age modifiers + drug-EEG lookup; returns ICD-10 codes + PMIDs</sub> |
 
 ### New Agents Added
 
