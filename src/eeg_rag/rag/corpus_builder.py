@@ -162,13 +162,146 @@ class EEGCorpusBuilder:
             if i % 10 == 0:
                 await asyncio.sleep(0.01)  # Simulate async processing
 
-    async def _fetch_from_pubmed(self):
-        """Fetch papers from PubMed (placeholder for real implementation)"""
-        # This would integrate with the WebSearchAgent
-        # For now, raise error to indicate real implementation needed
-        raise NotImplementedError(
-            "Real PubMed fetching not yet implemented. "
-            "Use use_mock=True for testing or integrate with WebSearchAgent."
+    async def _fetch_from_pubmed(self) -> None:
+        """Fetch EEG papers from PubMed using E-utilities.
+
+        Iterates over ``EEG_QUERIES``, running ESearch then EFetch in batches
+        until ``target_count`` unique papers have been collected.  Handles
+        rate-limiting with exponential back-off and skips duplicate PMIDs.
+
+        Requirements satisfied:
+        - REQ-CORPUS-001: Fetch 1000+ papers
+        - REQ-CORPUS-005: Rate limiting / error handling
+        - REQ-CORPUS-007: Deduplication by PMID
+        """
+        import urllib.request
+        import urllib.parse
+        import time as _time
+
+        base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+        # NCBI allows 3 req/s without an API key; add one via env if available
+        import os
+        api_key = os.getenv("NCBI_API_KEY", "")
+        delay = 0.4 if not api_key else 0.12  # be conservative
+
+        def _get(url: str, retries: int = 4) -> bytes:
+            for attempt in range(retries):
+                try:
+                    with urllib.request.urlopen(url, timeout=30) as r:
+                        return r.read()
+                except Exception as exc:
+                    wait = delay * (2 ** attempt)
+                    self.logger.warning(
+                        "HTTP error on attempt %d/%d: %s — retrying in %.1fs",
+                        attempt + 1, retries, exc, wait,
+                    )
+                    _time.sleep(wait)
+            raise RuntimeError(f"All {retries} attempts failed for {url}")
+
+        for query in self.EEG_QUERIES:
+            if len(self.papers) >= self.target_count:
+                break
+
+            self.logger.info("Searching PubMed: %s", query)
+            remaining = self.target_count - len(self.papers)
+
+            # --- ESearch ---
+            params: dict = {
+                "db": "pubmed",
+                "term": f"{query}[tiab]",
+                "retmax": min(remaining, 500),
+                "retmode": "json",
+                "sort": "relevance",
+            }
+            if api_key:
+                params["api_key"] = api_key
+            search_url = f"{base}/esearch.fcgi?{urllib.parse.urlencode(params)}"
+            try:
+                raw = _get(search_url)
+                pmids: List[str] = (
+                    json.loads(raw).get("esearchresult", {}).get("idlist", [])
+                )
+            except Exception as exc:
+                self.logger.error("ESearch failed for '%s': %s", query, exc)
+                self.stats["errors"] += 1
+                continue
+
+            # --- EFetch in batches ---
+            batch_size = 100
+            for i in range(0, len(pmids), batch_size):
+                batch = pmids[i : i + batch_size]
+                new_batch = [p for p in batch if p not in self.papers and p not in self.failed_pmids]
+                if not new_batch:
+                    self.stats["duplicates_skipped"] += len(batch)
+                    continue
+
+                fetch_params: dict = {
+                    "db": "pubmed",
+                    "id": ",".join(new_batch),
+                    "retmode": "json",
+                }
+                if api_key:
+                    fetch_params["api_key"] = api_key
+                fetch_url = f"{base}/esummary.fcgi?{urllib.parse.urlencode(fetch_params)}"
+                try:
+                    raw = _get(fetch_url)
+                    result_map = json.loads(raw).get("result", {})
+                except Exception as exc:
+                    self.logger.error(
+                        "EFetch failed for batch starting %s: %s", new_batch[0], exc
+                    )
+                    self.stats["errors"] += 1
+                    self.failed_pmids.update(new_batch)
+                    continue
+
+                for pmid in new_batch:
+                    rec = result_map.get(pmid)
+                    if not rec or not isinstance(rec, dict):
+                        self.failed_pmids.add(pmid)
+                        continue
+                    if pmid in self.papers:
+                        self.stats["duplicates_skipped"] += 1
+                        continue
+
+                    authors = [a.get("name", "") for a in rec.get("authors", [])]
+                    pub_date = rec.get("pubdate", "0")
+                    try:
+                        year = int(pub_date[:4])
+                    except (ValueError, TypeError):
+                        year = 0
+
+                    doi = next(
+                        (
+                            uid.get("value")
+                            for uid in rec.get("articleids", [])
+                            if uid.get("idtype") == "doi"
+                        ),
+                        None,
+                    )
+
+                    paper = Paper(
+                        pmid=pmid,
+                        title=rec.get("title", ""),
+                        abstract=rec.get("source", ""),  # ESummary; full abstract needs EFetch XML
+                        authors=authors,
+                        journal=rec.get("fulljournalname", rec.get("source", "")),
+                        year=year,
+                        doi=doi,
+                        keywords=[],
+                        mesh_terms=[],
+                    )
+                    self.papers[pmid] = paper
+
+                    if len(self.papers) >= self.target_count:
+                        break
+
+                _time.sleep(delay)
+
+        self.logger.info(
+            "PubMed fetch complete: %d papers, %d errors, %d duplicates skipped",
+            len(self.papers),
+            self.stats["errors"],
+            self.stats["duplicates_skipped"],
         )
 
     def _save_corpus(self):

@@ -250,8 +250,7 @@ class CitationValidator:
         if use_mock:
             self.db = MockValidationDatabase()
         else:
-            # In production, connect to real APIs
-            raise NotImplementedError("Real validation API not yet implemented. Set use_mock=True.")
+            self.db = PubMedValidationDatabase()
         
         # Statistics
         self.stats = {
