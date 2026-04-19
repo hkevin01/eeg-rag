@@ -13,10 +13,39 @@ from .embeddings import (
     BatchEmbeddingResult
 )
 
+from .agentic_rag import (
+    AgenticRAGOrchestrator,
+    AgenticRAGResult,
+    AgenticStep,
+    RetrievalDecision,
+    RetrievalDecisionMaker,
+    RetrievalNeed,
+    ReformulationResult,
+    ReformulationStrategy,
+    QueryReformulator,
+    SufficiencyCheck,
+    SufficiencyEvaluator,
+    SufficiencyStatus,
+)
+
 __all__ = [
+    # Corpus / embeddings
     'EEGCorpusBuilder',
     'Paper',
     'PubMedBERTEmbedder',
     'EmbeddingResult',
-    'BatchEmbeddingResult'
+    'BatchEmbeddingResult',
+    # Agentic RAG
+    'AgenticRAGOrchestrator',
+    'AgenticRAGResult',
+    'AgenticStep',
+    'RetrievalDecision',
+    'RetrievalDecisionMaker',
+    'RetrievalNeed',
+    'ReformulationResult',
+    'ReformulationStrategy',
+    'QueryReformulator',
+    'SufficiencyCheck',
+    'SufficiencyEvaluator',
+    'SufficiencyStatus',
 ]
