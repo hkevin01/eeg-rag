@@ -7,16 +7,16 @@
 
 <div align="center">
 
+[![PyPI version](https://img.shields.io/pypi/v/eeg-rag?style=flat-square&logo=pypi&color=blue)](https://pypi.org/project/eeg-rag/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/eeg-rag?style=flat-square&logo=python)](https://pypi.org/project/eeg-rag/)
 [![License](https://img.shields.io/github/license/hkevin01/eeg-rag?style=flat-square)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue?style=flat-square&logo=python)](https://python.org)
 [![Last Commit](https://img.shields.io/github/last-commit/hkevin01/eeg-rag?style=flat-square)](https://github.com/hkevin01/eeg-rag/commits/main)
 [![Repo Size](https://img.shields.io/github/repo-size/hkevin01/eeg-rag?style=flat-square)](https://github.com/hkevin01/eeg-rag)
 [![Issues](https://img.shields.io/github/issues/hkevin01/eeg-rag?style=flat-square)](https://github.com/hkevin01/eeg-rag/issues)
 [![Stars](https://img.shields.io/github/stars/hkevin01/eeg-rag?style=flat-square)](https://github.com/hkevin01/eeg-rag/stargazers)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?style=flat-square&logo=streamlit)](https://streamlit.io)
 [![PubMed](https://img.shields.io/badge/PubMed-35M%2B%20papers-326699?style=flat-square)](https://pubmed.ncbi.nlm.nih.gov)
-[![Tests](https://img.shields.io/badge/tests-330%2B%20passing-brightgreen?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1386%2B%20passing-brightgreen?style=flat-square)](tests/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 </div>
@@ -453,25 +453,45 @@ print(f"{len(retracted)} retracted papers flagged")
 
 ### Installation
 
+**Via pip (recommended):**
 ```bash
-# 1. Clone repository
-git clone https://github.com/hkevin01/eeg-rag.git
-cd eeg-rag
+# Core install
+pip install eeg-rag
 
-# 2. Create virtual environment (Python 3.9+)
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+# With REST API server (FastAPI + uvicorn + SSE)
+pip install "eeg-rag[api]"
 
-# 3. Install dependencies
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
+# With Neo4j knowledge graph + Redis cache
+pip install "eeg-rag[knowledge-graph]"
 
-# 4. Verify installation
-python -c "import eeg_rag; print('EEG-RAG installed successfully!')"
+# Everything
+pip install "eeg-rag[full]"
 ```
 
-**Docker alternative:**
+**Latest from GitHub:**
+```bash
+pip install git+https://github.com/hkevin01/eeg-rag.git
+```
+
+**Clone for development:**
+```bash
+git clone https://github.com/hkevin01/eeg-rag.git
+cd eeg-rag
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+**CLI commands (installed automatically with any method above):**
+```bash
+eeg-rag --query "P300 in depression"   # run a query
+eeg-rag --health                        # check system health
+eeg-rag --stats                         # show corpus statistics
+eeg-rag-history                         # browse search history
+eeg-rag-stats                           # detailed stats dashboard
+```
+
+**Docker:**
 ```bash
 docker build -f docker/Dockerfile -t eeg-rag:latest .
 docker run -it --rm -v $(pwd)/data:/app/data -p 8080:8080 eeg-rag:latest
@@ -1234,6 +1254,47 @@ Open a [GitHub Issue](https://github.com/hkevin01/eeg-rag/issues) with:
 
 ## 📋 Changelog
 
+### v0.4.1 — April 2026
+
+#### PyPI Packaging
+The package is now properly installable via `pip`:
+
+```bash
+pip install eeg-rag                        # core
+pip install "eeg-rag[api]"                 # + FastAPI server
+pip install "eeg-rag[knowledge-graph]"     # + Neo4j + Redis
+pip install "eeg-rag[full]"                # everything
+pip install git+https://github.com/hkevin01/eeg-rag.git  # latest from GitHub
+```
+
+Fixed issues that previously prevented installable builds:
+- `packages = ["eeg_rag"]` was replaced with `find` discovery — all 50 subpackages now bundle correctly
+- Entry point pointed to non-existent `eeg_rag.cli.query:main`; fixed to `eeg_rag.cli.main:main`
+- Added missing core dependencies: `httpx`, `rank-bm25`, `anyio`
+- Added `pytest-asyncio` to `dev` extras
+- Added `api` extra (`fastapi`, `uvicorn`, `sse-starlette`) separate from `knowledge-graph`
+- Version bumped to `0.4.1`
+
+Three CLI commands are installed automatically:
+
+| Command | Description |
+|---------|-------------|
+| `eeg-rag` | Main query interface, health check, stats |
+| `eeg-rag-history` | Browse and replay search history |
+| `eeg-rag-stats` | Detailed corpus + system stats dashboard |
+
+#### Structured Code Comments
+Injected safety-critical structured comment blocks above every class and function across all 178 source files (2,359 blocks total). Each block documents: ID, Requirement, Purpose, Rationale, Inputs, Outputs, Pre/Postconditions, Assumptions, Side Effects, Failure Modes, Error Handling, Constraints, Verification, and References.
+
+#### Diagram Fixes
+All three Mermaid diagrams in the Architecture section were broken on GitHub. Fixed:
+- `\n` escape sequences in quoted node labels → `<br/>` HTML line breaks
+- `·` middle-dot characters and `&` in node names that crashed the Mermaid parser
+- `&`-chained multi-target edges (`A --> B & C`) → individual edge lines
+- Special characters (`{`, `"`, `<`, `>`) in sequence diagram message text
+
+---
+
 ### v0.4.0 — April 2026
 
 #### Agentic RAG Loop
@@ -1255,22 +1316,22 @@ Added a RAGAS-style automated evaluation framework (`src/eeg_rag/evaluation/raga
 | **Context Precision** | Average precision of the retrieved chunk ranking |
 | **Context Recall** | Coverage of ground-truth documents or sentences |
 
-Two evaluation modes: `EMBEDDING` (offline, sentence-transformers `all-MiniLM-L6-v2`, no API key needed) and `LLM` (GPT-4 / Claude / Ollama as judge). `AUTO` mode selects LLM when an API key is present and falls back to embedding silently. `export_for_human_eval()` produces annotation-ready `HumanEvalRecord` dicts with blank `human_*` fields.
+Two evaluation modes: `EMBEDDING` (offline, no API key needed) and `LLM` (GPT-4 / Claude / Ollama as judge). `AUTO` mode selects LLM when an API key is present and falls back to embedding silently. `export_for_human_eval()` produces annotation-ready `HumanEvalRecord` dicts.
 
 #### Stub Code Filled
 Several previously placeholder components now have real implementations:
 
 - **Orchestrator adaptive replanning** — when a dependency chain is broken by a failed agent node, the orchestrator drops the blocking dependency and retries the stalled node rather than aborting the whole plan.
-- **Review extractor LLM backend** (`review/extractor.py`) — `_extract_field_llm()` now calls Ollama, OpenAI, or Anthropic in turn depending on `llm_backend` setting; a JSON-parsing helper handles markdown-fenced responses and type coercion. `run()` with no `papers` argument now fetches from PubMed automatically via `_retrieve_papers_for_query()`.
-- **Corpus builder PubMed fetching** (`rag/corpus_builder.py`) — `_fetch_from_pubmed()` is fully implemented using NCBI E-utilities (ESearch + ESummary) with configurable batch size, rate-limiting delay, exponential back-off, and PMID deduplication.
-- **Citation validator production DB** (`agents/citation_agent/citation_validator.py`) — new `PubMedValidationDatabase` class validates PMIDs via PubMed ESummary (retraction detection from MeSH) and DOIs via CrossRef; activated by `use_mock=False`.
-- **Graph agent Neo4j driver** (`agents/graph_agent/graph_agent.py`) — `use_mock=False` now wires up a real `neo4j.AsyncDriver` connection instead of raising `NotImplementedError`.
-- **MCP agent real client** (`agents/mcp_agent/mcp_agent.py`) — `use_mock=False` connects to a real MCP server via HTTP/SSE transport.
+- **Review extractor LLM backend** (`review/extractor.py`) — calls Ollama, OpenAI, or Anthropic depending on `llm_backend`; handles JSON-fenced responses and type coercion. Auto-fetches from PubMed when no `papers` list is supplied.
+- **Corpus builder PubMed fetching** (`rag/corpus_builder.py`) — full NCBI E-utilities implementation with batch size, rate-limiting, exponential back-off, and PMID deduplication.
+- **Citation validator production DB** — new `PubMedValidationDatabase` validates PMIDs (retraction detection via MeSH) and DOIs via CrossRef; activated by `use_mock=False`.
+- **Graph agent Neo4j driver** — `use_mock=False` wires up a real `neo4j.AsyncDriver` connection.
+- **MCP agent real client** — `use_mock=False` connects to an MCP server via HTTP transport.
 
 #### Test Coverage
-All new modules ship with tests:
-- `tests/test_agentic_rag.py` — 49 tests covering decision-making, sufficiency evaluation, reformulation strategies, streaming, multi-iteration loops, and citation verification.
-- `tests/test_ragas_metrics.py` — 66 tests covering all four metrics in both embedding and LLM-judge modes, AUTO fallback, human-eval export, and end-to-end pipeline from `AgenticRAGResult` sources.
+- `tests/test_agentic_rag.py` — 49 tests
+- `tests/test_ragas_metrics.py` — 66 tests
+- Total suite: **1,386 passing**
 
 ---
 

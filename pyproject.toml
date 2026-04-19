@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eeg-rag"
-version = "0.1.0"
+version = "0.4.0"
 description = "Retrieval-Augmented Generation system for EEG research literature"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -34,6 +34,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
@@ -47,16 +48,20 @@ dependencies = [
     "openai>=1.0.0",
     "python-dotenv>=0.19.0",
     "requests>=2.26.0",
+    "httpx>=0.24.0",
     "beautifulsoup4>=4.10.0",
     "lxml>=4.6.0",
     "tqdm>=4.62.0",
     "pydantic>=2.0.0",
     "tenacity>=8.0.0",
+    "rank-bm25>=0.2.2",
+    "anyio>=3.6.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
     "pytest-cov>=3.0.0",
     "pytest-mock>=3.6.0",
     "black>=22.0.0",
@@ -64,7 +69,12 @@ dev = [
     "mypy>=0.950",
     "isort>=5.10.0",
     "ipython>=8.0.0",
-    "jupyter>=1.0.0",
+]
+
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
+    "sse-starlette>=1.6.0",
 ]
 
 knowledge-graph = [
@@ -73,7 +83,7 @@ knowledge-graph = [
 ]
 
 full = [
-    "eeg-rag[dev,knowledge-graph]",
+    "eeg-rag[api,knowledge-graph]",
 ]
 
 [project.urls]
@@ -83,10 +93,14 @@ Repository = "https://github.com/hkevin01/eeg-rag"
 Issues = "https://github.com/hkevin01/eeg-rag/issues"
 
 [project.scripts]
-eeg-rag = "eeg_rag.cli.query:main"
+eeg-rag = "eeg_rag.cli.main:main"
+eeg-rag-history = "eeg_rag.cli.history_cli:main"
+eeg-rag-stats = "eeg_rag.cli.verify_stats:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools]
-packages = ["eeg_rag"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
