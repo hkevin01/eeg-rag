@@ -57,6 +57,7 @@
 - [Development Status](#-development-status)
 - [Development](#-development)
 - [Contributing](#-contributing)
+- [Changelog](#-changelog)
 - [License & Acknowledgements](#-license--acknowledgements)
 
 ---
@@ -1219,6 +1220,48 @@ Open a [GitHub Issue](https://github.com/hkevin01/eeg-rag/issues) with:
 </details>
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
+
+---
+
+## 📋 Changelog
+
+### v0.4.0 — April 2026
+
+#### Agentic RAG Loop
+Replaced the single-shot retrieve-then-answer pattern with a full **agentic loop** (`src/eeg_rag/rag/agentic_rag.py`).
+The orchestrator now decides *whether* to retrieve at all, reformulates the query when the first results are insufficient, can issue multiple retrieval passes across different sources, and verifies retrieved content before generating a response.
+Key pieces:
+- `RetrievalDecisionMaker` — classifies every incoming query (`RETRIEVE`, `SKIP`, `VERIFY_CLAIM`, `DECOMPOSE`) using EEG-specific regex patterns so definitional and abbreviation questions are answered from model knowledge without wasting a retrieval round-trip.
+- `SufficiencyEvaluator` — scores the retrieved document set on count, relevance, and semantic coverage; returns a `SufficiencyStatus` that drives the retry decision.
+- `QueryReformulator` — selects a non-repeating reformulation strategy (`EXPAND`, `PIVOT_DENSE`, `PIVOT_BM25`, `RELAX`, `NARROW`, `DECOMPOSE`) and rewrites the query via the existing `EEGQueryExpander`.
+- `AgenticRAGOrchestrator` — ties everything together; exposes both `run()` (returns `AgenticRAGResult`) and `stream()` (async token generator).
+
+#### RAGAS Evaluation Metrics
+Added a RAGAS-style automated evaluation framework (`src/eeg_rag/evaluation/ragas_metrics.py`) that measures four orthogonal quality axes:
+
+| Metric | What it measures |
+|---|---|
+| **Faithfulness** | Fraction of answer claims supported by retrieved context (hallucination score) |
+| **Answer Relevance** | Semantic similarity between the query and the answer |
+| **Context Precision** | Average precision of the retrieved chunk ranking |
+| **Context Recall** | Coverage of ground-truth documents or sentences |
+
+Two evaluation modes: `EMBEDDING` (offline, sentence-transformers `all-MiniLM-L6-v2`, no API key needed) and `LLM` (GPT-4 / Claude / Ollama as judge). `AUTO` mode selects LLM when an API key is present and falls back to embedding silently. `export_for_human_eval()` produces annotation-ready `HumanEvalRecord` dicts with blank `human_*` fields.
+
+#### Stub Code Filled
+Several previously placeholder components now have real implementations:
+
+- **Orchestrator adaptive replanning** — when a dependency chain is broken by a failed agent node, the orchestrator drops the blocking dependency and retries the stalled node rather than aborting the whole plan.
+- **Review extractor LLM backend** (`review/extractor.py`) — `_extract_field_llm()` now calls Ollama, OpenAI, or Anthropic in turn depending on `llm_backend` setting; a JSON-parsing helper handles markdown-fenced responses and type coercion. `run()` with no `papers` argument now fetches from PubMed automatically via `_retrieve_papers_for_query()`.
+- **Corpus builder PubMed fetching** (`rag/corpus_builder.py`) — `_fetch_from_pubmed()` is fully implemented using NCBI E-utilities (ESearch + ESummary) with configurable batch size, rate-limiting delay, exponential back-off, and PMID deduplication.
+- **Citation validator production DB** (`agents/citation_agent/citation_validator.py`) — new `PubMedValidationDatabase` class validates PMIDs via PubMed ESummary (retraction detection from MeSH) and DOIs via CrossRef; activated by `use_mock=False`.
+- **Graph agent Neo4j driver** (`agents/graph_agent/graph_agent.py`) — `use_mock=False` now wires up a real `neo4j.AsyncDriver` connection instead of raising `NotImplementedError`.
+- **MCP agent real client** (`agents/mcp_agent/mcp_agent.py`) — `use_mock=False` connects to a real MCP server via HTTP/SSE transport.
+
+#### Test Coverage
+All new modules ship with tests:
+- `tests/test_agentic_rag.py` — 49 tests covering decision-making, sufficiency evaluation, reformulation strategies, streaming, multi-iteration loops, and citation verification.
+- `tests/test_ragas_metrics.py` — 66 tests covering all four metrics in both embedding and LLM-judge modes, AUTO fallback, human-eval export, and end-to-end pipeline from `AgenticRAGResult` sources.
 
 ---
 

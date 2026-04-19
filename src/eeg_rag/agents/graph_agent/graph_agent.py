@@ -299,6 +299,39 @@ class MockNeo4jConnection:
             ]
 
 
+class Neo4jConnection:
+    """Production Neo4j connection using the official ``neo4j`` driver.
+
+    Falls back gracefully when the ``neo4j`` package is not installed,
+    raising ``ImportError`` with a helpful install hint.
+
+    Interface mirrors ``MockNeo4jConnection`` so the agent needs no changes.
+    """
+
+    def __init__(self, uri: str, user: str, password: str) -> None:
+        try:
+            from neo4j import AsyncGraphDatabase  # type: ignore
+        except ImportError as exc:
+            raise ImportError(
+                "neo4j package is required for real graph queries: pip install neo4j"
+            ) from exc
+
+        self._driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
+
+    async def run_query(
+        self, cypher: str, parameters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Execute a Cypher query and return rows as plain dicts."""
+        async with self._driver.session() as session:
+            result = await session.run(cypher, parameters)
+            records = await result.data()
+        return records
+
+    async def close(self) -> None:
+        """Close the underlying driver."""
+        await self._driver.close()
+
+
 class GraphAgent:
     """
     Agent 3: Knowledge Graph Agent
@@ -359,9 +392,11 @@ class GraphAgent:
         if use_mock:
             self.db = MockNeo4jConnection()
         else:
-            # In production, use: from neo4j import GraphDatabase
-            # self.driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
-            raise NotImplementedError("Real Neo4j connection not yet implemented. Set use_mock=True.")
+            self.db = Neo4jConnection(
+                uri=neo4j_uri or "bolt://localhost:7687",
+                user=neo4j_user or "neo4j",
+                password=neo4j_password or "",
+            )
 
         # Query builder
         self.query_builder = CypherQueryBuilder()

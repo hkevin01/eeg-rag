@@ -62,7 +62,7 @@ class Tool:
     parameters: Dict[str, Any]
     capabilities: List[str] = field(default_factory=list)
     timeout: float = 30.0  # seconds
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -85,7 +85,7 @@ class Resource:
     uri: str
     metadata: Dict[str, Any] = field(default_factory=dict)
     access_permissions: List[str] = field(default_factory=lambda: ["read"])
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -108,7 +108,7 @@ class ExecutionResult:
     error: Optional[str] = None
     execution_time: float = 0.0
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -124,11 +124,11 @@ class ExecutionResult:
 
 class MockMCPServer:
     """Mock MCP server for testing (replace with real MCP client in production)"""
-    
+
     def __init__(self):
         self.tools = self._create_mock_tools()
         self.resources = self._create_mock_resources()
-    
+
     def _create_mock_tools(self) -> List[Tool]:
         """Create mock tools"""
         return [
@@ -169,7 +169,7 @@ class MockMCPServer:
                 timeout=30.0
             )
         ]
-    
+
     def _create_mock_resources(self) -> List[Resource]:
         """Create mock resources"""
         return [
@@ -190,17 +190,17 @@ class MockMCPServer:
                 access_permissions=["read"]
             )
         ]
-    
+
     async def list_tools(self) -> List[Tool]:
         """List available tools"""
         await asyncio.sleep(0.01)  # Simulate network delay
         return self.tools
-    
+
     async def list_resources(self) -> List[Resource]:
         """List available resources"""
         await asyncio.sleep(0.01)
         return self.resources
-    
+
     async def execute_tool(
         self,
         tool_id: str,
@@ -209,7 +209,7 @@ class MockMCPServer:
         """Execute a tool"""
         start_time = time.time()
         await asyncio.sleep(0.05)  # Simulate execution
-        
+
         # Find tool
         tool = next((t for t in self.tools if t.tool_id == tool_id), None)
         if not tool:
@@ -221,7 +221,7 @@ class MockMCPServer:
                 error=f"Tool {tool_id} not found",
                 execution_time=time.time() - start_time
             )
-        
+
         # Simulate execution based on tool type
         try:
             if tool.tool_type == ToolType.CODE_EXECUTION:
@@ -234,7 +234,7 @@ class MockMCPServer:
                 output = self._call_api(parameters)
             else:
                 output = {"result": "Mock execution successful"}
-            
+
             return ExecutionResult(
                 execution_id=f"exec_{int(time.time() * 1000)}",
                 tool_id=tool_id,
@@ -243,7 +243,7 @@ class MockMCPServer:
                 execution_time=time.time() - start_time,
                 metadata={'tool_name': tool.name}
             )
-        
+
         except Exception as e:
             return ExecutionResult(
                 execution_id=f"exec_{int(time.time() * 1000)}",
@@ -253,7 +253,7 @@ class MockMCPServer:
                 error=str(e),
                 execution_time=time.time() - start_time
             )
-    
+
     def _execute_code(self, code: str) -> Dict[str, Any]:
         """Mock code execution"""
         return {
@@ -261,7 +261,7 @@ class MockMCPServer:
             'return_value': 42,
             'stdout': 'Mock execution output'
         }
-    
+
     def _read_file(self, path: str) -> Dict[str, Any]:
         """Mock file reading"""
         return {
@@ -269,7 +269,7 @@ class MockMCPServer:
             'size': 1024,
             'encoding': 'utf-8'
         }
-    
+
     def _analyze_data(self, data: List[Any]) -> Dict[str, Any]:
         """Mock data analysis"""
         return {
@@ -279,7 +279,7 @@ class MockMCPServer:
             'min': 10.0,
             'max': 90.0
         }
-    
+
     def _call_api(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Mock API call"""
         return {
@@ -287,7 +287,7 @@ class MockMCPServer:
             'response': {'data': 'Mock API response'},
             'headers': {'Content-Type': 'application/json'}
         }
-    
+
     async def access_resource(
         self,
         resource_id: str,
@@ -295,14 +295,14 @@ class MockMCPServer:
     ) -> Dict[str, Any]:
         """Access a resource"""
         await asyncio.sleep(0.02)
-        
+
         resource = next((r for r in self.resources if r.resource_id == resource_id), None)
         if not resource:
             raise ValueError(f"Resource {resource_id} not found")
-        
+
         if operation not in resource.access_permissions:
             raise PermissionError(f"Operation {operation} not permitted on {resource_id}")
-        
+
         return {
             'resource_id': resource_id,
             'operation': operation,
@@ -311,11 +311,109 @@ class MockMCPServer:
         }
 
 
+class HttpMCPServer:
+    """Production MCP server client over HTTP/SSE transport.
+
+    Communicates with an MCP-compatible server (e.g. one started with
+    ``mcp run <server_script>``) using plain ``httpx`` requests.  The
+    interface mirrors ``MockMCPServer`` so ``MCPAgent`` works unchanged.
+    """
+
+    def __init__(self, server_uri: str) -> None:
+        try:
+            import httpx  # type: ignore
+        except ImportError as exc:
+            raise ImportError(
+                "httpx is required for MCP HTTP transport: pip install httpx"
+            ) from exc
+
+        self._base = server_uri.rstrip("/")
+        self._client = httpx.AsyncClient(timeout=30.0)
+
+    async def list_tools(self) -> List[Tool]:
+        """Fetch tool list from the MCP server."""
+        resp = await self._client.get(f"{self._base}/tools")
+        resp.raise_for_status()
+        tools: List[Tool] = []
+        for item in resp.json().get("tools", []):
+            tools.append(
+                Tool(
+                    tool_id=item["id"],
+                    name=item["name"],
+                    tool_type=ToolType(item.get("type", "custom")),
+                    description=item.get("description", ""),
+                    parameters=item.get("parameters", {}),
+                    capabilities=item.get("capabilities", []),
+                    timeout=float(item.get("timeout", 30.0)),
+                )
+            )
+        return tools
+
+    async def list_resources(self) -> List[Resource]:
+        """Fetch resource list from the MCP server."""
+        resp = await self._client.get(f"{self._base}/resources")
+        resp.raise_for_status()
+        resources: List[Resource] = []
+        for item in resp.json().get("resources", []):
+            resources.append(
+                Resource(
+                    resource_id=item["id"],
+                    name=item["name"],
+                    resource_type=ResourceType(item.get("type", "custom")),
+                    uri=item.get("uri", ""),
+                    metadata=item.get("metadata", {}),
+                    access_permissions=item.get("permissions", ["read"]),
+                )
+            )
+        return resources
+
+    async def execute_tool(
+        self,
+        tool_id: str,
+        parameters: Dict[str, Any],
+    ) -> ExecutionResult:
+        """Call a tool on the MCP server."""
+        start = time.time()
+        try:
+            resp = await self._client.post(
+                f"{self._base}/tools/{tool_id}/execute",
+                json={"parameters": parameters},
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+            return ExecutionResult(
+                execution_id=payload.get("execution_id", f"exec_{int(start * 1000)}"),
+                tool_id=tool_id,
+                status=ExecutionStatus.SUCCESS,
+                output=payload.get("output"),
+                execution_time=time.time() - start,
+                metadata=payload.get("metadata", {}),
+            )
+        except Exception as exc:
+            return ExecutionResult(
+                execution_id=f"exec_{int(start * 1000)}",
+                tool_id=tool_id,
+                status=ExecutionStatus.FAILED,
+                output=None,
+                error=str(exc),
+                execution_time=time.time() - start,
+            )
+
+    async def get_resource(self, resource_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a resource by ID."""
+        try:
+            resp = await self._client.get(f"{self._base}/resources/{resource_id}")
+            resp.raise_for_status()
+            return resp.json()
+        except Exception:
+            return None
+
+
 class MCPAgent:
     """
     Agent 4: MCP Server Agent
     Connects to Model Context Protocol servers for tool use and resource access
-    
+
     REQ-AGT4-001: Initialize MCP server connection
     REQ-AGT4-002: Discover available tools
     REQ-AGT4-003: List accessible resources
@@ -332,7 +430,7 @@ class MCPAgent:
     REQ-AGT4-014: Provide execution history
     REQ-AGT4-015: Generate execution IDs for tracking
     """
-    
+
     def __init__(
         self,
         name: str = "MCPAgent",
@@ -344,7 +442,7 @@ class MCPAgent:
     ):
         """
         Initialize MCP Agent
-        
+
         Args:
             name: Agent name
             agent_type: Agent type identifier
@@ -363,23 +461,24 @@ class MCPAgent:
             "code_execution",
             "data_processing"
         ]
-        
+
         # MCP server connection (mock or real)
         if use_mock:
             self.server = MockMCPServer()
         else:
-            # In production, use real MCP client
-            raise NotImplementedError("Real MCP client not yet implemented. Set use_mock=True.")
-        
+            self.server = HttpMCPServer(
+                server_uri=server_uri or "http://localhost:8090",
+            )
+
         # Tool and resource caches
         self.tools_cache: Dict[str, Tool] = {}
         self.resources_cache: Dict[str, Resource] = {}
         self.cache_valid = False
-        
+
         # Execution tracking
         self.execution_history: List[ExecutionResult] = []
         self.active_executions: Dict[str, asyncio.Task] = {}
-        
+
         # Statistics
         self.stats = {
             'total_executions': 0,
@@ -391,20 +490,20 @@ class MCPAgent:
             'tools_discovered': 0,
             'resources_accessed': 0
         }
-    
+
     async def initialize(self):
         """Initialize agent by discovering tools and resources"""
         # Discover tools
         tools = await self.server.list_tools()
         self.tools_cache = {tool.tool_id: tool for tool in tools}
         self.stats['tools_discovered'] = len(tools)
-        
+
         # Discover resources
         resources = await self.server.list_resources()
         self.resources_cache = {res.resource_id: res for res in resources}
-        
+
         self.cache_valid = True
-    
+
     async def execute(
         self,
         query: str,
@@ -413,28 +512,28 @@ class MCPAgent:
     ) -> ExecutionResult:
         """
         Execute a tool or process a query
-        
+
         Args:
             query: Natural language query or tool name
             tool_id: Specific tool ID to execute
             parameters: Tool parameters
-            
+
         Returns:
             ExecutionResult with output and metadata
         """
         start_time = time.time()
-        
+
         # Ensure cache is valid
         if not self.cache_valid:
             await self.initialize()
-        
+
         # Determine tool to execute
         if tool_id:
             tool = self.tools_cache.get(tool_id)
         else:
             # Try to infer tool from query
             tool = self._infer_tool_from_query(query)
-        
+
         if not tool:
             return ExecutionResult(
                 execution_id=f"exec_{int(time.time() * 1000)}",
@@ -444,11 +543,11 @@ class MCPAgent:
                 error="No suitable tool found for query",
                 execution_time=time.time() - start_time
             )
-        
+
         # Prepare parameters
         if parameters is None:
             parameters = self._extract_parameters_from_query(query, tool)
-        
+
         # Validate parameters
         validation_error = self._validate_parameters(tool, parameters)
         if validation_error:
@@ -460,13 +559,13 @@ class MCPAgent:
                 error=validation_error,
                 execution_time=time.time() - start_time
             )
-        
+
         # Execute tool
         self.stats['total_executions'] += 1
-        
+
         try:
             result = await self.server.execute_tool(tool.tool_id, parameters)
-            
+
             # Update statistics
             if result.status == ExecutionStatus.SUCCESS:
                 self.stats['successful_executions'] += 1
@@ -474,19 +573,19 @@ class MCPAgent:
                 self.stats['timeout_executions'] += 1
             else:
                 self.stats['failed_executions'] += 1
-            
+
             self.stats['total_execution_time'] += result.execution_time
             self.stats['average_execution_time'] = (
                 self.stats['total_execution_time'] / self.stats['total_executions']
             )
-            
+
             # Add to history
             self.execution_history.append(result)
             if len(self.execution_history) > 100:
                 self.execution_history.pop(0)
-            
+
             return result
-        
+
         except Exception as e:
             self.stats['failed_executions'] += 1
             return ExecutionResult(
@@ -497,31 +596,31 @@ class MCPAgent:
                 error=str(e),
                 execution_time=time.time() - start_time
             )
-    
+
     def _infer_tool_from_query(self, query: str) -> Optional[Tool]:
         """Infer which tool to use based on query"""
         query_lower = query.lower()
-        
+
         # Simple keyword matching
         if any(word in query_lower for word in ['execute', 'run', 'code', 'python']):
-            return next((t for t in self.tools_cache.values() 
+            return next((t for t in self.tools_cache.values()
                         if t.tool_type == ToolType.CODE_EXECUTION), None)
-        
+
         if any(word in query_lower for word in ['read', 'file', 'open']):
-            return next((t for t in self.tools_cache.values() 
+            return next((t for t in self.tools_cache.values()
                         if t.tool_type == ToolType.FILE_ACCESS), None)
-        
+
         if any(word in query_lower for word in ['analyze', 'data', 'statistics']):
-            return next((t for t in self.tools_cache.values() 
+            return next((t for t in self.tools_cache.values()
                         if t.tool_type == ToolType.DATA_PROCESSING), None)
-        
+
         if any(word in query_lower for word in ['api', 'call', 'request', 'http']):
-            return next((t for t in self.tools_cache.values() 
+            return next((t for t in self.tools_cache.values()
                         if t.tool_type == ToolType.API_CALL), None)
-        
+
         # Default to first available tool
         return next(iter(self.tools_cache.values()), None)
-    
+
     def _extract_parameters_from_query(
         self,
         query: str,
@@ -530,7 +629,7 @@ class MCPAgent:
         """Extract parameters from natural language query"""
         # Simple parameter extraction (in production, use LLM)
         params = {}
-        
+
         if tool.tool_type == ToolType.CODE_EXECUTION:
             params['code'] = query
             params['timeout'] = 30
@@ -548,9 +647,9 @@ class MCPAgent:
         elif tool.tool_type == ToolType.API_CALL:
             params['url'] = 'https://api.example.com'
             params['method'] = 'GET'
-        
+
         return params
-    
+
     def _validate_parameters(
         self,
         tool: Tool,
@@ -561,9 +660,9 @@ class MCPAgent:
         for param_name in tool.parameters:
             if param_name not in parameters:
                 return f"Missing required parameter: {param_name}"
-        
+
         return None
-    
+
     async def access_resource(
         self,
         resource_id: str,
@@ -572,25 +671,25 @@ class MCPAgent:
         """Access a resource"""
         if not self.cache_valid:
             await self.initialize()
-        
+
         if resource_id not in self.resources_cache:
             raise ValueError(f"Resource {resource_id} not found")
-        
+
         self.stats['resources_accessed'] += 1
         return await self.server.access_resource(resource_id, operation)
-    
+
     def get_available_tools(self) -> List[Tool]:
         """Get list of available tools"""
         return list(self.tools_cache.values())
-    
+
     def get_available_resources(self) -> List[Resource]:
         """Get list of available resources"""
         return list(self.resources_cache.values())
-    
+
     def get_execution_history(self, limit: int = 10) -> List[ExecutionResult]:
         """Get recent execution history"""
         return self.execution_history[-limit:]
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get agent statistics"""
         return {
@@ -610,13 +709,13 @@ class MCPAgent:
             'tools_discovered': self.stats['tools_discovered'],
             'resources_accessed': self.stats['resources_accessed']
         }
-    
+
     def clear_cache(self):
         """Clear tool and resource caches"""
         self.tools_cache.clear()
         self.resources_cache.clear()
         self.cache_valid = False
-    
+
     def clear_history(self):
         """Clear execution history"""
         self.execution_history.clear()

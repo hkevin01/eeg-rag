@@ -212,6 +212,124 @@ class MockValidationDatabase:
         return self.known_citations.get(citation_id)
 
 
+class PubMedValidationDatabase:
+    """Production validation database backed by PubMed E-utilities + CrossRef.
+
+    Results are cached in-memory for the lifetime of the object.
+
+    REQ-AGT4-001: Validate citations against PubMed/DOI registries.
+    REQ-AGT4-004: Retraction detection via MeSH retraction notice term.
+    """
+
+    _NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    _CROSSREF_BASE = "https://api.crossref.org/works"
+
+    def __init__(self) -> None:
+        import os
+        self._api_key: str = os.getenv("NCBI_API_KEY", "")
+        self._cache: Dict[str, Optional[Dict[str, Any]]] = {}
+
+    async def lookup(self, citation_id: str) -> Optional[Dict[str, Any]]:
+        """Lookup a citation by PMID (all digits) or DOI string."""
+        if citation_id in self._cache:
+            return self._cache[citation_id]
+
+        if citation_id.isdigit():
+            result = await self._lookup_pmid(citation_id)
+        else:
+            result = await self._lookup_doi(citation_id)
+
+        self._cache[citation_id] = result
+        return result
+
+    async def _lookup_pmid(self, pmid: str) -> Optional[Dict[str, Any]]:
+        import urllib.request, urllib.parse
+        params: Dict[str, str] = {"db": "pubmed", "id": pmid, "retmode": "json"}
+        if self._api_key:
+            params["api_key"] = self._api_key
+        url = f"{self._NCBI_BASE}/esummary.fcgi?{urllib.parse.urlencode(params)}"
+        try:
+            loop = asyncio.get_event_loop()
+            raw = await loop.run_in_executor(
+                None, lambda: urllib.request.urlopen(url, timeout=15).read()
+            )
+            data = json.loads(raw).get("result", {})
+            rec = data.get(pmid)
+            if not rec or not isinstance(rec, dict):
+                return None
+
+            authors = [a.get("name", "") for a in rec.get("authors", [])]
+            try:
+                year = int(rec.get("pubdate", "0")[:4])
+            except (ValueError, TypeError):
+                year = 0
+            doi = next(
+                (uid.get("value") for uid in rec.get("articleids", [])
+                 if uid.get("idtype") == "doi"),
+                None,
+            )
+            mesh_list = [m.get("meshheading", "") for m in rec.get("meshheadinglist", [])]
+            is_retracted = any("retract" in m.lower() for m in mesh_list)
+
+            return {
+                "pmid": pmid,
+                "title": rec.get("title", ""),
+                "authors": authors,
+                "journal": rec.get("fulljournalname", rec.get("source", "")),
+                "year": year,
+                "doi": doi,
+                "citation_count": 0,
+                "journal_if": 0.0,
+                "is_retracted": is_retracted,
+                "retraction_notice": "Retracted per PubMed MeSH" if is_retracted else None,
+                "access_type": "unknown",
+                "cited_by_count": 0,
+                "references_count": int(rec.get("pmcrefcount", 0) or 0),
+            }
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("PubMed lookup failed for %s: %s", pmid, exc)
+            return None
+
+    async def _lookup_doi(self, doi: str) -> Optional[Dict[str, Any]]:
+        import urllib.request, urllib.parse
+        url = f"{self._CROSSREF_BASE}/{urllib.parse.quote(doi, safe='')}"
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "EEG-RAG/1.0 (mailto:research@eeg-rag.org)"}
+        )
+        try:
+            loop = asyncio.get_event_loop()
+            raw = await loop.run_in_executor(
+                None, lambda: urllib.request.urlopen(req, timeout=15).read()
+            )
+            work = json.loads(raw).get("message", {})
+            authors = [
+                f"{a.get('family', '')} {a.get('given', '')}".strip()
+                for a in work.get("author", [])
+            ]
+            issued = work.get("issued", {}).get("date-parts", [[0]])
+            year = int((issued[0] or [0])[0] or 0)
+            return {
+                "pmid": None,
+                "title": " ".join(work.get("title", [""])),
+                "authors": authors,
+                "journal": " ".join(work.get("container-title", [""])),
+                "year": year,
+                "doi": doi,
+                "citation_count": work.get("is-referenced-by-count", 0),
+                "journal_if": 0.0,
+                "is_retracted": False,
+                "retraction_notice": None,
+                "access_type": "unknown",
+                "cited_by_count": work.get("is-referenced-by-count", 0),
+                "references_count": work.get("references-count", 0),
+            }
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("CrossRef lookup failed for %s: %s", doi, exc)
+            return None
+
+
 class CitationValidator:
     """
     Agent 4: Citation Validation Agent
