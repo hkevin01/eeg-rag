@@ -19,63 +19,63 @@ docs/
 
 ## 🚀 Quick Start
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Quick Start Guide](guides/quick-start.md) | Get started with EEG-RAG in 5 minutes |
-| [Orchestrator Guide](guides/orchestrator-guide.md) | Using the multi-agent orchestrator |
-| [Technical Reference](guides/technical-reference.md) | API reference and configuration |
-| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions |
+| <sub>[Quick Start Guide](guides/quick-start.md)</sub> | <sub>Get started with EEG-RAG in 5 minutes</sub> |
+| <sub>[Orchestrator Guide](guides/orchestrator-guide.md)</sub> | <sub>Using the multi-agent orchestrator</sub> |
+| <sub>[Technical Reference](guides/technical-reference.md)</sub> | <sub>API reference and configuration</sub> |
+| <sub>[Troubleshooting](guides/troubleshooting.md)</sub> | <sub>Common issues and solutions</sub> |
 
 ---
 
 ## 🏗️ Architecture
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Agentic RAG Architecture](architecture/agentic-rag.md) | Core multi-agent system design |
-| [Implementation Progress](architecture/implementation-progress.md) | Development status tracking |
-| [Agent Enhancements](architecture/agent-enhancements.md) | Agent improvement analysis |
+| <sub>[Agentic RAG Architecture](architecture/agentic-rag.md)</sub> | <sub>Core multi-agent system design</sub> |
+| <sub>[Implementation Progress](architecture/implementation-progress.md)</sub> | <sub>Development status tracking</sub> |
+| <sub>[Agent Enhancements](architecture/agent-enhancements.md)</sub> | <sub>Agent improvement analysis</sub> |
 
 ---
 
 ## ✨ Features
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Enterprise Features](features/enterprise.md) | Production-grade capabilities |
-| [Orchestrator](features/orchestrator.md) | Multi-agent coordination system |
-| [Systematic Review](features/systematic-review.md) | Automated literature review |
-| [GUI Multi-Page](features/gui-multipage.md) | Web interface implementation |
-| [Systematic Review Automation](features/systematic-review-automation/) | Full automation system |
+| <sub>[Enterprise Features](features/enterprise.md)</sub> | <sub>Production-grade capabilities</sub> |
+| <sub>[Orchestrator](features/orchestrator.md)</sub> | <sub>Multi-agent coordination system</sub> |
+| <sub>[Systematic Review](features/systematic-review.md)</sub> | <sub>Automated literature review</sub> |
+| <sub>[GUI Multi-Page](features/gui-multipage.md)</sub> | <sub>Web interface implementation</sub> |
+| <sub>[Systematic Review Automation](features/systematic-review-automation/)</sub> | <sub>Full automation system</sub> |
 
 ---
 
 ## 🛠️ Development
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Code Review Standards](development/code-review.md) | Code quality guidelines |
-| [Testing Guide](development/testing.md) | Testing practices and standards |
-| [Component Verification](development/verification.md) | Verification procedures |
+| <sub>[Code Review Standards](development/code-review.md)</sub> | <sub>Code quality guidelines</sub> |
+| <sub>[Testing Guide](development/testing.md)</sub> | <sub>Testing practices and standards</sub> |
+| <sub>[Component Verification](development/verification.md)</sub> | <sub>Verification procedures</sub> |
 
 ### Copilot Integration
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Copilot Examples](guides/copilot-examples.md) | Example prompts and patterns |
-| [Copilot Prompts](guides/copilot-prompts.md) | Prompt reference guide |
+| <sub>[Copilot Examples](guides/copilot-examples.md)</sub> | <sub>Example prompts and patterns</sub> |
+| <sub>[Copilot Prompts](guides/copilot-prompts.md)</sub> | <sub>Prompt reference guide</sub> |
 
 ---
 
 ## 📋 Planning
 
-| Document | Description |
+| <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|
-| [Project Plan](planning/project-plan.md) | Overall project roadmap |
-| [Current Status](planning/status.md) | Project status dashboard |
-| [Next Steps Roadmap](planning/roadmap.md) | Future development plans |
-| [Phase 1 TODO](planning/phase1-todo.md) | Phase 1 remaining tasks |
-| [Quick Wins TODO](planning/quick-wins-todo.md) | Low-effort improvements |
+| <sub>[Project Plan](planning/project-plan.md)</sub> | <sub>Overall project roadmap</sub> |
+| <sub>[Current Status](planning/status.md)</sub> | <sub>Project status dashboard</sub> |
+| <sub>[Next Steps Roadmap](planning/roadmap.md)</sub> | <sub>Future development plans</sub> |
+| <sub>[Phase 1 TODO](planning/phase1-todo.md)</sub> | <sub>Phase 1 remaining tasks</sub> |
+| <sub>[Quick Wins TODO](planning/quick-wins-todo.md)</sub> | <sub>Low-effort improvements</sub> |
 
 ---
 
@@ -90,12 +90,12 @@ Historical documentation from completed milestones:
 
 ## 🔗 Related Resources
 
-| Resource | Location |
+| <sub>Resource</sub> | <sub>Location</sub> |
 |----------|----------|
-| Main README | [/README.md](../README.md) |
-| Installation Guide | [/INSTALL.md](../INSTALL.md) |
-| Examples | [/examples/](../examples/) |
-| Tests | [/tests/](../tests/) |
+| <sub>Main README</sub> | <sub>[/README.md](../README.md)</sub> |
+| <sub>Installation Guide</sub> | <sub>[/INSTALL.md](../INSTALL.md)</sub> |
+| <sub>Examples</sub> | <sub>[/examples/](../examples/)</sub> |
+| <sub>Tests</sub> | <sub>[/tests/](../tests/)</sub> |
 
 ---
 
