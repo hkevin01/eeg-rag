@@ -88,26 +88,26 @@ EEG-RAG is an enterprise-ready, **multi-agent RAG system** built specifically fo
 
 ### Feature Status Table
 
-| Icon | Feature | Description | Impact | Status |
+| <sub>Icon</sub> | <sub>Feature</sub> | <sub>Description</sub> | <sub>Impact</sub> | <sub>Status</sub> |
 |------|---------|-------------|--------|--------|
-| 🤖 | **Multi-Agent System** | 12 specialized AI agents work in parallel — see full agent table below | High | ✅ Stable |
-| 🔍 | **Hybrid Retrieval** | BM25 + Dense vectors + SPLADE learned sparse + Cross-encoder reranking with RRF fusion | High | ✅ Stable |
-| 📡 | **FastAPI Web Service** | REST API with 10 endpoints + Server-Sent Events (SSE) for real-time streaming progress | High | ✅ Stable |
-| ✅ | **Citation Verification** | Medical-grade PMID validation, hallucination detection, retraction checking | Critical | ✅ Stable |
-| 🧠 | **PubMedBERT Embeddings** | 768-dim domain embeddings pre-trained on 14M PubMed abstracts; selectable via `model_preset` | High | ✅ Stable |
-| 📥 | **Multi-Source Ingestion** | PubMed, Semantic Scholar, arXiv, OpenAlex, ClinicalTrials.gov, Europe PMC (120K+ papers) | High | ✅ Stable |
-| 🏥 | **ClinicalTrials.gov** | EEG clinical trial data (epilepsy, BCI, neurofeedback, sleep) via REST v2 API with EEG relevance scoring | High | ✅ New |
-| 🌍 | **Europe PMC** | Open-access EEG literature via cursor-based pagination with full-text XML retrieval | High | ✅ New |
-| 🔬 | **ResearchAgent** | Parallel multi-source coordinator — PubMed + Semantic Scholar + Local in one call with dedup & evidence ranking | High | ✅ New |
-| 🗂️ | **SystematicReviewAgent** | Fully automated PRISMA-compliant systematic reviews: dedup → screen → grade → themes → gaps | High | ✅ New |
-| 🩺 | **ClinicalMatchingAgent** | Maps EEG patterns to clinical diagnoses using ACNS terminology, ICD-10 codes, evidence PMIDs and drug effect lookup | High | ✅ New |
-| 📋 | **CitationAgent** | Batch citation validation: impact scoring, retraction detection, ORCID linking, cross-reference checking, open-access status | Critical | ✅ Stable |
-| 📊 | **Bibliometrics Dashboard** | pyBiblioNet integration: trends, citation networks, KeyBERT NLP, Scopus export | Medium | ✅ Stable |
-| 🔬 | **NER System** | EEG Named Entity Recognition: 400+ terms across 12 categories (electrodes, bands, ERPs, conditions) | Medium | ✅ Stable |
-| 🗂️ | **Systematic Review (YAML)** | YAML-schema extraction, reproducibility scoring, temporal comparison vs Roy et al. 2019 | Medium | ✅ Stable |
-| 🏢 | **Enterprise Security** | SVG/PDF malware scanning, prompt injection detection, SHA-256 audit trail, OpenTimestamps | Medium | 🔄 Beta |
-| 🗄️ | **Knowledge Graph** | Neo4j with Cypher queries: multi-hop reasoning across entities (PAPER, BIOMARKER, CONDITION, OUTCOME) | Medium | 🔄 Beta |
-| 🚀 | **Adaptive Query Routing** | Intelligent routing to optimal agents based on query complexity, 30% latency reduction | Medium | 🟡 Planned |
+| <sub>🤖</sub> | <sub>**Multi-Agent System**</sub> | <sub>12 specialized AI agents work in parallel — see full agent table below</sub> | <sub>High</sub> | <sub>✅ Stable</sub> |
+| <sub>🔍</sub> | <sub>**Hybrid Retrieval**</sub> | <sub>BM25 + Dense vectors + SPLADE learned sparse + Cross-encoder reranking with RRF fusion</sub> | <sub>High</sub> | <sub>✅ Stable</sub> |
+| <sub>📡</sub> | <sub>**FastAPI Web Service**</sub> | <sub>REST API with 10 endpoints + Server-Sent Events (SSE) for real-time streaming progress</sub> | <sub>High</sub> | <sub>✅ Stable</sub> |
+| <sub>✅</sub> | <sub>**Citation Verification**</sub> | <sub>Medical-grade PMID validation, hallucination detection, retraction checking</sub> | <sub>Critical</sub> | <sub>✅ Stable</sub> |
+| <sub>🧠</sub> | <sub>**PubMedBERT Embeddings**</sub> | <sub>768-dim domain embeddings pre-trained on 14M PubMed abstracts; selectable via `model_preset`</sub> | <sub>High</sub> | <sub>✅ Stable</sub> |
+| <sub>📥</sub> | <sub>**Multi-Source Ingestion**</sub> | <sub>PubMed, Semantic Scholar, arXiv, OpenAlex, ClinicalTrials.gov, Europe PMC (120K+ papers)</sub> | <sub>High</sub> | <sub>✅ Stable</sub> |
+| <sub>🏥</sub> | <sub>**ClinicalTrials.gov**</sub> | <sub>EEG clinical trial data (epilepsy, BCI, neurofeedback, sleep) via REST v2 API with EEG relevance scoring</sub> | <sub>High</sub> | <sub>✅ New</sub> |
+| <sub>🌍</sub> | <sub>**Europe PMC**</sub> | <sub>Open-access EEG literature via cursor-based pagination with full-text XML retrieval</sub> | <sub>High</sub> | <sub>✅ New</sub> |
+| <sub>🔬</sub> | <sub>**ResearchAgent**</sub> | <sub>Parallel multi-source coordinator — PubMed + Semantic Scholar + Local in one call with dedup & evidence ranking</sub> | <sub>High</sub> | <sub>✅ New</sub> |
+| <sub>🗂️</sub> | <sub>**SystematicReviewAgent**</sub> | <sub>Fully automated PRISMA-compliant systematic reviews: dedup → screen → grade → themes → gaps</sub> | <sub>High</sub> | <sub>✅ New</sub> |
+| <sub>🩺</sub> | <sub>**ClinicalMatchingAgent**</sub> | <sub>Maps EEG patterns to clinical diagnoses using ACNS terminology, ICD-10 codes, evidence PMIDs and drug effect lookup</sub> | <sub>High</sub> | <sub>✅ New</sub> |
+| <sub>📋</sub> | <sub>**CitationAgent**</sub> | <sub>Batch citation validation: impact scoring, retraction detection, ORCID linking, cross-reference checking, open-access status</sub> | <sub>Critical</sub> | <sub>✅ Stable</sub> |
+| <sub>📊</sub> | <sub>**Bibliometrics Dashboard**</sub> | <sub>pyBiblioNet integration: trends, citation networks, KeyBERT NLP, Scopus export</sub> | <sub>Medium</sub> | <sub>✅ Stable</sub> |
+| <sub>🔬</sub> | <sub>**NER System**</sub> | <sub>EEG Named Entity Recognition: 400+ terms across 12 categories (electrodes, bands, ERPs, conditions)</sub> | <sub>Medium</sub> | <sub>✅ Stable</sub> |
+| <sub>🗂️</sub> | <sub>**Systematic Review (YAML)**</sub> | <sub>YAML-schema extraction, reproducibility scoring, temporal comparison vs Roy et al. 2019</sub> | <sub>Medium</sub> | <sub>✅ Stable</sub> |
+| <sub>🏢</sub> | <sub>**Enterprise Security**</sub> | <sub>SVG/PDF malware scanning, prompt injection detection, SHA-256 audit trail, OpenTimestamps</sub> | <sub>Medium</sub> | <sub>🔄 Beta</sub> |
+| <sub>🗄️</sub> | <sub>**Knowledge Graph**</sub> | <sub>Neo4j with Cypher queries: multi-hop reasoning across entities (PAPER, BIOMARKER, CONDITION, OUTCOME)</sub> | <sub>Medium</sub> | <sub>🔄 Beta</sub> |
+| <sub>🚀</sub> | <sub>**Adaptive Query Routing**</sub> | <sub>Intelligent routing to optimal agents based on query complexity, 30% latency reduction</sub> | <sub>Medium</sub> | <sub>🟡 Planned</sub> |
 
 <details>
 <summary>📋 All 330+ Requirements Covered — Click to Expand</summary>
@@ -269,20 +269,20 @@ EEG-RAG ships **12 specialized agents**, all extending `BaseAgent` via a common 
 
 ### Complete Agent Table
 
-| # | Agent | Type | Focus | How It Works |
+| <sub>#</sub> | <sub>Agent</sub> | <sub>Type</sub> | <sub>Focus</sub> | <sub>How It Works</sub> |
 |:-:|-------|:----:|-------|--------------|
-| 1 | **OrchestratorAgent**<br><sub>`agents/orchestrator/`</sub> | `ORCH` | Central coordinator | <sub>Receives a user query, builds a plan with `QueryPlanner`, fans out to sub-agents in parallel via `asyncio.gather`, merges ranked results</sub> |
-| 2 | **LocalDataAgent**<br><sub>`agents/local_agent/`</sub> | `LOCAL` | Fast in-corpus retrieval | <sub>Hybrid BM25 + FAISS dense search over the 120K-paper corpus; &lt;100 ms for 10K docs via RRF fusion</sub> |
-| 3 | **PubMedAgent**<br><sub>`agents/pubmed_agent/`</sub> | `CLOUD` | Peer-reviewed literature | <sub>NCBI E-utilities with MeSH expansion, rate-limited to 3 req/s (10 req/s with API key), returns PMID-annotated results</sub> |
-| 4 | **SemanticScholarAgent**<br><sub>`agents/semantic_scholar_agent/`</sub> | `CLOUD` | Citation graphs & influence | <sub>Queries the S2 Graph API for papers + citation counts + influential-citation flags; re-ranks by citation velocity</sub> |
-| 5 | **WebSearchAgent**<br><sub>`agents/web_agent/`</sub> | `WEB` | Web / preprint search | <sub>Falls back to web search for topics not covered by academic DBs; handles arXiv and bioRxiv preprints</sub> |
-| 6 | **GraphAgent**<br><sub>`agents/graph_agent/`</sub> | `CLOUD` | Multi-hop reasoning | <sub>Runs Cypher queries on Neo4j linking PAPER → BIOMARKER → CONDITION → OUTCOME nodes</sub> |
-| 7 | **CitationAgent**<br><sub>`agents/citation_agent/`</sub> | `AGG` | Citation validation & impact | <sub>Validates PMIDs/DOIs; computes impact score (citations + journal IF + recency); detects retractions; batch-validates 100+ papers with caching</sub> |
-| 8 | **SynthesisAgent**<br><sub>`agents/synthesis_agent/`</sub> | `AGG` | Multi-LLM answer generation | <sub>Feeds ranked context chunks to a configurable LLM ensemble; includes `EvidenceRanker` (1a–5 OCEBM) and hallucination detection</sub> |
-| 9 | **MCPAgent**<br><sub>`agents/mcp_agent/`</sub> | `MCP` | MCP protocol bridge | <sub>Exposes all agents as callable tools via Model Context Protocol; enables Claude Desktop and other MCP client integrations</sub> |
-| 10 | **ResearchAgent**<br><sub>`agents/research_agent/`</sub> | `CLOUD` | Multi-source coordinator ✨ | <sub>Runs PubMed + SemanticScholar + LocalData in parallel; isolates per-source errors; deduplicates by PMID/DOI/title; applies 13-group EEG synonym expansion</sub> |
-| 11 | **SystematicReviewAgent**<br><sub>`agents/systematic_review_agent/`</sub> | `AGG` | PRISMA automation ✨ | <sub>Full PRISMA pipeline: dedup → abstract screening → OCEBM grading → thematic grouping (freq bands, methods, conditions) → gap detection</sub> |
-| 12 | **ClinicalMatchingAgent**<br><sub>`agents/clinical_matching_agent/`</sub> | `LOCAL` | EEG → diagnosis ✨ | <sub>13-entry ACNS pattern KB (spike-wave, hypsarrhythmia, LPDs, GRDA, LRDA, sleep stages, BCI); age modifiers + drug-EEG lookup; returns ICD-10 codes + PMIDs</sub> |
+| <sub>1</sub> | <sub>**OrchestratorAgent**<br><sub>`agents/orchestrator/`</sub></sub> | <sub>`ORCH`</sub> | <sub>Central coordinator</sub> | <sub>Receives a user query, builds a plan with `QueryPlanner`, fans out to sub-agents in parallel via `asyncio.gather`, merges ranked results</sub> |
+| <sub>2</sub> | <sub>**LocalDataAgent**<br><sub>`agents/local_agent/`</sub></sub> | <sub>`LOCAL`</sub> | <sub>Fast in-corpus retrieval</sub> | <sub>Hybrid BM25 + FAISS dense search over the 120K-paper corpus; &lt;100 ms for 10K docs via RRF fusion</sub> |
+| <sub>3</sub> | <sub>**PubMedAgent**<br><sub>`agents/pubmed_agent/`</sub></sub> | <sub>`CLOUD`</sub> | <sub>Peer-reviewed literature</sub> | <sub>NCBI E-utilities with MeSH expansion, rate-limited to 3 req/s (10 req/s with API key), returns PMID-annotated results</sub> |
+| <sub>4</sub> | <sub>**SemanticScholarAgent**<br><sub>`agents/semantic_scholar_agent/`</sub></sub> | <sub>`CLOUD`</sub> | <sub>Citation graphs & influence</sub> | <sub>Queries the S2 Graph API for papers + citation counts + influential-citation flags; re-ranks by citation velocity</sub> |
+| <sub>5</sub> | <sub>**WebSearchAgent**<br><sub>`agents/web_agent/`</sub></sub> | <sub>`WEB`</sub> | <sub>Web / preprint search</sub> | <sub>Falls back to web search for topics not covered by academic DBs; handles arXiv and bioRxiv preprints</sub> |
+| <sub>6</sub> | <sub>**GraphAgent**<br><sub>`agents/graph_agent/`</sub></sub> | <sub>`CLOUD`</sub> | <sub>Multi-hop reasoning</sub> | <sub>Runs Cypher queries on Neo4j linking PAPER → BIOMARKER → CONDITION → OUTCOME nodes</sub> |
+| <sub>7</sub> | <sub>**CitationAgent**<br><sub>`agents/citation_agent/`</sub></sub> | <sub>`AGG`</sub> | <sub>Citation validation & impact</sub> | <sub>Validates PMIDs/DOIs; computes impact score (citations + journal IF + recency); detects retractions; batch-validates 100+ papers with caching</sub> |
+| <sub>8</sub> | <sub>**SynthesisAgent**<br><sub>`agents/synthesis_agent/`</sub></sub> | <sub>`AGG`</sub> | <sub>Multi-LLM answer generation</sub> | <sub>Feeds ranked context chunks to a configurable LLM ensemble; includes `EvidenceRanker` (1a–5 OCEBM) and hallucination detection</sub> |
+| <sub>9</sub> | <sub>**MCPAgent**<br><sub>`agents/mcp_agent/`</sub></sub> | <sub>`MCP`</sub> | <sub>MCP protocol bridge</sub> | <sub>Exposes all agents as callable tools via Model Context Protocol; enables Claude Desktop and other MCP client integrations</sub> |
+| <sub>10</sub> | <sub>**ResearchAgent**<br><sub>`agents/research_agent/`</sub></sub> | <sub>`CLOUD`</sub> | <sub>Multi-source coordinator ✨</sub> | <sub>Runs PubMed + SemanticScholar + LocalData in parallel; isolates per-source errors; deduplicates by PMID/DOI/title; applies 13-group EEG synonym expansion</sub> |
+| <sub>11</sub> | <sub>**SystematicReviewAgent**<br><sub>`agents/systematic_review_agent/`</sub></sub> | <sub>`AGG`</sub> | <sub>PRISMA automation ✨</sub> | <sub>Full PRISMA pipeline: dedup → abstract screening → OCEBM grading → thematic grouping (freq bands, methods, conditions) → gap detection</sub> |
+| <sub>12</sub> | <sub>**ClinicalMatchingAgent**<br><sub>`agents/clinical_matching_agent/`</sub></sub> | <sub>`LOCAL`</sub> | <sub>EEG → diagnosis ✨</sub> | <sub>13-entry ACNS pattern KB (spike-wave, hypsarrhythmia, LPDs, GRDA, LRDA, sleep stages, BCI); age modifiers + drug-EEG lookup; returns ICD-10 codes + PMIDs</sub> |
 
 ### New Agents Added
 
@@ -546,18 +546,18 @@ gunicorn eeg_rag.api.main:app \
 
 ### API Endpoints
 
-| Endpoint | Method | Description |
+| <sub>Endpoint</sub> | <sub>Method</sub> | <sub>Description</sub> |
 |----------|--------|-------------|
-| `/health` | GET | Health check with per-agent status |
-| `/metrics` | GET | Performance metrics (latency, cache rate) |
-| `/search` | POST | Standard search with AI synthesis |
-| `/search/stream` | POST | **SSE streaming** — real-time progress |
-| `/paper/details` | POST | Fetch full paper metadata |
-| `/paper/citations` | POST | Citation network analysis |
-| `/suggest` | GET | Query autocomplete |
-| `/query-types` | GET | Available query categories |
-| `/docs` | GET | Swagger UI |
-| `/redoc` | GET | ReDoc documentation |
+| <sub>`/health`</sub> | <sub>GET</sub> | <sub>Health check with per-agent status</sub> |
+| <sub>`/metrics`</sub> | <sub>GET</sub> | <sub>Performance metrics (latency, cache rate)</sub> |
+| <sub>`/search`</sub> | <sub>POST</sub> | <sub>Standard search with AI synthesis</sub> |
+| <sub>`/search/stream`</sub> | <sub>POST</sub> | <sub>**SSE streaming** — real-time progress</sub> |
+| <sub>`/paper/details`</sub> | <sub>POST</sub> | <sub>Fetch full paper metadata</sub> |
+| <sub>`/paper/citations`</sub> | <sub>POST</sub> | <sub>Citation network analysis</sub> |
+| <sub>`/suggest`</sub> | <sub>GET</sub> | <sub>Query autocomplete</sub> |
+| <sub>`/query-types`</sub> | <sub>GET</sub> | <sub>Available query categories</sub> |
+| <sub>`/docs`</sub> | <sub>GET</sub> | <sub>Swagger UI</sub> |
+| <sub>`/redoc`</sub> | <sub>GET</sub> | <sub>ReDoc documentation</sub> |
 
 > [!NOTE]
 > Interactive docs available at http://localhost:8080/docs once the server is running. No API key required for retrieval-only queries.
@@ -674,20 +674,20 @@ streamlit run src/eeg_rag/web_ui/app_enhanced.py --server.port 8504
 
 Open http://localhost:8504 to see all 12 agents working in real-time.
 
-| Agent | Role | What It Does |
+| <sub>Agent</sub> | <sub>Role</sub> | <sub>What It Does</sub> |
 |-------|------|-------------|
-| 🎯 Orchestrator | Central Coordinator | Routes queries, manages workflow |
-| 📋 Query Planner | Query Analyst | Decomposes complexity, identifies entities |
-| 💾 Local Search | Fast Retrieval | FAISS hybrid BM25+vector search (<100ms) |
-| 🏥 PubMed Search | Literature Gateway | MeSH-expanded queries, NCBI-compliant rates |
-| 🔬 Semantic Scholar | Citation Analysis | Influence scoring, citation network |
-| 🕸️ Knowledge Graph | Relationship Mapper | Neo4j entity resolution |
-| ✅ Citation Agent | Quality Assurance | PMID verification, retraction + impact scoring |
-| 🧪 Synthesis | Answer Generator | Multi-LLM ensemble summaries |
-| 📡 MCP Agent | Tool Bridge | Exposes agents via Model Context Protocol |
-| 🔗 Research Agent | Multi-Source Search | Parallel PubMed + S2 + Local with dedup |
-| 📋 Systematic Review | PRISMA Automation | Structured review pipeline with evidence grading |
-| 🩺 Clinical Matching | EEG → Diagnosis | Pattern→diagnosis with ICD-10 + drug effects |
+| <sub>🎯 Orchestrator</sub> | <sub>Central Coordinator</sub> | <sub>Routes queries, manages workflow</sub> |
+| <sub>📋 Query Planner</sub> | <sub>Query Analyst</sub> | <sub>Decomposes complexity, identifies entities</sub> |
+| <sub>💾 Local Search</sub> | <sub>Fast Retrieval</sub> | <sub>FAISS hybrid BM25+vector search (<100ms)</sub> |
+| <sub>🏥 PubMed Search</sub> | <sub>Literature Gateway</sub> | <sub>MeSH-expanded queries, NCBI-compliant rates</sub> |
+| <sub>🔬 Semantic Scholar</sub> | <sub>Citation Analysis</sub> | <sub>Influence scoring, citation network</sub> |
+| <sub>🕸️ Knowledge Graph</sub> | <sub>Relationship Mapper</sub> | <sub>Neo4j entity resolution</sub> |
+| <sub>✅ Citation Agent</sub> | <sub>Quality Assurance</sub> | <sub>PMID verification, retraction + impact scoring</sub> |
+| <sub>🧪 Synthesis</sub> | <sub>Answer Generator</sub> | <sub>Multi-LLM ensemble summaries</sub> |
+| <sub>📡 MCP Agent</sub> | <sub>Tool Bridge</sub> | <sub>Exposes agents via Model Context Protocol</sub> |
+| <sub>🔗 Research Agent</sub> | <sub>Multi-Source Search</sub> | <sub>Parallel PubMed + S2 + Local with dedup</sub> |
+| <sub>📋 Systematic Review</sub> | <sub>PRISMA Automation</sub> | <sub>Structured review pipeline with evidence grading</sub> |
+| <sub>🩺 Clinical Matching</sub> | <sub>EEG → Diagnosis</sub> | <sub>Pattern→diagnosis with ICD-10 + drug effects</sub> |
 
 ### Ingest Research Papers
 
@@ -718,17 +718,17 @@ EEG-RAG uses a **metadata-first architecture**: the repo stays under 50 MB, full
 
 ### Supported Sources
 
-| Source | ID Types | Best For | Rate (no key) | Rate (with key) |
+| <sub>Source</sub> | <sub>ID Types</sub> | <sub>Best For</sub> | <sub>Rate (no key)</sub> | <sub>Rate (with key)</sub> |
 |--------|----------|----------|--------------|-----------------|
-| ✅ **PubMed** | PMID | Medical / life sciences | 3 req/sec | 10 req/sec |
-| ✅ **Semantic Scholar** | DOI, PMID, arXiv | Citation data, CS/neuro | 20 req/min | 100 req/min |
-| ✅ **arXiv** | arXiv ID | Physics, CS, math preprints | ~20 papers/min | — |
-| ✅ **OpenAlex** | DOI, OpenAlex ID | Open metadata, broad coverage | 100K/day | — |
-| ✅ **CrossRef** | DOI | Authoritative DOI metadata | 50 req/sec | — |
-| ✅ **bioRxiv / medRxiv** | DOI (10.1101/*) | Life science preprints | 2 req/sec | — |
-| ✅ **ClinicalTrials.gov** | NCT ID | EEG clinical trials (epilepsy, BCI, sleep, neurofeedback) | REST v2, unlimited | — |
-| ✅ **Europe PMC** | PMID, PMCID | Open-access EEG literature with full-text XML | cursor-based, unlimited | — |
-| ⚠️ IEEE Xplore | — | Engineering (requires API key) | — | — |
+| <sub>✅ **PubMed**</sub> | <sub>PMID</sub> | <sub>Medical / life sciences</sub> | <sub>3 req/sec</sub> | <sub>10 req/sec</sub> |
+| <sub>✅ **Semantic Scholar**</sub> | <sub>DOI, PMID, arXiv</sub> | <sub>Citation data, CS/neuro</sub> | <sub>20 req/min</sub> | <sub>100 req/min</sub> |
+| <sub>✅ **arXiv**</sub> | <sub>arXiv ID</sub> | <sub>Physics, CS, math preprints</sub> | <sub>~20 papers/min</sub> | <sub>—</sub> |
+| <sub>✅ **OpenAlex**</sub> | <sub>DOI, OpenAlex ID</sub> | <sub>Open metadata, broad coverage</sub> | <sub>100K/day</sub> | <sub>—</sub> |
+| <sub>✅ **CrossRef**</sub> | <sub>DOI</sub> | <sub>Authoritative DOI metadata</sub> | <sub>50 req/sec</sub> | <sub>—</sub> |
+| <sub>✅ **bioRxiv / medRxiv**</sub> | <sub>DOI (10.1101/*)</sub> | <sub>Life science preprints</sub> | <sub>2 req/sec</sub> | <sub>—</sub> |
+| <sub>✅ **ClinicalTrials.gov**</sub> | <sub>NCT ID</sub> | <sub>EEG clinical trials (epilepsy, BCI, sleep, neurofeedback)</sub> | <sub>REST v2, unlimited</sub> | <sub>—</sub> |
+| <sub>✅ **Europe PMC**</sub> | <sub>PMID, PMCID</sub> | <sub>Open-access EEG literature with full-text XML</sub> | <sub>cursor-based, unlimited</sub> | <sub>—</sub> |
+| <sub>⚠️ IEEE Xplore</sub> | <sub>—</sub> | <sub>Engineering (requires API key)</sub> | <sub>—</sub> | <sub>—</sub> |
 
 ### New Sources — ClinicalTrials.gov and Europe PMC
 
@@ -760,52 +760,52 @@ async with EuropePMCClient(fetch_full_text=True) as client:
 
 ## 🔧 Technology Stack
 
-| Technology | Purpose | Why Chosen | Alternatives Considered |
+| <sub>Technology</sub> | <sub>Purpose</sub> | <sub>Why Chosen</sub> | <sub>Alternatives Considered</sub> |
 |------------|---------|------------|------------------------|
-| **Python 3.9+** | Core runtime | Rich ML/NLP ecosystem, async support, type hints | Node.js (lacks NLP maturity) |
-| **FastAPI** | REST API framework | Async-native, auto OpenAPI docs, SSE support | Flask (no async), Django (heavier) |
-| **FAISS** | Vector similarity search | <10ms for 1M vectors, GPU support, free | Pinecone (cloud/paid), Weaviate (heavier) |
-| **PubMedBERT** | Biomedical embeddings | Pre-trained on 14M PubMed papers, 87% NER F1; selectable via `model_preset` parameter | BioBERT (older), SciBERT (general science) |
-| **BM25 (rank-bm25)** | Sparse keyword retrieval | Fast, no GPU, strong baseline for EEG terms | TF-IDF (less nuanced), Elasticsearch |
-| **SPLADE** | Learned sparse retrieval | +10-15% recall over BM25, domain-aware | ANSERINI (less flexible) |
-| **Streamlit** | Web UI | Rapid data science UI, no frontend expertise needed | React (more complex), Gradio |
-| **Neo4j** | Knowledge graph | Cypher queries, multi-hop reasoning, visualization | ArangoDB (steeper curve), TigerGraph |
-| **Redis** | Query cache | Sub-ms latency, TTL support, LRU eviction | Memcached (no persistence), DynamoDB |
-| **Pydantic v2** | Data validation | Type-safe models, fast validation at I/O boundaries | dataclasses (no validation), marshmallow |
-| **pytest + asyncio** | Testing | Async test support, parametrize, 294+ tests passing | unittest (verbose), nose (deprecated) |
-| **Docker** | Containerization | Reproducible builds, isolation, K8s-ready | Conda (Python-only), venv (no system deps) |
+| <sub>**Python 3.9+**</sub> | <sub>Core runtime</sub> | <sub>Rich ML/NLP ecosystem, async support, type hints</sub> | <sub>Node.js (lacks NLP maturity)</sub> |
+| <sub>**FastAPI**</sub> | <sub>REST API framework</sub> | <sub>Async-native, auto OpenAPI docs, SSE support</sub> | <sub>Flask (no async), Django (heavier)</sub> |
+| <sub>**FAISS**</sub> | <sub>Vector similarity search</sub> | <sub><10ms for 1M vectors, GPU support, free</sub> | <sub>Pinecone (cloud/paid), Weaviate (heavier)</sub> |
+| <sub>**PubMedBERT**</sub> | <sub>Biomedical embeddings</sub> | <sub>Pre-trained on 14M PubMed papers, 87% NER F1; selectable via `model_preset` parameter</sub> | <sub>BioBERT (older), SciBERT (general science)</sub> |
+| <sub>**BM25 (rank-bm25)**</sub> | <sub>Sparse keyword retrieval</sub> | <sub>Fast, no GPU, strong baseline for EEG terms</sub> | <sub>TF-IDF (less nuanced), Elasticsearch</sub> |
+| <sub>**SPLADE**</sub> | <sub>Learned sparse retrieval</sub> | <sub>+10-15% recall over BM25, domain-aware</sub> | <sub>ANSERINI (less flexible)</sub> |
+| <sub>**Streamlit**</sub> | <sub>Web UI</sub> | <sub>Rapid data science UI, no frontend expertise needed</sub> | <sub>React (more complex), Gradio</sub> |
+| <sub>**Neo4j**</sub> | <sub>Knowledge graph</sub> | <sub>Cypher queries, multi-hop reasoning, visualization</sub> | <sub>ArangoDB (steeper curve), TigerGraph</sub> |
+| <sub>**Redis**</sub> | <sub>Query cache</sub> | <sub>Sub-ms latency, TTL support, LRU eviction</sub> | <sub>Memcached (no persistence), DynamoDB</sub> |
+| <sub>**Pydantic v2**</sub> | <sub>Data validation</sub> | <sub>Type-safe models, fast validation at I/O boundaries</sub> | <sub>dataclasses (no validation), marshmallow</sub> |
+| <sub>**pytest + asyncio**</sub> | <sub>Testing</sub> | <sub>Async test support, parametrize, 294+ tests passing</sub> | <sub>unittest (verbose), nose (deprecated)</sub> |
+| <sub>**Docker**</sub> | <sub>Containerization</sub> | <sub>Reproducible builds, isolation, K8s-ready</sub> | <sub>Conda (Python-only), venv (no system deps)</sub> |
 
 <details>
 <summary>⚡ Performance Deep Dive — Click to Expand</summary>
 
 ### Retrieval Stage Comparison
 
-| Method | Latency | Recall@10 | When to Use |
+| <sub>Method</sub> | <sub>Latency</sub> | <sub>Recall@10</sub> | <sub>When to Use</sub> |
 |--------|---------|-----------|------------|
-| BM25 baseline | ~20ms | 78% | Fast, exact-term queries |
-| SPLADE learned sparse | ~40ms | 88% | Better quality needed |
-| Dense (PubMedBERT) | ~30ms | 82% | Semantic / conceptual queries |
-| Hybrid BM25 + Dense (RRF) | ~60ms | 91% | Best general baseline |
-| Hybrid + Reranking | ~160ms | 95% | High-precision tasks |
+| <sub>BM25 baseline</sub> | <sub>~20ms</sub> | <sub>78%</sub> | <sub>Fast, exact-term queries</sub> |
+| <sub>SPLADE learned sparse</sub> | <sub>~40ms</sub> | <sub>88%</sub> | <sub>Better quality needed</sub> |
+| <sub>Dense (PubMedBERT)</sub> | <sub>~30ms</sub> | <sub>82%</sub> | <sub>Semantic / conceptual queries</sub> |
+| <sub>Hybrid BM25 + Dense (RRF)</sub> | <sub>~60ms</sub> | <sub>91%</sub> | <sub>Best general baseline</sub> |
+| <sub>Hybrid + Reranking</sub> | <sub>~160ms</sub> | <sub>95%</sub> | <sub>High-precision tasks</sub> |
 
 ### Cache Impact
 
-| Scenario | Without Cache | With Cache | Speedup |
+| <sub>Scenario</sub> | <sub>Without Cache</sub> | <sub>With Cache</sub> | <sub>Speedup</sub> |
 |----------|--------------|------------|---------|
-| Repeated query | 1.8s | 0.05s | **36x** |
-| Similar query | 1.8s | 1.8s | 1x |
-| Popular EEG terms | 1.8s | 0.05s | **36x** |
+| <sub>Repeated query</sub> | <sub>1.8s</sub> | <sub>0.05s</sub> | <sub>**36x**</sub> |
+| <sub>Similar query</sub> | <sub>1.8s</sub> | <sub>1.8s</sub> | <sub>1x</sub> |
+| <sub>Popular EEG terms</sub> | <sub>1.8s</sub> | <sub>0.05s</sub> | <sub>**36x**</sub> |
 
 **Target cache hit rate: >60%** for common EEG research queries.
 
 ### PubMedBERT vs Alternatives
 
-| Model | PubMed NER F1 | EEG Term Recall |
+| <sub>Model</sub> | <sub>PubMed NER F1</sub> | <sub>EEG Term Recall</sub> |
 |-------|--------------|-----------------|
-| BERT-base | 0.78 | 72% |
-| BioBERT | 0.84 | 81% |
-| **PubMedBERT** | **0.87** | **89%** |
-| SciBERT | 0.82 | 75% |
+| <sub>BERT-base</sub> | <sub>0.78</sub> | <sub>72%</sub> |
+| <sub>BioBERT</sub> | <sub>0.84</sub> | <sub>81%</sub> |
+| <sub>**PubMedBERT**</sub> | <sub>**0.87**</sub> | <sub>**89%**</sub> |
+| <sub>SciBERT</sub> | <sub>0.82</sub> | <sub>75%</sub> |
 
 </details>
 
@@ -817,23 +817,23 @@ async with EuropePMCClient(fetch_full_text=True) as client:
 
 ### Frequency Bands
 
-| Band | Frequency | Cognitive State | Clinical Relevance |
+| <sub>Band</sub> | <sub>Frequency</sub> | <sub>Cognitive State</sub> | <sub>Clinical Relevance</sub> |
 |------|-----------|----------------|-------------------|
-| **Delta (δ)** | 0.5–4 Hz | Deep sleep, unconsciousness | Tumor detection, encephalopathy |
-| **Theta (θ)** | 4–8 Hz | Drowsiness, meditation | Memory encoding, ADHD markers |
-| **Alpha (α)** | 8–13 Hz | Relaxed wakefulness | Eyes-closed resting state |
-| **Beta (β)** | 13–30 Hz | Active thinking, focus | Anxiety, motor planning |
-| **Gamma (γ)** | 30–100 Hz | Cognitive processing, binding | Attention, consciousness |
+| <sub>**Delta (δ)**</sub> | <sub>0.5–4 Hz</sub> | <sub>Deep sleep, unconsciousness</sub> | <sub>Tumor detection, encephalopathy</sub> |
+| <sub>**Theta (θ)**</sub> | <sub>4–8 Hz</sub> | <sub>Drowsiness, meditation</sub> | <sub>Memory encoding, ADHD markers</sub> |
+| <sub>**Alpha (α)**</sub> | <sub>8–13 Hz</sub> | <sub>Relaxed wakefulness</sub> | <sub>Eyes-closed resting state</sub> |
+| <sub>**Beta (β)**</sub> | <sub>13–30 Hz</sub> | <sub>Active thinking, focus</sub> | <sub>Anxiety, motor planning</sub> |
+| <sub>**Gamma (γ)**</sub> | <sub>30–100 Hz</sub> | <sub>Cognitive processing, binding</sub> | <sub>Attention, consciousness</sub> |
 
 ### ERP Components
 
-| Component | Latency | Paradigm | Clinical Use |
+| <sub>Component</sub> | <sub>Latency</sub> | <sub>Paradigm</sub> | <sub>Clinical Use</sub> |
 |-----------|---------|---------|-------------|
-| **P300** | ~300ms | Oddball (target detection) | Working memory, BCI spellers |
-| **N400** | ~400ms | Semantic violation | Language disorders |
-| **N170** | ~170ms | Face stimulus | Face processing research |
-| **MMN** | 150–250ms | Deviant auditory stimulus | Pre-attentive processing, schizophrenia |
-| **ERN** | 50–100ms | Error response | Error monitoring, OCD |
+| <sub>**P300**</sub> | <sub>~300ms</sub> | <sub>Oddball (target detection)</sub> | <sub>Working memory, BCI spellers</sub> |
+| <sub>**N400**</sub> | <sub>~400ms</sub> | <sub>Semantic violation</sub> | <sub>Language disorders</sub> |
+| <sub>**N170**</sub> | <sub>~170ms</sub> | <sub>Face stimulus</sub> | <sub>Face processing research</sub> |
+| <sub>**MMN**</sub> | <sub>150–250ms</sub> | <sub>Deviant auditory stimulus</sub> | <sub>Pre-attentive processing, schizophrenia</sub> |
+| <sub>**ERN**</sub> | <sub>50–100ms</sub> | <sub>Error response</sub> | <sub>Error monitoring, OCD</sub> |
 
 ### NER System — 400+ Terms, 12 Categories
 
@@ -855,20 +855,20 @@ result = ner.extract_entities(
 <details>
 <summary>🏷️ All 12 NER Entity Categories — Click to Expand</summary>
 
-| Entity Type | Term Count | Examples |
+| <sub>Entity Type</sub> | <sub>Term Count</sub> | <sub>Examples</sub> |
 |-------------|-----------|---------|
-| Frequency Bands | 14 | delta (0.5-4Hz), theta, alpha, beta, gamma |
-| Brain Regions | 40+ | frontal cortex, hippocampus, amygdala |
-| Electrodes | 60+ | Fp1, Fz, Cz, Pz, O1, O2 (10-20 system) |
-| Clinical Conditions | 50+ | epilepsy, Alzheimer's, depression, ADHD |
-| Biomarkers | 40+ | P300, alpha asymmetry, theta-beta ratio |
-| Measurement Units | 10+ | Hz, μV, ms, amplitude, power |
-| Signal Features | 20+ | artifacts, epochs, phase, waveforms |
-| Experimental Tasks | 30+ | resting state, oddball, motor imagery |
-| Processing Methods | 35+ | ICA, FFT, bandpass filter |
-| EEG Phenomena | 25+ | alpha blocking, sleep spindles |
-| Cognitive States | 20+ | attention, drowsiness, meditation |
-| Hardware | 15+ | EEG cap, amplifier, BioSemi |
+| <sub>Frequency Bands</sub> | <sub>14</sub> | <sub>delta (0.5-4Hz), theta, alpha, beta, gamma</sub> |
+| <sub>Brain Regions</sub> | <sub>40+</sub> | <sub>frontal cortex, hippocampus, amygdala</sub> |
+| <sub>Electrodes</sub> | <sub>60+</sub> | <sub>Fp1, Fz, Cz, Pz, O1, O2 (10-20 system)</sub> |
+| <sub>Clinical Conditions</sub> | <sub>50+</sub> | <sub>epilepsy, Alzheimer's, depression, ADHD</sub> |
+| <sub>Biomarkers</sub> | <sub>40+</sub> | <sub>P300, alpha asymmetry, theta-beta ratio</sub> |
+| <sub>Measurement Units</sub> | <sub>10+</sub> | <sub>Hz, μV, ms, amplitude, power</sub> |
+| <sub>Signal Features</sub> | <sub>20+</sub> | <sub>artifacts, epochs, phase, waveforms</sub> |
+| <sub>Experimental Tasks</sub> | <sub>30+</sub> | <sub>resting state, oddball, motor imagery</sub> |
+| <sub>Processing Methods</sub> | <sub>35+</sub> | <sub>ICA, FFT, bandpass filter</sub> |
+| <sub>EEG Phenomena</sub> | <sub>25+</sub> | <sub>alpha blocking, sleep spindles</sub> |
+| <sub>Cognitive States</sub> | <sub>20+</sub> | <sub>attention, drowsiness, meditation</sub> |
+| <sub>Hardware</sub> | <sub>15+</sub> | <sub>EEG cap, amplifier, BioSemi</sub> |
 
 </details>
 
@@ -906,13 +906,13 @@ where $k=60$ (default), $r(d)$ is the rank of document $d$ in ranker $r$, and $R
 
 `DenseRetriever` now ships five built-in model presets selectable at construction time — no environment variables needed.
 
-| Preset | Model | Best For |
+| <sub>Preset</sub> | <sub>Model</sub> | <sub>Best For</sub> |
 |--------|-------|---------|
-| `general` (default) | `sentence-transformers/all-MiniLM-L6-v2` | Fast baseline, general text |
-| `pubmedbert` | `microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext` | Clinical and biomedical EEG text |
-| `biobert` | `dmis-lab/biobert-base-cased-v1.2` | Biomedical NLP tasks |
-| `mpnet` | `sentence-transformers/all-mpnet-base-v2` | High-quality general retrieval |
-| `multilingual` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Non-English EEG literature |
+| <sub>`general` (default)</sub> | <sub>`sentence-transformers/all-MiniLM-L6-v2`</sub> | <sub>Fast baseline, general text</sub> |
+| <sub>`pubmedbert`</sub> | <sub>`microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext`</sub> | <sub>Clinical and biomedical EEG text</sub> |
+| <sub>`biobert`</sub> | <sub>`dmis-lab/biobert-base-cased-v1.2`</sub> | <sub>Biomedical NLP tasks</sub> |
+| <sub>`mpnet`</sub> | <sub>`sentence-transformers/all-mpnet-base-v2`</sub> | <sub>High-quality general retrieval</sub> |
+| <sub>`multilingual`</sub> | <sub>`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`</sub> | <sub>Non-English EEG literature</sub> |
 
 ```python
 from eeg_rag.retrieval.dense_retriever import DenseRetriever
@@ -960,13 +960,13 @@ extractor.export("systematic_review.csv", format="csv")
 
 ### Reproducibility Scoring
 
-| Criterion | Score | Example |
+| <sub>Criterion</sub> | <sub>Score</sub> | <sub>Example</sub> |
 |-----------|-------|---------|
-| Public GitHub repo | 10 | `https://github.com/author/repo` |
-| Code on request | 5 | "Available upon reasonable request" |
-| Public dataset | 8 | CHB-MIT, PhysioNet, DEAP, TUSZ |
-| Private/clinical dataset | 4 | Hospital EEG (ethics-approved) |
-| **Maximum** | **18** | Fully reproducible research |
+| <sub>Public GitHub repo</sub> | <sub>10</sub> | <sub>`https://github.com/author/repo`</sub> |
+| <sub>Code on request</sub> | <sub>5</sub> | <sub>"Available upon reasonable request"</sub> |
+| <sub>Public dataset</sub> | <sub>8</sub> | <sub>CHB-MIT, PhysioNet, DEAP, TUSZ</sub> |
+| <sub>Private/clinical dataset</sub> | <sub>4</sub> | <sub>Hospital EEG (ethics-approved)</sub> |
+| <sub>**Maximum**</sub> | <sub>**18**</sub> | <sub>Fully reproducible research</sub> |
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 
@@ -1059,12 +1059,12 @@ if not result.safe:
 
 ### Regulatory Compliance
 
-| Standard | Status | Notes |
+| <sub>Standard</sub> | <sub>Status</sub> | <sub>Notes</sub> |
 |----------|--------|-------|
-| HIPAA | ✅ Ready | Healthcare data protection (US) |
-| GDPR | ✅ Ready | Data protection (EU) |
-| FDA 510(k) | 🟡 Partial | Medical device clearance — documentation ready |
-| CE Mark | 🟡 Partial | European conformity — documentation ready |
+| <sub>HIPAA</sub> | <sub>✅ Ready</sub> | <sub>Healthcare data protection (US)</sub> |
+| <sub>GDPR</sub> | <sub>✅ Ready</sub> | <sub>Data protection (EU)</sub> |
+| <sub>FDA 510(k)</sub> | <sub>🟡 Partial</sub> | <sub>Medical device clearance — documentation ready</sub> |
+| <sub>CE Mark</sub> | <sub>🟡 Partial</sub> | <sub>European conformity — documentation ready</sub> |
 
 </details>
 
@@ -1125,15 +1125,15 @@ gantt
 
 ### Milestone Summary
 
-| Phase | Goals | Status |
+| <sub>Phase</sub> | <sub>Goals</sub> | <sub>Status</sub> |
 |-------|-------|--------|
-| **Phase 1** — Foundation | Architecture, BaseAgent, QueryPlanner, Memory, Orchestrator | ✅ 100% |
-| **Phase 2** — Agents | LocalSearch, PubMed, GraphAgent, CitationValidator | ✅ 100% |
-| **Phase 3** — Pipeline | Chunking, NER, Corpus, Embeddings, FinalAggregator | ✅ 100% |
-| **Phase 4** — Ingestion | Multi-source 120K papers, Streamlit UI, FastAPI | ✅ 100% |
-| **Phase 5** — Advanced | SPLADE, Reranker, IR Metrics, Bibliometrics, Systematic Review | ✅ 100% |
-| **Phase 6** — New Agents & Sources | ClinicalTrials.gov, Europe PMC, ResearchAgent, SystematicReviewAgent, ClinicalMatchingAgent, PubMedBERT presets | ✅ 100% |
-| **Phase 7** — Production | Full LLM, <2s p95 target, Docker prod, K8s | 🟡 10% |
+| <sub>**Phase 1** — Foundation</sub> | <sub>Architecture, BaseAgent, QueryPlanner, Memory, Orchestrator</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 2** — Agents</sub> | <sub>LocalSearch, PubMed, GraphAgent, CitationValidator</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 3** — Pipeline</sub> | <sub>Chunking, NER, Corpus, Embeddings, FinalAggregator</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 4** — Ingestion</sub> | <sub>Multi-source 120K papers, Streamlit UI, FastAPI</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 5** — Advanced</sub> | <sub>SPLADE, Reranker, IR Metrics, Bibliometrics, Systematic Review</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 6** — New Agents & Sources</sub> | <sub>ClinicalTrials.gov, Europe PMC, ResearchAgent, SystematicReviewAgent, ClinicalMatchingAgent, PubMedBERT presets</sub> | <sub>✅ 100%</sub> |
+| <sub>**Phase 7** — Production</sub> | <sub>Full LLM, <2s p95 target, Docker prod, K8s</sub> | <sub>🟡 10%</sub> |
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 
@@ -1141,16 +1141,16 @@ gantt
 
 ## 📊 Development Status
 
-| Metric | Target | Current |
+| <sub>Metric</sub> | <sub>Target</sub> | <sub>Current</sub> |
 |--------|--------|---------|
-| Unit tests | >85% coverage | 330+ passing (100% pass rate) |
-| Query latency p95 | < 2s | ~1.8s (local FAISS, no LLM) |
-| Cache hit rate | > 60% | TBD (Redis optional) |
-| Retrieval Recall@10 | > 90% | ~91% (Hybrid+RRF) |
-| Citation precision | > 95% | 99%+ (PMID regex + PubMed validation) |
-| System uptime | > 99.5% | Target |
-| Data sources | 4 | **6** (+ ClinicalTrials.gov + Europe PMC) |
-| Agent count | 8 | **12** (+ Research + SystematicReview + ClinicalMatching + Citation) |
+| <sub>Unit tests</sub> | <sub>>85% coverage</sub> | <sub>330+ passing (100% pass rate)</sub> |
+| <sub>Query latency p95</sub> | <sub>< 2s</sub> | <sub>~1.8s (local FAISS, no LLM)</sub> |
+| <sub>Cache hit rate</sub> | <sub>> 60%</sub> | <sub>TBD (Redis optional)</sub> |
+| <sub>Retrieval Recall@10</sub> | <sub>> 90%</sub> | <sub>~91% (Hybrid+RRF)</sub> |
+| <sub>Citation precision</sub> | <sub>> 95%</sub> | <sub>99%+ (PMID regex + PubMed validation)</sub> |
+| <sub>System uptime</sub> | <sub>> 99.5%</sub> | <sub>Target</sub> |
+| <sub>Data sources</sub> | <sub>4</sub> | <sub>**6** (+ ClinicalTrials.gov + Europe PMC)</sub> |
+| <sub>Agent count</sub> | <sub>8</sub> | <sub>**12** (+ Research + SystematicReview + ClinicalMatching + Citation)</sub> |
 
 ```
 📊 Overall Progress: ████████████████████████ ~95%
@@ -1277,11 +1277,11 @@ Fixed issues that previously prevented installable builds:
 
 Three CLI commands are installed automatically:
 
-| Command | Description |
+| <sub>Command</sub> | <sub>Description</sub> |
 |---------|-------------|
-| `eeg-rag` | Main query interface, health check, stats |
-| `eeg-rag-history` | Browse and replay search history |
-| `eeg-rag-stats` | Detailed corpus + system stats dashboard |
+| <sub>`eeg-rag`</sub> | <sub>Main query interface, health check, stats</sub> |
+| <sub>`eeg-rag-history`</sub> | <sub>Browse and replay search history</sub> |
+| <sub>`eeg-rag-stats`</sub> | <sub>Detailed corpus + system stats dashboard</sub> |
 
 #### Structured Code Comments
 Injected safety-critical structured comment blocks above every class and function across all 178 source files (2,359 blocks total). Each block documents: ID, Requirement, Purpose, Rationale, Inputs, Outputs, Pre/Postconditions, Assumptions, Side Effects, Failure Modes, Error Handling, Constraints, Verification, and References.
@@ -1309,12 +1309,12 @@ Key pieces:
 #### RAGAS Evaluation Metrics
 Added a RAGAS-style automated evaluation framework (`src/eeg_rag/evaluation/ragas_metrics.py`) that measures four orthogonal quality axes:
 
-| Metric | What it measures |
+| <sub>Metric</sub> | <sub>What it measures</sub> |
 |---|---|
-| **Faithfulness** | Fraction of answer claims supported by retrieved context (hallucination score) |
-| **Answer Relevance** | Semantic similarity between the query and the answer |
-| **Context Precision** | Average precision of the retrieved chunk ranking |
-| **Context Recall** | Coverage of ground-truth documents or sentences |
+| <sub>**Faithfulness**</sub> | <sub>Fraction of answer claims supported by retrieved context (hallucination score)</sub> |
+| <sub>**Answer Relevance**</sub> | <sub>Semantic similarity between the query and the answer</sub> |
+| <sub>**Context Precision**</sub> | <sub>Average precision of the retrieved chunk ranking</sub> |
+| <sub>**Context Recall**</sub> | <sub>Coverage of ground-truth documents or sentences</sub> |
 
 Two evaluation modes: `EMBEDDING` (offline, no API key needed) and `LLM` (GPT-4 / Claude / Ollama as judge). `AUTO` mode selects LLM when an API key is present and falls back to embedding silently. `export_for_human_eval()` produces annotation-ready `HumanEvalRecord` dicts.
 
@@ -1341,15 +1341,15 @@ Several previously placeholder components now have real implementations:
 
 ### Acknowledgements
 
-| Resource | Contribution |
+| <sub>Resource</sub> | <sub>Contribution</sub> |
 |----------|-------------|
-| **Microsoft Research** | PubMedBERT — biomedical embeddings pre-trained on 14M PubMed abstracts |
-| **Facebook AI Research** | FAISS — billion-scale vector similarity search |
-| **NCBI / NIH** | PubMed E-utilities API — unrestricted access to 35M+ citations |
-| **Semantic Scholar (AI2)** | Citation graph API — influence scores and citation networks |
-| **EEG Research Community** | Domain expertise, test corpora, and validation of terminology |
-| **Cormack et al. 2009** | Reciprocal Rank Fusion algorithm underlying hybrid retrieval |
-| **Wang et al. 2025** | EEG-MedRAG methodology — hypergraph retrieval for clinical EEG |
+| <sub>**Microsoft Research**</sub> | <sub>PubMedBERT — biomedical embeddings pre-trained on 14M PubMed abstracts</sub> |
+| <sub>**Facebook AI Research**</sub> | <sub>FAISS — billion-scale vector similarity search</sub> |
+| <sub>**NCBI / NIH**</sub> | <sub>PubMed E-utilities API — unrestricted access to 35M+ citations</sub> |
+| <sub>**Semantic Scholar (AI2)**</sub> | <sub>Citation graph API — influence scores and citation networks</sub> |
+| <sub>**EEG Research Community**</sub> | <sub>Domain expertise, test corpora, and validation of terminology</sub> |
+| <sub>**Cormack et al. 2009**</sub> | <sub>Reciprocal Rank Fusion algorithm underlying hybrid retrieval</sub> |
+| <sub>**Wang et al. 2025**</sub> | <sub>EEG-MedRAG methodology — hypergraph retrieval for clinical EEG</sub> |
 
 ---
 
