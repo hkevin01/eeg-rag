@@ -11,14 +11,14 @@ This directory contains the lightweight paper metadata index that ships with the
 
 The index contains **paper references only** - identifiers and titles for 500K+ EEG papers:
 
-| Field | Description | Example |
+| <sub>Field</sub> | <sub>Description</sub> | <sub>Example</sub> |
 |-------|-------------|---------|
-| pmid | PubMed ID | 34520953 |
-| doi | Digital Object Identifier | 10.1016/j.yebeh.2021.108296 |
-| openalex_id | OpenAlex Work ID | W3196842 |
-| title | Paper title | "EEG-based P300 in mesial temporal lobe epilepsy..." |
-| year | Publication year | 2021 |
-| keywords | Search keywords | ["EEG", "P300", "epilepsy"] |
+| <sub>pmid</sub> | <sub>PubMed ID</sub> | <sub>34520953</sub> |
+| <sub>doi</sub> | <sub>Digital Object Identifier</sub> | <sub>10.1016/j.yebeh.2021.108296</sub> |
+| <sub>openalex_id</sub> | <sub>OpenAlex Work ID</sub> | <sub>W3196842</sub> |
+| <sub>title</sub> | <sub>Paper title</sub> | <sub>"EEG-based P300 in mesial temporal lobe epilepsy..."</sub> |
+| <sub>year</sub> | <sub>Publication year</sub> | <sub>2021</sub> |
+| <sub>keywords</sub> | <sub>Search keywords</sub> | <sub>["EEG", "P300", "epilepsy"]</sub> |
 
 ## What's NOT in the Index?
 
