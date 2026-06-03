@@ -22,7 +22,8 @@ import asyncio
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Tuple
 
 from eeg_rag.agents.base_agent import BaseAgent, AgentType, AgentResult, AgentQuery
@@ -102,7 +103,7 @@ class ResearchResult:
     # ---------------------------------------------------------------------------
     # ID           : agents.research_agent.research_agent.ResearchResult.__post_init__
     # Requirement  : `__post_init__` shall execute as specified
-    # Purpose      :   post init  
+    # Purpose      :   post init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : None
     # Outputs      : Implicitly None or see body
@@ -118,7 +119,7 @@ class ResearchResult:
     # ---------------------------------------------------------------------------
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now(timezone.utc).isoformat()
 
     # ---------------------------------------------------------------------------
     # ID           : agents.research_agent.research_agent.ResearchResult.to_dict
@@ -185,7 +186,7 @@ class ResearchAgent(BaseAgent):
     # ---------------------------------------------------------------------------
     # ID           : agents.research_agent.research_agent.ResearchAgent.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : name: str (default='ResearchAgent'); pubmed_agent: Optional[BaseAgent] (default=None); semantic_scholar_agent: Optional[BaseAgent] (default=None); local_agent: Optional[BaseAgent] (default=None); config: Optional[Dict[str, Any]] (default=None); max_results_per_source: int (default=200); use_query_expansion: bool (default=True); deduplicate: bool (default=True)
     # Outputs      : Implicitly None or see body
@@ -397,15 +398,19 @@ class ResearchAgent(BaseAgent):
             all_papers = self._deduplicate(all_papers)
         after_dedup = len(all_papers)
 
-        # --- Evidence ranking ---
+        # --- Evidence ranking + metadata quality boost ---
         scored: List[Tuple[float, Dict[str, Any]]] = []
         for paper in all_papers:
             try:
                 ev = self.evidence_ranker.rank_evidence(paper)
+                meta_quality = self._metadata_quality_score(paper)
                 paper["evidence_score"] = ev.overall_score
                 paper["evidence_level"] = ev.evidence_level.value
                 paper["study_type"] = ev.study_type
-                scored.append((ev.overall_score, paper))
+                paper["metadata_quality"] = meta_quality
+                # Blend: 80% evidence quality + 20% metadata completeness
+                combined = 0.8 * ev.overall_score + 0.2 * meta_quality
+                scored.append((combined, paper))
             except Exception:
                 scored.append((0.0, paper))
 
@@ -487,10 +492,23 @@ class ResearchAgent(BaseAgent):
     @staticmethod
     def _deduplicate(
         papers: List[Dict[str, Any]],
+        fuzzy_title_threshold: float = 0.92,
     ) -> List[Dict[str, Any]]:
+        # ---------------------------------------------------------------------------
+        # ID:          agents.research_agent.ResearchAgent._deduplicate
+        # Requirement: Remove exact PMID/DOI/title duplicates AND near-duplicate titles.
+        # Rationale:   Different databases often return the same paper with minor title
+        #              variations (e.g. "EEG-based" vs "EEG based").  Exact-match dedup
+        #              alone leaves these in the result set, inflating apparent coverage.
+        # Inputs:      papers - list of paper dicts; fuzzy_title_threshold - SequenceMatcher
+        #              ratio cutoff (0-1); 0.92 catches 1-2 word differences while
+        #              preserving genuinely distinct papers.
+        # Outputs:     Deduplicated list preserving first occurrence.
+        # Failure Modes: O(n^2) for fuzzy check; capped implicitly by max_results_per_source.
+        # ---------------------------------------------------------------------------
         seen_pmid: set = set()
         seen_doi: set = set()
-        seen_title: set = set()
+        seen_titles: List[str] = []
         unique: List[Dict[str, Any]] = []
 
         for p in papers:
@@ -502,15 +520,70 @@ class ResearchAgent(BaseAgent):
                 continue
             if doi and doi in seen_doi:
                 continue
-            if title_norm and title_norm in seen_title:
+            # Exact title match
+            if title_norm and title_norm in seen_titles:
                 continue
+            # Fuzzy title match - catch near-duplicates
+            if title_norm and len(title_norm) > 10:
+                is_near_dup = any(
+                    SequenceMatcher(None, title_norm, t).ratio()
+                    >= fuzzy_title_threshold
+                    for t in seen_titles
+                    if abs(len(title_norm) - len(t)) < 20
+                )
+                if is_near_dup:
+                    continue
 
             if pmid:
                 seen_pmid.add(pmid)
             if doi:
                 seen_doi.add(doi)
             if title_norm:
-                seen_title.add(title_norm)
+                seen_titles.append(title_norm)
             unique.append(p)
 
         return unique
+
+    @staticmethod
+    def _metadata_quality_score(paper: Dict[str, Any]) -> float:
+        # ---------------------------------------------------------------------------
+        # ID:          agents.research_agent.ResearchAgent._metadata_quality_score
+        # Requirement: Score metadata completeness on [0, 1] to boost well-annotated papers.
+        # Purpose:     Papers with complete metadata (abstract, year, PMID, citation count)
+        #              are higher-quality evidence and should rank above bare stubs.
+        # Rationale:   Evidence ranker scores study design quality; metadata quality is a
+        #              separate orthogonal signal capturing data completeness.
+        # Inputs:      paper - dict with arbitrary keys from PubMed/S2/local sources.
+        # Outputs:     float in [0.0, 1.0]; 1.0 = all five metadata fields present.
+        # Failure Modes: Missing keys -> partial score; never raises.
+        # ---------------------------------------------------------------------------
+        score = 0.0
+        # Abstract present and substantive (>50 chars)
+        abstract = str(paper.get("abstract") or "")
+        if len(abstract) > 50:
+            score += 0.35
+        elif len(abstract) > 0:
+            score += 0.10
+        # PMID present
+        if str(paper.get("pmid") or "").strip():
+            score += 0.20
+        # Publication year present and plausible
+        year_raw = paper.get("year") or paper.get("publication_date") or ""
+        try:
+            year = int(str(year_raw)[:4])
+            if 1990 <= year <= 2030:
+                score += 0.20
+        except (ValueError, TypeError):
+            pass
+        # Citation count present (signals indexed and cited work)
+        citations = paper.get("citation_count") or paper.get("citations") or 0
+        try:
+            if int(citations) > 0:
+                score += 0.15
+        except (ValueError, TypeError):
+            pass
+        # Journal / venue present
+        journal = str(paper.get("journal") or paper.get("venue") or "")
+        if len(journal) > 2:
+            score += 0.10
+        return min(score, 1.0)
