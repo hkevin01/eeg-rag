@@ -425,7 +425,7 @@ class RetrievalDecisionMaker:
     # ---------------------------------------------------------------------------
     # ID           : rag.agentic_rag.RetrievalDecisionMaker.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : min_query_length: int (default=15)
     # Outputs      : None
@@ -630,7 +630,7 @@ class SufficiencyEvaluator:
     # ---------------------------------------------------------------------------
     # ID           : rag.agentic_rag.SufficiencyEvaluator.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : min_docs: int (default=_MIN_DOCS_DEFAULT); min_relevance: float (default=_MIN_RELEVANCE_DEFAULT); coverage_threshold: float (default=0.6)
     # Outputs      : None
@@ -764,14 +764,26 @@ class SufficiencyEvaluator:
 
     @staticmethod
     def _mean_score(results: List[HybridResult]) -> float:
-        """Compute mean RRF score, normalised to 0–1 range."""
+        """Compute mean RRF score, normalised to 0-1 range.
+
+        The theoretical maximum for a document that ranks first in BOTH the
+        BM25 and the dense ranker is 2 * 1/(k+1) where k=60, giving
+        2/61 ~= 0.0328.  We use that as the normalisation denominator so
+        that a perfectly ranked document across both sources yields 1.0.
+        """
+        # ---------------------------------------------------------------------------
+        # ID:          rag.agentic_rag.SufficiencyEvaluator._mean_score
+        # Requirement: Normalised score must reflect dual-ranker maximum correctly.
+        # Rationale:   Previous constant 0.02 was below the dual-ranker max (0.0328),
+        #              causing high-quality results to be clipped and distorting the
+        #              sufficiency verdict.
+        # ---------------------------------------------------------------------------
         if not results:
             return 0.0
         raw = sum(r.rrf_score for r in results) / len(results)
-        # RRF scores are typically in [0, 1/k] range (k=60 → ~0.017 max)
-        # Normalise relative to the theoretical maximum for a single ranker
-        # 1/(60+1) ≈ 0.0164; cap at 1.0
-        return min(raw / 0.02, 1.0)
+        # k=60 for both BM25 and dense; dual-ranker max = 2/(60+1)
+        _RRF_DUAL_MAX = 2.0 / 61.0  # ~0.0328
+        return min(raw / _RRF_DUAL_MAX, 1.0)
 
     # ---------------------------------------------------------------------------
     # ID           : rag.agentic_rag.SufficiencyEvaluator._compute_coverage
@@ -831,7 +843,7 @@ class QueryReformulator:
     # ---------------------------------------------------------------------------
     # ID           : rag.agentic_rag.QueryReformulator.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : expander: Optional[EEGQueryExpander] (default=None)
     # Outputs      : None
@@ -1134,7 +1146,7 @@ class AgenticRAGOrchestrator:
     # ---------------------------------------------------------------------------
     # ID           : rag.agentic_rag.AgenticRAGOrchestrator.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : retriever: HybridRetriever; generator: ResponseGenerator; verifier: Optional[CitationVerifier] (default=None); max_iterations: int (default=_MAX_ITERATIONS_DEFAULT); min_docs: int (default=_MIN_DOCS_DEFAULT); min_relevance: float (default=_MIN_RELEVANCE_DEFAULT); top_k: int (default=10)
     # Outputs      : None

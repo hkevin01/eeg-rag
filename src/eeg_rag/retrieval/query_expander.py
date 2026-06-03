@@ -32,17 +32,17 @@ logger = logging.getLogger(__name__)
 class EEGQueryExpander:
     """
     Query expansion with EEG domain knowledge.
-    
+
     Expands queries by adding synonyms, abbreviations, and related terms
     specific to EEG research and neuroscience.
-    
+
     Example:
         >>> expander = EEGQueryExpander()
         >>> expanded = expander.expand("CNN for seizure detection")
         >>> print(expanded)
         "CNN convolutional neural network for seizure epileptic detection"
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : retrieval.query_expander.EEGQueryExpander.__init__
     # Requirement  : `__init__` shall initialize with EEG domain synonym dictionary
@@ -65,7 +65,7 @@ class EEGQueryExpander:
         # Build synonym dictionary
         self.synonyms = self._build_synonym_dict()
         logger.info(f"Initialized EEGQueryExpander with {len(self.synonyms)} terms")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : retrieval.query_expander.EEGQueryExpander._build_synonym_dict
     # Requirement  : `_build_synonym_dict` shall build dictionary of EEG-specific synonyms
@@ -86,7 +86,7 @@ class EEGQueryExpander:
     def _build_synonym_dict(self) -> Dict[str, Set[str]]:
         """
         Build dictionary of EEG-specific synonyms.
-        
+
         Returns:
             Dict mapping terms to their synonyms
         """
@@ -99,7 +99,7 @@ class EEGQueryExpander:
             {"gru", "gated recurrent unit"},
             {"transformer", "attention model"},
             {"autoencoder", "ae"},
-            
+
             # EEG analysis tasks
             {"seizure", "epileptic", "epilepsy", "ictal"},
             {"seizure detection", "epilepsy detection", "ictal detection"},
@@ -109,14 +109,14 @@ class EEGQueryExpander:
             {"bci", "brain-computer interface", "brain machine interface", "bmi"},
             {"emotion recognition", "affective computing", "emotion classification"},
             {"cognitive load", "mental workload", "cognitive state"},
-            
+
             # EEG frequency bands
             {"delta", "delta wave", "delta band", "0.5-4 hz"},
             {"theta", "theta wave", "theta band", "4-8 hz"},
             {"alpha", "alpha wave", "alpha band", "8-13 hz"},
             {"beta", "beta wave", "beta band", "13-30 hz"},
             {"gamma", "gamma wave", "gamma band", "30-100 hz"},
-            
+
             # Signal processing methods
             {"wavelet", "wavelet transform", "wt"},
             {"fft", "fast fourier transform", "fourier"},
@@ -124,38 +124,38 @@ class EEGQueryExpander:
             {"psd", "power spectral density", "spectral power"},
             {"ica", "independent component analysis"},
             {"csp", "common spatial pattern"},
-            
+
             # Feature extraction
             {"feature extraction", "feature engineering", "feature selection"},
             {"time domain", "temporal features"},
             {"frequency domain", "spectral features"},
             {"time-frequency", "timefrequency", "tf"},
-            
+
             # Classification methods
             {"classification", "categorization", "recognition"},
             {"svm", "support vector machine"},
             {"random forest", "rf"},
             {"knn", "k-nearest neighbors", "k nearest neighbor"},
-            
+
             # Deep learning concepts
             {"deep learning", "dl", "neural network"},
             {"machine learning", "ml"},
             {"transfer learning", "pretrained model"},
             {"data augmentation", "augmentation"},
-            
+
             # EEG recording
             {"eeg", "electroencephalography", "electroencephalogram"},
             {"ecog", "electrocorticography"},
             {"meg", "magnetoencephalography"},
             {"electrode", "channel", "sensor"},
-            
+
             # Datasets and paradigms
             {"dataset", "database", "corpus"},
             {"subject", "participant", "patient"},
             {"trial", "epoch", "segment"},
             {"artifact", "noise", "interference"},
             {"preprocessing", "pre-processing", "data cleaning"},
-            
+
             # Performance metrics
             {"accuracy", "acc"},
             {"precision", "positive predictive value"},
@@ -163,7 +163,7 @@ class EEGQueryExpander:
             {"f1 score", "f1-score", "f-measure"},
             {"auc", "area under curve", "auroc"},
         ]
-        
+
         # Build bidirectional mapping
         synonym_dict = {}
         for group in synonym_groups:
@@ -172,9 +172,9 @@ class EEGQueryExpander:
                 # Add all other terms in group as synonyms
                 synonyms = set(group_list) - {term}
                 synonym_dict[term.lower()] = synonyms
-        
+
         return synonym_dict
-    
+
     # ---------------------------------------------------------------------------
     # ID           : retrieval.query_expander.EEGQueryExpander.expand
     # Requirement  : `expand` shall expand query with synonyms
@@ -196,56 +196,83 @@ class EEGQueryExpander:
         self,
         query: str,
         max_expansions: int = 3,
-        add_original: bool = True
+        add_original: bool = True,
     ) -> str:
         """
-        Expand query with synonyms.
-        
+        Expand query with synonyms while preserving original word order.
+
+        The original query is kept intact as a prefix; synonym expansions
+        are appended as a space-separated suffix.  This preserves phrase
+        proximity for BM25 and maintains sentence structure for dense
+        embeddings.
+
         Args:
-            query: Original query text
-            max_expansions: Maximum number of synonyms to add per term
-            add_original: Keep original terms in expanded query
-            
+            query: Original query text.
+            max_expansions: Maximum number of synonym variants to append
+                per matched term.
+            add_original: Unused - kept for API compatibility.  The
+                original query is always preserved.
+
         Returns:
-            Expanded query string
-            
+            Expanded query string with original query as prefix and
+            synonym suffixes appended.
+
         Example:
             >>> expander.expand("CNN for seizure detection")
-            "CNN convolutional neural network seizure epileptic detection"
+            "CNN for seizure detection convolutional neural network epileptic"
         """
-        # Tokenize query (simple whitespace split)
+        # ---------------------------------------------------------------------------
+        # ID:          retrieval.query_expander.EEGQueryExpander.expand
+        # Requirement: Append synonyms without reordering original tokens.
+        # Precond:     query is a non-empty string; max_expansions >= 1.
+        # Postcond:    Returned string starts with the original query.
+        # Failure Modes: Empty synonym dict -> returns original unchanged.
+        # ---------------------------------------------------------------------------
         tokens = query.lower().split()
-        
-        # Track expanded terms to avoid duplicates
-        expanded_terms = set()
-        if add_original:
-            expanded_terms.update(tokens)
-        
-        # Expand each token
+        already_in_query: set = set(tokens)
+        suffix_terms: list = []
+        seen_suffixes: set = set()
+
+        # -- Unigram expansions --
         for token in tokens:
-            # Clean token (remove punctuation)
-            clean_token = re.sub(r'[^\w\s-]', '', token)
-            
+            clean_token = re.sub(r"[^\w\s-]", "", token)
             if clean_token in self.synonyms:
-                # Get synonyms for this term
-                synonyms = list(self.synonyms[clean_token])[:max_expansions]
-                expanded_terms.update(synonyms)
-        
-        # Also check for multi-word phrases (bigrams)
+                for syn in sorted(self.synonyms[clean_token]):
+                    if (
+                        syn not in already_in_query
+                        and syn not in seen_suffixes
+                        and len(suffix_terms) < max_expansions * len(tokens)
+                    ):
+                        suffix_terms.append(syn)
+                        seen_suffixes.add(syn)
+                        if len([s for s in suffix_terms]) >= max_expansions:
+                            break
+
+        # -- Bigram expansions --
         for i in range(len(tokens) - 1):
-            bigram = f"{tokens[i]} {tokens[i+1]}"
+            bigram = f"{tokens[i]} {tokens[i + 1]}"
             if bigram in self.synonyms:
-                synonyms = list(self.synonyms[bigram])[:max_expansions]
-                expanded_terms.update(synonyms)
-        
-        # Build expanded query
-        expanded_query = " ".join(expanded_terms)
-        
-        if expanded_query != query.lower():
-            logger.debug(f"Expanded query: '{query}' -> '{expanded_query}'")
-        
-        return expanded_query
-    
+                for syn in sorted(self.synonyms[bigram]):
+                    if syn not in already_in_query and syn not in seen_suffixes:
+                        suffix_terms.append(syn)
+                        seen_suffixes.add(syn)
+
+        # -- Trigram expansions (e.g. "motor imagery bci") --
+        for i in range(len(tokens) - 2):
+            trigram = f"{tokens[i]} {tokens[i + 1]} {tokens[i + 2]}"
+            if trigram in self.synonyms:
+                for syn in sorted(self.synonyms[trigram]):
+                    if syn not in already_in_query and syn not in seen_suffixes:
+                        suffix_terms.append(syn)
+                        seen_suffixes.add(syn)
+
+        if suffix_terms:
+            expanded_query = query + " " + " ".join(suffix_terms)
+            logger.debug("Expanded query: %r -> %r", query, expanded_query)
+            return expanded_query
+
+        return query
+
     # ---------------------------------------------------------------------------
     # ID           : retrieval.query_expander.EEGQueryExpander.get_synonyms
     # Requirement  : `get_synonyms` shall get synonyms for a specific term
@@ -266,15 +293,15 @@ class EEGQueryExpander:
     def get_synonyms(self, term: str) -> List[str]:
         """
         Get synonyms for a specific term.
-        
+
         Args:
             term: Term to look up
-            
+
         Returns:
             List of synonyms
         """
         return list(self.synonyms.get(term.lower(), []))
-    
+
     # ---------------------------------------------------------------------------
     # ID           : retrieval.query_expander.EEGQueryExpander.has_synonyms
     # Requirement  : `has_synonyms` shall check if term has synonyms
@@ -300,9 +327,9 @@ class EEGQueryExpander:
 if __name__ == "__main__":
     # Demo
     logging.basicConfig(level=logging.INFO)
-    
+
     expander = EEGQueryExpander()
-    
+
     # Test queries
     test_queries = [
         "CNN for seizure detection",
@@ -312,24 +339,24 @@ if __name__ == "__main__":
         "wavelet features for epilepsy",
         "alpha band power in cognitive load"
     ]
-    
+
     print("\n" + "="*80)
     print("🔍 EEG QUERY EXPANSION DEMO")
     print("="*80)
-    
+
     for query in test_queries:
         expanded = expander.expand(query, max_expansions=2)
         print(f"\nOriginal:  {query}")
         print(f"Expanded:  {expanded}")
-    
+
     print("\n" + "="*80)
     print("📚 SYNONYM LOOKUP")
     print("="*80)
-    
+
     # Show some specific synonyms
     terms = ["cnn", "seizure", "eeg", "bci", "alpha"]
     for term in terms:
         syns = expander.get_synonyms(term)
         print(f"\n'{term}' -> {syns}")
-    
+
     print("\n✅ Demo complete!\n")
