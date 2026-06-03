@@ -56,6 +56,7 @@
 - [Project Roadmap](#-project-roadmap)
 - [Development Status](#-development-status)
 - [Development](#-development)
+- [Claim Verification](#-claim-verification)
 - [Contributing](#-contributing)
 - [Changelog](#-changelog)
 - [License & Acknowledgements](#-license--acknowledgements)
@@ -1211,6 +1212,20 @@ mypy src/eeg_rag            # Static type checking
 - **Docstrings**: Google-style with Args / Returns / Raises
 - **Testing**: ≥85% coverage for `core/` and `agents/`; 100% for `verification/`
 - **NASA-grade headers**: All modules in `agents/`, `retrieval/`, `verification/` carry structured ID/Requirement/Purpose/Rationale/Constraints/Failure-Modes headers
+
+### Claim Verification
+
+The README's operational claims are backed by an automated audit rather than
+manual proofreading alone. The audit checks the shipped corpus metadata for
+internal consistency, runs a hybrid retrieval smoke test to ensure ranked
+results still preserve metadata, and separates benchmark-only promises from
+locally verifiable facts.
+
+Run the verifier with:
+
+```bash
+pytest tests/test_project_claims.py -q
+```
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 

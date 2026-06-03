@@ -12,6 +12,7 @@ Requirements Covered:
 """
 
 import asyncio
+import inspect
 import logging
 import re
 from collections import defaultdict
@@ -55,7 +56,7 @@ class SynthesisResult:
     citations: List[str]
     confidence: float
     methodology_notes: List[str] = field(default_factory=list)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisResult.to_dict
     # Requirement  : `to_dict` shall convert to dictionary
@@ -106,7 +107,7 @@ class SynthesisResult:
 class SynthesisAgent(BaseAgent):
     """
     Enhanced synthesis agent for evidence aggregation.
-    
+
     Capabilities:
     - Multi-source evidence synthesis
     - Theme extraction and clustering
@@ -114,7 +115,7 @@ class SynthesisAgent(BaseAgent):
     - Research gap identification
     - LLM-powered summarization (optional)
     """
-    
+
     # EEG domain themes for clustering
     EEG_THEMES = {
         "frequency_analysis": [
@@ -169,7 +170,7 @@ class SynthesisAgent(BaseAgent):
             r"montage|reference|electrode",
         ],
     }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.__init__
     # Requirement  : `__init__` shall initialize synthesis agent
@@ -195,7 +196,7 @@ class SynthesisAgent(BaseAgent):
     ):
         """
         Initialize synthesis agent.
-        
+
         Args:
             name: Agent name
             llm_client: Optional LLM client for summarization
@@ -206,24 +207,24 @@ class SynthesisAgent(BaseAgent):
             name=name,
             config=config or {}
         )
-        
+
         self.llm_client = llm_client
         self.evidence_ranker = EvidenceRanker()
         self.gap_detector = GapDetector()
-        
+
         # Compile theme patterns
         self._theme_patterns: Dict[str, List[re.Pattern]] = {}
         for theme, patterns in self.EEG_THEMES.items():
             self._theme_patterns[theme] = [
                 re.compile(p, re.IGNORECASE) for p in patterns
             ]
-        
+
         # Statistics
         self.total_syntheses = 0
         self.total_papers_processed = 0
-        
+
         logger.info(f"SynthesisAgent initialized (llm={'yes' if llm_client else 'no'})")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.execute
     # Requirement  : `execute` shall execute evidence synthesis
@@ -244,21 +245,21 @@ class SynthesisAgent(BaseAgent):
     async def execute(self, query: AgentQuery) -> AgentResult:
         """
         Execute evidence synthesis.
-        
+
         Args:
             query: Query with papers in context
-            
+
         Returns:
             AgentResult with synthesis
         """
         start_time = datetime.now()
-        
+
         try:
             # Extract papers from context or parameters
             papers = query.context.get("papers", [])
             if not papers:
                 papers = query.parameters.get("papers", [])
-            
+
             if not papers:
                 return AgentResult(
                     success=False,
@@ -267,7 +268,7 @@ class SynthesisAgent(BaseAgent):
                     agent_type=AgentType.AGGREGATOR,
                     elapsed_time=0.0
                 )
-            
+
             # Perform synthesis
             synthesis = await self.synthesize(
                 papers=papers,
@@ -275,10 +276,10 @@ class SynthesisAgent(BaseAgent):
                 include_gaps=query.parameters.get("include_gaps", True),
                 min_evidence_level=query.parameters.get("min_evidence_level")
             )
-            
+
             self.total_syntheses += 1
             elapsed = (datetime.now() - start_time).total_seconds()
-            
+
             return AgentResult(
                 success=True,
                 data=synthesis.to_dict(),
@@ -290,7 +291,7 @@ class SynthesisAgent(BaseAgent):
                 agent_type=AgentType.AGGREGATOR,
                 elapsed_time=elapsed
             )
-            
+
         except Exception as e:
             logger.exception(f"Synthesis failed: {e}")
             elapsed = (datetime.now() - start_time).total_seconds()
@@ -301,7 +302,7 @@ class SynthesisAgent(BaseAgent):
                 agent_type=AgentType.AGGREGATOR,
                 elapsed_time=elapsed
             )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.synthesize
     # Requirement  : `synthesize` shall synthesize evidence from papers
@@ -328,18 +329,18 @@ class SynthesisAgent(BaseAgent):
     ) -> SynthesisResult:
         """
         Synthesize evidence from papers.
-        
+
         Args:
             papers: List of paper dictionaries
             query: Original query for context
             include_gaps: Whether to detect research gaps
             min_evidence_level: Minimum evidence level filter
-            
+
         Returns:
             SynthesisResult
         """
         self.total_papers_processed += len(papers)
-        
+
         # Filter by evidence level if specified
         if min_evidence_level:
             try:
@@ -348,35 +349,35 @@ class SynthesisAgent(BaseAgent):
                 papers = [p for p, s in ranked]
             except ValueError:
                 pass
-        
+
         # Extract themes
         themes = self._extract_themes(papers)
-        
+
         # Grade evidence
         evidence_summary = self.evidence_ranker.get_evidence_summary(papers)
-        
+
         # Detect research gaps
         research_gaps = []
         if include_gaps:
             gaps = self.gap_detector.detect_gaps(papers)
             research_gaps = [g.to_dict() for g in gaps]
-        
+
         # Extract citations
         citations = self._extract_citations(papers)
-        
+
         # Generate summary
         summary = await self._generate_summary(
             papers=papers,
             themes=themes,
             query=query
         )
-        
+
         # Calculate confidence
         confidence = self._calculate_confidence(papers, evidence_summary)
-        
+
         # Methodology notes
         methodology_notes = self._extract_methodology_notes(papers)
-        
+
         return SynthesisResult(
             summary=summary,
             themes=themes,
@@ -386,7 +387,7 @@ class SynthesisAgent(BaseAgent):
             confidence=confidence,
             methodology_notes=methodology_notes
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_themes
     # Requirement  : `_extract_themes` shall extract and cluster papers by theme
@@ -410,16 +411,16 @@ class SynthesisAgent(BaseAgent):
     ) -> List[Dict[str, Any]]:
         """Extract and cluster papers by theme."""
         theme_papers: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-        
+
         for paper in papers:
             text = self._get_paper_text(paper)
-            
+
             for theme, patterns in self._theme_patterns.items():
                 for pattern in patterns:
                     if pattern.search(text):
                         theme_papers[theme].append(paper)
                         break
-        
+
         # Create theme summaries
         themes = []
         for theme, theme_papers_list in sorted(
@@ -429,10 +430,10 @@ class SynthesisAgent(BaseAgent):
         ):
             if not theme_papers_list:
                 continue
-            
+
             # Get evidence quality for this theme
             theme_evidence = self.evidence_ranker.get_evidence_summary(theme_papers_list)
-            
+
             themes.append({
                 "name": theme.replace("_", " ").title(),
                 "paper_count": len(theme_papers_list),
@@ -447,9 +448,9 @@ class SynthesisAgent(BaseAgent):
                 "evidence_quality": theme_evidence.get("average_overall_score", 0.0),
                 "study_types": theme_evidence.get("study_types", {})
             })
-        
+
         return themes
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_citations
     # Requirement  : `_extract_citations` shall extract formatted citations from papers
@@ -470,7 +471,7 @@ class SynthesisAgent(BaseAgent):
     def _extract_citations(self, papers: List[Dict[str, Any]]) -> List[str]:
         """Extract formatted citations from papers."""
         citations = []
-        
+
         for paper in papers:
             pmid = paper.get("pmid")
             doi = paper.get("doi")
@@ -478,7 +479,7 @@ class SynthesisAgent(BaseAgent):
             authors = paper.get("authors", [])
             year = paper.get("year")
             journal = paper.get("journal", "")
-            
+
             # Format authors
             if isinstance(authors, list):
                 if len(authors) > 3:
@@ -489,7 +490,7 @@ class SynthesisAgent(BaseAgent):
                     author_str = "Unknown"
             else:
                 author_str = str(authors) if authors else "Unknown"
-            
+
             # Build citation
             parts = []
             if author_str:
@@ -504,12 +505,12 @@ class SynthesisAgent(BaseAgent):
                 parts.append(f"[PMID:{pmid}]")
             elif doi:
                 parts.append(f"[DOI:{doi}]")
-            
+
             if parts:
                 citations.append(". ".join(parts))
-        
+
         return citations
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._generate_summary
     # Requirement  : `_generate_summary` shall generate synthesis summary
@@ -542,10 +543,10 @@ class SynthesisAgent(BaseAgent):
                     return summary
             except Exception as e:
                 logger.warning(f"LLM summarization failed: {e}")
-        
+
         # Fall back to template-based summarization
         return self._template_summarize(papers, themes, query)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._llm_summarize
     # Requirement  : `_llm_summarize` shall generate LLM-based summary
@@ -572,19 +573,19 @@ class SynthesisAgent(BaseAgent):
         """Generate LLM-based summary."""
         if not self.llm_client:
             return None
-        
-        # Build context
+
+        # Build context for the prompt.
         abstracts = []
-        for p in papers[:10]:  # Limit for token constraints
-            title = p.get("title", "")
-            abstract = p.get("abstract", "")[:500]
-            pmid = p.get("pmid", "")
+        for paper in papers[:10]:  # Limit for token constraints
+            title = paper.get("title", "")
+            abstract = (paper.get("abstract", "") or "")[:500]
+            pmid = paper.get("pmid", "")
             if title or abstract:
                 abstracts.append(f"[{pmid}] {title}: {abstract}")
-        
-        theme_list = ", ".join(t["name"] for t in themes[:5])
-        
-        prompt = f"""Synthesize the following research on "{query}".
+
+        theme_list = ", ".join(theme["name"] for theme in themes[:5])
+
+        prompt = f"""Synthesize the following research on \"{query}\".
 
 Key themes: {theme_list}
 
@@ -598,11 +599,149 @@ Provide a comprehensive synthesis that:
 4. Indicates strength of evidence
 
 Keep the synthesis concise and cite papers using [PMID:X] format."""
-        
-        # This would call the actual LLM
-        # For now, return None to use template
+
+        system_prompt = (
+            "You are a careful biomedical research synthesizer. "
+            "Only use evidence present in the provided papers. "
+            "Prefer concise, cited statements over speculation."
+        )
+
+        try:
+            client = self.llm_client
+
+            if hasattr(client, "chat") and hasattr(client.chat, "completions"):
+                config_obj = self.config
+                model = (
+                    config_obj.get("model", "gpt-4o-mini")
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "model", "gpt-4o-mini")
+                )
+                temperature = (
+                    config_obj.get("temperature", 0.2)
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "temperature", 0.2)
+                )
+                max_tokens = (
+                    config_obj.get("max_tokens", 1200)
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "max_tokens", 1200)
+                )
+
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+                if inspect.isawaitable(response):
+                    response = await response
+
+                content = self._extract_llm_text(response)
+                if content:
+                    return content.strip()
+
+            if hasattr(client, "messages") and hasattr(client.messages, "create"):
+                config_obj = self.config
+                model = (
+                    config_obj.get("model", "claude-3-5-sonnet-latest")
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "model", "claude-3-5-sonnet-latest")
+                )
+                temperature = (
+                    config_obj.get("temperature", 0.2)
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "temperature", 0.2)
+                )
+                max_tokens = (
+                    config_obj.get("max_tokens", 1200)
+                    if isinstance(config_obj, dict)
+                    else getattr(config_obj, "max_tokens", 1200)
+                )
+
+                response = client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                if inspect.isawaitable(response):
+                    response = await response
+
+                content = self._extract_llm_text(response)
+                if content:
+                    return content.strip()
+
+            if callable(client):
+                response = client(prompt=prompt, system_prompt=system_prompt)
+                if inspect.isawaitable(response):
+                    response = await response
+                if isinstance(response, str) and response.strip():
+                    return response.strip()
+
+        except Exception as e:
+            logger.warning(f"LLM summarization failed: {e}")
+
         return None
-    
+
+    # ---------------------------------------------------------------------------
+    # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_llm_text
+    # Requirement  : `_extract_llm_text` shall normalize common LLM response shapes
+    # Purpose      : Normalize common LLM response shapes
+    # Rationale    : Enables provider-agnostic client support for OpenAI and Anthropic
+    # Inputs       : response: Any
+    # Outputs      : Optional[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : None
+    # Fail Modes   : Invalid structures return None
+    # Err Handling : Best-effort extraction with defensive attribute checks
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative OpenAI and Anthropic response objects
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def _extract_llm_text(self, response: Any) -> Optional[str]:
+        """Extract text from common OpenAI/Anthropic response shapes."""
+        if response is None:
+            return None
+
+        if isinstance(response, str):
+            return response
+
+        content = getattr(response, "content", None)
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list) and content:
+            first = content[0]
+            text = getattr(first, "text", None)
+            if isinstance(text, str):
+                return text
+
+        choices = getattr(response, "choices", None)
+        if choices:
+            first_choice = choices[0]
+            message = getattr(first_choice, "message", None)
+            if message is not None:
+                text = getattr(message, "content", None)
+                if isinstance(text, str):
+                    return text
+
+            delta = getattr(first_choice, "delta", None)
+            if delta is not None:
+                text = getattr(delta, "content", None)
+                if isinstance(text, str):
+                    return text
+
+        text = getattr(response, "text", None)
+        if isinstance(text, str):
+            return text
+
+        return None
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._template_summarize
     # Requirement  : `_template_summarize` shall generate template-based summary
@@ -628,13 +767,13 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
     ) -> str:
         """Generate template-based summary."""
         parts = []
-        
+
         # Opening
         parts.append(f"This synthesis covers {len(papers)} research paper(s)")
         if query:
             parts.append(f" related to: {query}")
         parts.append(".\n\n")
-        
+
         # Theme summary
         if themes:
             parts.append("**Key Research Themes:**\n")
@@ -644,7 +783,7 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
                 quality_desc = "high" if quality >= 0.7 else "moderate" if quality >= 0.4 else "limited"
                 parts.append(f"- {theme['name']}: {count} paper(s), {quality_desc} evidence quality\n")
             parts.append("\n")
-        
+
         # Top papers
         if papers:
             ranked = self.evidence_ranker.rank_papers(papers)[:5]
@@ -658,24 +797,24 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
                     parts.append(f" [PMID:{pmid}]")
                 parts.append(f" (Evidence: {level})\n")
             parts.append("\n")
-        
+
         # Evidence overview
         evidence = self.evidence_ranker.get_evidence_summary(papers)
         high_quality = evidence.get("high_quality_count", 0)
         total = evidence.get("total_papers", 0)
-        
+
         if total > 0:
             parts.append("**Evidence Quality:**\n")
             parts.append(f"- {high_quality}/{total} papers rated as high quality\n")
-            
+
             study_types = evidence.get("study_types", {})
             if study_types:
                 top_types = sorted(study_types.items(), key=lambda x: x[1], reverse=True)[:3]
                 type_str = ", ".join(f"{t.replace('_', ' ')} ({c})" for t, c in top_types)
                 parts.append(f"- Study types: {type_str}\n")
-        
+
         return "".join(parts)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._calculate_confidence
     # Requirement  : `_calculate_confidence` shall calculate overall synthesis confidence
@@ -701,26 +840,26 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         """Calculate overall synthesis confidence."""
         if not papers:
             return 0.0
-        
+
         # Base on evidence quality
         avg_score = evidence_summary.get("average_overall_score", 0.0)
-        
+
         # Adjust for paper count
         count_factor = min(1.0, len(papers) / 10)  # Max out at 10 papers
-        
+
         # Adjust for study type diversity
         types = evidence_summary.get("study_types", {})
         diversity_factor = min(1.0, len(types) / 5)  # Diversity bonus
-        
+
         # Combine factors
         confidence = (
             avg_score * 0.5 +
             count_factor * 0.3 +
             diversity_factor * 0.2
         )
-        
+
         return min(1.0, confidence)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._extract_methodology_notes
     # Requirement  : `_extract_methodology_notes` shall extract methodology notes from papers
@@ -744,7 +883,7 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
     ) -> List[str]:
         """Extract methodology notes from papers."""
         notes = set()
-        
+
         methodology_patterns = [
             (r"10[\-\s]?20\s+system", "Standard 10-20 electrode placement used"),
             (r"high[\-\s]?density\s+EEG", "High-density EEG recording"),
@@ -754,15 +893,15 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
             (r"coherence\s+analysis", "Coherence analysis performed"),
             (r"source\s+localization", "Source localization methods used"),
         ]
-        
+
         for paper in papers:
             text = self._get_paper_text(paper)
             for pattern, note in methodology_patterns:
                 if re.search(pattern, text, re.IGNORECASE):
                     notes.add(note)
-        
+
         return list(notes)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent._get_paper_text
     # Requirement  : `_get_paper_text` shall get searchable text from paper
@@ -785,7 +924,7 @@ Keep the synthesis concise and cite papers using [PMID:X] format."""
         title = paper.get("title", "") or ""
         abstract = paper.get("abstract", "") or ""
         return f"{title} {abstract}"
-    
+
     # ---------------------------------------------------------------------------
     # ID           : agents.synthesis_agent.synthesis_agent.SynthesisAgent.get_statistics
     # Requirement  : `get_statistics` shall get agent statistics
