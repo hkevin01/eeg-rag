@@ -39,6 +39,7 @@ class DenseResult:
     text: str
     metadata: Dict[str, Any]
     chunk_id: Optional[str] = None
+    embedding: Optional[List[float]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +183,8 @@ class DenseRetriever:
         self,
         query: str,
         top_k: int = 10,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
+        include_vectors: bool = False,
     ) -> List[DenseResult]:
         """
         Search documents using semantic similarity.
@@ -204,7 +206,8 @@ class DenseRetriever:
         search_results: List[SearchResult] = self.vector_db.search(
             query=query,
             limit=top_k,
-            filter_conditions=filters
+            filter_conditions=filters,
+            include_vectors=include_vectors,
         )
 
         # Convert to DenseResult
@@ -215,7 +218,8 @@ class DenseRetriever:
                 score=sr.score,
                 text=sr.payload.get("text", ""),
                 metadata=sr.payload.get("metadata", {}),
-                chunk_id=sr.chunk_id
+                chunk_id=sr.chunk_id,
+                embedding=sr.vector,
             ))
 
         logger.info(f"Dense search for '{query}' returned {len(results)} results")

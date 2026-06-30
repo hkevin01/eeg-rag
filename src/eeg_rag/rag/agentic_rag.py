@@ -56,6 +56,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
+from eeg_rag.ensemble.context_aggregator import ContextAggregator
 from eeg_rag.retrieval.hybrid_retriever import HybridResult, HybridRetriever
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
 from eeg_rag.generation.response_generator import Document, ResponseGenerator
@@ -181,6 +182,7 @@ class SufficiencyStatus(Enum):
         LOW_COUNT: Too few documents returned.
         LOW_RELEVANCE: Docs returned but average relevance below threshold.
         LOW_COVERAGE: Docs found but do not cover all query aspects.
+        LOW_DIVERSITY: Docs are relevant but too redundant to cover the space.
         EMPTY: Retriever returned no results at all.
     """
 
@@ -188,6 +190,7 @@ class SufficiencyStatus(Enum):
     LOW_COUNT = "low_count"
     LOW_RELEVANCE = "low_relevance"
     LOW_COVERAGE = "low_coverage"
+    LOW_DIVERSITY = "low_diversity"
     EMPTY = "empty"
 
 
@@ -253,6 +256,10 @@ class SufficiencyCheck:
     doc_count: int
     relevance_score: float
     coverage_score: float
+    redundancy_score: float = 0.0
+    diversity_score: float = 1.0
+    query_entity_coverage_score: float = 1.0
+    aggregation_diagnostics: Dict[str, Any] = field(default_factory=dict)
     missing_aspects: List[str] = field(default_factory=list)
     explanation: str = ""
 
@@ -338,6 +345,7 @@ class AgenticStep:
     sufficiency: SufficiencyCheck
     reformulation: Optional[ReformulationResult]
     elapsed_ms: float
+    aggregation_diagnostics: Dict[str, Any] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------

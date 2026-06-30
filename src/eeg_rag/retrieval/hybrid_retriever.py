@@ -51,6 +51,7 @@ from typing import List, Optional, Dict, Any, Tuple
 from collections import defaultdict
 
 from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
+from eeg_rag.retrieval.centrality_enricher import CentralityEnricher
 from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
 from eeg_rag.retrieval.reranker import CrossEncoderReranker, NoOpReranker, RerankedResult
@@ -158,7 +159,9 @@ class HybridRetriever:
         use_query_expansion: bool = True,
         use_reranking: bool = False,
         reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        adaptive_reranking: bool = False
+        adaptive_reranking: bool = False,
+        centrality_enricher: Optional[CentralityEnricher] = None,
+        include_dense_vectors: bool = False,
     ):
         """
         Initialize hybrid retriever.
@@ -182,6 +185,8 @@ class HybridRetriever:
         self.use_query_expansion = use_query_expansion
         self.use_reranking = use_reranking
         self.adaptive_reranking = adaptive_reranking
+        self.centrality_enricher = centrality_enricher
+        self.include_dense_vectors = include_dense_vectors
 
         # Initialize query expander if enabled
         self.query_expander = EEGQueryExpander() if use_query_expansion else None
@@ -257,7 +262,7 @@ class HybridRetriever:
             if result.doc_id not in doc_metadata:
                 doc_metadata[result.doc_id] = {
                     "text": result.text,
-                    "metadata": result.metadata,
+                    "metadata": self._prepare_metadata(result.metadata),
                     "bm25_score": result.score,
                     "bm25_rank": rank,
                     "dense_score": 0.0,
@@ -274,7 +279,10 @@ class HybridRetriever:
             if result.doc_id not in doc_metadata:
                 doc_metadata[result.doc_id] = {
                     "text": result.text,
-                    "metadata": result.metadata,
+                    "metadata": self._prepare_metadata(
+                        result.metadata,
+                        embedding=result.embedding,
+                    ),
                     "bm25_score": 0.0,
                     "bm25_rank": None,
                     "dense_score": result.score,
@@ -283,6 +291,8 @@ class HybridRetriever:
             else:
                 doc_metadata[result.doc_id]["dense_score"] = result.score
                 doc_metadata[result.doc_id]["dense_rank"] = rank
+                if result.embedding is not None:
+                    doc_metadata[result.doc_id]["metadata"]["embedding_vector"] = list(result.embedding)
 
         # Combine scores with metadata
         combined = {
@@ -291,6 +301,19 @@ class HybridRetriever:
         }
 
         return combined
+
+    def _prepare_metadata(
+        self,
+        metadata: Dict[str, Any],
+        embedding: Optional[List[float]] = None,
+    ) -> Dict[str, Any]:
+        """Copy and enrich result metadata with graph and vector signals."""
+        prepared = dict(metadata or {})
+        if embedding is not None:
+            prepared["embedding_vector"] = list(embedding)
+        if self.centrality_enricher is not None:
+            prepared = self.centrality_enricher.enrich(prepared)
+        return prepared
 
     # ---------------------------------------------------------------------------
     # ID           : retrieval.hybrid_retriever.HybridRetriever.search
@@ -349,7 +372,12 @@ class HybridRetriever:
 
         # Get results from both retrievers
         bm25_results = self.bm25.search(search_query, top_k=retrieve_k)
-        dense_results = self.dense.search(search_query, top_k=retrieve_k, filters=filters)
+        dense_results = self.dense.search(
+            search_query,
+            top_k=retrieve_k,
+            filters=filters,
+            include_vectors=self.include_dense_vectors,
+        )
 
         logger.info(f"  BM25: {len(bm25_results)} results")
         logger.info(f"  Dense: {len(dense_results)} results")

@@ -10,6 +10,9 @@ from collections import defaultdict
 import hashlib
 import re
 
+from eeg_rag.ensemble.citation_diversifier import CitationDiversifier
+from eeg_rag.retrieval.query_analyzer import QueryAnalyzer, QueryComplexity
+
 
 # REQ-CTX-001: Define data structures for aggregated context
 # ---------------------------------------------------------------------------
@@ -43,7 +46,7 @@ class Citation:
     relevance_score: float = 0.0
     source_agents: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.Citation.get_id
     # Requirement  : `get_id` shall get unique identifier for deduplication
@@ -72,7 +75,7 @@ class Citation:
             title_hash = hashlib.md5(self.title.lower().encode()).hexdigest()[:16]
             return f"title:{title_hash}"
         return f"unknown:{id(self)}"
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.Citation.to_dict
     # Requirement  : `to_dict` shall convert to dictionary
@@ -133,7 +136,7 @@ class Entity:
     contexts: List[str] = field(default_factory=list)
     citations: List[str] = field(default_factory=list)  # Citation IDs
     confidence: float = 1.0
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.Entity.to_dict
     # Requirement  : `to_dict` shall convert to dictionary
@@ -191,7 +194,7 @@ class AggregatedContext:
     relevance_threshold: float
     timestamp: str
     statistics: Dict[str, Any]
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.AggregatedContext.to_dict
     # Requirement  : `to_dict` shall convert to dictionary
@@ -244,7 +247,7 @@ class AggregatedContext:
 class ContextAggregator:
     """
     Aggregates and ranks results from multiple specialized agents
-    
+
     Requirements:
     - REQ-CTX-001: Define aggregated context data structures ✓
     - REQ-CTX-002: Implement context aggregator class ✓
@@ -262,7 +265,7 @@ class ContextAggregator:
     - REQ-CTX-014: Extract domain-specific entities (EEG) ✓
     - REQ-CTX-015: Output standardized format ✓
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator.__init__
     # Requirement  : `__init__` shall initialize context aggregator
@@ -285,22 +288,28 @@ class ContextAggregator:
         relevance_threshold: float = 0.3,
         max_citations: int = 50,
         entity_min_frequency: int = 2,
-        ranking_strategy: str = "weighted"
+        ranking_strategy: str = "weighted",
+        diversity_lambda: float = 0.7,
     ):
         """
         Initialize context aggregator
-        
+
         Args:
             relevance_threshold: Minimum relevance score (0-1)
             max_citations: Maximum citations to include
             entity_min_frequency: Min frequency for entity extraction
-            ranking_strategy: "weighted", "simple", or "hybrid"
+            ranking_strategy: "weighted", "simple", "hybrid", or "diversified"
+            diversity_lambda: MMR tradeoff used by the diversified strategy.
         """
         self.relevance_threshold = relevance_threshold
         self.max_citations = max_citations
         self.entity_min_frequency = entity_min_frequency
         self.ranking_strategy = ranking_strategy
-        
+        self.diversifier = CitationDiversifier(
+            diversity_lambda=diversity_lambda,
+        )
+        self.query_analyzer = QueryAnalyzer()
+
         # Statistics
         self.stats = {
             'total_aggregations': 0,
@@ -309,7 +318,7 @@ class ContextAggregator:
             'total_entities_extracted': 0,
             'agent_usage': defaultdict(int)
         }
-        
+
         # EEG-specific entity patterns (REQ-CTX-014)
         self.entity_patterns = {
             'biomarker': [
@@ -335,7 +344,7 @@ class ContextAggregator:
                 r'\b(prefrontal\s+cortex|PFC|dorsolateral)'
             ]
         }
-    
+
     # REQ-CTX-003: Merge results from multiple agents
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator.aggregate
@@ -361,45 +370,63 @@ class ContextAggregator:
     ) -> AggregatedContext:
         """
         Aggregate results from multiple agents
-        
+
         Args:
             query: Original user query
             agent_results: Dict mapping agent_name -> agent result data
-            
+
         Returns:
             AggregatedContext with merged and ranked results
         """
         self.stats['total_aggregations'] += 1
-        
+
         # Extract citations from all agents
         all_citations = self._extract_citations(agent_results)
         self.stats['total_citations_processed'] += len(all_citations)
-        
+
         # REQ-CTX-004: Deduplicate citations
         deduplicated = self._deduplicate_citations(all_citations)
         self.stats['total_citations_deduplicated'] += (len(all_citations) - len(deduplicated))
-        
+
         # REQ-CTX-005: Rank by relevance
         ranked_citations = self._rank_citations(deduplicated, query)
-        
+
         # REQ-CTX-008: Apply relevance threshold
         filtered_citations = [
-            c for c in ranked_citations 
+            c for c in ranked_citations
             if c.relevance_score >= self.relevance_threshold
         ]
-        
+
         # Limit to max citations
         final_citations = filtered_citations[:self.max_citations]
-        
+
         # REQ-CTX-006: Extract entities
         entities = self._extract_entities(final_citations)
         self.stats['total_entities_extracted'] += len(entities)
-        
+
+        query_entities = self._extract_query_entities(query)
+        covered_query_entities = sorted({
+            entity for entity in query_entities
+            if any(
+                entity in (citation.title + ' ' + (citation.abstract or '')).lower()
+                for citation in final_citations
+            )
+        })
+        missing_query_entities = [
+            entity for entity in query_entities if entity not in covered_query_entities
+        ]
+        entity_coverage_score = (
+            len(covered_query_entities) / len(query_entities)
+            if query_entities else 1.0
+        )
+        diversity_diagnostics = self.diversifier.analyze_set(final_citations)
+        query_analysis = self.query_analyzer.analyze(query)
+
         # REQ-CTX-007: Track agent contributions
         agent_contributions = self._count_contributions(final_citations)
         for agent, count in agent_contributions.items():
             self.stats['agent_usage'][agent] += count
-        
+
         # REQ-CTX-011: Generate statistics
         statistics = {
             'total_results': len(all_citations),
@@ -408,9 +435,16 @@ class ContextAggregator:
             'final_citations': len(final_citations),
             'entities_found': len(entities),
             'average_relevance': sum(c.relevance_score for c in final_citations) / len(final_citations) if final_citations else 0,
-            'sources_used': len(agent_results)
+            'sources_used': len(agent_results),
+            'query_complexity': query_analysis.complexity.value,
+            'diversity_lambda': self._get_diversity_lambda(query_analysis),
+            'query_entities': query_entities,
+            'covered_query_entities': covered_query_entities,
+            'missing_query_entities': missing_query_entities,
+            'query_entity_coverage_score': entity_coverage_score,
+            **diversity_diagnostics,
         }
-        
+
         # REQ-CTX-015: Output standardized format
         return AggregatedContext(
             query=query,
@@ -422,7 +456,7 @@ class ContextAggregator:
             timestamp=datetime.now().isoformat(),
             statistics=statistics
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._extract_citations
     # Requirement  : `_extract_citations` shall extract citations from all agent results
@@ -443,15 +477,15 @@ class ContextAggregator:
     def _extract_citations(self, agent_results: Dict[str, Any]) -> List[Citation]:
         """Extract citations from all agent results"""
         citations = []
-        
+
         for agent_name, result in agent_results.items():
             # REQ-CTX-009: Handle empty or missing results
             if not result or not isinstance(result, dict):
                 continue
-            
+
             # Handle different result formats from different agents
             result_data = result.get('data', result.get('results', []))
-            
+
             if isinstance(result_data, list):
                 for item in result_data:
                     citation = self._parse_citation(item, agent_name)
@@ -461,9 +495,9 @@ class ContextAggregator:
                 citation = self._parse_citation(result_data, agent_name)
                 if citation:
                     citations.append(citation)
-        
+
         return citations
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._parse_citation
     # Requirement  : `_parse_citation` shall parse a single citation from agent result
@@ -484,6 +518,11 @@ class ContextAggregator:
     def _parse_citation(self, item: Dict[str, Any], agent_name: str) -> Optional[Citation]:
         """Parse a single citation from agent result"""
         try:
+            metadata = dict(item.get('metadata', {}))
+            for key in ('centrality_score', 'citation_count', 'source_score'):
+                if key in item and key not in metadata:
+                    metadata[key] = item[key]
+
             # REQ-CTX-010: Preserve metadata from sources
             citation = Citation(
                 pmid=item.get('pmid'),
@@ -496,12 +535,12 @@ class ContextAggregator:
                 abstract=item.get('abstract', item.get('snippet', '')),
                 relevance_score=item.get('relevance_score', item.get('score', 0.5)),
                 source_agents=[agent_name],
-                metadata=item.get('metadata', {})
+                metadata=metadata
             )
             return citation
         except Exception:
             return None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._deduplicate_citations
     # Requirement  : `_deduplicate_citations` shall deduplicate citations by PMID, DOI, or title
@@ -526,10 +565,10 @@ class ContextAggregator:
         """
         seen_ids: Set[str] = set()
         deduplicated: List[Citation] = []
-        
+
         for citation in citations:
             citation_id = citation.get_id()
-            
+
             if citation_id in seen_ids:
                 # Merge source agents for duplicates
                 for existing in deduplicated:
@@ -547,9 +586,9 @@ class ContextAggregator:
             else:
                 seen_ids.add(citation_id)
                 deduplicated.append(citation)
-        
+
         return deduplicated
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._rank_citations
     # Requirement  : `_rank_citations` shall rank citations by relevance
@@ -577,24 +616,24 @@ class ContextAggregator:
             # Weight by multiple factors
             for citation in citations:
                 score = citation.relevance_score
-                
+
                 # Boost for multiple source agents
                 if len(citation.source_agents) > 1:
                     score *= (1 + 0.1 * len(citation.source_agents))
-                
+
                 # Boost for recent publications
                 if citation.year and citation.year >= 2020:
                     score *= 1.1
-                
+
                 # Boost for query term matches in title
                 if citation.title and query:
                     query_terms = query.lower().split()
                     title_lower = citation.title.lower()
                     matches = sum(1 for term in query_terms if term in title_lower)
                     score *= (1 + 0.05 * matches)
-                
+
                 citation.relevance_score = min(score, 1.0)
-        
+
         elif self.ranking_strategy == "hybrid":
             # Combine relevance score with citation count
             for citation in citations:
@@ -602,12 +641,61 @@ class ContextAggregator:
                     0.7 * citation.relevance_score +
                     0.3 * (len(citation.source_agents) / len(citations))
                 )
-        
+
+        elif self.ranking_strategy == "diversified":
+            # Start from the same weighted notion of topical relevance, then
+            # apply MMR-style diversification to avoid redundant evidence.
+            query_analysis = self.query_analyzer.analyze(query)
+            self.diversifier.diversity_lambda = self._get_diversity_lambda(
+                query_analysis,
+            )
+            for citation in citations:
+                score = citation.relevance_score
+
+                if len(citation.source_agents) > 1:
+                    score *= (1 + 0.1 * len(citation.source_agents))
+
+                if citation.year and citation.year >= 2020:
+                    score *= 1.1
+
+                if citation.title and query:
+                    query_terms = query.lower().split()
+                    title_lower = citation.title.lower()
+                    matches = sum(1 for term in query_terms if term in title_lower)
+                    score *= (1 + 0.05 * matches)
+
+                citation.relevance_score = min(score, 1.0)
+
+            return self.diversifier.diversify(
+                citations,
+                max_results=self.max_citations,
+            )
+
         # Sort by relevance (descending)
         citations.sort(key=lambda c: c.relevance_score, reverse=True)
-        
+
         return citations
-    
+
+    def _get_diversity_lambda(self, query_analysis) -> float:
+        """Adapt the relevance-diversity tradeoff to the query type."""
+        if query_analysis.complexity == QueryComplexity.SIMPLE:
+            return 0.85
+        if query_analysis.complexity == QueryComplexity.COMPLEX:
+            return 0.55
+        return 0.70
+
+    def _extract_query_entities(self, query: str) -> List[str]:
+        """Extract EEG-domain query entities using the configured patterns."""
+        query_lower = query.lower()
+        matches: Set[str] = set()
+        for patterns in self.entity_patterns.values():
+            for pattern in patterns:
+                for match in re.finditer(pattern, query_lower, flags=re.IGNORECASE):
+                    value = match.group(0).strip().lower()
+                    if value:
+                        matches.add(value)
+        return sorted(matches)
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._extract_entities
     # Requirement  : `_extract_entities` shall extract entities from citations
@@ -632,20 +720,20 @@ class ContextAggregator:
         REQ-CTX-014: Extract domain-specific entities (EEG)
         """
         entity_map: Dict[Tuple[str, str], Entity] = {}
-        
+
         for citation in citations:
             citation_id = citation.get_id()
-            
+
             # Extract from title and abstract
             text = f"{citation.title} {citation.abstract}".lower()
-            
+
             for entity_type, patterns in self.entity_patterns.items():
                 for pattern in patterns:
                     matches = re.finditer(pattern, text, re.IGNORECASE)
                     for match in matches:
                         entity_text = match.group(0)
                         key = (entity_text.lower(), entity_type)
-                        
+
                         if key in entity_map:
                             entity_map[key].frequency += 1
                             entity_map[key].citations.append(citation_id)
@@ -658,18 +746,18 @@ class ContextAggregator:
                                 citations=[citation_id],
                                 confidence=0.8
                             )
-        
+
         # Filter by minimum frequency
         entities = [
             entity for entity in entity_map.values()
             if entity.frequency >= self.entity_min_frequency
         ]
-        
+
         # Sort by frequency (descending)
         entities.sort(key=lambda e: e.frequency, reverse=True)
-        
+
         return entities
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._count_contributions
     # Requirement  : `_count_contributions` shall count contributions from each agent
@@ -693,13 +781,13 @@ class ContextAggregator:
         REQ-CTX-007: Track agent contributions
         """
         contributions = defaultdict(int)
-        
+
         for citation in citations:
             for agent in citation.source_agents:
                 contributions[agent] += 1
-        
+
         return dict(contributions)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator.get_statistics
     # Requirement  : `get_statistics` shall get aggregation statistics
@@ -729,7 +817,7 @@ class ContextAggregator:
             'max_citations': self.max_citations,
             'ranking_strategy': self.ranking_strategy
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator.reset_statistics
     # Requirement  : `reset_statistics` shall reset statistics counters

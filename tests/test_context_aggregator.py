@@ -371,6 +371,84 @@ class TestContextAggregator:
         # First result should be boosted due to query match and recent year
         assert result.citations[0].pmid == '111'
 
+    @pytest.mark.asyncio
+    async def test_diversified_ranking_reduces_redundancy(self):
+        """Test diversified ranking prefers a distinct second citation."""
+        aggregator = ContextAggregator(
+            ranking_strategy="diversified",
+            relevance_threshold=0.0,
+            max_citations=3,
+            diversity_lambda=0.7,
+        )
+
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': '111',
+                        'title': 'EEG seizure detection using convolutional neural networks',
+                        'abstract': 'Deep learning model for EEG seizure detection with convolutional features.',
+                        'relevance_score': 0.95,
+                        'year': 2024,
+                    },
+                    {
+                        'pmid': '222',
+                        'title': 'EEG-based seizure detection using convolutional neural networks',
+                        'abstract': 'Convolutional network approach for seizure detection in EEG recordings.',
+                        'relevance_score': 0.93,
+                        'year': 2023,
+                    },
+                    {
+                        'pmid': '333',
+                        'title': 'Graph biomarkers for epilepsy progression in longitudinal EEG',
+                        'abstract': 'Longitudinal network biomarkers expose epileptic progression using EEG graphs.',
+                        'relevance_score': 0.84,
+                        'year': 2024,
+                    },
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate('eeg seizure detection', agent_results)
+
+        assert result.citations[0].pmid == '111'
+        assert result.citations[1].pmid == '333'
+
+    @pytest.mark.asyncio
+    async def test_diversified_ranking_uses_centrality_metadata(self):
+        """Test diversified ranking boosts high-centrality papers."""
+        aggregator = ContextAggregator(
+            ranking_strategy="diversified",
+            relevance_threshold=0.0,
+            diversity_lambda=0.85,
+        )
+
+        agent_results = {
+            'graph': {
+                'data': [
+                    {
+                        'pmid': '111',
+                        'title': 'Alpha power in epilepsy cohorts',
+                        'abstract': 'Alpha power study in epilepsy cohorts.',
+                        'relevance_score': 0.80,
+                        'metadata': {'centrality_score': 0.90},
+                    },
+                    {
+                        'pmid': '222',
+                        'title': 'Alpha power in epilepsy case series',
+                        'abstract': 'Alpha power findings in small epilepsy case series.',
+                        'relevance_score': 0.80,
+                        'metadata': {'centrality_score': 0.10},
+                    },
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate('alpha power epilepsy', agent_results)
+
+        assert result.citations[0].pmid == '111'
+        assert result.citations[0].metadata['utility_score'] >= result.citations[1].metadata['utility_score']
+
     def test_get_statistics(self):
         """Test getting aggregation statistics"""
         aggregator = ContextAggregator()

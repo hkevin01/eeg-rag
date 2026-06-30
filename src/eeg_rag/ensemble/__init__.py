@@ -9,6 +9,8 @@ from .context_aggregator import (
     AggregatedContext
 )
 
+from .citation_diversifier import CitationDiversifier
+
 from .generation_ensemble import (
     GenerationEnsemble,
     GenerationResult,
@@ -30,6 +32,7 @@ __all__ = [
     'Citation',
     'Entity',
     'AggregatedContext',
+    'CitationDiversifier',
     'GenerationEnsemble',
     'GenerationResult',
     'EnsembleResponse',
