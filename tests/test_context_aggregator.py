@@ -449,6 +449,97 @@ class TestContextAggregator:
         assert result.citations[0].pmid == '111'
         assert result.citations[0].metadata['utility_score'] >= result.citations[1].metadata['utility_score']
 
+    @pytest.mark.asyncio
+    async def test_diversified_ranking_uses_embedding_similarity(self):
+        """Dense embeddings should drive redundancy estimates when available."""
+        aggregator = ContextAggregator(
+            ranking_strategy="diversified",
+            relevance_threshold=0.0,
+            max_citations=3,
+        )
+
+        agent_results = {
+            'dense': {
+                'data': [
+                    {
+                        'pmid': '111',
+                        'title': 'Study A',
+                        'abstract': 'Topic A',
+                        'relevance_score': 0.95,
+                        'metadata': {'embedding_vector': [1.0, 0.0, 0.0]},
+                    },
+                    {
+                        'pmid': '222',
+                        'title': 'Study B',
+                        'abstract': 'Lexically different text',
+                        'relevance_score': 0.94,
+                        'metadata': {'embedding_vector': [0.99, 0.01, 0.0]},
+                    },
+                    {
+                        'pmid': '333',
+                        'title': 'Study C',
+                        'abstract': 'Orthogonal evidence',
+                        'relevance_score': 0.80,
+                        'metadata': {'embedding_vector': [0.0, 1.0, 0.0]},
+                    },
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate('study topic', agent_results)
+
+        assert result.citations[1].pmid == '333'
+        assert result.statistics['redundancy_score'] > 0.0
+
+    @pytest.mark.asyncio
+    async def test_statistics_include_query_entity_coverage(self):
+        """Aggregation statistics should report query-entity coverage gaps."""
+        aggregator = ContextAggregator(
+            ranking_strategy="diversified",
+            relevance_threshold=0.0,
+            entity_min_frequency=1,
+        )
+
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': '111',
+                        'title': 'Alpha power biomarkers in epilepsy',
+                        'abstract': 'Frontal cortex alpha power correlates with epilepsy severity.',
+                        'relevance_score': 0.9,
+                    }
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate('alpha power and frontal cortex in epilepsy and sleep disorder', agent_results)
+
+        assert result.statistics['query_entity_coverage_score'] < 1.0
+        assert 'sleep disorder' in result.statistics['missing_query_entities']
+
+    @pytest.mark.asyncio
+    async def test_diversity_lambda_adapts_to_query_complexity(self):
+        """Simple queries should favor precision more than complex queries."""
+        aggregator = ContextAggregator(
+            ranking_strategy="diversified",
+            relevance_threshold=0.0,
+        )
+        simple_results = {
+            'local': {'data': [{'pmid': '1', 'title': 'Alpha power study', 'relevance_score': 0.8}]}
+        }
+        complex_results = {
+            'local': {'data': [{'pmid': '1', 'title': 'Alpha power study in sleep disorder and epilepsy', 'relevance_score': 0.8}]}
+        }
+
+        simple = await aggregator.aggregate('alpha power epilepsy', simple_results)
+        complex_ = await aggregator.aggregate(
+            'What longitudinal EEG biomarkers explain alpha power changes in epilepsy and sleep disorder cohorts?',
+            complex_results,
+        )
+
+        assert simple.statistics['diversity_lambda'] > complex_.statistics['diversity_lambda']
+
     def test_get_statistics(self):
         """Test getting aggregation statistics"""
         aggregator = ContextAggregator()

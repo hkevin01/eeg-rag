@@ -37,8 +37,20 @@ def _bm25_result(doc_id: str, score: float, text: str = "text") -> BM25Result:
     return BM25Result(doc_id=doc_id, score=score, text=text, metadata={"doc_id": doc_id})
 
 
-def _dense_result(doc_id: str, score: float, text: str = "text") -> DenseResult:
-    return DenseResult(doc_id=doc_id, score=score, text=text, metadata={"doc_id": doc_id})
+def _dense_result(
+    doc_id: str,
+    score: float,
+    text: str = "text",
+    metadata: dict | None = None,
+    embedding: list[float] | None = None,
+) -> DenseResult:
+    return DenseResult(
+        doc_id=doc_id,
+        score=score,
+        text=text,
+        metadata=metadata or {"doc_id": doc_id},
+        embedding=embedding,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -86,6 +98,34 @@ class TestHybridResult:
         )
         assert r.metadata["pmid"] == "99887766"
         assert r.metadata["year"] == 2022
+
+    def test_centrality_enrichment_and_embedding_preserved(self):
+        class _MockEnricher:
+            def enrich(self, metadata):
+                metadata = dict(metadata)
+                metadata["centrality_score"] = 0.77
+                return metadata
+
+        bm25 = _make_bm25([])
+        dense = _make_dense([
+            _dense_result(
+                "d1",
+                0.9,
+                text="semantic text",
+                metadata={"pmid": "1234"},
+                embedding=[1.0, 0.0, 0.0],
+            )
+        ])
+        r = HybridRetriever(
+            bm25_retriever=bm25,
+            dense_retriever=dense,
+            use_query_expansion=False,
+            centrality_enricher=_MockEnricher(),
+        )
+
+        results = r.search("semantic text", top_k=1)
+        assert results[0].metadata["centrality_score"] == pytest.approx(0.77)
+        assert results[0].metadata["embedding_vector"] == [1.0, 0.0, 0.0]
 
 
 # ---------------------------------------------------------------------------

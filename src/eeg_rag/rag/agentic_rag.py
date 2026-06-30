@@ -684,6 +684,7 @@ class SufficiencyEvaluator:
         query: str,
         results: List[HybridResult],
         decision: RetrievalDecision,
+        diagnostics: Optional[Dict[str, Any]] = None,
     ) -> SufficiencyCheck:
         """Assess whether ``results`` sufficiently cover ``query``.
 
@@ -705,6 +706,7 @@ class SufficiencyEvaluator:
                 doc_count=0,
                 relevance_score=0.0,
                 coverage_score=0.0,
+                aggregation_diagnostics=diagnostics or {},
                 explanation="Retriever returned no results.",
             )
 
@@ -714,6 +716,7 @@ class SufficiencyEvaluator:
                 doc_count=doc_count,
                 relevance_score=self._mean_score(results),
                 coverage_score=0.0,
+                aggregation_diagnostics=diagnostics or {},
                 explanation=(
                     f"Only {doc_count} document(s) retrieved "
                     f"(minimum required: {self._min_docs})."
@@ -728,6 +731,7 @@ class SufficiencyEvaluator:
                 doc_count=doc_count,
                 relevance_score=mean_rel,
                 coverage_score=0.0,
+                aggregation_diagnostics=diagnostics or {},
                 explanation=(
                     f"Mean relevance {mean_rel:.3f} below threshold "
                     f"{self._min_relevance}."
@@ -738,6 +742,17 @@ class SufficiencyEvaluator:
         coverage_score, missing = self._compute_coverage(
             results, decision.detected_entities
         )
+        redundancy_score = 0.0
+        diversity_score = 1.0
+        query_entity_coverage_score = coverage_score
+        if diagnostics:
+            redundancy_score = float(diagnostics.get("redundancy_score", 0.0))
+            diversity_score = float(diagnostics.get("diversity_score", 1.0))
+            query_entity_coverage_score = float(
+                diagnostics.get("query_entity_coverage_score", coverage_score)
+            )
+            missing = diagnostics.get("missing_query_entities", missing)
+            coverage_score = max(coverage_score, query_entity_coverage_score)
         if (
             decision.detected_entities
             and coverage_score < self._coverage_threshold
@@ -747,10 +762,31 @@ class SufficiencyEvaluator:
                 doc_count=doc_count,
                 relevance_score=mean_rel,
                 coverage_score=coverage_score,
+                redundancy_score=redundancy_score,
+                diversity_score=diversity_score,
+                query_entity_coverage_score=query_entity_coverage_score,
+                aggregation_diagnostics=diagnostics or {},
                 missing_aspects=missing,
                 explanation=(
                     f"Coverage {coverage_score:.2f} below threshold "
                     f"{self._coverage_threshold}. Missing: {missing}."
+                ),
+            )
+
+        if redundancy_score >= 0.90 and diversity_score <= 0.10:
+            return SufficiencyCheck(
+                status=SufficiencyStatus.LOW_DIVERSITY,
+                doc_count=doc_count,
+                relevance_score=mean_rel,
+                coverage_score=coverage_score,
+                redundancy_score=redundancy_score,
+                diversity_score=diversity_score,
+                query_entity_coverage_score=query_entity_coverage_score,
+                aggregation_diagnostics=diagnostics or {},
+                missing_aspects=missing,
+                explanation=(
+                    f"Results are relevant but redundant "
+                    f"(redundancy={redundancy_score:.2f}, diversity={diversity_score:.2f})."
                 ),
             )
 
@@ -760,9 +796,14 @@ class SufficiencyEvaluator:
             doc_count=doc_count,
             relevance_score=mean_rel,
             coverage_score=coverage_score,
+            redundancy_score=redundancy_score,
+            diversity_score=diversity_score,
+            query_entity_coverage_score=query_entity_coverage_score,
+            aggregation_diagnostics=diagnostics or {},
             explanation=(
                 f"{doc_count} documents retrieved with mean relevance "
-                f"{mean_rel:.3f} and coverage {coverage_score:.2f}."
+                f"{mean_rel:.3f}, coverage {coverage_score:.2f}, "
+                f"diversity {diversity_score:.2f}."
             ),
         )
 
@@ -948,10 +989,16 @@ class QueryReformulator:
 
         if strategy == ReformulationStrategy.RELAX:
             new_query = self._apply_relax(current_query, original_query)
-            rationale = (
-                "Missing aspects in coverage; relaxing constraints "
-                "to broaden search scope."
-            )
+            if check.status == SufficiencyStatus.LOW_DIVERSITY:
+                rationale = (
+                    "Results are relevant but overly redundant; relaxing "
+                    "constraints to broaden evidence coverage."
+                )
+            else:
+                rationale = (
+                    "Missing aspects in coverage; relaxing constraints "
+                    "to broaden search scope."
+                )
             return ReformulationResult(
                 new_query=new_query,
                 strategy=strategy,
@@ -1099,6 +1146,11 @@ class QueryReformulator:
                 ReformulationStrategy.RELAX,
                 ReformulationStrategy.EXPAND,
             ],
+            SufficiencyStatus.LOW_DIVERSITY: [
+                ReformulationStrategy.RELAX,
+                ReformulationStrategy.EXPAND,
+                ReformulationStrategy.PIVOT_DENSE,
+            ],
         }
         preferred = preference_map.get(check.status, [])
         for strategy in preferred:
@@ -1190,6 +1242,12 @@ class AgenticRAGOrchestrator:
             min_relevance=min_relevance,
         )
         self._reformulator = QueryReformulator()
+        self._context_aggregator = ContextAggregator(
+            relevance_threshold=0.0,
+            max_citations=top_k,
+            entity_min_frequency=1,
+            ranking_strategy="diversified",
+        )
 
         logger.info(
             "AgenticRAGOrchestrator ready "
@@ -1368,6 +1426,10 @@ class AgenticRAGOrchestrator:
                 bm25_weight=bm25_weight,
                 dense_weight=dense_weight,
             )
+            results, diagnostics = await self._apply_aggregation_diagnostics(
+                current_query,
+                results,
+            )
 
             # Keep the best-seen results even if later rounds are worse
             if len(results) > len(best_results):
@@ -1375,7 +1437,10 @@ class AgenticRAGOrchestrator:
 
             # Evaluate sufficiency
             check = self._sufficiency.evaluate(
-                current_query, results, decision
+                current_query,
+                results,
+                decision,
+                diagnostics=diagnostics,
             )
             logger.info(
                 "Sufficiency: %s — %s",
@@ -1418,6 +1483,7 @@ class AgenticRAGOrchestrator:
                     sufficiency=check,
                     reformulation=reformulation,
                     elapsed_ms=elapsed_ms,
+                    aggregation_diagnostics=diagnostics,
                 )
             )
 
@@ -1434,6 +1500,63 @@ class AgenticRAGOrchestrator:
                 dense_weight = reformulation.dense_weight_hint
 
         return best_results, steps
+
+    async def _apply_aggregation_diagnostics(
+        self,
+        query: str,
+        results: List[HybridResult],
+    ) -> Tuple[List[HybridResult], Dict[str, Any]]:
+        """Run aggregation diagnostics and reorder results by diversified context."""
+        if not results:
+            return results, {}
+
+        agent_results = {
+            "hybrid": {
+                "data": [
+                    {
+                        "pmid": r.metadata.get("pmid") or r.metadata.get("PMID"),
+                        "title": r.metadata.get("title", r.doc_id),
+                        "abstract": r.text,
+                        "year": r.metadata.get("year"),
+                        "doi": r.metadata.get("doi"),
+                        "relevance_score": min(r.rrf_score / (2.0 / 61.0), 1.0),
+                        "metadata": dict(r.metadata),
+                    }
+                    for r in results
+                ]
+            }
+        }
+        aggregated = await self._context_aggregator.aggregate(query, agent_results)
+
+        by_pmid = {
+            str(r.metadata.get("pmid") or r.metadata.get("PMID") or ""): r
+            for r in results
+            if r.metadata.get("pmid") or r.metadata.get("PMID")
+        }
+        by_title = {
+            str(r.metadata.get("title") or r.doc_id).lower(): r
+            for r in results
+        }
+
+        reordered: List[HybridResult] = []
+        seen: set[str] = set()
+        for citation in aggregated.citations:
+            result = None
+            if citation.pmid:
+                result = by_pmid.get(str(citation.pmid))
+            if result is None and citation.title:
+                result = by_title.get(citation.title.lower())
+            if result is None or result.doc_id in seen:
+                continue
+            result.metadata.update(citation.metadata)
+            reordered.append(result)
+            seen.add(result.doc_id)
+
+        for result in results:
+            if result.doc_id not in seen:
+                reordered.append(result)
+
+        return reordered, dict(aggregated.statistics)
 
     # ------------------------------------------------------------------
     # Retrieval helper (runs sync retriever in executor)

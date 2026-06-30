@@ -245,6 +245,24 @@ class TestSufficiencyEvaluator:
         check = self.ev.evaluate("query", [], self.decision)
         assert len(check.explanation) > 0
 
+    def test_low_diversity_from_diagnostics(self):
+        results = [
+            _hybrid_result(
+                f"d{i}",
+                rrf_score=0.016,
+                text="seizure cnn deep learning detection study",
+            )
+            for i in range(5)
+        ]
+        diagnostics = {
+            'redundancy_score': 0.95,
+            'diversity_score': 0.05,
+            'query_entity_coverage_score': 1.0,
+            'missing_query_entities': [],
+        }
+        check = self.ev.evaluate("query", results, self.decision, diagnostics=diagnostics)
+        assert check.status == SufficiencyStatus.LOW_DIVERSITY
+
 
 # ---------------------------------------------------------------------------
 # QueryReformulator
@@ -279,6 +297,16 @@ class TestQueryReformulator:
             relevance_score=0.5,
             coverage_score=0.4,
             missing_aspects=missing or ["sleep staging"],
+        )
+
+    def _low_diversity_check(self) -> SufficiencyCheck:
+        return SufficiencyCheck(
+            status=SufficiencyStatus.LOW_DIVERSITY,
+            doc_count=5,
+            relevance_score=0.8,
+            coverage_score=0.9,
+            redundancy_score=0.95,
+            diversity_score=0.05,
         )
 
     def test_expand_on_empty(self):
@@ -338,6 +366,16 @@ class TestQueryReformulator:
             prior_strategies=all_strategies,
         )
         assert result.strategy == ReformulationStrategy.DECOMPOSE
+
+    def test_relax_on_low_diversity(self):
+        result = self.reformulator.reformulate(
+            original_query="EEG seizure detection",
+            current_query='EEG seizure detection "convolutional neural network"',
+            check=self._low_diversity_check(),
+            iteration=1,
+            prior_strategies=[],
+        )
+        assert result.strategy == ReformulationStrategy.RELAX
 
     def test_bm25_hint_on_expand(self):
         result = self.reformulator.reformulate(
@@ -559,6 +597,40 @@ class TestAgenticRAGOrchestratorMultiIteration:
         step1 = result.steps[0]
         assert step1.reformulation is not None
         assert isinstance(step1.reformulation.strategy, ReformulationStrategy)
+
+    def test_reformulates_on_low_diversity_first_round(self):
+        round1 = [
+            _hybrid_result(
+                f"d{i}",
+                rrf_score=0.016,
+                text="seizure seizure seizure seizure detection cnn eeg",
+            )
+            for i in range(5)
+        ]
+        for doc in round1:
+            doc.metadata["embedding_vector"] = [1.0, 0.0, 0.0]
+        round2 = [
+            _hybrid_result("a", rrf_score=0.016, text="seizure cnn eeg detection study"),
+            _hybrid_result("b", rrf_score=0.016, text="sleep staging eeg cohort biomarker"),
+            _hybrid_result("c", rrf_score=0.016, text="motor imagery bci epilepsy alpha power"),
+            _hybrid_result("d", rrf_score=0.016, text="frontal cortex seizure theta rhythm"),
+            _hybrid_result("e", rrf_score=0.016, text="graph biomarkers for seizure recurrence"),
+        ]
+        retriever = self._make_retriever_sequence([round1, round2])
+        generator = _make_generator("Answer after broader evidence retrieval.")
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=generator,
+            max_iterations=3,
+            min_docs=3,
+        )
+
+        result = asyncio.run(
+            orchestrator.run("Seizure detection EEG deep learning CNN BCI")
+        )
+        assert result.steps[0].sufficiency.status == SufficiencyStatus.LOW_DIVERSITY
+        assert result.steps[0].reformulation is not None
+        assert result.iterations_used == 2
 
 
 # ---------------------------------------------------------------------------
