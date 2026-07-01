@@ -732,6 +732,61 @@ class TestAgenticRAGOrchestratorMultiIteration:
         assert retriever.dense_weight != 0.5
         assert retriever.bm25_weight + retriever.dense_weight == pytest.approx(1.0)
 
+    def test_response_surface_fitting_changes_selected_fusion_weight(self):
+        retriever = self._make_retriever_sequence([[]])
+        generator = _make_generator("Answer.")
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=generator,
+            max_iterations=1,
+            min_docs=1,
+        )
+
+        diagnostics = {
+            "query_concept_coverage_score": 0.7,
+            "diversity_score": 0.6,
+            "redundancy_score": 0.25,
+            "centrality_grounding_score": 0.55,
+        }
+
+        # With no fitted response surface, utility is effectively flat vs. BM25,
+        # so the optimizer should keep the seed weight.
+        baseline_bm25, _ = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics=diagnostics,
+        )
+        assert baseline_bm25 == pytest.approx(0.5)
+
+        # Log enough outcomes to trigger fitting with a clear preference for
+        # higher BM25 weights under the same diagnostics.
+        for bm25_weight in [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55]:
+            orchestrator._record_fusion_outcome(
+                bm25_weight=bm25_weight,
+                diagnostics=diagnostics,
+                utility=0.35,
+            )
+        for bm25_weight in [0.6, 0.65, 0.7, 0.75, 0.8, 0.78, 0.72, 0.68]:
+            orchestrator._record_fusion_outcome(
+                bm25_weight=bm25_weight,
+                diagnostics=diagnostics,
+                utility=0.9,
+            )
+
+        assert orchestrator._response_surface_coeffs is not None
+
+        learned_bm25, learned_dense = (
+            orchestrator._optimize_fusion_for_expected_utility(
+                bm25_weight=0.5,
+                dense_weight=0.5,
+                diagnostics=diagnostics,
+            )
+        )
+
+        assert learned_bm25 != pytest.approx(baseline_bm25)
+        assert learned_bm25 > baseline_bm25
+        assert learned_dense == pytest.approx(1.0 - learned_bm25)
+
 
 # ---------------------------------------------------------------------------
 # AgenticRAGOrchestrator – DECOMPOSE path
