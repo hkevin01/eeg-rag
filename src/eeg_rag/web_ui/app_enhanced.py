@@ -953,40 +953,58 @@ def render_welcome_banner():
 
     st.markdown(
         f"""
-    <div style="background: #bbdefb;
-                border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
-                border: 1px solid #90caf9;">
-        <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
-        <p style="color: #000000; margin-bottom: 1rem;">
-            EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language.
-            Every answer is grounded in evidence with verifiable citations.
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
-            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
-                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Ask Anything</div>
-                <div style="font-size: 0.85rem; color: #424242;">
+    <section class="wcag-section">
+        <div class="wcag-card" style="background: #bbdefb; border-color: #90caf9;">
+            <h3 style="color: #0d47a1; margin-bottom: 16px;">👋 Welcome, Researcher!</h3>
+            <p style="color: #000000; margin-bottom: 16px;">
+                EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language.
+                Every answer is grounded in evidence with verifiable citations.
+            </p>
+            <div class="container-fluid p-0">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="background: rgba(0,0,0,0.05); border-color: #9CA3AF; margin-bottom: 0;">
+                            <div style="font-size: 1.5rem; margin-bottom: 8px;">🔍</div>
+                            <div style="font-weight: 600; color: #000; margin-bottom: 4px;">Ask Anything</div>
+                            <div style="font-size: 0.9rem; color: #424242;">
                     "What EEG biomarkers predict seizure recurrence?"
-                </div>
-            </div>
-            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📚</div>
-                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Get Citations</div>
-                <div style="font-size: 0.85rem; color: #424242;">
-                    Every claim includes PMID references you can verify
-                </div>
-            </div>
-            <div style="background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📧</div>
-                <div style="font-weight: 600; color: #000; margin-bottom: 0.25rem;">Send Feedback</div>
-                <div style="font-size: 0.85rem; color: #424242;">
-                    <a href="mailto:kevin.hildebrand@gmail.com" style="color: #1565C0; text-decoration: none;">kevin.hildebrand@gmail.com</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="background: rgba(0,0,0,0.05); border-color: #9CA3AF; margin-bottom: 0;">
+                            <div style="font-size: 1.5rem; margin-bottom: 8px;">📚</div>
+                            <div style="font-weight: 600; color: #000; margin-bottom: 4px;">Get Citations</div>
+                            <div style="font-size: 0.9rem; color: #424242;">
+                                Every claim includes PMID references you can verify
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="background: rgba(0,0,0,0.05); border-color: #9CA3AF; margin-bottom: 0;">
+                            <div style="font-size: 1.5rem; margin-bottom: 8px;">📧</div>
+                            <div style="font-weight: 600; color: #000; margin-bottom: 4px;">Send Feedback</div>
+                            <div style="font-size: 0.9rem; color: #424242;">
+                                <a href="mailto:kevin.hildebrand@gmail.com" style="color: #1565C0; text-decoration: underline;">kevin.hildebrand@gmail.com</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
     """,
         unsafe_allow_html=True,
+    )
+
+
+def _status_item(icon: str, label: str, value: str) -> str:
+    """Return an accessible status item block."""
+    return (
+        "<div class=\"wcag-card\" style=\"margin-bottom:0;background:#F5F7F9;\">"
+        f"<div style=\"font-size:0.85rem;color:#424242;\">{icon} {label}</div>"
+        f"<div style=\"font-size:1rem;font-weight:600;color:#111827;\">{value}</div>"
+        "</div>"
     )
 
 
@@ -1012,33 +1030,32 @@ def render_system_status_bar():
     paper_count, is_actual = get_display_paper_count()
     paper_display = f"{paper_count:,}" if paper_count > 0 else "0"
 
+    source_caption = (
+        "PubMed (35M) | Semantic Scholar (200M) | arXiv (2M) | OpenAlex | CrossRef"
+    )
+
     st.markdown(
         f"""
-    <div style="background: #f5f5f5; border-radius: 8px; padding: 0.75rem 1rem;
-                margin-bottom: 1rem; display: flex; justify-content: space-between;
-                align-items: center; border: 1px solid #e0e0e0;">
-        <div style="display: flex; gap: 2rem; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="width: 8px; height: 8px; background: #2e7d32; border-radius: 50%;"></span>
-                <span style="color: #424242; font-size: 0.85rem;">System Online</span>
+    <section class="wcag-section">
+        <div class="wcag-card">
+            <div class="container-fluid p-0">
+                <div class="row g-3 align-items-stretch">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        {_status_item("●", "System", "Online")}
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        {_status_item("💾", "Cached Papers", paper_display)}
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        {_status_item("⚡", "Average Response", "2.3s")}
+                    </div>
+                </div>
             </div>
-            <div style="color: #616161; font-size: 0.85rem;">
-                💾 <strong style="color: #000;">{paper_display}</strong> cached | 🌐 <strong style="color: #2e7d32;">200M+</strong> searchable
-            </div>
-            <div style="color: #9CA3AF; font-size: 0.7rem; padding-left: 1rem;">
-                PubMed (35M) • Semantic Scholar (200M) • arXiv (2M) • OpenAlex • CrossRef
-            </div>
-            <div style="color: #616161; font-size: 0.85rem;">
-                🔄 Last sync: <strong style="color: #000;">2h ago</strong>
-            </div>
-            <div style="color: #616161; font-size: 0.85rem;">
-                ⚡ Avg response: <strong style="color: #000;">2.3s</strong>
-            </div>
+            <p style="margin-top: 16px; margin-bottom: 0; color: #4B5563; font-size: 0.875rem; line-height: 1.5;">
+                <strong>Sources:</strong> {source_caption} | <strong>Last sync:</strong> 2h ago | <strong>Version:</strong> v0.5.0 Beta
+            </p>
         </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <span style="color: #757575; font-size: 0.8rem;">v0.5.0 Beta</span>
-        </div>
-    </div>
+    </section>
     """,
         unsafe_allow_html=True,
     )
@@ -1127,16 +1144,16 @@ def render_query_tab():
         ]
 
         for ex in example_queries:
-            col1, col2 = st.columns([0.8, 0.2])
+            col1, col2 = st.columns([0.78, 0.22])
             with col1:
                 st.markdown(
                     f"""
-                <div style="background: #f5f5f5; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0;">
-                    <div style="color: #616161; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div class="wcag-card" style="background: #f5f5f5; border-color: #d1d5db; margin-bottom: 8px;">
+                    <div style="color: #4b5563; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         {ex['category']}
                     </div>
-                    <div style="color: #000; margin-top: 0.25rem;">{ex['query']}</div>
-                    <div style="color: #757575; font-size: 0.8rem; margin-top: 0.25rem; font-style: italic;">
+                    <div style="color: #000; margin-top: 8px; line-height: 1.5;">{ex['query']}</div>
+                    <div style="color: #4b5563; font-size: 0.85rem; margin-top: 8px; font-style: italic;">
                         💡 {ex['why']}
                     </div>
                 </div>
@@ -1189,19 +1206,25 @@ def render_agent_pipeline_tab():
             EEG-RAG uses a <strong>multi-agent architecture</strong> where specialized agents work together
             to answer your query. Each agent has specific expertise, and the Orchestrator coordinates their work.
         </p>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
-                <div style="color: #4a148c; font-weight: 600;">Why Multiple Agents?</div>
-                <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
+        <div class="container-fluid p-0">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="wcag-card" style="background: rgba(0,0,0,0.03); margin-bottom: 0;">
+                        <div style="color: #4a148c; font-weight: 600;">Why Multiple Agents?</div>
+                        <div style="color: #424242; font-size: 0.95rem; margin-top: 8px; line-height: 1.6;">
                     Different information needs require different retrieval strategies. Local search is fast,
                     web search is comprehensive, and graph queries find relationships.
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
-                <div style="color: #4a148c; font-weight: 600;">How Results Are Combined</div>
-                <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
+                <div class="col-12 col-md-6">
+                    <div class="wcag-card" style="background: rgba(0,0,0,0.03); margin-bottom: 0;">
+                        <div style="color: #4a148c; font-weight: 600;">How Results Are Combined</div>
+                        <div style="color: #424242; font-size: 0.95rem; margin-top: 8px; line-height: 1.6;">
                     The Context Aggregator uses <strong>Reciprocal Rank Fusion (RRF)</strong> to merge
                     results from multiple sources, eliminating duplicates while preserving diversity.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

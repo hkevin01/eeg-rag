@@ -73,39 +73,52 @@ def render_header():
 
     st.markdown(
         f"""
-    <div style="background: #FFFFFF;
-                border-radius: 8px; padding: 1.5rem 2rem; margin-bottom: 1rem;
-                border: 1px solid #E8EAED; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="margin: 0; color: #1F2937; font-size: 2rem;">
+    <section class="wcag-section">
+        <div class="wcag-card">
+            <div class="container-fluid p-0">
+                <div class="row g-3 align-items-start">
+                    <div class="col-12 col-lg-7">
+                        <h1 style="margin: 0; color: #1F2937; font-size: 2rem; line-height: 1.25;">
                     🧠 EEG-RAG Research Assistant {demo_badge}
-                </h1>
-                <p style="color: #6B7280; margin: 0.5rem 0 0 0; font-size: 1rem;">
+                        </h1>
+                        <p style="color: #6B7280; margin: 8px 0 0 0; font-size: 1rem; line-height: 1.5;">
                     AI-powered literature search for EEG research with verified citations
-                </p>
-            </div>
-            <div style="display: flex; gap: 2rem;">
-                <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #5C7A99;">{paper_count}</div>
-                    <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">Cached Locally</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #2e7d32;">200M+</div>
-                    <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">Searchable</div>
-                    <div style="font-size: 0.65rem; color: #9CA3AF; margin-top: 0.125rem;">PubMed • S2 • arXiv • OpenAlex</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #4CAF50;">{ai_agents}</div>
-                    <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">AI Agents</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 1.75rem; font-weight: 700; color: #FF9800;">{citation_accuracy}</div>
-                    <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase;">Citation Accuracy</div>
+                        </p>
+                    </div>
+                    <div class="col-12 col-lg-5">
+                        <div class="container-fluid p-0">
+                            <div class="row g-2">
+                                <div class="col-12 col-sm-6">
+                                    <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #5C7A99;">{paper_count}</div>
+                                        <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase; line-height:1.4;">{paper_label}</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #2e7d32;">200M+</div>
+                                        <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase; line-height:1.4;">Searchable</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #1D4ED8;">{ai_agents}</div>
+                                        <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase; line-height:1.4;">AI Agents</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #B45309;">{citation_accuracy}</div>
+                                        <div style="font-size: 0.75rem; color: #6B7280; text-transform: uppercase; line-height:1.4;">Citation Accuracy</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
     """,
         unsafe_allow_html=True,
     )
