@@ -54,196 +54,190 @@ st.set_page_config(
 # Enhanced CSS Styling
 st.markdown(
     """
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+/>
 <style>
-    /* Dark theme base */
+    :root {
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 32px;
+        --surface: #FFFFFF;
+        --surface-alt: #F5F7F9;
+        --border: #D1D5DB;
+        --text: #1F2937;
+        --text-muted: #4B5563;
+        --accent: #1D4ED8;
+    }
+
+    html, body {
+        overflow-x: hidden;
+    }
+
     .stApp {
-        background-color: #0d0d14;
+        background-color: #FAFBFC;
+        color: var(--text);
+        overflow-x: hidden;
     }
     
-    /* Sidebar styling */
+    .main .block-container {
+        max-width: 1400px;
+        padding-top: var(--space-2);
+        padding-bottom: var(--space-3);
+        padding-left: var(--space-2);
+        padding-right: var(--space-2);
+    }
+
+    @media (min-width: 992px) {
+        .main .block-container {
+            padding-left: var(--space-3);
+            padding-right: var(--space-3);
+        }
+    }
+
     [data-testid="stSidebar"] {
-        background-color: #13131e;
-        border-right: 1px solid #2d2d4d;
+        background-color: #E8EEF4;
+        border-right: 1px solid var(--border);
+    }
+
+    [data-testid="stSidebar"] * {
+        color: var(--text) !important;
     }
     
-    /* Header gradient */
-    .header-gradient {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid #2d2d4d;
+    .wcag-section {
+        margin-bottom: var(--space-3);
     }
     
-    /* Card styling */
-    .info-card {
-        background: linear-gradient(145deg, #1a1a2e, #13131e);
+    .wcag-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #2d2d4d;
-        margin-bottom: 1rem;
-        transition: transform 0.2s, box-shadow 0.2s;
+        padding: var(--space-2);
+        margin-bottom: var(--space-2);
     }
     
-    .info-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    .wcag-stack > * + * {
+        margin-top: var(--space-2);
     }
     
-    /* Agent cards */
-    .agent-card {
-        background: #1a1a2e;
-        border-radius: 12px;
-        padding: 1.25rem;
-        border-left: 4px solid var(--agent-color, #6366F1);
-        margin-bottom: 1rem;
-        transition: all 0.2s;
-    }
-    
-    .agent-card:hover {
-        background: #1f1f35;
-    }
-    
-    /* Tips and callouts */
     .researcher-tip {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        background: #FFF8E1;
         border-radius: 12px;
-        padding: 1rem 1.25rem;
-        border-left: 4px solid #10B981;
-        margin: 1rem 0;
+        padding: var(--space-2);
+        border-left: 4px solid #F59E0B;
+        margin: var(--space-2) 0;
     }
     
-    .researcher-tip .tip-icon {
-        font-size: 1.25rem;
-        margin-right: 0.5rem;
-    }
-    
-    .researcher-tip .tip-title {
-        color: #34d399;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
+    .researcher-tip .tip-title,
     .researcher-tip .tip-content {
-        color: #a0a0c0;
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
-        line-height: 1.6;
+        color: var(--text);
     }
     
-    /* Educational callouts */
     .edu-callout {
-        background: rgba(99, 102, 241, 0.08);
+        background: #E3F2FD;
         border-radius: 12px;
-        padding: 1.25rem;
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        margin: 1rem 0;
+        padding: var(--space-2);
+        border: 1px solid #90CAF9;
+        margin: var(--space-2) 0;
     }
     
     .edu-callout-title {
-        color: #a5b4fc;
-        font-weight: 600;
-        font-size: 1rem;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    /* Metric highlights */
-    .metric-highlight {
-        background: linear-gradient(135deg, #2d2d4d, #1a1a2e);
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-    }
-    
-    .metric-value {
-        font-size: 2rem;
+        color: #1E3A8A;
         font-weight: 700;
-        background: linear-gradient(135deg, #6366F1, #8B5CF6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        margin-bottom: var(--space-1);
     }
     
-    .metric-label {
-        color: #888;
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
-    
-    /* Confidence bars */
-    .confidence-bar {
-        height: 8px;
-        background: #2d2d4d;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-    
-    .confidence-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.5s ease;
-    }
-    
-    .confidence-fill.high { background: linear-gradient(90deg, #10B981, #34d399); }
-    .confidence-fill.medium { background: linear-gradient(90deg, #F59E0B, #fbbf24); }
-    .confidence-fill.low { background: linear-gradient(90deg, #EF4444, #f87171); }
-    
-    /* Buttons */
-    .stButton button {
-        background: linear-gradient(135deg, #6366F1, #8B5CF6);
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.2s;
+    .stButton button,
+    .stButton button[kind="secondary"],
+    button[data-testid="stBaseButton-secondary"],
+    button[data-testid="stBaseButton-primary"] {
+        background: #F3F4F6 !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        min-height: 44px !important;
+        padding: 10px 16px !important;
+        line-height: 1.35 !important;
+        font-weight: 600 !important;
     }
     
     .stButton button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        background: #E5E7EB !important;
+        border-color: #9CA3AF !important;
     }
     
-    /* Tab styling */
+    .stTextArea textarea,
+    .stTextInput input,
+    [data-baseweb="textarea"],
+    [data-baseweb="input"] {
+        min-height: 44px !important;
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+        background: #FFFFFF !important;
+    }
+    
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: #13131e;
-        padding: 0.5rem;
+        gap: var(--space-1);
+        background: #E8EEF4;
+        padding: var(--space-1);
         border-radius: 12px;
     }
     
     .stTabs [data-baseweb="tab"] {
         border-radius: 8px;
-        padding: 0.75rem 1.25rem;
-        background: transparent;
-        color: #888;
+        padding: 10px 14px;
+        min-height: 44px;
+        color: #374151;
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #6366F1, #8B5CF6);
-        color: white;
+        background: #DBEAFE;
+        color: #1E3A8A;
     }
     
-    /* Expander styling */
     .streamlit-expanderHeader {
-        background: #1a1a2e;
+        background: #F3F4F6;
         border-radius: 8px;
     }
     
-    /* System explanation toggle */
     .system-explanation {
         margin: 0.5rem 0;
     }
     
     .system-explanation summary {
         cursor: pointer;
-        color: #6366F1;
-        font-size: 0.85rem;
+        color: #1D4ED8;
+        font-size: 0.9rem;
     }
     
     .system-explanation summary:hover {
-        color: #8B5CF6;
+        color: #1E3A8A;
+    }
+    
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: var(--space-2);
+            padding-right: var(--space-2);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .main .block-container {
+            padding-left: var(--space-1);
+            padding-right: var(--space-1);
+        }
+
+        .wcag-card,
+        .edu-callout,
+        .researcher-tip {
+            padding: var(--space-2);
+        }
     }
     
     /* Hide default Streamlit elements for cleaner look */

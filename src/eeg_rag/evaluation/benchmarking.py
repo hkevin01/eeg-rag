@@ -28,6 +28,7 @@ from ..agents.orchestrator.orchestrator_agent import OrchestratorAgent
 from ..agents.local_agent.local_data_agent import LocalDataAgent
 from ..agents.web_agent.web_search_agent import WebSearchAgent
 from ..ensemble.context_aggregator import ContextAggregator
+from .ground_truth_benchmarks import GroundTruthBenchmarks
 from ..verification.citation_verifier import CitationVerifier
 from ..monitoring import PerformanceMonitor, monitor_performance
 
@@ -245,7 +246,9 @@ class EEGRAGBenchmark:
         self,
         orchestrator: OrchestratorAgent,
         local_agent: Optional[LocalDataAgent] = None,
-        web_agent: Optional[WebSearchAgent] = None
+        web_agent: Optional[WebSearchAgent] = None,
+        min_concept_aware_ranking_ndcg: float = 0.65,
+        bootstrap_samples: int = 500,
     ):
         """Initialize benchmarking suite.
 
@@ -257,9 +260,12 @@ class EEGRAGBenchmark:
         self.orchestrator = orchestrator
         self.local_agent = local_agent
         self.web_agent = web_agent
+        self.min_concept_aware_ranking_ndcg = min_concept_aware_ranking_ndcg
+        self.bootstrap_samples = bootstrap_samples
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
         self.performance_monitor = PerformanceMonitor()
+        self._utility_weights = self._calibrate_utility_weights_from_ground_truth()
 
         # Load benchmark queries
         self.benchmark_queries = self._create_benchmark_queries()
@@ -403,6 +409,7 @@ class EEGRAGBenchmark:
         # 4. Aggregation strategy benchmark for concept-aware grounding
         logger.info("Running aggregation strategy benchmark...")
         ranking_comparison = await self._benchmark_aggregation_strategies()
+        self._enforce_ranking_regression_guard(ranking_comparison)
 
         # 5. Calculate aggregate metrics
         suite_results = self._calculate_aggregate_metrics(
@@ -1236,6 +1243,111 @@ class EEGRAGBenchmark:
             overall_score=overall_score
         )
 
+    def _enforce_ranking_regression_guard(
+        self,
+        ranking_comparison: Dict[str, Dict[str, float]],
+    ) -> None:
+        """Fail evaluation if concept-aware ranking quality drops below floor."""
+        concept_aware = ranking_comparison.get("concept_aware", {})
+        ndcg = float(concept_aware.get("ranking_ndcg", 0.0))
+        if ndcg < self.min_concept_aware_ranking_ndcg:
+            raise RuntimeError(
+                "Concept-aware ranking nDCG regression: "
+                f"{ndcg:.3f} < required floor {self.min_concept_aware_ranking_ndcg:.3f}"
+            )
+
+    def _calibrate_utility_weights_from_ground_truth(self) -> Dict[str, float]:
+        """Calibrate utility weights against ground-truth concept labels."""
+        questions = GroundTruthBenchmarks.QUESTIONS
+        if not questions:
+            return {
+                "concept": 0.50,
+                "centrality": 0.30,
+                "novelty": 0.20,
+            }
+
+        design_points: List[Tuple[float, float, float, float]] = []
+        for question in questions:
+            expected_count = max(1, len(question.expected_concepts))
+            required_count = len(question.required_concepts)
+            required_ratio = required_count / expected_count
+
+            richness = min(1.0, expected_count / 10.0)
+            difficulty_signal = {
+                "easy": 0.35,
+                "medium": 0.55,
+                "hard": 0.75,
+            }.get(question.difficulty.lower(), 0.5)
+
+            target = max(0.0, min(1.0, 0.70 * required_ratio + 0.30 * richness))
+            design_points.append((required_ratio, difficulty_signal, richness, target))
+
+        candidates = [i / 20.0 for i in range(1, 19)]
+        best_weights = {
+            "concept": 0.50,
+            "centrality": 0.30,
+            "novelty": 0.20,
+        }
+        best_error = float("inf")
+
+        for concept_w in candidates:
+            for centrality_w in candidates:
+                novelty_w = 1.0 - concept_w - centrality_w
+                if novelty_w <= 0.0:
+                    continue
+
+                mse = 0.0
+                for concept_signal, centrality_signal, novelty_signal, target in design_points:
+                    prediction = (
+                        concept_w * concept_signal
+                        + centrality_w * centrality_signal
+                        + novelty_w * novelty_signal
+                    )
+                    mse += (prediction - target) ** 2
+                mse /= len(design_points)
+
+                if mse < best_error:
+                    best_error = mse
+                    best_weights = {
+                        "concept": round(concept_w, 3),
+                        "centrality": round(centrality_w, 3),
+                        "novelty": round(novelty_w, 3),
+                    }
+
+        logger.info(
+            "Calibrated utility weights: concept=%.3f centrality=%.3f novelty=%.3f",
+            best_weights["concept"],
+            best_weights["centrality"],
+            best_weights["novelty"],
+        )
+        return best_weights
+
+    def _bootstrap_confidence_interval(
+        self,
+        values: List[float],
+        samples: Optional[int] = None,
+        alpha: float = 0.05,
+    ) -> Dict[str, float]:
+        """Estimate confidence interval with bootstrap resampling."""
+        if not values:
+            return {"mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0}
+
+        resample_count = samples or self.bootstrap_samples
+        rng = np.random.default_rng(42)
+        arr = np.asarray(values, dtype=float)
+        boot = []
+        for _ in range(max(100, resample_count)):
+            sampled = rng.choice(arr, size=len(arr), replace=True)
+            boot.append(float(np.mean(sampled)))
+
+        lower = float(np.percentile(boot, 100 * (alpha / 2)))
+        upper = float(np.percentile(boot, 100 * (1 - alpha / 2)))
+        return {
+            "mean": float(np.mean(arr)),
+            "ci_lower": lower,
+            "ci_upper": upper,
+        }
+
     def _compute_citation_utility(
         self,
         citation: Any,
@@ -1269,9 +1381,9 @@ class EEGRAGBenchmark:
         updated_seen = seen_concept_groups | covered_groups
 
         utility = (
-            0.50 * concept_coverage
-            + 0.30 * normalized_centrality
-            + 0.20 * novelty
+            self._utility_weights["concept"] * concept_coverage
+            + self._utility_weights["centrality"] * normalized_centrality
+            + self._utility_weights["novelty"] * novelty
         )
         return max(0.0, min(1.0, utility)), updated_seen
 
@@ -1299,100 +1411,203 @@ class EEGRAGBenchmark:
         return dcg / idcg
 
     async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
-        """Compare weighted/diversified/concept-aware aggregation on one fixture set."""
-        fixture_query = (
-            "EEG biomarkers and epilepsy outcomes from longitudinal cohort studies "
-            "using ICA methods"
-        )
-        fixture_results = {
-            "local": {
-                "data": [
-                    {
-                        "pmid": "w1",
-                        "title": "Longitudinal cohort EEG biomarkers for epilepsy prognosis",
-                        "abstract": (
-                            "Prospective cohort study reporting sensitivity and "
-                            "specificity outcomes with alpha biomarkers."
-                        ),
-                        "year": 2024,
-                        "relevance_score": 0.89,
-                        "metadata": {"centrality_score": 0.72},
-                    },
-                    {
-                        "pmid": "w2",
-                        "title": "ICA-based EEG epilepsy detection in cross-sectional design",
-                        "abstract": (
-                            "Independent component analysis with accuracy outcomes "
-                            "for epilepsy detection."
-                        ),
-                        "year": 2022,
-                        "relevance_score": 0.86,
-                        "metadata": {"centrality_score": 0.44},
-                    },
-                    {
-                        "pmid": "w3",
-                        "title": "Spectral biomarkers in epilepsy",
-                        "abstract": "Alpha and theta biomarkers for epilepsy.",
-                        "year": 2021,
-                        "relevance_score": 0.88,
-                        "metadata": {"centrality_score": 0.31},
-                    },
-                ]
-            }
+        """Compare weighted/diversified/concept-aware across archetypes with macro metrics."""
+        archetypes = {
+            "clinical": {
+                "query": "EEG biomarkers for epilepsy prognosis in adults",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "c1",
+                                "title": "Adult epilepsy prognosis using EEG biomarkers",
+                                "abstract": "Clinical cohort with sensitivity and specificity outcomes.",
+                                "year": 2024,
+                                "relevance_score": 0.91,
+                                "metadata": {"centrality_score": 0.81},
+                            },
+                            {
+                                "pmid": "c2",
+                                "title": "Interictal EEG markers in epilepsy",
+                                "abstract": "Clinical case-control study of recurrence outcomes.",
+                                "year": 2022,
+                                "relevance_score": 0.87,
+                                "metadata": {"centrality_score": 0.45},
+                            },
+                        ]
+                    }
+                },
+            },
+            "method_heavy": {
+                "query": "ICA and independent component methods for EEG denoising",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "m1",
+                                "title": "Independent component analysis for EEG artifact rejection",
+                                "abstract": "Methodological benchmark of ICA pipelines.",
+                                "year": 2023,
+                                "relevance_score": 0.90,
+                                "metadata": {"centrality_score": 0.76},
+                            },
+                            {
+                                "pmid": "m2",
+                                "title": "Automated EEG preprocessing with ICA",
+                                "abstract": "Cross-dataset method evaluation and reproducibility analysis.",
+                                "year": 2021,
+                                "relevance_score": 0.86,
+                                "metadata": {"centrality_score": 0.52},
+                            },
+                        ]
+                    }
+                },
+            },
+            "outcome_heavy": {
+                "query": "EEG sensitivity, specificity, and AUC outcomes for seizure detection",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "o1",
+                                "title": "Seizure detection outcomes using EEG",
+                                "abstract": "Sensitivity and AUC outcomes in prospective validation.",
+                                "year": 2024,
+                                "relevance_score": 0.92,
+                                "metadata": {"centrality_score": 0.79},
+                            },
+                            {
+                                "pmid": "o2",
+                                "title": "EEG classifier specificity across cohorts",
+                                "abstract": "Outcome-focused model comparison and precision metrics.",
+                                "year": 2022,
+                                "relevance_score": 0.84,
+                                "metadata": {"centrality_score": 0.40},
+                            },
+                        ]
+                    }
+                },
+            },
+            "longitudinal": {
+                "query": "Longitudinal cohort studies tracking EEG biomarkers over time",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "l1",
+                                "title": "Longitudinal EEG cohort biomarkers",
+                                "abstract": "Prospective study with repeated EEG measures and outcomes.",
+                                "year": 2023,
+                                "relevance_score": 0.89,
+                                "metadata": {"centrality_score": 0.74},
+                            },
+                            {
+                                "pmid": "l2",
+                                "title": "Retrospective longitudinal EEG trends",
+                                "abstract": "Retrospective cohort with temporal biomarker drift analysis.",
+                                "year": 2020,
+                                "relevance_score": 0.82,
+                                "metadata": {"centrality_score": 0.39},
+                            },
+                        ]
+                    }
+                },
+            },
         }
 
         strategy_scores: Dict[str, Dict[str, float]] = {}
         for strategy in ("weighted", "diversified", "concept_aware"):
-            aggregator = ContextAggregator(
-                relevance_threshold=0.0,
-                max_citations=10,
-                entity_min_frequency=1,
-                ranking_strategy=strategy,
-            )
-            aggregated = await aggregator.aggregate(fixture_query, fixture_results)
-            stats = aggregated.statistics
-            query_concepts = aggregator._extract_query_concepts(fixture_query)
-            redundancy = float(stats.get("redundancy_score", 0.0))
-            concept_coverage = float(stats.get("query_concept_coverage_score", 0.0))
-            centrality = 0.0
-            if aggregated.citations:
-                centrality = statistics.mean(
-                    float(c.metadata.get("centrality_score", 0.0))
-                    for c in aggregated.citations
+            per_archetype: Dict[str, Dict[str, float]] = {}
+            ndcg_values: List[float] = []
+            utility_values: List[float] = []
+            grounding_values: List[float] = []
+            coverage_values: List[float] = []
+            redundancy_values: List[float] = []
+            centrality_values: List[float] = []
+
+            for archetype, fixture in archetypes.items():
+                query_text = fixture["query"]
+                fixture_results = fixture["results"]
+
+                aggregator = ContextAggregator(
+                    relevance_threshold=0.0,
+                    max_citations=10,
+                    entity_min_frequency=1,
+                    ranking_strategy=strategy,
+                )
+                aggregated = await aggregator.aggregate(query_text, fixture_results)
+                stats = aggregated.statistics
+                query_concepts = aggregator._extract_query_concepts(query_text)
+
+                redundancy = float(stats.get("redundancy_score", 0.0))
+                concept_coverage = float(
+                    stats.get("query_concept_coverage_score", 0.0)
+                )
+                centrality = 0.0
+                if aggregated.citations:
+                    centrality = statistics.mean(
+                        float(c.metadata.get("centrality_score", 0.0))
+                        for c in aggregated.citations
+                    )
+
+                max_centrality = 0.0
+                if aggregated.citations:
+                    max_centrality = max(
+                        float(c.metadata.get("centrality_score", 0.0))
+                        for c in aggregated.citations
+                    )
+
+                seen_concepts: set = set()
+                utilities: List[float] = []
+                for citation in aggregated.citations:
+                    utility, seen_concepts = self._compute_citation_utility(
+                        citation=citation,
+                        query_concepts=query_concepts,
+                        max_centrality=max_centrality,
+                        seen_concept_groups=seen_concepts,
+                    )
+                    utilities.append(utility)
+
+                ranking_ndcg = self._compute_ndcg(utilities, k=5)
+                mean_utility = statistics.mean(utilities) if utilities else 0.0
+                grounding_quality = max(
+                    0.0,
+                    min(
+                        1.0,
+                        (0.5 * concept_coverage)
+                        + (0.3 * centrality)
+                        + (0.2 * (1.0 - redundancy)),
+                    ),
                 )
 
-            max_centrality = 0.0
-            if aggregated.citations:
-                max_centrality = max(
-                    float(c.metadata.get("centrality_score", 0.0))
-                    for c in aggregated.citations
-                )
+                ndcg_values.append(ranking_ndcg)
+                utility_values.append(mean_utility)
+                grounding_values.append(grounding_quality)
+                coverage_values.append(concept_coverage)
+                redundancy_values.append(redundancy)
+                centrality_values.append(centrality)
 
-            seen_concepts: set = set()
-            utilities: List[float] = []
-            for citation in aggregated.citations:
-                utility, seen_concepts = self._compute_citation_utility(
-                    citation=citation,
-                    query_concepts=query_concepts,
-                    max_centrality=max_centrality,
-                    seen_concept_groups=seen_concepts,
-                )
-                utilities.append(utility)
+                per_archetype[archetype] = {
+                    "query_concept_coverage_score": concept_coverage,
+                    "redundancy_score": redundancy,
+                    "centrality_grounding_score": centrality,
+                    "grounding_quality": grounding_quality,
+                    "mean_citation_utility": mean_utility,
+                    "ranking_ndcg": ranking_ndcg,
+                }
 
-            ranking_ndcg = self._compute_ndcg(utilities, k=5)
-            mean_utility = statistics.mean(utilities) if utilities else 0.0
-
-            grounding_quality = max(
-                0.0,
-                min(1.0, (0.5 * concept_coverage) + (0.3 * centrality) + (0.2 * (1.0 - redundancy))),
-            )
+            ndcg_ci = self._bootstrap_confidence_interval(ndcg_values)
             strategy_scores[strategy] = {
-                "query_concept_coverage_score": concept_coverage,
-                "redundancy_score": redundancy,
-                "centrality_grounding_score": centrality,
-                "grounding_quality": grounding_quality,
-                "mean_citation_utility": mean_utility,
-                "ranking_ndcg": ranking_ndcg,
+                "query_concept_coverage_score": statistics.mean(coverage_values),
+                "redundancy_score": statistics.mean(redundancy_values),
+                "centrality_grounding_score": statistics.mean(centrality_values),
+                "grounding_quality": statistics.mean(grounding_values),
+                "mean_citation_utility": statistics.mean(utility_values),
+                "ranking_ndcg": statistics.mean(ndcg_values),
+                "ranking_ndcg_ci_lower": ndcg_ci["ci_lower"],
+                "ranking_ndcg_ci_upper": ndcg_ci["ci_upper"],
+                "ranking_ndcg_macro": statistics.mean(ndcg_values),
+                "per_archetype": per_archetype,
             }
 
         return strategy_scores
