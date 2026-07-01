@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
+import time
 import types
 import pytest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
@@ -850,6 +851,302 @@ class TestAgenticRAGOrchestratorMultiIteration:
 
         assert learned_bm25 > 0.5
         assert learned_dense == pytest.approx(1.0 - learned_bm25)
+
+    def test_feedback_signals_adjust_logged_utility(self, tmp_path):
+        class _FakeHistoryManager:
+            def search_in_history(self, search_text: str, limit: int = 8):
+                _ = (search_text, limit)
+                return [
+                    types.SimpleNamespace(
+                        query_text="Seizure detection with EEG",
+                        user_feedback="helpful",
+                        clicked_results=["p1", "p2", "p3", "p4"],
+                        result_count=8,
+                    )
+                ]
+
+        retriever = self._make_retriever_sequence([[]])
+        generator = _make_generator("Answer.")
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=generator,
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "feedback_fusion_outcomes.jsonl",
+            history_manager=_FakeHistoryManager(),
+        )
+
+        diagnostics = {
+            "query_concept_coverage_score": 0.6,
+            "diversity_score": 0.55,
+            "redundancy_score": 0.3,
+            "centrality_grounding_score": 0.5,
+        }
+        observed = orchestrator._observed_citation_utility(diagnostics)
+        feedback = orchestrator._feedback_signal_from_history(
+            "Seizure detection with EEG"
+        )
+        adjusted = max(0.0, min(1.0, observed + feedback["feedback_score"]))
+
+        orchestrator._record_fusion_outcome(
+            bm25_weight=0.5,
+            diagnostics=diagnostics,
+            utility=adjusted,
+            query_text="Seizure detection with EEG",
+            query_category="clinical",
+            query_difficulty="medium",
+            feedback_score=feedback["feedback_score"],
+            click_through_rate=feedback["click_through_rate"],
+        )
+
+        latest = orchestrator._fusion_outcome_log[-1]
+        assert latest["feedback_score"] > 0.0
+        assert latest["click_through_rate"] > 0.0
+        assert latest["utility"] > observed
+
+    def test_warm_started_optimizer_outperforms_cold_on_archetype_bank(self, tmp_path):
+        def _true_utility(weight: float, optimum: float) -> float:
+            return max(0.0, 1.0 - ((weight - optimum) / 0.28) ** 2)
+
+        archetype_bank = [
+            {
+                "category": "clinical",
+                "difficulty": "hard",
+                "optimum": 0.78,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.72,
+                    "diversity_score": 0.56,
+                    "redundancy_score": 0.24,
+                    "centrality_grounding_score": 0.61,
+                },
+            },
+            {
+                "category": "method",
+                "difficulty": "hard",
+                "optimum": 0.24,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.66,
+                    "diversity_score": 0.68,
+                    "redundancy_score": 0.18,
+                    "centrality_grounding_score": 0.58,
+                },
+            },
+            {
+                "category": "bci",
+                "difficulty": "medium",
+                "optimum": 0.74,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.7,
+                    "diversity_score": 0.61,
+                    "redundancy_score": 0.22,
+                    "centrality_grounding_score": 0.57,
+                },
+            },
+            {
+                "category": "preprocessing",
+                "difficulty": "easy",
+                "optimum": 0.28,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.62,
+                    "diversity_score": 0.64,
+                    "redundancy_score": 0.2,
+                    "centrality_grounding_score": 0.54,
+                },
+            },
+            {
+                "category": "erp",
+                "difficulty": "medium",
+                "optimum": 0.76,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.74,
+                    "diversity_score": 0.59,
+                    "redundancy_score": 0.23,
+                    "centrality_grounding_score": 0.6,
+                },
+            },
+            {
+                "category": "outcome",
+                "difficulty": "medium",
+                "optimum": 0.26,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.71,
+                    "diversity_score": 0.6,
+                    "redundancy_score": 0.21,
+                    "centrality_grounding_score": 0.58,
+                },
+            },
+            {
+                "category": "longitudinal",
+                "difficulty": "hard",
+                "optimum": 0.8,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.78,
+                    "diversity_score": 0.54,
+                    "redundancy_score": 0.28,
+                    "centrality_grounding_score": 0.63,
+                },
+            },
+            {
+                "category": "clinical",
+                "difficulty": "medium",
+                "optimum": 0.22,
+                "diagnostics": {
+                    "query_concept_coverage_score": 0.73,
+                    "diversity_score": 0.58,
+                    "redundancy_score": 0.22,
+                    "centrality_grounding_score": 0.6,
+                },
+            },
+        ]
+
+        warm_log = tmp_path / "warm_archetype_fusion_outcomes.jsonl"
+        seeded_entries = []
+        t0 = time.time() - 600.0
+        for idx, scenario in enumerate(archetype_bank):
+            optimum = scenario["optimum"]
+            diagnostics = scenario["diagnostics"]
+            for offset, candidate in enumerate(
+                [
+                    optimum - 0.14,
+                    optimum - 0.1,
+                    optimum - 0.06,
+                    optimum - 0.03,
+                    optimum,
+                    optimum + 0.03,
+                    optimum + 0.07,
+                    optimum + 0.11,
+                ]
+            ):
+                clamped = max(0.2, min(0.8, candidate))
+                seeded_entries.append(
+                    {
+                        "bm25_weight": clamped,
+                        "utility": _true_utility(clamped, optimum),
+                        "concept": diagnostics["query_concept_coverage_score"],
+                        "diversity": diagnostics["diversity_score"],
+                        "redundancy": diagnostics["redundancy_score"],
+                        "centrality": diagnostics["centrality_grounding_score"],
+                        "timestamp": t0 + (idx * 100.0) + offset,
+                        "query_category": scenario["category"],
+                        "query_difficulty": scenario["difficulty"],
+                    }
+                )
+        warm_log.write_text(
+            "\n".join(json.dumps(entry) for entry in seeded_entries) + "\n",
+            encoding="utf-8",
+        )
+
+        cold_retriever = self._make_retriever_sequence([[]])
+        warm_retriever = self._make_retriever_sequence([[]])
+        cold = AgenticRAGOrchestrator(
+            retriever=cold_retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "cold_fusion_outcomes.jsonl",
+        )
+        warm = AgenticRAGOrchestrator(
+            retriever=warm_retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=warm_log,
+        )
+
+        cold_scores = []
+        warm_scores = []
+        for scenario in archetype_bank:
+            diagnostics = scenario["diagnostics"]
+            optimum = scenario["optimum"]
+
+            cold_bm25, _ = cold._optimize_fusion_for_expected_utility(
+                bm25_weight=0.5,
+                dense_weight=0.5,
+                diagnostics=diagnostics,
+                query_category=scenario["category"],
+                query_difficulty=scenario["difficulty"],
+            )
+            warm_bm25, _ = warm._optimize_fusion_for_expected_utility(
+                bm25_weight=0.5,
+                dense_weight=0.5,
+                diagnostics=diagnostics,
+                query_category=scenario["category"],
+                query_difficulty=scenario["difficulty"],
+            )
+
+            cold_scores.append(_true_utility(cold_bm25, optimum))
+            warm_scores.append(_true_utility(warm_bm25, optimum))
+
+        assert warm._response_surface_coeffs is not None
+        assert warm._response_surface_coeffs_by_segment
+        assert sum(warm_scores) / len(warm_scores) > (sum(cold_scores) / len(cold_scores)) + 0.02
+
+    def test_huber_robust_fitting_reduces_outlier_influence(self, tmp_path):
+        diagnostics = {
+            "query_concept_coverage_score": 0.7,
+            "diversity_score": 0.62,
+            "redundancy_score": 0.2,
+            "centrality_grounding_score": 0.58,
+        }
+        optimum = 0.72
+
+        def utility_curve(weight: float) -> float:
+            return max(0.0, 1.0 - ((weight - optimum) / 0.2) ** 2)
+
+        warm_log = tmp_path / "robust_huber_fusion_outcomes.jsonl"
+        entries = []
+        for idx, weight in enumerate([0.5, 0.58, 0.64, 0.7, 0.72, 0.74, 0.78, 0.8, 0.66]):
+            entries.append(
+                {
+                    "bm25_weight": weight,
+                    "utility": utility_curve(weight),
+                    "concept": diagnostics["query_concept_coverage_score"],
+                    "diversity": diagnostics["diversity_score"],
+                    "redundancy": diagnostics["redundancy_score"],
+                    "centrality": diagnostics["centrality_grounding_score"],
+                    "timestamp": time.time() - (50 - idx),
+                    "query_category": "clinical",
+                    "query_difficulty": "hard",
+                }
+            )
+
+        # Strong outlier at wrong BM25 region with inflated utility.
+        entries.append(
+            {
+                "bm25_weight": 0.2,
+                "utility": 1.0,
+                "concept": diagnostics["query_concept_coverage_score"],
+                "diversity": diagnostics["diversity_score"],
+                "redundancy": diagnostics["redundancy_score"],
+                "centrality": diagnostics["centrality_grounding_score"],
+                "timestamp": time.time(),
+                "query_category": "clinical",
+                "query_difficulty": "hard",
+            }
+        )
+
+        warm_log.write_text(
+            "\n".join(json.dumps(entry) for entry in entries) + "\n",
+            encoding="utf-8",
+        )
+
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=warm_log,
+        )
+
+        best_bm25, _ = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics=diagnostics,
+            query_category="clinical",
+            query_difficulty="hard",
+        )
+        assert abs(best_bm25 - optimum) < 0.15
 
 
 # ---------------------------------------------------------------------------

@@ -49,6 +49,7 @@ response generator:
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
@@ -63,6 +64,7 @@ from eeg_rag.ensemble.context_aggregator import ContextAggregator
 from eeg_rag.retrieval.hybrid_retriever import HybridResult, HybridRetriever
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
 from eeg_rag.generation.response_generator import Document, ResponseGenerator
+from eeg_rag.services.history_manager import HistoryManager
 from eeg_rag.verification.citation_verifier import CitationVerifier
 
 logger = logging.getLogger(__name__)
@@ -1254,6 +1256,9 @@ class AgenticRAGOrchestrator:
         top_k: int = 10,
         fusion_outcome_log_path: Optional[Path] = None,
         max_fusion_outcomes: int = 250,
+        fusion_decay_half_life_sec: float = 604800.0,
+        huber_delta: float = 1.5,
+        history_manager: Optional[HistoryManager] = None,
     ) -> None:
         self._retriever = retriever
         self._generator = generator
@@ -1277,8 +1282,13 @@ class AgenticRAGOrchestrator:
         self._persistent_dense_weight = retriever.dense_weight
         self._fusion_outcome_log: List[Dict[str, float]] = []
         self._response_surface_coeffs: Optional[np.ndarray] = None
+        self._response_surface_coeffs_by_segment: Dict[str, Dict[str, Any]] = {}
         self._response_surface_min_samples = 12
+        self._segment_response_surface_min_samples = 8
         self._max_fusion_outcomes = max(50, int(max_fusion_outcomes))
+        self._fusion_decay_half_life_sec = max(3600.0, float(fusion_decay_half_life_sec))
+        self._huber_delta = max(0.25, float(huber_delta))
+        self._history_manager = history_manager
         self._fusion_outcome_log_path = (
             Path("data/search_history/fusion_outcomes.jsonl")
             if fusion_outcome_log_path is None
@@ -1324,6 +1334,11 @@ class AgenticRAGOrchestrator:
                 "diversity": float(payload.get("diversity", 1.0)),
                 "redundancy": float(payload.get("redundancy", 0.0)),
                 "centrality": float(payload.get("centrality", 0.0)),
+                "timestamp": float(payload.get("timestamp", time.time())),
+                "query_category": str(payload.get("query_category", "general")),
+                "query_difficulty": str(payload.get("query_difficulty", "medium")),
+                "feedback_score": float(payload.get("feedback_score", 0.0)),
+                "click_through_rate": float(payload.get("click_through_rate", 0.0)),
             }
             loaded.append(
                 {
@@ -1333,6 +1348,11 @@ class AgenticRAGOrchestrator:
                     "diversity": max(0.0, min(1.0, entry["diversity"])),
                     "redundancy": max(0.0, min(1.0, entry["redundancy"])),
                     "centrality": max(0.0, min(1.0, entry["centrality"])),
+                    "timestamp": entry["timestamp"],
+                    "query_category": entry["query_category"],
+                    "query_difficulty": entry["query_difficulty"],
+                    "feedback_score": max(-1.0, min(1.0, entry["feedback_score"])),
+                    "click_through_rate": max(0.0, min(1.0, entry["click_through_rate"])),
                 }
             )
 
@@ -1344,6 +1364,124 @@ class AgenticRAGOrchestrator:
                 len(self._fusion_outcome_log),
                 self._fusion_outcome_log_path,
             )
+
+    @staticmethod
+    def _segment_key(query_category: Optional[str], query_difficulty: Optional[str]) -> str:
+        """Create a stable segment key for archetype-specific response surfaces."""
+        category = (query_category or "general").strip().lower()
+        difficulty = (query_difficulty or "medium").strip().lower()
+        return f"{category}|{difficulty}"
+
+    def _infer_archetype_context(
+        self,
+        query_text: str,
+        detected_entities: Optional[List[str]] = None,
+    ) -> Tuple[str, str]:
+        """Infer archetype category and difficulty from query semantics."""
+        text = query_text.lower()
+        entities = " ".join(detected_entities or []).lower()
+        combined = f"{text} {entities}".strip()
+
+        category = "general"
+        if any(token in combined for token in ("epilep", "clinical", "cohort", "patient")):
+            category = "clinical"
+        elif any(token in combined for token in ("ica", "preprocess", "artifact", "pipeline")):
+            category = "preprocessing"
+        elif any(token in combined for token in ("motor imagery", "bci", "ssvep")):
+            category = "bci"
+        elif any(token in combined for token in ("p300", "n400", "p600", "mmn", "erp")):
+            category = "erp"
+        elif any(token in combined for token in ("sensitivity", "specificity", "auc", "outcome")):
+            category = "outcome"
+        elif any(token in combined for token in ("longitudinal", "follow-up", "trajectory")):
+            category = "longitudinal"
+        elif any(token in combined for token in ("connectivity", "graph", "coherence", "method")):
+            category = "method"
+
+        difficulty = "medium"
+        hard_markers = (
+            "systematic review",
+            "meta-analysis",
+            "longitudinal",
+            "multimodal",
+            "causal",
+            "connectivity",
+            "graph",
+        )
+        easy_markers = (
+            "what is",
+            "define",
+            "frequency band",
+            "basic",
+        )
+        if any(marker in combined for marker in hard_markers) or len(query_text.split()) >= 14:
+            difficulty = "hard"
+        elif any(marker in combined for marker in easy_markers) or len(query_text.split()) <= 6:
+            difficulty = "easy"
+
+        return category, difficulty
+
+    def _feedback_signal_from_history(self, query_text: str) -> Dict[str, float]:
+        """Estimate utility correction from user feedback and click-through behavior."""
+        if self._history_manager is None:
+            try:
+                self._history_manager = HistoryManager.get_instance()
+            except Exception:
+                return {"feedback_score": 0.0, "click_through_rate": 0.0}
+
+        try:
+            history_items = self._history_manager.search_in_history(query_text, limit=8)
+        except Exception:
+            return {"feedback_score": 0.0, "click_through_rate": 0.0}
+
+        if not history_items:
+            return {"feedback_score": 0.0, "click_through_rate": 0.0}
+
+        normalized_query = query_text.strip().lower()
+        best = None
+        for item in history_items:
+            if item.query_text.strip().lower() == normalized_query:
+                best = item
+                break
+        if best is None:
+            best = history_items[0]
+
+        ctr = min(1.0, len(best.clicked_results) / max(1, best.result_count))
+        feedback_map = {
+            "helpful": 0.08,
+            "not_helpful": -0.12,
+        }
+        feedback_label = (best.user_feedback or "").strip().lower()
+        feedback_component = feedback_map.get(feedback_label, 0.0)
+        click_component = 0.10 * (ctr - 0.2)
+        feedback_score = max(-0.25, min(0.25, feedback_component + click_component))
+        return {
+            "feedback_score": feedback_score,
+            "click_through_rate": ctr,
+        }
+
+    @staticmethod
+    def _solve_weighted_ridge(
+        x: np.ndarray,
+        y: np.ndarray,
+        weights: np.ndarray,
+        ridge_lambda: float = 1e-3,
+    ) -> np.ndarray:
+        """Solve weighted ridge regression for response-surface coefficients."""
+        sqrt_w = np.sqrt(np.clip(weights, 1e-6, None))
+        xw = x * sqrt_w[:, None]
+        yw = y * sqrt_w
+        ridge = ridge_lambda * np.eye(x.shape[1], dtype=float)
+        return np.linalg.solve(xw.T @ xw + ridge, xw.T @ yw)
+
+    @staticmethod
+    def _huber_reweights(residuals: np.ndarray, delta: float) -> np.ndarray:
+        """Return Huber IRLS weights for robust regression."""
+        abs_residuals = np.abs(residuals)
+        weights = np.ones_like(abs_residuals)
+        mask = abs_residuals > delta
+        weights[mask] = delta / np.maximum(abs_residuals[mask], 1e-6)
+        return weights
 
     def _persist_fusion_outcome(self, entry: Dict[str, float]) -> None:
         """Append a single outcome observation to the persistent JSONL log."""
@@ -1560,11 +1698,25 @@ class AgenticRAGOrchestrator:
                 if bm25_weight is None
                 else bm25_weight
             )
+            query_category, query_difficulty = self._infer_archetype_context(
+                current_query,
+                decision.detected_entities,
+            )
             observed_utility = self._observed_citation_utility(diagnostics)
+            feedback_signal = self._feedback_signal_from_history(current_query)
+            adjusted_utility = max(
+                0.0,
+                min(1.0, observed_utility + feedback_signal["feedback_score"]),
+            )
             self._record_fusion_outcome(
                 bm25_weight=current_bm25,
                 diagnostics=diagnostics,
-                utility=observed_utility,
+                utility=adjusted_utility,
+                query_text=current_query,
+                query_category=query_category,
+                query_difficulty=query_difficulty,
+                feedback_score=feedback_signal["feedback_score"],
+                click_through_rate=feedback_signal["click_through_rate"],
             )
 
             adaptive_bm25, adaptive_dense = self._derive_fusion_weights(
@@ -1577,6 +1729,8 @@ class AgenticRAGOrchestrator:
                 bm25_weight=adaptive_bm25,
                 dense_weight=adaptive_dense,
                 diagnostics=diagnostics,
+                query_category=query_category,
+                query_difficulty=query_difficulty,
             )
             self._set_persistent_fusion_weights(adaptive_bm25, adaptive_dense)
 
@@ -1812,11 +1966,22 @@ class AgenticRAGOrchestrator:
             dtype=float,
         )
 
+    @staticmethod
+    def _response_surface_features_compact(bm25_weight: float) -> np.ndarray:
+        """Compact feature basis for segment-local fitting with sparse samples."""
+        b = float(bm25_weight)
+        return np.array([1.0, b, b * b], dtype=float)
+
     def _record_fusion_outcome(
         self,
         bm25_weight: float,
         diagnostics: Dict[str, Any],
         utility: float,
+        query_text: str = "",
+        query_category: str = "general",
+        query_difficulty: str = "medium",
+        feedback_score: float = 0.0,
+        click_through_rate: float = 0.0,
     ) -> None:
         """Log retrieval outcomes and update learned response surface."""
         entry = {
@@ -1852,6 +2017,14 @@ class AgenticRAGOrchestrator:
                     ),
                 )
             ),
+            "timestamp": float(time.time()),
+            "query_hash": hashlib.md5(query_text.strip().lower().encode("utf-8")).hexdigest()
+            if query_text
+            else "",
+            "query_category": str(query_category).strip().lower() or "general",
+            "query_difficulty": str(query_difficulty).strip().lower() or "medium",
+            "feedback_score": float(max(-1.0, min(1.0, feedback_score))),
+            "click_through_rate": float(max(0.0, min(1.0, click_through_rate))),
         }
         self._fusion_outcome_log.append(entry)
         if len(self._fusion_outcome_log) > self._max_fusion_outcomes:
@@ -1862,37 +2035,108 @@ class AgenticRAGOrchestrator:
         self._fit_response_surface()
 
     def _fit_response_surface(self) -> None:
-        """Fit a least-squares response surface over logged fusion outcomes."""
+        """Fit global and segmented robust response surfaces over logged outcomes."""
         if len(self._fusion_outcome_log) < self._response_surface_min_samples:
+            self._response_surface_coeffs = None
+            self._response_surface_coeffs_by_segment = {}
             return
 
-        design_rows: List[np.ndarray] = []
-        targets: List[float] = []
-        for entry in self._fusion_outcome_log:
-            diagnostics = {
-                "query_concept_coverage_score": entry["concept"],
-                "diversity_score": entry["diversity"],
-                "redundancy_score": entry["redundancy"],
-                "centrality_grounding_score": entry["centrality"],
-            }
-            design_rows.append(
-                self._response_surface_features(entry["bm25_weight"], diagnostics)
-            )
-            targets.append(entry["utility"])
+        def _fit_from_entries(
+            entries: List[Dict[str, Any]],
+            min_samples: int,
+            compact: bool = False,
+        ) -> Optional[np.ndarray]:
+            if len(entries) < min_samples:
+                return None
 
-        x = np.vstack(design_rows)
-        y = np.asarray(targets, dtype=float)
-        ridge = 1e-3 * np.eye(x.shape[1], dtype=float)
-        xtx = x.T @ x + ridge
-        xty = x.T @ y
-        self._response_surface_coeffs = np.linalg.solve(xtx, xty)
+            design_rows: List[np.ndarray] = []
+            targets: List[float] = []
+            timestamps: List[float] = []
+            for item in entries:
+                diagnostics = {
+                    "query_concept_coverage_score": item["concept"],
+                    "diversity_score": item["diversity"],
+                    "redundancy_score": item["redundancy"],
+                    "centrality_grounding_score": item["centrality"],
+                }
+                if compact:
+                    design_rows.append(
+                        self._response_surface_features_compact(item["bm25_weight"])
+                    )
+                else:
+                    design_rows.append(
+                        self._response_surface_features(item["bm25_weight"], diagnostics)
+                    )
+                targets.append(float(item["utility"]))
+                timestamps.append(float(item.get("timestamp", time.time())))
+
+            x = np.vstack(design_rows)
+            y = np.asarray(targets, dtype=float)
+            ts = np.asarray(timestamps, dtype=float)
+            newest = float(np.max(ts))
+            ages = np.maximum(0.0, newest - ts)
+            decay_weights = np.power(0.5, ages / self._fusion_decay_half_life_sec)
+
+            beta = self._solve_weighted_ridge(x, y, decay_weights)
+            robust_weights = decay_weights
+            for _ in range(3):
+                residuals = y - (x @ beta)
+                scale = float(np.median(np.abs(residuals))) + 1e-6
+                delta = self._huber_delta * scale
+                robust_component = self._huber_reweights(residuals, delta)
+                robust_weights = decay_weights * robust_component
+                beta = self._solve_weighted_ridge(x, y, robust_weights)
+
+            return beta
+
+        self._response_surface_coeffs = _fit_from_entries(
+            self._fusion_outcome_log,
+            self._response_surface_min_samples,
+        )
+
+        segments: Dict[str, List[Dict[str, Any]]] = {}
+        for item in self._fusion_outcome_log:
+            key = self._segment_key(
+                item.get("query_category"),
+                item.get("query_difficulty"),
+            )
+            segments.setdefault(key, []).append(item)
+
+        self._response_surface_coeffs_by_segment = {}
+        for key, entries in segments.items():
+            if len(entries) < self._segment_response_surface_min_samples:
+                continue
+            coeffs = _fit_from_entries(
+                entries,
+                self._segment_response_surface_min_samples,
+                compact=True,
+            )
+            if coeffs is not None:
+                self._response_surface_coeffs_by_segment[key] = {
+                    "coeffs": coeffs,
+                    "compact": True,
+                }
 
     def _expected_citation_utility(
         self,
         diagnostics: Dict[str, Any],
         bm25_weight: float,
+        query_category: Optional[str] = None,
+        query_difficulty: Optional[str] = None,
     ) -> float:
         """Predict expected utility using learned response surfaces from logs."""
+        segment_key = self._segment_key(query_category, query_difficulty)
+        segment_model = self._response_surface_coeffs_by_segment.get(segment_key)
+        if segment_model is not None:
+            coeffs = segment_model["coeffs"]
+            features = (
+                self._response_surface_features_compact(bm25_weight)
+                if segment_model.get("compact", False)
+                else self._response_surface_features(bm25_weight, diagnostics)
+            )
+            predicted = float(features @ coeffs)
+            return max(0.0, min(1.0, predicted))
+
         if self._response_surface_coeffs is not None:
             features = self._response_surface_features(bm25_weight, diagnostics)
             predicted = float(features @ self._response_surface_coeffs)
@@ -1916,6 +2160,10 @@ class AgenticRAGOrchestrator:
                 )
             )
             for entry in self._fusion_outcome_log:
+                if query_category and str(entry.get("query_category", "")).lower() != query_category.lower():
+                    continue
+                if query_difficulty and str(entry.get("query_difficulty", "")).lower() != query_difficulty.lower():
+                    continue
                 distance = (
                     abs(entry["bm25_weight"] - bm25_weight)
                     + 0.5 * abs(entry["concept"] - concept)
@@ -1936,16 +2184,28 @@ class AgenticRAGOrchestrator:
         bm25_weight: float,
         dense_weight: float,
         diagnostics: Dict[str, Any],
+        query_category: Optional[str] = None,
+        query_difficulty: Optional[str] = None,
     ) -> Tuple[float, float]:
         """Choose BM25/dense mix that maximizes expected citation utility."""
         _ = dense_weight
         candidate_weights = [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
 
         best_bm25 = bm25_weight
-        best_score = self._expected_citation_utility(diagnostics, bm25_weight)
+        best_score = self._expected_citation_utility(
+            diagnostics,
+            bm25_weight,
+            query_category=query_category,
+            query_difficulty=query_difficulty,
+        )
 
         for candidate in candidate_weights:
-            score = self._expected_citation_utility(diagnostics, candidate)
+            score = self._expected_citation_utility(
+                diagnostics,
+                candidate,
+                query_category=query_category,
+                query_difficulty=query_difficulty,
+            )
             if score > best_score:
                 best_score = score
                 best_bm25 = candidate
