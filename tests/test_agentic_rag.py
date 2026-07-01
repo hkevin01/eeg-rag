@@ -23,8 +23,14 @@ mocked so tests remain fast and network-free.
 from __future__ import annotations
 
 import asyncio
+import sys
+import types
 import pytest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
+
+bm25_mod = types.ModuleType("rank_bm25")
+setattr(bm25_mod, "BM25Okapi", object)
+sys.modules.setdefault("rank_bm25", bm25_mod)
 
 from eeg_rag.rag.agentic_rag import (
     AgenticRAGOrchestrator,

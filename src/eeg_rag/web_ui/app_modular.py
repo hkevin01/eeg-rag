@@ -284,6 +284,52 @@ def initialize_session_state():
             st.session_state[key] = value
 
 
+def _maybe_seed_visual_test_state() -> None:
+    """Seed deterministic session content for viewport regression checks."""
+    if str(st.query_params.get("ui_test_seed", "0")) != "1":
+        return
+    if st.session_state.get("_ui_test_seeded", False):
+        return
+
+    long_citations = [
+        {
+            "pmid": f"99{i:05d}",
+            "title": (
+                "Long-form citation title for layout stress testing "
+                f"entry {i} with additional descriptive language"
+            ),
+            "verified": i % 3 != 0,
+        }
+        for i in range(1, 26)
+    ]
+
+    st.session_state.query_history = [
+        {
+            "query": "What EEG biomarkers predict seizure recurrence in adults?",
+            "timestamp": "2026-07-01T10:00:00",
+            "execution_time": 2.3,
+            "confidence": 0.91,
+            "citations": long_citations,
+        },
+        {
+            "query": "How does ICA preprocessing affect sensitivity outcomes?",
+            "timestamp": "2026-07-01T10:02:30",
+            "execution_time": 2.0,
+            "confidence": 0.88,
+            "citations": long_citations[:12],
+        },
+        {
+            "query": "Summarize longitudinal cohort findings for pediatric EEG.",
+            "timestamp": "2026-07-01T10:04:15",
+            "execution_time": 2.6,
+            "confidence": 0.86,
+            "citations": long_citations[:8],
+        },
+    ]
+    st.session_state.welcomed = True
+    st.session_state._ui_test_seeded = True
+
+
 # ---------------------------------------------------------------------------
 # ID           : web_ui.app_modular.render_welcome_banner
 # Requirement  : `render_welcome_banner` shall render welcome banner for first-time users
@@ -691,6 +737,7 @@ def main():
 
     # Initialize state
     initialize_session_state()
+    _maybe_seed_visual_test_state()
 
     # Render sidebar (with options and stats)
     show_tips, show_edu = render_sidebar()

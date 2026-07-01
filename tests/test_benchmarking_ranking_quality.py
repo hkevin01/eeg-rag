@@ -8,6 +8,10 @@ from types import SimpleNamespace
 
 def _import_benchmark_module():
     """Import benchmarking with lightweight stubs for unrelated heavy modules."""
+    bm25_mod = types.ModuleType("rank_bm25")
+    setattr(bm25_mod, "BM25Okapi", object)
+    sys.modules["rank_bm25"] = bm25_mod
+
     orchestrator_mod = types.ModuleType(
         "src.eeg_rag.agents.orchestrator.orchestrator_agent"
     )

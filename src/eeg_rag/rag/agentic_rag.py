@@ -1271,6 +1271,9 @@ class AgenticRAGOrchestrator:
         )
         self._persistent_bm25_weight = retriever.bm25_weight
         self._persistent_dense_weight = retriever.dense_weight
+        self._fusion_outcome_log: List[Dict[str, float]] = []
+        self._response_surface_coeffs: Optional[np.ndarray] = None
+        self._response_surface_min_samples = 12
 
         logger.info(
             "AgenticRAGOrchestrator ready "
@@ -1471,6 +1474,18 @@ class AgenticRAGOrchestrator:
                 check.explanation,
             )
 
+            current_bm25 = (
+                self._retriever.bm25_weight
+                if bm25_weight is None
+                else bm25_weight
+            )
+            observed_utility = self._observed_citation_utility(diagnostics)
+            self._record_fusion_outcome(
+                bm25_weight=current_bm25,
+                diagnostics=diagnostics,
+                utility=observed_utility,
+            )
+
             adaptive_bm25, adaptive_dense = self._derive_fusion_weights(
                 check=check,
                 diagnostics=diagnostics,
@@ -1654,11 +1669,8 @@ class AgenticRAGOrchestrator:
         self._retriever.dense_weight = normalized_dense
 
     @staticmethod
-    def _expected_citation_utility(
-        diagnostics: Dict[str, Any],
-        bm25_weight: float,
-    ) -> float:
-        """Estimate expected citation utility from diagnostics and sparse/dense mix."""
+    def _observed_citation_utility(diagnostics: Dict[str, Any]) -> float:
+        """Compute observed citation utility from current retrieval diagnostics."""
         concept_coverage = float(
             diagnostics.get(
                 "query_concept_coverage_score",
@@ -1673,22 +1685,152 @@ class AgenticRAGOrchestrator:
                 diagnostics.get("mean_centrality_score", 0.0),
             )
         )
-
-        dense_weight = 1.0 - bm25_weight
-
-        # Lightweight response model for retrieval mix impact.
-        coverage_pred = max(0.0, min(1.0, concept_coverage + 0.30 * (dense_weight - 0.5)))
-        diversity_pred = max(0.0, min(1.0, diversity + 0.25 * (dense_weight - 0.5)))
-        redundancy_pred = max(0.0, min(1.0, redundancy + 0.40 * (bm25_weight - 0.5)))
-        centrality_pred = max(0.0, min(1.0, centrality + 0.20 * (dense_weight - 0.5)))
-
         utility = (
-            0.45 * coverage_pred
-            + 0.25 * diversity_pred
-            + 0.20 * centrality_pred
-            + 0.10 * (1.0 - redundancy_pred)
+            0.45 * concept_coverage
+            + 0.25 * diversity
+            + 0.20 * centrality
+            + 0.10 * (1.0 - redundancy)
         )
         return max(0.0, min(1.0, utility))
+
+    @staticmethod
+    def _response_surface_features(
+        bm25_weight: float,
+        diagnostics: Dict[str, Any],
+    ) -> np.ndarray:
+        """Build polynomial feature vector for utility response-surface fitting."""
+        concept = float(
+            diagnostics.get(
+                "query_concept_coverage_score",
+                diagnostics.get("query_entity_coverage_score", 0.0),
+            )
+        )
+        diversity = float(diagnostics.get("diversity_score", 1.0))
+        redundancy = float(diagnostics.get("redundancy_score", 0.0))
+        centrality = float(
+            diagnostics.get(
+                "centrality_grounding_score",
+                diagnostics.get("mean_centrality_score", 0.0),
+            )
+        )
+        b = float(bm25_weight)
+        return np.array(
+            [
+                1.0,
+                b,
+                b * b,
+                concept,
+                diversity,
+                redundancy,
+                centrality,
+                b * concept,
+                b * diversity,
+                b * redundancy,
+                b * centrality,
+            ],
+            dtype=float,
+        )
+
+    def _record_fusion_outcome(
+        self,
+        bm25_weight: float,
+        diagnostics: Dict[str, Any],
+        utility: float,
+    ) -> None:
+        """Log retrieval outcomes and update learned response surface."""
+        self._fusion_outcome_log.append(
+            {
+                "bm25_weight": float(bm25_weight),
+                "utility": float(max(0.0, min(1.0, utility))),
+                "concept": float(
+                    diagnostics.get(
+                        "query_concept_coverage_score",
+                        diagnostics.get("query_entity_coverage_score", 0.0),
+                    )
+                ),
+                "diversity": float(diagnostics.get("diversity_score", 1.0)),
+                "redundancy": float(diagnostics.get("redundancy_score", 0.0)),
+                "centrality": float(
+                    diagnostics.get(
+                        "centrality_grounding_score",
+                        diagnostics.get("mean_centrality_score", 0.0),
+                    )
+                ),
+            }
+        )
+        if len(self._fusion_outcome_log) > 250:
+            self._fusion_outcome_log = self._fusion_outcome_log[-250:]
+        self._fit_response_surface()
+
+    def _fit_response_surface(self) -> None:
+        """Fit a least-squares response surface over logged fusion outcomes."""
+        if len(self._fusion_outcome_log) < self._response_surface_min_samples:
+            return
+
+        design_rows: List[np.ndarray] = []
+        targets: List[float] = []
+        for entry in self._fusion_outcome_log:
+            diagnostics = {
+                "query_concept_coverage_score": entry["concept"],
+                "diversity_score": entry["diversity"],
+                "redundancy_score": entry["redundancy"],
+                "centrality_grounding_score": entry["centrality"],
+            }
+            design_rows.append(
+                self._response_surface_features(entry["bm25_weight"], diagnostics)
+            )
+            targets.append(entry["utility"])
+
+        x = np.vstack(design_rows)
+        y = np.asarray(targets, dtype=float)
+        ridge = 1e-3 * np.eye(x.shape[1], dtype=float)
+        xtx = x.T @ x + ridge
+        xty = x.T @ y
+        self._response_surface_coeffs = np.linalg.solve(xtx, xty)
+
+    def _expected_citation_utility(
+        self,
+        diagnostics: Dict[str, Any],
+        bm25_weight: float,
+    ) -> float:
+        """Predict expected utility using learned response surfaces from logs."""
+        if self._response_surface_coeffs is not None:
+            features = self._response_surface_features(bm25_weight, diagnostics)
+            predicted = float(features @ self._response_surface_coeffs)
+            return max(0.0, min(1.0, predicted))
+
+        if self._fusion_outcome_log:
+            weighted_sum = 0.0
+            total_weight = 0.0
+            concept = float(
+                diagnostics.get(
+                    "query_concept_coverage_score",
+                    diagnostics.get("query_entity_coverage_score", 0.0),
+                )
+            )
+            diversity = float(diagnostics.get("diversity_score", 1.0))
+            redundancy = float(diagnostics.get("redundancy_score", 0.0))
+            centrality = float(
+                diagnostics.get(
+                    "centrality_grounding_score",
+                    diagnostics.get("mean_centrality_score", 0.0),
+                )
+            )
+            for entry in self._fusion_outcome_log:
+                distance = (
+                    abs(entry["bm25_weight"] - bm25_weight)
+                    + 0.5 * abs(entry["concept"] - concept)
+                    + 0.3 * abs(entry["diversity"] - diversity)
+                    + 0.3 * abs(entry["redundancy"] - redundancy)
+                    + 0.3 * abs(entry["centrality"] - centrality)
+                )
+                weight = 1.0 / (1.0 + distance)
+                weighted_sum += weight * entry["utility"]
+                total_weight += weight
+            if total_weight > 0.0:
+                return max(0.0, min(1.0, weighted_sum / total_weight))
+
+        return self._observed_citation_utility(diagnostics)
 
     def _optimize_fusion_for_expected_utility(
         self,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import socket
 import subprocess
 import time
@@ -29,6 +30,48 @@ def _wait_for_server(port: int, timeout_sec: float = 20.0) -> None:
         except OSError:
             time.sleep(0.2)
     raise TimeoutError(f"Timed out waiting for Streamlit server on port {port}")
+
+
+def _assert_no_horizontal_overflow(page) -> None:
+    has_horizontal_overflow = page.evaluate(
+        """
+        () => document.documentElement.scrollWidth > window.innerWidth + 1
+        """
+    )
+    assert has_horizontal_overflow is False
+
+
+def _assert_no_card_overlap(page) -> None:
+    has_overlap = page.evaluate(
+        """
+        () => {
+            const cards = Array.from(document.querySelectorAll('.wcag-card'));
+            for (let i = 0; i < cards.length; i += 1) {
+                const a = cards[i].getBoundingClientRect();
+                for (let j = i + 1; j < cards.length; j += 1) {
+                    const b = cards[j].getBoundingClientRect();
+                    const overlap = !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+                    if (overlap) {
+                        const verticalGap = Math.min(Math.abs(a.bottom - b.top), Math.abs(b.bottom - a.top));
+                        if (verticalGap < 1 && Math.abs(a.left - b.left) < 1 && Math.abs(a.right - b.right) < 1) {
+                            continue;
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        """
+    )
+    assert has_overlap is False
+
+
+def _capture_and_assert(page, screenshot_path: Path) -> None:
+    _assert_no_horizontal_overflow(page)
+    _assert_no_card_overlap(page)
+    page.screenshot(path=str(screenshot_path), full_page=True)
+    assert screenshot_path.exists()
 
 
 @pytest.mark.parametrize(
@@ -67,43 +110,47 @@ def test_app_modular_layout_no_overflow_or_overlap(width: int, height: int, tmp_
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(viewport={"width": width, "height": height})
-            page.goto(f"http://127.0.0.1:{port}", wait_until="networkidle")
+            page.goto(
+                f"http://127.0.0.1:{port}/?ui_test_seed=1",
+                wait_until="networkidle",
+            )
             page.wait_for_timeout(1500)
 
-            has_horizontal_overflow = page.evaluate(
-                """
-                () => document.documentElement.scrollWidth > window.innerWidth + 1
-                """
+            _capture_and_assert(
+                page,
+                tmp_path / f"app_modular_default_{width}px.png",
             )
-            assert has_horizontal_overflow is False
 
-            has_overlap = page.evaluate(
-                """
-                () => {
-                    const cards = Array.from(document.querySelectorAll('.wcag-card'));
-                    for (let i = 0; i < cards.length; i += 1) {
-                        const a = cards[i].getBoundingClientRect();
-                        for (let j = i + 1; j < cards.length; j += 1) {
-                            const b = cards[j].getBoundingClientRect();
-                            const overlap = !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
-                            if (overlap) {
-                                const verticalGap = Math.min(Math.abs(a.bottom - b.top), Math.abs(b.bottom - a.top));
-                                if (verticalGap < 1 && Math.abs(a.left - b.left) < 1 && Math.abs(a.right - b.right) < 1) {
-                                    continue;
-                                }
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-                """
+            page.get_by_role("tab", name=re.compile("Results History")).click()
+            page.wait_for_timeout(700)
+            _capture_and_assert(
+                page,
+                tmp_path / f"app_modular_results_tab_{width}px.png",
             )
-            assert has_overlap is False
 
-            screenshot_path = tmp_path / f"app_modular_{width}px.png"
-            page.screenshot(path=str(screenshot_path), full_page=True)
-            assert screenshot_path.exists()
+            expander = page.get_by_text("What EEG biomarkers predict seizure recurrence", exact=False)
+            expander.first.click()
+            page.wait_for_timeout(500)
+            _capture_and_assert(
+                page,
+                tmp_path / f"app_modular_expanded_cards_{width}px.png",
+            )
+
+            page.get_by_role("tab", name=re.compile("Agent Pipeline")).click()
+            page.wait_for_timeout(500)
+            _capture_and_assert(
+                page,
+                tmp_path / f"app_modular_agent_pipeline_{width}px.png",
+            )
+
+            page.get_by_role("tab", name=re.compile("Results History")).click()
+            page.wait_for_timeout(500)
+            page.mouse.wheel(0, 1800)
+            page.wait_for_timeout(400)
+            _capture_and_assert(
+                page,
+                tmp_path / f"app_modular_long_citations_{width}px.png",
+            )
 
             browser.close()
     finally:
