@@ -1004,6 +1004,17 @@ class EEGRAGBenchmark:
     @staticmethod
     def _source_text(source: Any) -> str:
         """Return the best available text for a retrieved source."""
+        if isinstance(source, dict):
+            metadata = source.get("metadata", {}) or {}
+            for key in ("text", "content", "abstract", "title"):
+                value = source.get(key)
+                if value:
+                    return str(value)
+                value = metadata.get(key)
+                if value:
+                    return str(value)
+            return ""
+
         metadata = getattr(source, "metadata", {}) or {}
         for key in ("text", "content", "abstract", "title"):
             value = getattr(source, key, None)
@@ -1017,6 +1028,9 @@ class EEGRAGBenchmark:
     @staticmethod
     def _source_metadata(source: Any) -> Dict[str, Any]:
         """Return a best-effort metadata mapping for a source."""
+        if isinstance(source, dict):
+            metadata = source.get("metadata")
+            return metadata if isinstance(metadata, dict) else {}
         metadata = getattr(source, "metadata", None)
         return metadata if isinstance(metadata, dict) else {}
 
