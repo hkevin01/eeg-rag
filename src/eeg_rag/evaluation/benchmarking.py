@@ -250,6 +250,7 @@ class EEGRAGBenchmark:
         min_concept_aware_ranking_ndcg: float = 0.65,
         min_archetype_ndcg_by_difficulty: Optional[Dict[str, float]] = None,
         bootstrap_samples: int = 500,
+        hard_archetype_utility_margin: float = 0.0,
     ):
         """Initialize benchmarking suite.
 
@@ -272,6 +273,7 @@ class EEGRAGBenchmark:
             }
         )
         self.bootstrap_samples = bootstrap_samples
+        self.hard_archetype_utility_margin = hard_archetype_utility_margin
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
         self.performance_monitor = PerformanceMonitor()
@@ -1296,6 +1298,31 @@ class EEGRAGBenchmark:
                 + "; ".join(failing_archetypes)
             )
 
+        self._enforce_uncertainty_adjusted_utility_guard(ranking_comparison)
+
+    def _enforce_uncertainty_adjusted_utility_guard(
+        self,
+        ranking_comparison: Dict[str, Dict[str, float]],
+    ) -> None:
+        """Fail when concept-aware underperforms baseline on hard archetypes."""
+        concept = ranking_comparison.get("concept_aware", {})
+        baseline = ranking_comparison.get("weighted", {})
+
+        concept_hard = float(
+            concept.get("hard_archetype_uncertainty_adjusted_utility", 0.0)
+        )
+        baseline_hard = float(
+            baseline.get("hard_archetype_uncertainty_adjusted_utility", 0.0)
+        )
+        delta = concept_hard - baseline_hard
+
+        if delta < self.hard_archetype_utility_margin:
+            raise RuntimeError(
+                "Uncertainty-adjusted utility regression on hard archetypes: "
+                f"concept_aware={concept_hard:.3f}, baseline={baseline_hard:.3f}, "
+                f"delta={delta:.3f} < required_margin={self.hard_archetype_utility_margin:.3f}"
+            )
+
     def _monitor_calibration_drift(
         self,
         predicted_utilities: List[float],
@@ -1850,12 +1877,14 @@ class EEGRAGBenchmark:
             per_archetype: Dict[str, Dict[str, float]] = {}
             ndcg_values: List[float] = []
             utility_values: List[float] = []
+            uncertainty_adjusted_utility_values: List[float] = []
             grounding_values: List[float] = []
             coverage_values: List[float] = []
             redundancy_values: List[float] = []
             centrality_values: List[float] = []
             ndcg_by_category: Dict[str, List[float]] = defaultdict(list)
             ndcg_by_difficulty: Dict[str, List[float]] = defaultdict(list)
+            hard_uncertainty_adjusted_utility_values: List[float] = []
 
             for fixture in archetypes:
                 archetype_name = str(fixture["name"])
@@ -1905,6 +1934,11 @@ class EEGRAGBenchmark:
 
                 ranking_ndcg = self._compute_ndcg(utilities, k=5)
                 mean_utility = statistics.mean(utilities) if utilities else 0.0
+                utility_dispersion = statistics.pstdev(utilities) if len(utilities) > 1 else 0.0
+                uncertainty_adjusted_utility = max(
+                    0.0,
+                    min(1.0, mean_utility - (0.5 * utility_dispersion)),
+                )
                 grounding_quality = max(
                     0.0,
                     min(
@@ -1919,10 +1953,15 @@ class EEGRAGBenchmark:
                 ndcg_by_category[category].append(ranking_ndcg)
                 ndcg_by_difficulty[difficulty].append(ranking_ndcg)
                 utility_values.append(mean_utility)
+                uncertainty_adjusted_utility_values.append(uncertainty_adjusted_utility)
                 grounding_values.append(grounding_quality)
                 coverage_values.append(concept_coverage)
                 redundancy_values.append(redundancy)
                 centrality_values.append(centrality)
+                if difficulty.lower() == "hard":
+                    hard_uncertainty_adjusted_utility_values.append(
+                        uncertainty_adjusted_utility
+                    )
 
                 per_archetype[archetype_name] = {
                     "category": category,
@@ -1932,6 +1971,7 @@ class EEGRAGBenchmark:
                     "centrality_grounding_score": centrality,
                     "grounding_quality": grounding_quality,
                     "mean_citation_utility": mean_utility,
+                    "uncertainty_adjusted_utility": uncertainty_adjusted_utility,
                     "ranking_ndcg": ranking_ndcg,
                 }
 
@@ -1946,6 +1986,14 @@ class EEGRAGBenchmark:
                 "centrality_grounding_score": statistics.mean(centrality_values),
                 "grounding_quality": statistics.mean(grounding_values),
                 "mean_citation_utility": statistics.mean(utility_values),
+                "uncertainty_adjusted_utility": statistics.mean(
+                    uncertainty_adjusted_utility_values
+                ),
+                "hard_archetype_uncertainty_adjusted_utility": (
+                    statistics.mean(hard_uncertainty_adjusted_utility_values)
+                    if hard_uncertainty_adjusted_utility_values
+                    else 0.0
+                ),
                 "ranking_ndcg": statistics.mean(ndcg_values),
                 "ranking_ndcg_ci_lower": ndcg_ci["ci_lower"],
                 "ranking_ndcg_ci_upper": ndcg_ci["ci_upper"],

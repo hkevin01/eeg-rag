@@ -1239,6 +1239,174 @@ class TestAgenticRAGOrchestratorMultiIteration:
         assert bm25 == pytest.approx(0.65)
         assert dense == pytest.approx(0.35)
 
+    def test_bayesian_uncertainty_guard_adapts_per_segment(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "bayesian_guard.jsonl",
+        )
+
+        key = orchestrator._segment_key("clinical", "hard")
+        baseline = orchestrator._adaptive_uncertainty_guard(key)
+        orchestrator._bayesian_update_uncertainty_calibration(
+            key,
+            np.asarray([0.01, 0.02, 0.01], dtype=float),
+        )
+        tightened = orchestrator._adaptive_uncertainty_guard(key)
+        orchestrator._bayesian_update_uncertainty_calibration(
+            key,
+            np.asarray([0.6, 0.5, 0.7], dtype=float),
+        )
+        relaxed = orchestrator._adaptive_uncertainty_guard(key)
+
+        assert tightened <= baseline
+        assert relaxed > tightened
+
+    def test_counterfactual_policy_evaluation_estimates_regret(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "counterfactual_eval.jsonl",
+        )
+
+        diagnostics = {
+            "query_concept_coverage_score": 0.72,
+            "diversity_score": 0.58,
+            "redundancy_score": 0.21,
+            "centrality_grounding_score": 0.60,
+        }
+        for w in [0.25, 0.35, 0.45, 0.55, 0.65, 0.75]:
+            utility = max(0.0, 1.0 - ((w - 0.7) / 0.25) ** 2)
+            orchestrator._record_fusion_outcome(
+                bm25_weight=w,
+                diagnostics=diagnostics,
+                utility=utility,
+                query_text="Clinical hard archetype question",
+                query_category="clinical",
+                query_difficulty="hard",
+            )
+
+        replay = orchestrator._evaluate_counterfactual_policies()
+        assert replay["samples"] > 0
+        assert "clinical|hard" in replay["by_segment"]
+        assert replay["by_segment"]["clinical|hard"]["mean_regret"] >= 0.0
+
+    def test_drift_triggered_segment_decay_updates(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "drift_decay.jsonl",
+            max_fusion_outcomes=500,
+        )
+
+        diagnostics = {
+            "query_concept_coverage_score": 0.7,
+            "diversity_score": 0.6,
+            "redundancy_score": 0.22,
+            "centrality_grounding_score": 0.58,
+        }
+        for idx, w in enumerate([0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.6, 0.55, 0.5]):
+            utility = max(0.0, 1.0 - ((w - 0.62) / 0.2) ** 2)
+            orchestrator._record_fusion_outcome(
+                bm25_weight=w,
+                diagnostics=diagnostics,
+                utility=utility,
+                query_text=f"segment drift stable {idx}",
+                query_category="clinical",
+                query_difficulty="hard",
+            )
+
+        key = orchestrator._segment_key("clinical", "hard")
+        initial_multiplier = orchestrator._segment_decay_state[key]["half_life_multiplier"]
+
+        for idx, w in enumerate([0.2, 0.8, 0.25, 0.78, 0.3, 0.76, 0.22, 0.8, 0.27]):
+            orchestrator._record_fusion_outcome(
+                bm25_weight=w,
+                diagnostics=diagnostics,
+                utility=1.0 if idx % 2 == 0 else 0.0,
+                query_text=f"segment drift noisy {idx}",
+                query_category="clinical",
+                query_difficulty="hard",
+            )
+
+        updated_multiplier = orchestrator._segment_decay_state[key]["half_life_multiplier"]
+        assert updated_multiplier <= initial_multiplier
+
+    def test_pareto_weighted_optimization_prefers_balanced_candidate(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "pareto_weighted.jsonl",
+            objective_weights={
+                "utility": 0.4,
+                "citation_validity": 0.35,
+                "latency": 0.25,
+            },
+            exploration_alpha=0.0,
+            prediction_uncertainty_guard=0.5,
+        )
+
+        def _fake_expected_objectives(
+            self,
+            diagnostics,
+            bm25_weight,
+            query_category=None,
+            query_difficulty=None,
+        ):
+            _ = (self, diagnostics, query_category, query_difficulty)
+            if bm25_weight == 0.5:
+                return {
+                    "utility": 0.70,
+                    "citation_validity": 0.55,
+                    "latency_ms": 230.0,
+                    "uncertainty": 0.04,
+                }
+            if bm25_weight == 0.6:
+                return {
+                    "utility": 0.68,
+                    "citation_validity": 0.72,
+                    "latency_ms": 170.0,
+                    "uncertainty": 0.05,
+                }
+            return {
+                "utility": 0.60,
+                "citation_validity": 0.50,
+                "latency_ms": 260.0,
+                "uncertainty": 0.03,
+            }
+
+        orchestrator._expected_objectives = types.MethodType(
+            _fake_expected_objectives,
+            orchestrator,
+        )
+
+        bm25, dense = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics={
+                "query_concept_coverage_score": 0.7,
+                "diversity_score": 0.6,
+                "redundancy_score": 0.2,
+                "centrality_grounding_score": 0.6,
+            },
+            query_category="clinical",
+            query_difficulty="hard",
+        )
+        assert bm25 == pytest.approx(0.6)
+        assert dense == pytest.approx(0.4)
+
 
 # ---------------------------------------------------------------------------
 # AgenticRAGOrchestrator – DECOMPOSE path
