@@ -1268,6 +1268,8 @@ class AgenticRAGOrchestrator:
             entity_min_frequency=1,
             ranking_strategy="diversified",
         )
+        self._persistent_bm25_weight = retriever.bm25_weight
+        self._persistent_dense_weight = retriever.dense_weight
 
         logger.info(
             "AgenticRAGOrchestrator ready "
@@ -1424,8 +1426,8 @@ class AgenticRAGOrchestrator:
             Tuple of (collected sources, per-iteration steps).
         """
         current_query = sub_query
-        bm25_weight: Optional[float] = None
-        dense_weight: Optional[float] = None
+        bm25_weight: Optional[float] = self._persistent_bm25_weight
+        dense_weight: Optional[float] = self._persistent_dense_weight
 
         steps: List[AgenticStep] = []
         prior_strategies: List[ReformulationStrategy] = []
@@ -1474,6 +1476,7 @@ class AgenticRAGOrchestrator:
                 bm25_weight=bm25_weight,
                 dense_weight=dense_weight,
             )
+            self._set_persistent_fusion_weights(adaptive_bm25, adaptive_dense)
 
             # Decide on reformulation for next round (if any)
             reformulation: Optional[ReformulationResult] = None
@@ -1533,6 +1536,7 @@ class AgenticRAGOrchestrator:
                     if reformulation.dense_weight_hint is not None
                     else adaptive_dense
                 )
+                self._set_persistent_fusion_weights(bm25_weight, dense_weight)
 
         return best_results, steps
 
@@ -1631,6 +1635,18 @@ class AgenticRAGOrchestrator:
         next_dense = 1.0 - next_bm25
         return round(next_bm25, 3), round(next_dense, 3)
 
+    def _set_persistent_fusion_weights(self, bm25_weight: float, dense_weight: float) -> None:
+        """Persist tuned fusion weights for subsequent retrieval retries."""
+        total = bm25_weight + dense_weight
+        if total <= 0:
+            return
+        normalized_bm25 = round(bm25_weight / total, 3)
+        normalized_dense = round(dense_weight / total, 3)
+        self._persistent_bm25_weight = normalized_bm25
+        self._persistent_dense_weight = normalized_dense
+        self._retriever.bm25_weight = normalized_bm25
+        self._retriever.dense_weight = normalized_dense
+
     # ------------------------------------------------------------------
     # Retrieval helper (runs sync retriever in executor)
     # ------------------------------------------------------------------
@@ -1652,27 +1668,13 @@ class AgenticRAGOrchestrator:
             Sorted list of :class:`HybridResult` objects.
         """
         loop = asyncio.get_event_loop()
+        if bm25_weight is not None and dense_weight is not None:
+            self._set_persistent_fusion_weights(bm25_weight, dense_weight)
 
-        # Temporarily override weights if hints are provided
-        original_bm25 = self._retriever.bm25_weight
-        original_dense = self._retriever.dense_weight
-
-        if bm25_weight is not None:
-            self._retriever.bm25_weight = bm25_weight
-        if dense_weight is not None:
-            self._retriever.dense_weight = dense_weight
-
-        try:
-            results = await loop.run_in_executor(
-                None,
-                lambda: self._retriever.search(query, top_k=self._top_k),
-            )
-        finally:
-            # Always restore original weights
-            self._retriever.bm25_weight = original_bm25
-            self._retriever.dense_weight = original_dense
-
-        return results
+        return await loop.run_in_executor(
+            None,
+            lambda: self._retriever.search(query, top_k=self._top_k),
+        )
 
     # ------------------------------------------------------------------
     # Citation verification

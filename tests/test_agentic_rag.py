@@ -674,6 +674,41 @@ class TestAgenticRAGOrchestratorMultiIteration:
         assert result.steps[0].reformulation is not None
         assert result.iterations_used == 2
 
+    def test_fusion_weights_persist_across_retries(self):
+        round1 = [
+            _hybrid_result(
+                f"d{i}",
+                rrf_score=0.016,
+                text="seizure seizure seizure seizure detection cnn eeg",
+            )
+            for i in range(5)
+        ]
+        for doc in round1:
+            doc.metadata["embedding_vector"] = [1.0, 0.0, 0.0]
+
+        round2 = [
+            _hybrid_result("a", rrf_score=0.016, text="seizure cnn eeg detection study"),
+            _hybrid_result("b", rrf_score=0.016, text="sleep staging eeg cohort biomarker"),
+            _hybrid_result("c", rrf_score=0.016, text="motor imagery bci epilepsy alpha power"),
+            _hybrid_result("d", rrf_score=0.016, text="frontal cortex seizure theta rhythm"),
+            _hybrid_result("e", rrf_score=0.016, text="graph biomarkers for seizure recurrence"),
+        ]
+
+        retriever = self._make_retriever_sequence([round1, round2])
+        generator = _make_generator("Answer after broader evidence retrieval.")
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=generator,
+            max_iterations=3,
+            min_docs=3,
+        )
+
+        asyncio.run(orchestrator.run("Seizure detection EEG deep learning CNN BCI"))
+
+        assert retriever.bm25_weight != 0.5
+        assert retriever.dense_weight != 0.5
+        assert retriever.bm25_weight + retriever.dense_weight == pytest.approx(1.0)
+
 
 # ---------------------------------------------------------------------------
 # AgenticRAGOrchestrator – DECOMPOSE path

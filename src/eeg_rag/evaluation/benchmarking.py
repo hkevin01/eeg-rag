@@ -15,7 +15,7 @@ import time
 import json
 import statistics
 from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 import logging
 import numpy as np
@@ -26,6 +26,7 @@ from ..agents.base_agent import AgentQuery, QueryComplexity
 from ..agents.orchestrator.orchestrator_agent import OrchestratorAgent
 from ..agents.local_agent.local_data_agent import LocalDataAgent
 from ..agents.web_agent.web_search_agent import WebSearchAgent
+from ..ensemble.context_aggregator import ContextAggregator
 from ..verification.citation_verifier import CitationVerifier
 from ..monitoring import PerformanceMonitor, monitor_performance
 
@@ -192,6 +193,8 @@ class BenchmarkSuite:
     avg_query_concept_coverage_score: float = 1.0
     avg_centrality_grounding_score: float = 0.0
     avg_grounding_quality: float = 0.0
+    concept_aware_grounding_score: float = 0.0
+    ranking_strategy_comparison: Dict[str, Dict[str, float]] = field(default_factory=dict)
 
     # Performance scores
     retrieval_score: float = 0.0
@@ -395,9 +398,16 @@ class EEGRAGBenchmark:
         logger.info("Running end-to-end benchmarks...")
         end_to_end_results = await self._benchmark_end_to_end()
 
-        # 4. Calculate aggregate metrics
+        # 4. Aggregation strategy benchmark for concept-aware grounding
+        logger.info("Running aggregation strategy benchmark...")
+        ranking_comparison = await self._benchmark_aggregation_strategies()
+
+        # 5. Calculate aggregate metrics
         suite_results = self._calculate_aggregate_metrics(
-            retrieval_results, generation_results, end_to_end_results
+            retrieval_results,
+            generation_results,
+            end_to_end_results,
+            ranking_comparison=ranking_comparison,
         )
 
         total_time = time.time() - start_time
@@ -1143,7 +1153,8 @@ class EEGRAGBenchmark:
         self,
         retrieval_results: List[RetrievalBenchmarkResult],
         generation_results: List[GenerationBenchmarkResult],
-        end_to_end_results: List[EndToEndBenchmarkResult]
+        end_to_end_results: List[EndToEndBenchmarkResult],
+        ranking_comparison: Optional[Dict[str, Dict[str, float]]] = None,
     ) -> BenchmarkSuite:
         """Calculate aggregate metrics from individual results."""
         # Retrieval aggregates
@@ -1183,6 +1194,12 @@ class EEGRAGBenchmark:
             + 0.3 * avg_centrality_grounding_score
             + 0.2 * (1.0 - avg_redundancy_score)
         )
+        concept_aware_grounding_score = 0.0
+        if ranking_comparison:
+            concept_aware_grounding_score = ranking_comparison.get(
+                "concept_aware",
+                {},
+            ).get("grounding_quality", 0.0)
 
         # Performance scores
         retrieval_score = self._calculate_retrieval_score(retrieval_results)
@@ -1204,10 +1221,86 @@ class EEGRAGBenchmark:
             avg_query_concept_coverage_score=avg_query_concept_coverage_score,
             avg_centrality_grounding_score=avg_centrality_grounding_score,
             avg_grounding_quality=avg_grounding_quality,
+            concept_aware_grounding_score=concept_aware_grounding_score,
+            ranking_strategy_comparison=ranking_comparison or {},
             retrieval_score=retrieval_score,
             generation_score=generation_score,
             overall_score=overall_score
         )
+
+    async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
+        """Compare weighted/diversified/concept-aware aggregation on one fixture set."""
+        fixture_query = (
+            "EEG biomarkers and epilepsy outcomes from longitudinal cohort studies "
+            "using ICA methods"
+        )
+        fixture_results = {
+            "local": {
+                "data": [
+                    {
+                        "pmid": "w1",
+                        "title": "Longitudinal cohort EEG biomarkers for epilepsy prognosis",
+                        "abstract": (
+                            "Prospective cohort study reporting sensitivity and "
+                            "specificity outcomes with alpha biomarkers."
+                        ),
+                        "year": 2024,
+                        "relevance_score": 0.89,
+                        "metadata": {"centrality_score": 0.72},
+                    },
+                    {
+                        "pmid": "w2",
+                        "title": "ICA-based EEG epilepsy detection in cross-sectional design",
+                        "abstract": (
+                            "Independent component analysis with accuracy outcomes "
+                            "for epilepsy detection."
+                        ),
+                        "year": 2022,
+                        "relevance_score": 0.86,
+                        "metadata": {"centrality_score": 0.44},
+                    },
+                    {
+                        "pmid": "w3",
+                        "title": "Spectral biomarkers in epilepsy",
+                        "abstract": "Alpha and theta biomarkers for epilepsy.",
+                        "year": 2021,
+                        "relevance_score": 0.88,
+                        "metadata": {"centrality_score": 0.31},
+                    },
+                ]
+            }
+        }
+
+        strategy_scores: Dict[str, Dict[str, float]] = {}
+        for strategy in ("weighted", "diversified", "concept_aware"):
+            aggregator = ContextAggregator(
+                relevance_threshold=0.0,
+                max_citations=10,
+                entity_min_frequency=1,
+                ranking_strategy=strategy,
+            )
+            aggregated = await aggregator.aggregate(fixture_query, fixture_results)
+            stats = aggregated.statistics
+            redundancy = float(stats.get("redundancy_score", 0.0))
+            concept_coverage = float(stats.get("query_concept_coverage_score", 0.0))
+            centrality = 0.0
+            if aggregated.citations:
+                centrality = statistics.mean(
+                    float(c.metadata.get("centrality_score", 0.0))
+                    for c in aggregated.citations
+                )
+            grounding_quality = max(
+                0.0,
+                min(1.0, (0.5 * concept_coverage) + (0.3 * centrality) + (0.2 * (1.0 - redundancy))),
+            )
+            strategy_scores[strategy] = {
+                "query_concept_coverage_score": concept_coverage,
+                "redundancy_score": redundancy,
+                "centrality_grounding_score": centrality,
+                "grounding_quality": grounding_quality,
+            }
+
+        return strategy_scores
 
     # ---------------------------------------------------------------------------
     # ID           : evaluation.benchmarking.EEGRAGBenchmark._calculate_retrieval_score
@@ -1354,11 +1447,13 @@ class EEGRAGBenchmark:
                 'avg_query_concept_coverage_score': results.avg_query_concept_coverage_score,
                 'avg_centrality_grounding_score': results.avg_centrality_grounding_score,
                 'avg_grounding_quality': results.avg_grounding_quality,
+                'concept_aware_grounding_score': results.concept_aware_grounding_score,
             },
             'detailed_results': {
                 'retrieval': [asdict(r) for r in results.retrieval_results],
                 'generation': [asdict(r) for r in results.generation_results],
-                'end_to_end': [asdict(r) for r in results.end_to_end_results]
+                'end_to_end': [asdict(r) for r in results.end_to_end_results],
+                'ranking_strategy_comparison': results.ranking_strategy_comparison,
             },
             'timestamp': time.time()
         }

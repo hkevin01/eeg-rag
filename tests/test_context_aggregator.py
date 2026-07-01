@@ -235,6 +235,66 @@ class TestContextAggregator:
         assert any('method' in item for item in stats['missing_query_concept_groups'])
 
     @pytest.mark.asyncio
+    async def test_structured_concept_groups_include_outcome_and_design(self):
+        """Outcome and design concept groups should be extracted and tracked."""
+        aggregator = ContextAggregator(relevance_threshold=0.0, entity_min_frequency=1)
+
+        query = (
+            "EEG seizure detection sensitivity in longitudinal cohort studies"
+        )
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': '444',
+                        'title': 'Longitudinal cohort EEG seizure study',
+                        'abstract': 'Sensitivity and specificity outcomes in seizure detection.',
+                        'relevance_score': 0.9,
+                    }
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate(query, agent_results)
+        stats = result.statistics
+
+        assert 'outcome' in stats['query_concept_groups']
+        assert 'experimental_design' in stats['query_concept_groups']
+        assert 'outcome' in stats['covered_query_concept_groups']
+        assert 'experimental_design' in stats['covered_query_concept_groups']
+
+    @pytest.mark.asyncio
+    async def test_structured_concept_coverage_affects_ranking(self):
+        """Test that concept coverage improves ranking for richer citations."""
+        aggregator = ContextAggregator(relevance_threshold=0.0, ranking_strategy="weighted")
+
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': 'a1',
+                        'title': 'EEG biomarkers in epilepsy',
+                        'abstract': 'Alpha power biomarkers in epilepsy monitoring',
+                        'relevance_score': 0.8,
+                    },
+                    {
+                        'pmid': 'a2',
+                        'title': 'EEG biomarkers overview',
+                        'abstract': 'Alpha power biomarkers overview',
+                        'relevance_score': 0.8,
+                    },
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate(
+            'EEG biomarkers and epilepsy methods',
+            agent_results,
+        )
+
+        assert result.citations[0].pmid == 'a1'
+
+    @pytest.mark.asyncio
     async def test_deduplication_by_pmid(self):
         """Test citation deduplication by PMID"""
         aggregator = ContextAggregator(
@@ -397,6 +457,41 @@ class TestContextAggregator:
 
         # First result should be boosted due to query match and recent year
         assert result.citations[0].pmid == '111'
+
+    @pytest.mark.asyncio
+    async def test_concept_aware_ranking_strategy(self):
+        """Concept-aware strategy should favor concept-complete citations."""
+        aggregator = ContextAggregator(
+            ranking_strategy="concept_aware",
+            relevance_threshold=0.0,
+        )
+
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': 'c1',
+                        'title': 'EEG biomarkers in epilepsy',
+                        'abstract': 'Alpha biomarker evidence only.',
+                        'relevance_score': 0.85,
+                    },
+                    {
+                        'pmid': 'c2',
+                        'title': 'Longitudinal EEG biomarkers and outcomes in epilepsy cohort',
+                        'abstract': 'Sensitivity outcomes from longitudinal cohort design.',
+                        'relevance_score': 0.82,
+                    },
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate(
+            'EEG biomarkers outcomes in longitudinal epilepsy cohort',
+            agent_results,
+        )
+
+        assert result.citations[0].pmid == 'c2'
+        assert result.citations[0].metadata['concept_coverage_score'] > result.citations[1].metadata['concept_coverage_score']
 
     @pytest.mark.asyncio
     async def test_diversified_ranking_reduces_redundancy(self):

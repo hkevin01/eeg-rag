@@ -298,7 +298,7 @@ class ContextAggregator:
             relevance_threshold: Minimum relevance score (0-1)
             max_citations: Maximum citations to include
             entity_min_frequency: Min frequency for entity extraction
-            ranking_strategy: "weighted", "simple", "hybrid", or "diversified"
+            ranking_strategy: "weighted", "simple", "hybrid", "diversified", or "concept_aware"
             diversity_lambda: MMR tradeoff used by the diversified strategy.
         """
         self.relevance_threshold = relevance_threshold
@@ -342,6 +342,16 @@ class ContextAggregator:
                 r'\b(frontal|temporal|parietal|occipital)\s+(lobe|cortex|region)',
                 r'\b(hippocampus|amygdala|thalamus|cerebellum)',
                 r'\b(prefrontal\s+cortex|PFC|dorsolateral)'
+            ],
+            'outcome': [
+                r'\b(sensitivity|specificity|accuracy|auc|auroc|f1\s*score|precision|recall)',
+                r'\b(response\s+rate|remission|prognosis|mortality|survival)',
+                r'\b(cognitive\s+decline|seizure\s+burden|quality\s+of\s+life)'
+            ],
+            'experimental_design': [
+                r'\b(randomized\s+controlled\s+trial|RCT|double\s+blind|single\s+blind)',
+                r'\b(case[-\s]?control|cohort\s+study|longitudinal|cross[-\s]?sectional)',
+                r'\b(meta[-\s]?analysis|systematic\s+review|pilot\s+study|prospective|retrospective)'
             ]
         }
 
@@ -383,13 +393,14 @@ class ContextAggregator:
         # Extract citations from all agents
         all_citations = self._extract_citations(agent_results)
         self.stats['total_citations_processed'] += len(all_citations)
+        query_concepts = self._extract_query_concepts(query)
 
         # REQ-CTX-004: Deduplicate citations
         deduplicated = self._deduplicate_citations(all_citations)
         self.stats['total_citations_deduplicated'] += (len(all_citations) - len(deduplicated))
 
         # REQ-CTX-005: Rank by relevance
-        ranked_citations = self._rank_citations(deduplicated, query)
+        ranked_citations = self._rank_citations(deduplicated, query, query_concepts)
 
         # REQ-CTX-008: Apply relevance threshold
         filtered_citations = [
@@ -405,7 +416,6 @@ class ContextAggregator:
         self.stats['total_entities_extracted'] += len(entities)
 
         query_entities = self._extract_query_entities(query)
-        query_concepts = self._extract_query_concepts(query)
         covered_query_entities = sorted({
             entity for entity in query_entities
             if any(
@@ -614,7 +624,12 @@ class ContextAggregator:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _rank_citations(self, citations: List[Citation], query: str) -> List[Citation]:
+    def _rank_citations(
+        self,
+        citations: List[Citation],
+        query: str,
+        query_concepts: Optional[Dict[str, List[str]]] = None,
+    ) -> List[Citation]:
         """
         Rank citations by relevance
         REQ-CTX-005: Rank results by relevance score
@@ -640,14 +655,26 @@ class ContextAggregator:
                     matches = sum(1 for term in query_terms if term in title_lower)
                     score *= (1 + 0.05 * matches)
 
+                concept_coverage = self._citation_concept_coverage(
+                    citation,
+                    query_concepts,
+                )
+                if concept_coverage > 0.0:
+                    score *= (1 + 0.15 * concept_coverage)
+
                 citation.relevance_score = min(score, 1.0)
 
         elif self.ranking_strategy == "hybrid":
             # Combine relevance score with citation count
             for citation in citations:
+                concept_coverage = self._citation_concept_coverage(
+                    citation,
+                    query_concepts,
+                )
                 citation.relevance_score = (
                     0.7 * citation.relevance_score +
-                    0.3 * (len(citation.source_agents) / len(citations))
+                    0.2 * (len(citation.source_agents) / len(citations)) +
+                    0.1 * concept_coverage
                 )
 
         elif self.ranking_strategy == "diversified":
@@ -672,12 +699,39 @@ class ContextAggregator:
                     matches = sum(1 for term in query_terms if term in title_lower)
                     score *= (1 + 0.05 * matches)
 
+                concept_coverage = self._citation_concept_coverage(
+                    citation,
+                    query_concepts,
+                )
+                if concept_coverage > 0.0:
+                    score *= (1 + 0.15 * concept_coverage)
+
                 citation.relevance_score = min(score, 1.0)
 
             return self.diversifier.diversify(
                 citations,
                 max_results=self.max_citations,
             )
+
+        elif self.ranking_strategy == "concept_aware":
+            for citation in citations:
+                score = citation.relevance_score
+
+                concept_coverage = self._citation_concept_coverage(
+                    citation,
+                    query_concepts,
+                )
+                # Stronger boost for citations that fill missing concept groups.
+                score *= (1 + 0.30 * concept_coverage)
+
+                if len(citation.source_agents) > 1:
+                    score *= (1 + 0.05 * len(citation.source_agents))
+
+                if citation.year and citation.year >= 2020:
+                    score *= 1.05
+
+                citation.metadata['concept_coverage_score'] = round(concept_coverage, 6)
+                citation.relevance_score = min(score, 1.0)
 
         # Sort by relevance (descending)
         citations.sort(key=lambda c: c.relevance_score, reverse=True)
@@ -718,6 +772,23 @@ class ContextAggregator:
             if matches:
                 concept_groups[entity_type] = sorted(matches)
         return concept_groups
+
+    def _citation_concept_coverage(
+        self,
+        citation: Citation,
+        query_concepts: Optional[Dict[str, List[str]]],
+    ) -> float:
+        """Measure how many query concept groups the citation covers."""
+        if not query_concepts:
+            return 0.0
+
+        citation_text = f"{citation.title} {citation.abstract or ''}".lower()
+        covered_groups = 0
+        for terms in query_concepts.values():
+            if any(term in citation_text for term in terms):
+                covered_groups += 1
+
+        return covered_groups / len(query_concepts)
 
     def _coverage_from_concepts(
         self,
