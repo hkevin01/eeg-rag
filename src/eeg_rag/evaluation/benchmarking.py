@@ -248,6 +248,7 @@ class EEGRAGBenchmark:
         local_agent: Optional[LocalDataAgent] = None,
         web_agent: Optional[WebSearchAgent] = None,
         min_concept_aware_ranking_ndcg: float = 0.65,
+        min_archetype_ndcg_by_difficulty: Optional[Dict[str, float]] = None,
         bootstrap_samples: int = 500,
     ):
         """Initialize benchmarking suite.
@@ -261,11 +262,28 @@ class EEGRAGBenchmark:
         self.local_agent = local_agent
         self.web_agent = web_agent
         self.min_concept_aware_ranking_ndcg = min_concept_aware_ranking_ndcg
+        self.min_archetype_ndcg_by_difficulty = (
+            min_archetype_ndcg_by_difficulty
+            if min_archetype_ndcg_by_difficulty is not None
+            else {
+                "easy": 0.60,
+                "medium": 0.55,
+                "hard": 0.50,
+            }
+        )
         self.bootstrap_samples = bootstrap_samples
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
         self.performance_monitor = PerformanceMonitor()
         self._utility_weights = self._calibrate_utility_weights_from_ground_truth()
+        self._calibration_drift_state: Dict[str, Any] = {
+            "baseline_mae": None,
+            "last_mae": None,
+            "last_relative_shift": 0.0,
+            "drift_detected": False,
+            "recalibration_recommended": False,
+            "checked_at": None,
+        }
 
         # Load benchmark queries
         self.benchmark_queries = self._create_benchmark_queries()
@@ -1256,6 +1274,412 @@ class EEGRAGBenchmark:
                 f"{ndcg:.3f} < required floor {self.min_concept_aware_ranking_ndcg:.3f}"
             )
 
+        per_archetype = concept_aware.get("per_archetype", {})
+        failing_archetypes: List[str] = []
+        for archetype_name, metrics in per_archetype.items():
+            difficulty = str(metrics.get("difficulty", "medium")).lower()
+            floor = float(
+                self.min_archetype_ndcg_by_difficulty.get(
+                    difficulty,
+                    self.min_concept_aware_ranking_ndcg,
+                )
+            )
+            archetype_ndcg = float(metrics.get("ranking_ndcg", 0.0))
+            if archetype_ndcg < floor:
+                failing_archetypes.append(
+                    f"{archetype_name}({difficulty}): {archetype_ndcg:.3f} < {floor:.3f}"
+                )
+
+        if failing_archetypes:
+            raise RuntimeError(
+                "Per-archetype ranking regression detected: "
+                + "; ".join(failing_archetypes)
+            )
+
+    def _monitor_calibration_drift(
+        self,
+        predicted_utilities: List[float],
+        target_grounding: List[float],
+    ) -> Dict[str, Any]:
+        """Detect drift indicating utility-weight recalibration is needed."""
+        if not predicted_utilities or not target_grounding:
+            return {
+                "mae": 0.0,
+                "relative_shift": 0.0,
+                "drift_detected": False,
+                "recalibration_recommended": False,
+            }
+
+        mae = statistics.mean(
+            abs(p - t)
+            for p, t in zip(predicted_utilities, target_grounding)
+        )
+        baseline = self._calibration_drift_state.get("baseline_mae")
+        if baseline is None:
+            baseline = mae
+            self._calibration_drift_state["baseline_mae"] = baseline
+
+        relative_shift = (mae - baseline) / max(1e-6, baseline)
+        drift_detected = bool(mae > 0.18 or relative_shift > 0.25)
+
+        self._calibration_drift_state.update(
+            {
+                "last_mae": mae,
+                "last_relative_shift": relative_shift,
+                "drift_detected": drift_detected,
+                "recalibration_recommended": drift_detected,
+                "checked_at": time.time(),
+            }
+        )
+
+        return {
+            "mae": mae,
+            "relative_shift": relative_shift,
+            "drift_detected": drift_detected,
+            "recalibration_recommended": drift_detected,
+        }
+
+    def _create_archetype_fixture_bank(self) -> List[Dict[str, Any]]:
+        """Create a benchmark fixture bank spanning categories and difficulties."""
+        return [
+            {
+                "name": "clinical_epilepsy",
+                "category": "clinical",
+                "difficulty": "medium",
+                "query": "EEG biomarkers for epilepsy prognosis and seizure outcomes",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "a1",
+                                "title": "Epilepsy prognosis using EEG biomarkers",
+                                "abstract": "Clinical cohort with sensitivity and specificity outcomes.",
+                                "year": 2024,
+                                "relevance_score": 0.91,
+                                "metadata": {"centrality_score": 0.81},
+                            },
+                            {
+                                "pmid": "a2",
+                                "title": "Interictal EEG markers in epilepsy",
+                                "abstract": "Case-control design with recurrence outcome endpoints.",
+                                "year": 2022,
+                                "relevance_score": 0.86,
+                                "metadata": {"centrality_score": 0.49},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "clinical_sleep",
+                "category": "clinical",
+                "difficulty": "easy",
+                "query": "Sleep staging EEG markers in clinical cohorts",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "b1",
+                                "title": "Sleep spindle biomarkers in mild cognitive impairment",
+                                "abstract": "Clinical longitudinal outcomes with sleep spindle reduction.",
+                                "year": 2023,
+                                "relevance_score": 0.88,
+                                "metadata": {"centrality_score": 0.70},
+                            },
+                            {
+                                "pmid": "b2",
+                                "title": "EEG sleep stage classification outcomes",
+                                "abstract": "Sensitivity and AUC outcomes in sleep clinic population.",
+                                "year": 2021,
+                                "relevance_score": 0.84,
+                                "metadata": {"centrality_score": 0.41},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "method_ica",
+                "category": "method",
+                "difficulty": "hard",
+                "query": "Independent component analysis methods for EEG artifact rejection",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "c1",
+                                "title": "Independent component analysis for EEG denoising",
+                                "abstract": "Method benchmark for ICA preprocessing pipelines.",
+                                "year": 2024,
+                                "relevance_score": 0.90,
+                                "metadata": {"centrality_score": 0.74},
+                            },
+                            {
+                                "pmid": "c2",
+                                "title": "ICA reproducibility in EEG preprocessing",
+                                "abstract": "Cross-sectional method reproducibility with accuracy outcomes.",
+                                "year": 2022,
+                                "relevance_score": 0.85,
+                                "metadata": {"centrality_score": 0.46},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "method_connectivity",
+                "category": "method",
+                "difficulty": "hard",
+                "query": "EEG connectivity estimation methods and graph design choices",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "d1",
+                                "title": "Graph-based EEG connectivity methods",
+                                "abstract": "Method design with longitudinal validation cohorts.",
+                                "year": 2023,
+                                "relevance_score": 0.87,
+                                "metadata": {"centrality_score": 0.66},
+                            },
+                            {
+                                "pmid": "d2",
+                                "title": "Functional connectivity in EEG",
+                                "abstract": "Cross-sectional method outcomes for network robustness.",
+                                "year": 2020,
+                                "relevance_score": 0.82,
+                                "metadata": {"centrality_score": 0.38},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "outcome_sensitivity",
+                "category": "outcome",
+                "difficulty": "medium",
+                "query": "EEG seizure detection sensitivity and specificity outcomes",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "e1",
+                                "title": "Seizure detection outcomes with EEG biomarkers",
+                                "abstract": "Sensitivity and specificity in prospective validation cohorts.",
+                                "year": 2024,
+                                "relevance_score": 0.92,
+                                "metadata": {"centrality_score": 0.79},
+                            },
+                            {
+                                "pmid": "e2",
+                                "title": "Outcome metrics for EEG seizure models",
+                                "abstract": "AUC and precision-recall outcomes in retrospective design.",
+                                "year": 2021,
+                                "relevance_score": 0.85,
+                                "metadata": {"centrality_score": 0.44},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "outcome_auc",
+                "category": "outcome",
+                "difficulty": "medium",
+                "query": "AUC outcomes for EEG biomarker classification studies",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "f1",
+                                "title": "AUC benchmarking for EEG biomarkers",
+                                "abstract": "Outcome-focused RCT and cohort evaluations.",
+                                "year": 2023,
+                                "relevance_score": 0.89,
+                                "metadata": {"centrality_score": 0.68},
+                            },
+                            {
+                                "pmid": "f2",
+                                "title": "EEG classifier performance outcomes",
+                                "abstract": "Cross-sectional design with specificity and recall.",
+                                "year": 2019,
+                                "relevance_score": 0.81,
+                                "metadata": {"centrality_score": 0.35},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "longitudinal_cohort",
+                "category": "longitudinal",
+                "difficulty": "hard",
+                "query": "Longitudinal EEG cohort biomarkers and prognosis outcomes",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "g1",
+                                "title": "Longitudinal EEG cohort biomarkers",
+                                "abstract": "Prospective longitudinal outcome study over three years.",
+                                "year": 2024,
+                                "relevance_score": 0.90,
+                                "metadata": {"centrality_score": 0.77},
+                            },
+                            {
+                                "pmid": "g2",
+                                "title": "Temporal trends in EEG biomarkers",
+                                "abstract": "Retrospective longitudinal outcomes with survival endpoints.",
+                                "year": 2020,
+                                "relevance_score": 0.83,
+                                "metadata": {"centrality_score": 0.40},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "longitudinal_pediatric",
+                "category": "longitudinal",
+                "difficulty": "medium",
+                "query": "Pediatric longitudinal EEG developmental trajectories",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "h1",
+                                "title": "Pediatric longitudinal EEG development",
+                                "abstract": "Longitudinal cohort outcomes in pediatric epilepsy.",
+                                "year": 2022,
+                                "relevance_score": 0.87,
+                                "metadata": {"centrality_score": 0.62},
+                            },
+                            {
+                                "pmid": "h2",
+                                "title": "Developmental EEG outcomes in childhood",
+                                "abstract": "Prospective pediatric design tracking EEG biomarkers.",
+                                "year": 2021,
+                                "relevance_score": 0.84,
+                                "metadata": {"centrality_score": 0.43},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "bci_motor_imagery",
+                "category": "bci",
+                "difficulty": "hard",
+                "query": "Motor imagery EEG BCI outcomes and classifier sensitivity",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "i1",
+                                "title": "Motor imagery BCI outcome evaluation",
+                                "abstract": "Sensitivity outcomes and longitudinal adaptation design.",
+                                "year": 2024,
+                                "relevance_score": 0.88,
+                                "metadata": {"centrality_score": 0.65},
+                            },
+                            {
+                                "pmid": "i2",
+                                "title": "EEG BCI classifier performance",
+                                "abstract": "Cross-sectional design with AUC and recall outcomes.",
+                                "year": 2021,
+                                "relevance_score": 0.82,
+                                "metadata": {"centrality_score": 0.37},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "erp_p300",
+                "category": "erp",
+                "difficulty": "medium",
+                "query": "P300 latency outcomes in clinical EEG oddball paradigms",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "j1",
+                                "title": "P300 clinical outcomes in EEG",
+                                "abstract": "Case-control outcomes with latency and amplitude sensitivity.",
+                                "year": 2023,
+                                "relevance_score": 0.88,
+                                "metadata": {"centrality_score": 0.64},
+                            },
+                            {
+                                "pmid": "j2",
+                                "title": "ERP biomarker outcomes in oddball tasks",
+                                "abstract": "Cross-sectional design and specificity estimates.",
+                                "year": 2020,
+                                "relevance_score": 0.83,
+                                "metadata": {"centrality_score": 0.39},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "pathology_dementia",
+                "category": "pathology",
+                "difficulty": "medium",
+                "query": "EEG biomarkers and outcomes in dementia cohorts",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "k1",
+                                "title": "Dementia EEG outcomes and biomarkers",
+                                "abstract": "Prospective cohort outcomes for dementia progression.",
+                                "year": 2024,
+                                "relevance_score": 0.90,
+                                "metadata": {"centrality_score": 0.73},
+                            },
+                            {
+                                "pmid": "k2",
+                                "title": "EEG slowing in dementia",
+                                "abstract": "Cross-sectional design and clinical outcome measures.",
+                                "year": 2019,
+                                "relevance_score": 0.80,
+                                "metadata": {"centrality_score": 0.34},
+                            },
+                        ]
+                    }
+                },
+            },
+            {
+                "name": "preprocessing_artifact",
+                "category": "preprocessing",
+                "difficulty": "easy",
+                "query": "Artifact rejection methods and quality outcomes in EEG preprocessing",
+                "results": {
+                    "local": {
+                        "data": [
+                            {
+                                "pmid": "l1",
+                                "title": "EEG artifact rejection outcomes",
+                                "abstract": "Method outcomes with ICA and filtering sensitivity metrics.",
+                                "year": 2023,
+                                "relevance_score": 0.87,
+                                "metadata": {"centrality_score": 0.60},
+                            },
+                            {
+                                "pmid": "l2",
+                                "title": "Preprocessing design in EEG",
+                                "abstract": "Cross-sectional method comparison with specificity outcomes.",
+                                "year": 2020,
+                                "relevance_score": 0.82,
+                                "metadata": {"centrality_score": 0.36},
+                            },
+                        ]
+                    }
+                },
+            },
+        ]
+
     def _calibrate_utility_weights_from_ground_truth(self) -> Dict[str, float]:
         """Calibrate utility weights against ground-truth concept labels."""
         questions = GroundTruthBenchmarks.QUESTIONS
@@ -1419,108 +1843,7 @@ class EEGRAGBenchmark:
 
     async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
         """Compare weighted/diversified/concept-aware across archetypes with macro metrics."""
-        archetypes = {
-            "clinical": {
-                "query": "EEG biomarkers for epilepsy prognosis in adults",
-                "results": {
-                    "local": {
-                        "data": [
-                            {
-                                "pmid": "c1",
-                                "title": "Adult epilepsy prognosis using EEG biomarkers",
-                                "abstract": "Clinical cohort with sensitivity and specificity outcomes.",
-                                "year": 2024,
-                                "relevance_score": 0.91,
-                                "metadata": {"centrality_score": 0.81},
-                            },
-                            {
-                                "pmid": "c2",
-                                "title": "Interictal EEG markers in epilepsy",
-                                "abstract": "Clinical case-control study of recurrence outcomes.",
-                                "year": 2022,
-                                "relevance_score": 0.87,
-                                "metadata": {"centrality_score": 0.45},
-                            },
-                        ]
-                    }
-                },
-            },
-            "method_heavy": {
-                "query": "ICA and independent component methods for EEG denoising",
-                "results": {
-                    "local": {
-                        "data": [
-                            {
-                                "pmid": "m1",
-                                "title": "Independent component analysis for EEG artifact rejection",
-                                "abstract": "Methodological benchmark of ICA pipelines.",
-                                "year": 2023,
-                                "relevance_score": 0.90,
-                                "metadata": {"centrality_score": 0.76},
-                            },
-                            {
-                                "pmid": "m2",
-                                "title": "Automated EEG preprocessing with ICA",
-                                "abstract": "Cross-dataset method evaluation and reproducibility analysis.",
-                                "year": 2021,
-                                "relevance_score": 0.86,
-                                "metadata": {"centrality_score": 0.52},
-                            },
-                        ]
-                    }
-                },
-            },
-            "outcome_heavy": {
-                "query": "EEG sensitivity, specificity, and AUC outcomes for seizure detection",
-                "results": {
-                    "local": {
-                        "data": [
-                            {
-                                "pmid": "o1",
-                                "title": "Seizure detection outcomes using EEG",
-                                "abstract": "Sensitivity and AUC outcomes in prospective validation.",
-                                "year": 2024,
-                                "relevance_score": 0.92,
-                                "metadata": {"centrality_score": 0.79},
-                            },
-                            {
-                                "pmid": "o2",
-                                "title": "EEG classifier specificity across cohorts",
-                                "abstract": "Outcome-focused model comparison and precision metrics.",
-                                "year": 2022,
-                                "relevance_score": 0.84,
-                                "metadata": {"centrality_score": 0.40},
-                            },
-                        ]
-                    }
-                },
-            },
-            "longitudinal": {
-                "query": "Longitudinal cohort studies tracking EEG biomarkers over time",
-                "results": {
-                    "local": {
-                        "data": [
-                            {
-                                "pmid": "l1",
-                                "title": "Longitudinal EEG cohort biomarkers",
-                                "abstract": "Prospective study with repeated EEG measures and outcomes.",
-                                "year": 2023,
-                                "relevance_score": 0.89,
-                                "metadata": {"centrality_score": 0.74},
-                            },
-                            {
-                                "pmid": "l2",
-                                "title": "Retrospective longitudinal EEG trends",
-                                "abstract": "Retrospective cohort with temporal biomarker drift analysis.",
-                                "year": 2020,
-                                "relevance_score": 0.82,
-                                "metadata": {"centrality_score": 0.39},
-                            },
-                        ]
-                    }
-                },
-            },
-        }
+        archetypes = self._create_archetype_fixture_bank()
 
         strategy_scores: Dict[str, Dict[str, float]] = {}
         for strategy in ("weighted", "diversified", "concept_aware"):
@@ -1531,8 +1854,13 @@ class EEGRAGBenchmark:
             coverage_values: List[float] = []
             redundancy_values: List[float] = []
             centrality_values: List[float] = []
+            ndcg_by_category: Dict[str, List[float]] = defaultdict(list)
+            ndcg_by_difficulty: Dict[str, List[float]] = defaultdict(list)
 
-            for archetype, fixture in archetypes.items():
+            for fixture in archetypes:
+                archetype_name = str(fixture["name"])
+                category = str(fixture["category"])
+                difficulty = str(fixture["difficulty"])
                 query_text = fixture["query"]
                 fixture_results = fixture["results"]
 
@@ -1588,13 +1916,17 @@ class EEGRAGBenchmark:
                 )
 
                 ndcg_values.append(ranking_ndcg)
+                ndcg_by_category[category].append(ranking_ndcg)
+                ndcg_by_difficulty[difficulty].append(ranking_ndcg)
                 utility_values.append(mean_utility)
                 grounding_values.append(grounding_quality)
                 coverage_values.append(concept_coverage)
                 redundancy_values.append(redundancy)
                 centrality_values.append(centrality)
 
-                per_archetype[archetype] = {
+                per_archetype[archetype_name] = {
+                    "category": category,
+                    "difficulty": difficulty,
                     "query_concept_coverage_score": concept_coverage,
                     "redundancy_score": redundancy,
                     "centrality_grounding_score": centrality,
@@ -1604,6 +1936,10 @@ class EEGRAGBenchmark:
                 }
 
             ndcg_ci = self._bootstrap_confidence_interval(ndcg_values)
+            drift_summary = self._monitor_calibration_drift(
+                predicted_utilities=utility_values,
+                target_grounding=grounding_values,
+            )
             strategy_scores[strategy] = {
                 "query_concept_coverage_score": statistics.mean(coverage_values),
                 "redundancy_score": statistics.mean(redundancy_values),
@@ -1614,6 +1950,15 @@ class EEGRAGBenchmark:
                 "ranking_ndcg_ci_lower": ndcg_ci["ci_lower"],
                 "ranking_ndcg_ci_upper": ndcg_ci["ci_upper"],
                 "ranking_ndcg_macro": statistics.mean(ndcg_values),
+                "stratified_macro_ndcg_by_category": {
+                    key: statistics.mean(value)
+                    for key, value in ndcg_by_category.items()
+                },
+                "stratified_macro_ndcg_by_difficulty": {
+                    key: statistics.mean(value)
+                    for key, value in ndcg_by_difficulty.items()
+                },
+                "calibration_drift": drift_summary,
                 "per_archetype": per_archetype,
             }
 
@@ -1766,6 +2111,11 @@ class EEGRAGBenchmark:
                 'avg_grounding_quality': results.avg_grounding_quality,
                 'concept_aware_grounding_score': results.concept_aware_grounding_score,
                 'concept_aware_ranking_ndcg': results.concept_aware_ranking_ndcg,
+                'concept_aware_ranking_ndcg_ci': {
+                    'lower': results.ranking_strategy_comparison.get('concept_aware', {}).get('ranking_ndcg_ci_lower', 0.0),
+                    'upper': results.ranking_strategy_comparison.get('concept_aware', {}).get('ranking_ndcg_ci_upper', 0.0),
+                },
+                'concept_aware_calibration_drift': results.ranking_strategy_comparison.get('concept_aware', {}).get('calibration_drift', {}),
             },
             'detailed_results': {
                 'retrieval': [asdict(r) for r in results.retrieval_results],
