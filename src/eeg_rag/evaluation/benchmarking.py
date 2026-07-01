@@ -14,6 +14,7 @@ import asyncio
 import time
 import json
 import statistics
+import math
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
@@ -194,6 +195,7 @@ class BenchmarkSuite:
     avg_centrality_grounding_score: float = 0.0
     avg_grounding_quality: float = 0.0
     concept_aware_grounding_score: float = 0.0
+    concept_aware_ranking_ndcg: float = 0.0
     ranking_strategy_comparison: Dict[str, Dict[str, float]] = field(default_factory=dict)
 
     # Performance scores
@@ -1195,11 +1197,16 @@ class EEGRAGBenchmark:
             + 0.2 * (1.0 - avg_redundancy_score)
         )
         concept_aware_grounding_score = 0.0
+        concept_aware_ranking_ndcg = 0.0
         if ranking_comparison:
             concept_aware_grounding_score = ranking_comparison.get(
                 "concept_aware",
                 {},
             ).get("grounding_quality", 0.0)
+            concept_aware_ranking_ndcg = ranking_comparison.get(
+                "concept_aware",
+                {},
+            ).get("ranking_ndcg", 0.0)
 
         # Performance scores
         retrieval_score = self._calculate_retrieval_score(retrieval_results)
@@ -1222,11 +1229,74 @@ class EEGRAGBenchmark:
             avg_centrality_grounding_score=avg_centrality_grounding_score,
             avg_grounding_quality=avg_grounding_quality,
             concept_aware_grounding_score=concept_aware_grounding_score,
+            concept_aware_ranking_ndcg=concept_aware_ranking_ndcg,
             ranking_strategy_comparison=ranking_comparison or {},
             retrieval_score=retrieval_score,
             generation_score=generation_score,
             overall_score=overall_score
         )
+
+    def _compute_citation_utility(
+        self,
+        citation: Any,
+        query_concepts: Dict[str, List[str]],
+        max_centrality: float,
+        seen_concept_groups: set,
+    ) -> Tuple[float, set]:
+        """Compute per-citation utility from concept coverage, centrality, novelty."""
+        title = str(getattr(citation, "title", "") or "").lower()
+        abstract = str(getattr(citation, "abstract", "") or "").lower()
+        citation_text = f"{title} {abstract}"
+
+        covered_groups = {
+            group
+            for group, terms in query_concepts.items()
+            if any(term in citation_text for term in terms)
+        }
+
+        total_groups = max(1, len(query_concepts))
+        concept_coverage = len(covered_groups) / total_groups
+
+        centrality_raw = float(
+            getattr(citation, "metadata", {}).get("centrality_score", 0.0)
+        )
+        normalized_centrality = (
+            min(1.0, centrality_raw / max_centrality) if max_centrality > 0 else 0.0
+        )
+
+        new_groups = covered_groups - seen_concept_groups
+        novelty = len(new_groups) / total_groups
+        updated_seen = seen_concept_groups | covered_groups
+
+        utility = (
+            0.50 * concept_coverage
+            + 0.30 * normalized_centrality
+            + 0.20 * novelty
+        )
+        return max(0.0, min(1.0, utility)), updated_seen
+
+    def _compute_ndcg(self, utilities: List[float], k: Optional[int] = None) -> float:
+        """Compute nDCG@k for ranked utilities in [0, 1]."""
+        if not utilities:
+            return 0.0
+
+        cutoff = len(utilities) if k is None else max(1, min(k, len(utilities)))
+        ranked = utilities[:cutoff]
+        ideal = sorted(utilities, reverse=True)[:cutoff]
+
+        def _dcg(values: List[float]) -> float:
+            total = 0.0
+            for idx, rel in enumerate(values):
+                gain = (2.0 ** max(0.0, min(1.0, rel))) - 1.0
+                discount = math.log2(idx + 2)
+                total += gain / discount
+            return total
+
+        dcg = _dcg(ranked)
+        idcg = _dcg(ideal)
+        if idcg <= 0.0:
+            return 0.0
+        return dcg / idcg
 
     async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
         """Compare weighted/diversified/concept-aware aggregation on one fixture set."""
@@ -1281,6 +1351,7 @@ class EEGRAGBenchmark:
             )
             aggregated = await aggregator.aggregate(fixture_query, fixture_results)
             stats = aggregated.statistics
+            query_concepts = aggregator._extract_query_concepts(fixture_query)
             redundancy = float(stats.get("redundancy_score", 0.0))
             concept_coverage = float(stats.get("query_concept_coverage_score", 0.0))
             centrality = 0.0
@@ -1289,6 +1360,28 @@ class EEGRAGBenchmark:
                     float(c.metadata.get("centrality_score", 0.0))
                     for c in aggregated.citations
                 )
+
+            max_centrality = 0.0
+            if aggregated.citations:
+                max_centrality = max(
+                    float(c.metadata.get("centrality_score", 0.0))
+                    for c in aggregated.citations
+                )
+
+            seen_concepts: set = set()
+            utilities: List[float] = []
+            for citation in aggregated.citations:
+                utility, seen_concepts = self._compute_citation_utility(
+                    citation=citation,
+                    query_concepts=query_concepts,
+                    max_centrality=max_centrality,
+                    seen_concept_groups=seen_concepts,
+                )
+                utilities.append(utility)
+
+            ranking_ndcg = self._compute_ndcg(utilities, k=5)
+            mean_utility = statistics.mean(utilities) if utilities else 0.0
+
             grounding_quality = max(
                 0.0,
                 min(1.0, (0.5 * concept_coverage) + (0.3 * centrality) + (0.2 * (1.0 - redundancy))),
@@ -1298,6 +1391,8 @@ class EEGRAGBenchmark:
                 "redundancy_score": redundancy,
                 "centrality_grounding_score": centrality,
                 "grounding_quality": grounding_quality,
+                "mean_citation_utility": mean_utility,
+                "ranking_ndcg": ranking_ndcg,
             }
 
         return strategy_scores
@@ -1448,6 +1543,7 @@ class EEGRAGBenchmark:
                 'avg_centrality_grounding_score': results.avg_centrality_grounding_score,
                 'avg_grounding_quality': results.avg_grounding_quality,
                 'concept_aware_grounding_score': results.concept_aware_grounding_score,
+                'concept_aware_ranking_ndcg': results.concept_aware_ranking_ndcg,
             },
             'detailed_results': {
                 'retrieval': [asdict(r) for r in results.retrieval_results],
