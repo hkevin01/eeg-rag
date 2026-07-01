@@ -43,12 +43,12 @@ st.set_page_config(
         "Report a bug": "https://github.com/hkevin01/eeg-rag/issues/new",
         "About": """
         # EEG-RAG v0.5.0
-        
+
         **Production-Grade RAG System for EEG Research**
-        
-        Transform EEG research literature into an intelligent, 
+
+        Transform EEG research literature into an intelligent,
         queryable knowledge platform.
-        
+
         Built with ❤️ for the EEG research community.
         """,
     },
@@ -57,14 +57,24 @@ st.set_page_config(
 # Enhanced CSS for researcher-friendly UI - Light Theme
 st.markdown(
     """
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+/>
 <style>
     /* ============================================
        PROFESSIONAL LIGHT THEME
        Clean, subdued colors for research UI
        SOLID COLORS - No gradients
        ============================================ */
-    
+
     :root {
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 32px;
         --primary-blue: #E8EEF4;
         --primary-blue-dark: #D0DCE8;
         --accent-blue: #5C7A99;
@@ -80,7 +90,7 @@ st.markdown(
         --text-color: #1F2937;
         --text-muted: #6B7280;
     }
-    
+
     /* ACCESSIBILITY: Light tooltips with high contrast - WCAG AAA compliant */
     [data-testid="stTooltipIcon"],
     [data-testid="stTooltipHoverTarget"],
@@ -96,20 +106,20 @@ st.markdown(
         font-size: 14px !important;
         line-height: 1.5 !important;
     }
-    
+
     /* Tooltip content styling */
     [role="tooltip"] *,
     div[data-testid*="tooltip"] * {
         background-color: transparent !important;
         color: #1F2937 !important;
     }
-    
+
     /* Help icon tooltips - ensure light background */
     button[title],
     button[aria-label] {
         position: relative;
     }
-    
+
     button[title]:hover::after,
     button[aria-label]:hover::after {
         background-color: #FFFFFF !important;
@@ -117,21 +127,59 @@ st.markdown(
         border: 1px solid #D1D5DB !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     }
-    
+
     /* Global styling */
+    html, body {
+        overflow-x: hidden;
+    }
+
     .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 2rem;
+        padding-top: var(--space-2);
+        padding-bottom: var(--space-3);
+        padding-left: var(--space-2);
+        padding-right: var(--space-2);
         max-width: 1400px;
     }
-    
+
+    @media (min-width: 992px) {
+        .main .block-container {
+            padding-left: var(--space-3);
+            padding-right: var(--space-3);
+        }
+    }
+
     /* Light theme base - clean off-white */
     .stApp {
         background-color: #FAFBFC !important;
         background-image: none !important;
         color: #1F2937;
+        overflow-x: hidden;
     }
-    
+
+    /* Bootstrap-like wrapper classes for Streamlit markdown blocks */
+    .wcag-section {
+        margin-bottom: var(--space-3);
+    }
+
+    .wcag-card {
+        background: #FFFFFF;
+        border: 1px solid #D1D5DB;
+        border-radius: 12px;
+        padding: var(--space-2);
+        margin-bottom: var(--space-2);
+    }
+
+    .wcag-card h3,
+    .wcag-card h4,
+    .wcag-card p,
+    .wcag-card li {
+        line-height: 1.6;
+    }
+
+    .wcag-stack > * + * {
+        margin-top: var(--space-2);
+    }
+
     /* Sidebar styling - subtle blue-gray, compact width */
     [data-testid="stSidebar"] {
         background-color: #E8EEF4 !important;
@@ -144,22 +192,22 @@ st.markdown(
         width: 240px !important;
         min-width: 240px !important;
     }
-    
+
     [data-testid="stSidebar"] > div:first-child {
         width: 240px !important;
     }
-    
+
     section[data-testid="stSidebar"] {
         width: 240px !important;
         min-width: 240px !important;
         display: block !important;
         visibility: visible !important;
     }
-    
+
     [data-testid="stSidebar"] * {
         color: #1F2937 !important;
     }
-    
+
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
@@ -168,11 +216,11 @@ st.markdown(
     [data-testid="stSidebar"] h6 {
         color: #374151 !important;
     }
-    
+
     [data-testid="stSidebar"] .stMarkdown {
         color: #1F2937 !important;
     }
-    
+
     /* Sidebar widget styling - light blue-gray */
     [data-testid="stSidebar"] [data-baseweb="input"],
     [data-testid="stSidebar"] [data-baseweb="select"],
@@ -182,7 +230,7 @@ st.markdown(
         border: 1px solid #D1D5DB !important;
         color: #1F2937 !important;
     }
-    
+
     /* Sidebar expanders - compact and clean */
     [data-testid="stSidebar"] .streamlit-expanderHeader {
         background-color: transparent !important;
@@ -200,7 +248,7 @@ st.markdown(
         background-color: transparent !important;
         border: none !important;
     }
-    
+
     /* AGGRESSIVE: Remove ALL white box backgrounds from sidebar */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"],
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"],
@@ -218,7 +266,7 @@ st.markdown(
         box-shadow: none !important;
         outline: none !important;
     }
-    
+
     /* Force sidebar to have clean background everywhere */
     [data-testid="stSidebar"],
     [data-testid="stSidebar"] > div,
@@ -227,7 +275,7 @@ st.markdown(
         background-color: #E8EEF4 !important;
         background-image: none !important;
     }
-    
+
     /* Ensure sidebar collapse/expand controls are always visible */
     [data-testid="stSidebarCollapseButton"],
     [data-testid="collapsedControl"],
@@ -242,7 +290,7 @@ st.markdown(
         display: flex !important;
         z-index: 999 !important;
     }
-    
+
     /* Collapsed sidebar expand button - ensure it's clickable */
     [data-testid="collapsedControl"] {
         background-color: #E8EEF4 !important;
@@ -253,7 +301,7 @@ st.markdown(
         pointer-events: auto !important;
         cursor: pointer !important;
     }
-    
+
     /* Make sure sidebar is properly visible when expanded */
     section[data-testid="stSidebar"][aria-expanded="true"] {
         display: block !important;
@@ -263,12 +311,12 @@ st.markdown(
         min-width: 240px !important;
         transform: translateX(0) !important;
     }
-    
+
     /* Ensure all text is dark gray */
     body, p, span, div, label, input, textarea, select {
         color: #1F2937 !important;
     }
-    
+
     /* Override any dark backgrounds and remove ALL container backgrounds */
     [data-testid="stVerticalBlock"],
     [data-testid="stHorizontalBlock"],
@@ -280,14 +328,14 @@ st.markdown(
         border: none !important;
         box-shadow: none !important;
     }
-    
+
     /* Force main area to have clean background */
     .main [data-testid="stVerticalBlock"],
     .main [data-testid="stHorizontalBlock"],
     .main [data-testid="column"] {
         background-color: transparent !important;
     }
-    
+
     /* ACCESSIBLE: Light gray buttons with dark text - WCAG compliant */
     .stButton button,
     .stButton button[kind="secondary"],
@@ -301,27 +349,29 @@ st.markdown(
         white-space: normal !important;
         overflow: visible !important;
         text-overflow: clip !important;
-        padding: 0.5rem 0.75rem !important;
+        padding: 10px 16px !important;
         min-width: auto !important;
+        min-height: 44px !important;
         font-weight: 500 !important;
         text-align: left !important;
         word-wrap: break-word !important;
+        line-height: 1.35 !important;
     }
-    
+
     /* Sidebar buttons - ensure they fit within sidebar width */
     [data-testid="stSidebar"] .stButton button {
         font-size: 0.85rem !important;
         padding: 0.4rem 0.5rem !important;
         line-height: 1.3 !important;
     }
-    
+
     .stButton button:hover,
     button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #E5E7EB !important;
         background-image: none !important;
         border-color: #9CA3AF !important;
     }
-    
+
     /* Primary action buttons - slightly more prominent */
     .stButton button[kind="primary"],
     button[data-testid="stBaseButton-primary"] {
@@ -334,7 +384,7 @@ st.markdown(
         background-color: #BFDBFE !important;
         border-color: #60A5FA !important;
     }
-    
+
     /* Delete buttons in sidebar - minimal styling, no visible container */
     [data-testid="stSidebar"] button[kind="secondary"],
     [data-testid="stSidebar"] .stButton button:has-text("Delete") {
@@ -350,7 +400,7 @@ st.markdown(
         background-color: #FEE2E2 !important;
         color: #DC2626 !important;
     }
-    
+
     /* Hide ALL container backgrounds in sidebar - nuclear option */
     [data-testid="stSidebar"] .stButton,
     [data-testid="stSidebar"] .stButton > div,
@@ -365,7 +415,7 @@ st.markdown(
         border: none !important;
         box-shadow: none !important;
     }
-    
+
     /* Force light theme on text areas and inputs - clean white */
     [data-baseweb="textarea"],
     [data-baseweb="input"],
@@ -380,6 +430,9 @@ st.markdown(
         border: 1px solid #D1D5DB !important;
         border-radius: 6px !important;
         caret-color: #1F2937 !important;
+        min-height: 44px !important;
+        line-height: 1.5 !important;
+        font-size: 16px !important;
     }
     [data-baseweb="textarea"]:focus-within,
     [data-baseweb="input"]:focus-within,
@@ -391,12 +444,12 @@ st.markdown(
         outline-offset: -2px;
         caret-color: #1F2937 !important;
     }
-    
+
     /* Ensure cursor is visible in all inputs */
     textarea, input {
         caret-color: #1F2937 !important;
     }
-    
+
     /* Force light theme on select boxes - clean white */
     [data-baseweb="select"],
     .stSelectbox > div > div {
@@ -404,7 +457,7 @@ st.markdown(
         color: #1F2937 !important;
         border: 1px solid #D1D5DB !important;
     }
-    
+
     /* Force light theme on expanders - subtle gray */
     .streamlit-expanderHeader,
     [data-testid="stExpander"] summary {
@@ -454,7 +507,7 @@ st.markdown(
         margin: 1rem 0;
         color: #1F2937;
     }
-    
+
     .researcher-tip .tip-header {
         display: flex;
         align-items: center;
@@ -463,13 +516,13 @@ st.markdown(
         color: #6D4C41;
         margin-bottom: 0.5rem;
     }
-    
+
     .researcher-tip .tip-content {
         font-size: 0.9rem;
         line-height: 1.6;
         color: #1F2937;
     }
-    
+
     /* Educational callouts - subtle blue */
     .edu-callout {
         background: #E3F2FD;
@@ -478,7 +531,7 @@ st.markdown(
         padding: 1.5rem;
         margin: 1rem 0;
     }
-    
+
     .edu-callout h4 {
         color: #1565C0;
         margin-bottom: 0.75rem;
@@ -486,11 +539,11 @@ st.markdown(
         align-items: center;
         gap: 0.5rem;
     }
-    
+
     .edu-callout p {
         color: #1F2937;
     }
-    
+
     /* System explanation boxes */
     .system-explanation {
         background: #F5F7F9;
@@ -501,13 +554,13 @@ st.markdown(
         font-size: 0.85rem;
         color: #1F2937;
     }
-    
+
     .system-explanation summary {
         cursor: pointer;
         color: #1F2937;
         font-weight: 500;
     }
-    
+
     .system-explanation summary:hover {
         color: #5C7A99;
     }
@@ -521,19 +574,21 @@ st.markdown(
         color: #1F2937;
         line-height: 1.8;
     }
-    
+
     .response-metadata {
         background: #F5F7F9;
         border-radius: 6px;
-        padding: 0.75rem 1.25rem;
+        padding: var(--space-2);
         margin-bottom: 1rem;
         color: #6B7280;
         font-size: 0.9rem;
         display: flex;
-        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        justify-content: flex-start;
         border: 1px solid #E8EAED;
     }
-    
+
     /* Agent status cards */
     .agent-card {
         background: #FFFFFF;
@@ -545,12 +600,12 @@ st.markdown(
         border: 1px solid #E8EAED;
         color: #1F2937;
     }
-    
+
     .agent-card:hover {
         transform: translateX(4px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    
+
     .agent-card.orchestrator { border-left-color: #5C7A99; }
     .agent-card.planner { border-left-color: #7C8DB5; }
     .agent-card.local { border-left-color: #4CAF50; }
@@ -559,7 +614,7 @@ st.markdown(
     .agent-card.citation { border-left-color: #F44336; }
     .agent-card.aggregator { border-left-color: #00BCD4; }
     .agent-card.generator { border-left-color: #E91E63; }
-    
+
     /* Metric displays */
     .metric-highlight {
         background: #E8EEF4;
@@ -568,13 +623,13 @@ st.markdown(
         text-align: center;
         border: 1px solid #D0DCE8;
     }
-    
+
     .metric-value {
         font-size: 1.75rem;
         font-weight: 700;
         color: #1F2937;
     }
-    
+
     .metric-label {
         font-size: 0.75rem;
         color: #6B7280;
@@ -582,15 +637,15 @@ st.markdown(
         letter-spacing: 0.5px;
         margin-top: 0.25rem;
     }
-    
+
     .metric-delta {
         font-size: 0.8rem;
         margin-top: 0.25rem;
     }
-    
+
     .metric-delta.positive { color: #388E3C; }
     .metric-delta.negative { color: #D32F2F; }
-    
+
     /* Confidence bars */
     .confidence-bar {
         height: 8px;
@@ -598,17 +653,17 @@ st.markdown(
         background: #E8EAED;
         overflow: hidden;
     }
-    
+
     .confidence-fill {
         height: 100%;
         border-radius: 4px;
         transition: width 0.5s ease;
     }
-    
+
     .confidence-fill.high { background: #4CAF50; }
     .confidence-fill.medium { background: #FF9800; }
     .confidence-fill.low { background: #F44336; }
-    
+
     /* Citation display */
     .citation-card {
         background: #FFFFFF;
@@ -618,14 +673,16 @@ st.markdown(
         margin: 0.5rem 0;
         color: #1F2937;
     }
-    
+
     .citation-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 0.75rem;
+        gap: var(--space-1);
+        flex-wrap: wrap;
     }
-    
+
     .citation-pmid {
         font-family: monospace;
         background: #E8EEF4;
@@ -674,22 +731,26 @@ st.markdown(
 
     .citation-footer {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--space-1);
+        flex-wrap: wrap;
     }
 
     .pubmed-link {
         background: #E3F2FD;
         color: #1565C0;
-        padding: 0.25rem 0.75rem;
+        padding: 10px 16px;
         border-radius: 4px;
         text-decoration: none;
         font-size: 0.8rem;
         transition: background-color 0.2s;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
     }
     .pubmed-link:hover {
         background: #BBDEFB;
     }
-    
+
     /* ACCESSIBILITY: Streamlit tooltip override - light background with dark text */
     .stTooltipContent,
     [data-testid="stTooltipContent"],
@@ -706,7 +767,7 @@ st.markdown(
         line-height: 1.5 !important;
         max-width: 300px !important;
     }
-    
+
     /* Force light tooltips on all elements */
     [title]:hover::after,
     [data-title]:hover::after {
@@ -715,12 +776,12 @@ st.markdown(
         border: 1px solid #D1D5DB !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
-    
+
     /* Override Streamlit's default tooltip styling */
     div[data-baseweb="tooltip"] {
         background-color: #FFFFFF !important;
     }
-    
+
     div[data-baseweb="tooltip"] > div {
         background-color: #FFFFFF !important;
         color: #1F2937 !important;
@@ -730,34 +791,70 @@ st.markdown(
         border-radius: 6px !important;
         font-size: 14px !important;
     }
-    
+
     /* ACCESSIBILITY: Color-blind friendly palette adjustments */
     /* Use blue/orange instead of red/green where possible */
     .success-indicator {
         color: #0066CC !important; /* Blue instead of green */
         background-color: #E3F2FD !important;
     }
-    
+
     .error-indicator {
         color: #D84315 !important; /* Orange-red */
         background-color: #FFF3E0 !important;
     }
-    
+
     .warning-indicator {
         color: #F57C00 !important; /* Orange */
         background-color: #FFF8E1 !important;
     }
-    
+
     /* Ensure good contrast ratios (WCAG AAA) */
     .high-contrast-text {
         color: #1F2937 !important;
         font-weight: 500 !important;
     }
-    
+
     /* Hide default Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header [data-testid="stToolbar"] {visibility: hidden;}
+
+    /* Responsive non-overlap guardrails */
+    @media (max-width: 1200px) {
+        .wcag-card {
+            padding: var(--space-2);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: var(--space-2);
+            padding-right: var(--space-2);
+        }
+
+        .response-metadata {
+            font-size: 0.875rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main .block-container {
+            padding-left: var(--space-1);
+            padding-right: var(--space-1);
+        }
+
+        .wcag-card,
+        .researcher-tip,
+        .edu-callout,
+        .citation-card {
+            padding: var(--space-2);
+        }
+    }
 </style>
 
 <script>
@@ -777,15 +874,15 @@ st.markdown(
             tooltip.style.fontWeight = '400';
         });
     };
-    
+
     // Run on page load
     styleTooltips();
-    
+
     // Watch for new tooltips being added
     const observer = new MutationObserver(styleTooltips);
-    observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 })();
 </script>
@@ -856,12 +953,12 @@ def render_welcome_banner():
 
     st.markdown(
         f"""
-    <div style="background: #bbdefb; 
+    <div style="background: #bbdefb;
                 border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
                 border: 1px solid #90caf9;">
         <h3 style="color: #0d47a1; margin-bottom: 1rem;">👋 Welcome, Researcher!</h3>
         <p style="color: #000000; margin-bottom: 1rem;">
-            EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language. 
+            EEG-RAG helps you search <strong>{paper_count_str} EEG research papers</strong> using natural language.
             Every answer is grounded in evidence with verifiable citations.
         </p>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
@@ -917,7 +1014,7 @@ def render_system_status_bar():
 
     st.markdown(
         f"""
-    <div style="background: #f5f5f5; border-radius: 8px; padding: 0.75rem 1rem; 
+    <div style="background: #f5f5f5; border-radius: 8px; padding: 0.75rem 1rem;
                 margin-bottom: 1rem; display: flex; justify-content: space-between;
                 align-items: center; border: 1px solid #e0e0e0;">
         <div style="display: flex; gap: 2rem; align-items: center;">
@@ -1089,21 +1186,21 @@ def render_agent_pipeline_tab():
     <div class="edu-callout">
         <h4>🎓 Understanding the Agent Pipeline</h4>
         <p style="color: #000000; margin-bottom: 1rem;">
-            EEG-RAG uses a <strong>multi-agent architecture</strong> where specialized agents work together 
+            EEG-RAG uses a <strong>multi-agent architecture</strong> where specialized agents work together
             to answer your query. Each agent has specific expertise, and the Orchestrator coordinates their work.
         </p>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
             <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
                 <div style="color: #4a148c; font-weight: 600;">Why Multiple Agents?</div>
                 <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
-                    Different information needs require different retrieval strategies. Local search is fast, 
+                    Different information needs require different retrieval strategies. Local search is fast,
                     web search is comprehensive, and graph queries find relationships.
                 </div>
             </div>
             <div style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px;">
                 <div style="color: #4a148c; font-weight: 600;">How Results Are Combined</div>
                 <div style="color: #424242; font-size: 0.9rem; margin-top: 0.5rem;">
-                    The Context Aggregator uses <strong>Reciprocal Rank Fusion (RRF)</strong> to merge 
+                    The Context Aggregator uses <strong>Reciprocal Rank Fusion (RRF)</strong> to merge
                     results from multiple sources, eliminating duplicates while preserving diversity.
                 </div>
             </div>
@@ -1520,9 +1617,9 @@ def main():
     st.markdown(
         """
     <div style="margin-top: 3rem; padding: 1rem; text-align: center; color: #666; font-size: 0.8rem;">
-        EEG-RAG Research Assistant v0.5.0 • 
-        <a href="https://github.com/hkevin01/eeg-rag" style="color: #6366F1;">GitHub</a> • 
-        <a href="#" style="color: #6366F1;">Documentation</a> • 
+        EEG-RAG Research Assistant v0.5.0 •
+        <a href="https://github.com/hkevin01/eeg-rag" style="color: #6366F1;">GitHub</a> •
+        <a href="#" style="color: #6366F1;">Documentation</a> •
         <a href="#" style="color: #6366F1;">Privacy Policy</a>
     </div>
     """,
