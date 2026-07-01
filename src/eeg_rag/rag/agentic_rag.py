@@ -1312,7 +1312,9 @@ class AgenticRAGOrchestrator:
             k: max(0.0, float(v)) / weight_total
             for k, v in self._objective_weights.items()
         }
+        self._objective_weights_by_segment: Dict[str, Dict[str, float]] = {}
         self._uncertainty_calibration_by_segment: Dict[str, Dict[str, float]] = {}
+        self._calibration_error_decomposition_by_segment: Dict[str, Dict[str, float]] = {}
         self._segment_decay_state: Dict[str, Dict[str, float]] = {}
         self._counterfactual_policy_eval: Dict[str, Any] = {}
         self._history_manager = history_manager
@@ -1604,11 +1606,13 @@ class AgenticRAGOrchestrator:
         self,
         candidate: Dict[str, float],
         all_candidates: List[Dict[str, float]],
+        objective_weights: Optional[Dict[str, float]] = None,
     ) -> float:
         """Compute explicit Pareto-weighted score across utility/validity/latency."""
         util_values = [c["utility"] for c in all_candidates]
         valid_values = [c["citation_validity"] for c in all_candidates]
         lat_values = [c["latency_ms"] for c in all_candidates]
+        weights = self._objective_weights if objective_weights is None else objective_weights
 
         def _normalize(value: float, values: List[float], maximize: bool = True) -> float:
             v_min = min(values)
@@ -1623,10 +1627,196 @@ class AgenticRAGOrchestrator:
         lat_n = _normalize(candidate["latency_ms"], lat_values, maximize=False)
 
         return (
-            self._objective_weights.get("utility", 0.0) * util_n
-            + self._objective_weights.get("citation_validity", 0.0) * valid_n
-            + self._objective_weights.get("latency", 0.0) * lat_n
+            weights.get("utility", 0.0) * util_n
+            + weights.get("citation_validity", 0.0) * valid_n
+            + weights.get("latency", 0.0) * lat_n
         )
+
+    @staticmethod
+    def _project_to_simplex_with_floor(
+        weights: np.ndarray,
+        floor: float = 0.05,
+    ) -> np.ndarray:
+        """Project a weight vector onto simplex with per-dimension lower bound."""
+        dim = len(weights)
+        floor = max(0.0, min(1.0 / max(1, dim), floor))
+        adjusted = np.maximum(weights, floor)
+        adjusted_sum = float(np.sum(adjusted))
+        if adjusted_sum <= 1e-9:
+            return np.full(dim, 1.0 / dim, dtype=float)
+        adjusted = adjusted / adjusted_sum
+        min_mask = adjusted < floor
+        if not np.any(min_mask):
+            return adjusted
+
+        adjusted[min_mask] = floor
+        residual = 1.0 - float(np.sum(adjusted[min_mask]))
+        free_mask = ~min_mask
+        if not np.any(free_mask):
+            return np.full(dim, 1.0 / dim, dtype=float)
+        free_values = adjusted[free_mask]
+        free_sum = float(np.sum(free_values))
+        if free_sum <= 1e-9:
+            adjusted[free_mask] = residual / float(np.sum(free_mask))
+        else:
+            adjusted[free_mask] = residual * (free_values / free_sum)
+        return adjusted
+
+    def _objective_weights_for_segment(self, segment_key: str) -> Dict[str, float]:
+        """Return learned objective weights for a segment or global defaults."""
+        return dict(
+            self._objective_weights_by_segment.get(segment_key, self._objective_weights)
+        )
+
+    def _learn_objective_weights_by_segment(self) -> None:
+        """Learn constrained per-segment objective weights from logged outcomes."""
+        if len(self._fusion_outcome_log) < self._segment_response_surface_min_samples:
+            return
+
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for entry in self._fusion_outcome_log:
+            segment_key = self._segment_key(
+                entry.get("query_category"),
+                entry.get("query_difficulty"),
+            )
+            grouped.setdefault(segment_key, []).append(entry)
+
+        learned: Dict[str, Dict[str, float]] = {}
+        base_vec = np.array(
+            [
+                float(self._objective_weights.get("utility", 0.6)),
+                float(self._objective_weights.get("citation_validity", 0.25)),
+                float(self._objective_weights.get("latency", 0.15)),
+            ],
+            dtype=float,
+        )
+
+        for segment_key, entries in grouped.items():
+            if len(entries) < self._segment_response_surface_min_samples:
+                continue
+
+            latest_ts = max(float(item.get("timestamp", 0.0)) for item in entries)
+            feature_rows: List[np.ndarray] = []
+            targets: List[float] = []
+            sample_weights: List[float] = []
+
+            for item in entries:
+                concept = float(item.get("concept", 0.0))
+                diversity = float(item.get("diversity", 1.0))
+                redundancy = float(item.get("redundancy", 0.0))
+                centrality = float(item.get("centrality", 0.0))
+                bm25 = float(item.get("bm25_weight", 0.5))
+
+                citation_validity = max(
+                    0.0,
+                    min(
+                        1.0,
+                        0.45
+                        + (0.30 * concept)
+                        + (0.15 * diversity)
+                        - (0.20 * redundancy)
+                        + (0.05 * (1.0 - abs(0.55 - bm25))),
+                    ),
+                )
+                latency_ms = max(
+                    25.0,
+                    180.0
+                    + (90.0 * (1.0 - bm25))
+                    + (35.0 * max(0.0, 0.7 - concept))
+                    + (20.0 * max(0.0, redundancy - 0.4)),
+                )
+                latency_utility = max(0.0, min(1.0, 1.0 - ((latency_ms - 25.0) / 280.0)))
+                feature_rows.append(
+                    np.asarray(
+                        [
+                            float(item.get("utility", 0.0)),
+                            citation_validity,
+                            latency_utility,
+                        ],
+                        dtype=float,
+                    )
+                )
+                targets.append(float(item.get("utility", 0.0)))
+                age = max(0.0, latest_ts - float(item.get("timestamp", latest_ts)))
+                sample_weights.append(float(np.power(0.5, age / self._fusion_decay_half_life_sec)))
+
+            x = np.vstack(feature_rows)
+            y = np.asarray(targets, dtype=float)
+            w = np.asarray(sample_weights, dtype=float)
+            w = np.maximum(1e-6, w)
+
+            params = np.copy(base_vec)
+            learning_rate = 0.18
+            reg_lambda = 0.05
+            for _ in range(80):
+                pred = x @ params
+                residual = pred - y
+                grad = (x.T @ (w * residual)) / float(np.sum(w))
+                grad += reg_lambda * (params - base_vec)
+                params = params - (learning_rate * grad)
+                params = self._project_to_simplex_with_floor(params, floor=0.05)
+
+            learned[segment_key] = {
+                "utility": float(params[0]),
+                "citation_validity": float(params[1]),
+                "latency": float(params[2]),
+            }
+
+        self._objective_weights_by_segment = learned
+
+    def _update_calibration_error_decomposition(
+        self,
+        segment_key: str,
+        model: Dict[str, Any],
+        residuals: np.ndarray,
+    ) -> None:
+        """Estimate aleatoric/epistemic calibration components per segment."""
+        if residuals.size == 0:
+            return
+
+        aleatoric = float(np.mean(np.square(residuals)))
+        cov_inv = model.get("cov_inv")
+        if cov_inv is None:
+            epistemic = aleatoric * 0.5
+        else:
+            trace_proxy = float(np.trace(np.asarray(cov_inv, dtype=float)))
+            epistemic = max(0.0, min(0.5, aleatoric * min(2.0, math.sqrt(max(0.0, trace_proxy)))))
+
+        total = max(1e-9, aleatoric + epistemic)
+        state = {
+            "aleatoric": aleatoric,
+            "epistemic": epistemic,
+            "aleatoric_share": aleatoric / total,
+            "epistemic_share": epistemic / total,
+            "updated_at": float(time.time()),
+        }
+        self._calibration_error_decomposition_by_segment[segment_key] = state
+
+    def _uncertainty_decomposition(self, segment_key: str) -> Dict[str, float]:
+        """Return decomposition and exploration gate for segment uncertainty."""
+        state = self._calibration_error_decomposition_by_segment.get(segment_key)
+        if not state:
+            return {
+                "aleatoric": 0.03,
+                "epistemic": 0.03,
+                "aleatoric_share": 0.5,
+                "epistemic_share": 0.5,
+                "exploration_gate": 1.0,
+            }
+
+        epistemic_norm = min(1.0, float(state.get("epistemic", 0.0)) / 0.20)
+        aleatoric_norm = min(1.0, float(state.get("aleatoric", 0.0)) / 0.20)
+        exploration_gate = max(
+            0.10,
+            min(1.80, 1.0 + (0.60 * epistemic_norm) - (0.50 * aleatoric_norm)),
+        )
+        return {
+            "aleatoric": float(state.get("aleatoric", 0.0)),
+            "epistemic": float(state.get("epistemic", 0.0)),
+            "aleatoric_share": float(state.get("aleatoric_share", 0.5)),
+            "epistemic_share": float(state.get("epistemic_share", 0.5)),
+            "exploration_gate": exploration_gate,
+        }
 
     def _expected_objectives(
         self,
@@ -1683,7 +1873,7 @@ class AgenticRAGOrchestrator:
         self,
         candidate_weights: Optional[List[float]] = None,
     ) -> Dict[str, Any]:
-        """Replay logged outcomes and estimate regret for alternative policies."""
+        """Replay logged outcomes with doubly robust per-segment value estimation."""
         if not self._fusion_outcome_log:
             return {
                 "overall_regret": 0.0,
@@ -1693,6 +1883,22 @@ class AgenticRAGOrchestrator:
 
         weights = candidate_weights or [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
         regret_by_segment: Dict[str, List[float]] = {}
+
+        segment_counts: Dict[str, Dict[float, int]] = {}
+        for entry in self._fusion_outcome_log:
+            category = str(entry.get("query_category", "general"))
+            difficulty = str(entry.get("query_difficulty", "medium"))
+            segment_key = self._segment_key(category, difficulty)
+            nearest = min(weights, key=lambda w: abs(w - float(entry.get("bm25_weight", 0.5))))
+            bucket = segment_counts.setdefault(segment_key, {})
+            bucket[nearest] = bucket.get(nearest, 0) + 1
+
+        dr_values_by_segment: Dict[str, List[float]] = {}
+        ips_values_by_segment: Dict[str, List[float]] = {}
+        dm_values_by_segment: Dict[str, List[float]] = {}
+        value_gap_by_segment: Dict[str, List[float]] = {}
+
+        kernel_bw = 0.08
 
         for entry in self._fusion_outcome_log:
             diagnostics = {
@@ -1704,23 +1910,56 @@ class AgenticRAGOrchestrator:
             category = str(entry.get("query_category", "general"))
             difficulty = str(entry.get("query_difficulty", "medium"))
             segment_key = self._segment_key(category, difficulty)
+            reward = float(entry.get("utility", 0.0))
+            logged_weight = float(entry.get("bm25_weight", 0.5))
 
-            observed_policy_utility = self._expected_citation_utility(
+            nearest_logged = min(weights, key=lambda w: abs(w - logged_weight))
+            counts = segment_counts.get(segment_key, {})
+            total_counts = max(1, sum(counts.values()))
+            behavior_prob = (
+                float(counts.get(nearest_logged, 0)) + 1.0
+            ) / (float(total_counts) + float(len(weights)))
+
+            observed_policy_utility = reward
+            q_logged = self._expected_citation_utility(
                 diagnostics,
-                float(entry["bm25_weight"]),
+                logged_weight,
                 query_category=category,
                 query_difficulty=difficulty,
             )
             best_alt = observed_policy_utility
             for candidate in weights:
-                predicted = self._expected_citation_utility(
+                q_candidate = self._expected_citation_utility(
                     diagnostics,
                     candidate,
                     query_category=category,
                     query_difficulty=difficulty,
                 )
-                if predicted > best_alt:
-                    best_alt = predicted
+
+                target_kernel = np.exp(
+                    -((logged_weight - candidate) ** 2) / (2.0 * (kernel_bw ** 2))
+                )
+                target_norm = np.sum(
+                    np.exp(
+                        -((np.asarray(weights, dtype=float) - candidate) ** 2)
+                        / (2.0 * (kernel_bw ** 2))
+                    )
+                )
+                target_prob = float(target_kernel / max(1e-6, target_norm))
+                importance = min(5.0, target_prob / max(1e-6, behavior_prob))
+
+                ips_est = importance * reward
+                dr_est = q_candidate + (importance * (reward - q_logged))
+                dr_est = max(0.0, min(1.0, dr_est))
+
+                dr_values_by_segment.setdefault(segment_key, []).append(dr_est)
+                ips_values_by_segment.setdefault(segment_key, []).append(ips_est)
+                dm_values_by_segment.setdefault(segment_key, []).append(q_candidate)
+                value_gap_by_segment.setdefault(segment_key, []).append(
+                    abs(dr_est - q_candidate)
+                )
+                if dr_est > best_alt:
+                    best_alt = dr_est
 
             regret = max(0.0, best_alt - observed_policy_utility)
             regret_by_segment.setdefault(segment_key, []).append(regret)
@@ -1730,6 +1969,10 @@ class AgenticRAGOrchestrator:
                 "mean_regret": float(statistics.mean(values)),
                 "p95_regret": float(np.percentile(values, 95)),
                 "samples": len(values),
+                "dr_value": float(statistics.mean(dr_values_by_segment.get(key, [0.0]))),
+                "ips_value": float(statistics.mean(ips_values_by_segment.get(key, [0.0]))),
+                "dm_value": float(statistics.mean(dm_values_by_segment.get(key, [0.0]))),
+                "dr_model_gap": float(statistics.mean(value_gap_by_segment.get(key, [0.0]))),
             }
             for key, values in regret_by_segment.items()
         }
@@ -1739,6 +1982,41 @@ class AgenticRAGOrchestrator:
             "overall_regret": float(statistics.mean(all_regrets)) if all_regrets else 0.0,
             "samples": len(all_regrets),
             "by_segment": by_segment,
+        }
+
+    def _policy_risk_adjustment(self, segment_key: str) -> Dict[str, float]:
+        """Compute risk-aware policy controls from regret and drift signals."""
+        segment_eval = self._counterfactual_policy_eval.get("by_segment", {}).get(
+            segment_key,
+            {},
+        )
+        decay_state = self._segment_decay_state.get(segment_key, {})
+
+        mean_regret = float(segment_eval.get("mean_regret", 0.0))
+        p95_regret = float(segment_eval.get("p95_regret", 0.0))
+        dr_model_gap = float(segment_eval.get("dr_model_gap", 0.0))
+        sample_count = float(segment_eval.get("samples", 0.0))
+        relative_shift = max(0.0, float(decay_state.get("last_relative_shift", 0.0)))
+
+        regret_norm = min(1.0, mean_regret / 0.10)
+        tail_norm = min(1.0, p95_regret / 0.20)
+        drift_norm = min(1.0, relative_shift / 0.50)
+        gap_norm = min(1.0, dr_model_gap / 0.15)
+        sample_confidence = min(1.0, sample_count / 25.0)
+
+        risk_score = sample_confidence * (
+            (0.40 * regret_norm)
+            + (0.25 * tail_norm)
+            + (0.20 * drift_norm)
+            + (0.15 * gap_norm)
+        )
+
+        return {
+            "risk_score": max(0.0, min(1.0, risk_score)),
+            "exploration_multiplier": max(0.30, 1.0 - (0.70 * risk_score)),
+            "penalty_multiplier": min(2.0, 1.0 + (0.80 * risk_score)),
+            "guard_multiplier": max(0.40, 1.0 - (0.60 * risk_score)),
+            "max_step": max(0.05, 0.20 - (0.10 * risk_score)),
         }
 
     def _persist_fusion_outcome(self, entry: Dict[str, float]) -> None:
@@ -2446,8 +2724,10 @@ class AgenticRAGOrchestrator:
                 residuals = np.asarray(coeffs.get("residuals", []), dtype=float)
                 if residuals.size > 0:
                     self._bayesian_update_uncertainty_calibration(key, residuals)
+                    self._update_calibration_error_decomposition(key, coeffs, residuals)
 
         self._counterfactual_policy_eval = self._evaluate_counterfactual_policies()
+        self._learn_objective_weights_by_segment()
 
     def _expected_citation_utility_with_uncertainty(
         self,
@@ -2553,6 +2833,15 @@ class AgenticRAGOrchestrator:
         """Choose BM25/dense mix via Pareto-weighted multi-objective scoring."""
         _ = dense_weight
         candidate_weights = [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
+        segment_key = self._segment_key(query_category, query_difficulty)
+        risk_controls = self._policy_risk_adjustment(segment_key)
+        uncertainty_parts = self._uncertainty_decomposition(segment_key)
+        segment_objective_weights = self._objective_weights_for_segment(segment_key)
+        effective_exploration_alpha = (
+            self._exploration_alpha
+            * risk_controls["exploration_multiplier"]
+            * uncertainty_parts["exploration_gate"]
+        )
 
         candidate_metrics: List[Dict[str, float]] = []
         for candidate in candidate_weights:
@@ -2578,14 +2867,18 @@ class AgenticRAGOrchestrator:
         best_score = -1e9
         best_uncertainty = 1.0
         for idx, metrics in enumerate(candidate_metrics):
-            pareto_score = self._pareto_weighted_score(metrics, candidate_metrics)
+            pareto_score = self._pareto_weighted_score(
+                metrics,
+                candidate_metrics,
+                objective_weights=segment_objective_weights,
+            )
             confidence_penalty = metrics["uncertainty"] * abs(
                 metrics["bm25_weight"] - bm25_weight
             )
             score = (
                 pareto_score
-                + (self._exploration_alpha * metrics["uncertainty"])
-                - confidence_penalty
+                + (effective_exploration_alpha * metrics["uncertainty"])
+                - (confidence_penalty * risk_controls["penalty_multiplier"])
             )
             if idx not in pareto_indices:
                 score -= 0.05
@@ -2594,13 +2887,21 @@ class AgenticRAGOrchestrator:
                 best_bm25 = float(metrics["bm25_weight"])
                 best_uncertainty = float(metrics["uncertainty"])
 
-        segment_key = self._segment_key(query_category, query_difficulty)
         guard_threshold = self._adaptive_uncertainty_guard(segment_key)
+        guard_threshold = max(
+            0.05,
+            guard_threshold * risk_controls["guard_multiplier"],
+        )
         if (
             abs(best_bm25 - bm25_weight) > 0.10
             and best_uncertainty > guard_threshold
         ):
             best_bm25 = bm25_weight
+
+        max_step = risk_controls["max_step"]
+        step = best_bm25 - bm25_weight
+        if abs(step) > max_step:
+            best_bm25 = bm25_weight + (max_step if step > 0.0 else -max_step)
 
         best_dense = round(1.0 - best_bm25, 3)
         return round(best_bm25, 3), best_dense

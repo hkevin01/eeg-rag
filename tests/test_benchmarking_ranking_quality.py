@@ -184,3 +184,55 @@ def test_hard_archetype_uncertainty_guard_raises_on_regression() -> None:
 
     with pytest.raises(RuntimeError):
         benchmark._enforce_uncertainty_adjusted_utility_guard(ranking_comparison)
+
+
+def test_monotonic_safety_response_validation_detects_noncontraction() -> None:
+    benchmark = _benchmark_instance()
+
+    profiles = {
+        "clinical_hard": {
+            "low_risk_max_step": 0.18,
+            "medium_risk_max_step": 0.12,
+            "high_risk_max_step": 0.08,
+        },
+        "method_hard": {
+            "low_risk_max_step": 0.16,
+            "medium_risk_max_step": 0.11,
+            "high_risk_max_step": 0.09,
+        },
+    }
+    validation = benchmark._validate_monotonic_safety_response(profiles)
+    assert validation["valid"] is True
+
+    profiles["bci_hard"] = {
+        "low_risk_max_step": 0.10,
+        "medium_risk_max_step": 0.12,
+        "high_risk_max_step": 0.07,
+    }
+    failing = benchmark._validate_monotonic_safety_response(profiles)
+    assert failing["valid"] is False
+    assert any("bci_hard" in item for item in failing["failing"])
+
+
+def test_temporal_forgetting_validation_requires_utility_gain_and_citation_floor() -> None:
+    benchmark = _benchmark_instance()
+
+    before = {
+        "hard_archetype_uncertainty_adjusted_utility": 0.58,
+        "citation_validity_proxy": 0.70,
+    }
+    after_good = {
+        "hard_archetype_uncertainty_adjusted_utility": 0.63,
+        "citation_validity_proxy": 0.69,
+    }
+
+    ok = benchmark._validate_temporal_forgetting_safety(before, after_good)
+    assert ok["valid"] is True
+    assert ok["hard_utility_delta"] > 0.0
+
+    after_bad = {
+        "hard_archetype_uncertainty_adjusted_utility": 0.64,
+        "citation_validity_proxy": 0.55,
+    }
+    failed = benchmark._validate_temporal_forgetting_safety(before, after_bad)
+    assert failed["valid"] is False

@@ -1408,6 +1408,221 @@ class TestAgenticRAGOrchestratorMultiIteration:
         assert bm25 == pytest.approx(0.6)
         assert dense == pytest.approx(0.4)
 
+    def test_policy_risk_adjustment_increases_with_regret_and_drift(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "policy_risk_controls.jsonl",
+            exploration_alpha=0.2,
+        )
+
+        segment_key = orchestrator._segment_key("clinical", "hard")
+        orchestrator._counterfactual_policy_eval = {
+            "by_segment": {
+                segment_key: {
+                    "mean_regret": 0.09,
+                    "p95_regret": 0.18,
+                    "samples": 40,
+                }
+            }
+        }
+        orchestrator._segment_decay_state[segment_key] = {
+            "half_life_multiplier": 0.8,
+            "baseline_residual_var": 0.02,
+            "drift_strikes": 1.0,
+            "last_residual_var": 0.04,
+            "last_relative_shift": 0.42,
+        }
+
+        controls = orchestrator._policy_risk_adjustment(segment_key)
+        assert controls["risk_score"] > 0.0
+        assert controls["exploration_multiplier"] < 1.0
+        assert controls["penalty_multiplier"] > 1.0
+        assert controls["guard_multiplier"] < 1.0
+        assert controls["max_step"] < 0.2
+
+    def test_risk_aware_optimizer_caps_step_under_high_regret(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "policy_risk_step_cap.jsonl",
+            exploration_alpha=0.0,
+            prediction_uncertainty_guard=0.2,
+        )
+
+        segment_key = orchestrator._segment_key("clinical", "hard")
+        orchestrator._counterfactual_policy_eval = {
+            "by_segment": {
+                segment_key: {
+                    "mean_regret": 0.12,
+                    "p95_regret": 0.24,
+                    "samples": 60,
+                }
+            }
+        }
+        orchestrator._segment_decay_state[segment_key] = {
+            "half_life_multiplier": 0.7,
+            "baseline_residual_var": 0.03,
+            "drift_strikes": 2.0,
+            "last_residual_var": 0.06,
+            "last_relative_shift": 0.50,
+        }
+        orchestrator._uncertainty_calibration_by_segment[segment_key] = {
+            "alpha": 3.0,
+            "beta": 0.03,
+            "adaptive_guard": 0.20,
+            "updates": 10.0,
+        }
+
+        def _fake_expected_objectives(
+            self,
+            diagnostics,
+            bm25_weight,
+            query_category=None,
+            query_difficulty=None,
+        ):
+            _ = (self, diagnostics, query_category, query_difficulty)
+            if bm25_weight == 0.8:
+                return {
+                    "utility": 0.95,
+                    "citation_validity": 0.60,
+                    "latency_ms": 150.0,
+                    "uncertainty": 0.18,
+                }
+            return {
+                "utility": 0.50,
+                "citation_validity": 0.50,
+                "latency_ms": 170.0,
+                "uncertainty": 0.05,
+            }
+
+        orchestrator._expected_objectives = types.MethodType(
+            _fake_expected_objectives,
+            orchestrator,
+        )
+
+        bm25, _ = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics={
+                "query_concept_coverage_score": 0.7,
+                "diversity_score": 0.6,
+                "redundancy_score": 0.2,
+                "centrality_grounding_score": 0.6,
+            },
+            query_category="clinical",
+            query_difficulty="hard",
+        )
+
+        # With risk_score~1.0, max step should be limited to 0.10 from 0.5.
+        assert bm25 <= 0.6
+
+    def test_counterfactual_policy_eval_reports_doubly_robust_values(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "dr_counterfactual.jsonl",
+        )
+
+        diagnostics = {
+            "query_concept_coverage_score": 0.72,
+            "diversity_score": 0.58,
+            "redundancy_score": 0.21,
+            "centrality_grounding_score": 0.60,
+        }
+        for w in [0.3, 0.4, 0.5, 0.6, 0.7]:
+            utility = max(0.0, 1.0 - ((w - 0.65) / 0.22) ** 2)
+            orchestrator._record_fusion_outcome(
+                bm25_weight=w,
+                diagnostics=diagnostics,
+                utility=utility,
+                query_text="hard clinical archetype",
+                query_category="clinical",
+                query_difficulty="hard",
+            )
+
+        replay = orchestrator._evaluate_counterfactual_policies()
+        segment = replay["by_segment"]["clinical|hard"]
+        assert segment["dr_value"] >= 0.0
+        assert segment["ips_value"] >= 0.0
+        assert segment["dm_value"] >= 0.0
+        assert segment["dr_model_gap"] >= 0.0
+
+    def test_online_objective_weights_learn_per_segment(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "learned_objectives.jsonl",
+        )
+
+        base_diagnostics = {
+            "query_concept_coverage_score": 0.8,
+            "diversity_score": 0.6,
+            "redundancy_score": 0.15,
+            "centrality_grounding_score": 0.62,
+        }
+        for idx, weight in enumerate([0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.72]):
+            utility = max(0.0, min(1.0, 0.25 + (0.85 * weight)))
+            orchestrator._record_fusion_outcome(
+                bm25_weight=weight,
+                diagnostics=base_diagnostics,
+                utility=utility,
+                query_text=f"method hard sample {idx}",
+                query_category="method",
+                query_difficulty="hard",
+            )
+
+        weights = orchestrator._objective_weights_for_segment("method|hard")
+        assert weights["utility"] > weights["latency"]
+        assert pytest.approx(1.0, abs=1e-6) == (
+            weights["utility"]
+            + weights["citation_validity"]
+            + weights["latency"]
+        )
+
+    def test_uncertainty_decomposition_gates_exploration(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "uncertainty_decomposition.jsonl",
+            exploration_alpha=0.2,
+        )
+
+        segment_key = orchestrator._segment_key("clinical", "hard")
+        orchestrator._calibration_error_decomposition_by_segment[segment_key] = {
+            "aleatoric": 0.16,
+            "epistemic": 0.03,
+            "aleatoric_share": 0.84,
+            "epistemic_share": 0.16,
+        }
+        noisy_gate = orchestrator._uncertainty_decomposition(segment_key)["exploration_gate"]
+
+        orchestrator._calibration_error_decomposition_by_segment[segment_key] = {
+            "aleatoric": 0.03,
+            "epistemic": 0.14,
+            "aleatoric_share": 0.18,
+            "epistemic_share": 0.82,
+        }
+        epistemic_gate = orchestrator._uncertainty_decomposition(segment_key)["exploration_gate"]
+
+        assert noisy_gate < 1.0
+        assert epistemic_gate > noisy_gate
+
 
 # ---------------------------------------------------------------------------
 # AgenticRAGOrchestrator – DECOMPOSE path

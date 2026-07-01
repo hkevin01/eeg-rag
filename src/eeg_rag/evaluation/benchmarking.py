@@ -1323,6 +1323,56 @@ class EEGRAGBenchmark:
                 f"delta={delta:.3f} < required_margin={self.hard_archetype_utility_margin:.3f}"
             )
 
+    def _validate_monotonic_safety_response(
+        self,
+        hard_archetype_profiles: Dict[str, Dict[str, float]],
+    ) -> Dict[str, Any]:
+        """Validate step-radius contraction as regret/drift risk increases."""
+        failing: List[str] = []
+        for archetype, profile in hard_archetype_profiles.items():
+            low = float(profile.get("low_risk_max_step", 0.0))
+            medium = float(profile.get("medium_risk_max_step", 0.0))
+            high = float(profile.get("high_risk_max_step", 0.0))
+            if not (low >= medium >= high):
+                failing.append(
+                    f"{archetype}: low={low:.3f}, medium={medium:.3f}, high={high:.3f}"
+                )
+
+        return {
+            "valid": len(failing) == 0,
+            "checked": len(hard_archetype_profiles),
+            "failing": failing,
+        }
+
+    def _validate_temporal_forgetting_safety(
+        self,
+        before: Dict[str, float],
+        after: Dict[str, float],
+        citation_validity_floor: float = 0.62,
+    ) -> Dict[str, Any]:
+        """Check forgetting schedule improves hard utility without citation harm."""
+        before_hard = float(before.get("hard_archetype_uncertainty_adjusted_utility", 0.0))
+        after_hard = float(after.get("hard_archetype_uncertainty_adjusted_utility", 0.0))
+        before_valid = float(before.get("citation_validity_proxy", 0.0))
+        after_valid = float(after.get("citation_validity_proxy", 0.0))
+
+        hard_improved = after_hard >= before_hard
+        citation_safe = (
+            after_valid >= citation_validity_floor
+            and after_valid >= (before_valid - 0.01)
+        )
+
+        return {
+            "valid": bool(hard_improved and citation_safe),
+            "hard_utility_delta": after_hard - before_hard,
+            "citation_validity_delta": after_valid - before_valid,
+            "citation_validity_floor": citation_validity_floor,
+            "hard_utility_before": before_hard,
+            "hard_utility_after": after_hard,
+            "citation_validity_before": before_valid,
+            "citation_validity_after": after_valid,
+        }
+
     def _monitor_calibration_drift(
         self,
         predicted_utilities: List[float],
@@ -1885,6 +1935,7 @@ class EEGRAGBenchmark:
             ndcg_by_category: Dict[str, List[float]] = defaultdict(list)
             ndcg_by_difficulty: Dict[str, List[float]] = defaultdict(list)
             hard_uncertainty_adjusted_utility_values: List[float] = []
+            citation_validity_values: List[float] = []
 
             for fixture in archetypes:
                 archetype_name = str(fixture["name"])
@@ -1948,6 +1999,15 @@ class EEGRAGBenchmark:
                         + (0.2 * (1.0 - redundancy)),
                     ),
                 )
+                citation_validity_proxy = max(
+                    0.0,
+                    min(
+                        1.0,
+                        (0.55 * concept_coverage)
+                        + (0.25 * centrality)
+                        + (0.20 * (1.0 - redundancy)),
+                    ),
+                )
 
                 ndcg_values.append(ranking_ndcg)
                 ndcg_by_category[category].append(ranking_ndcg)
@@ -1962,6 +2022,7 @@ class EEGRAGBenchmark:
                     hard_uncertainty_adjusted_utility_values.append(
                         uncertainty_adjusted_utility
                     )
+                citation_validity_values.append(citation_validity_proxy)
 
                 per_archetype[archetype_name] = {
                     "category": category,
@@ -1972,6 +2033,7 @@ class EEGRAGBenchmark:
                     "grounding_quality": grounding_quality,
                     "mean_citation_utility": mean_utility,
                     "uncertainty_adjusted_utility": uncertainty_adjusted_utility,
+                    "citation_validity_proxy": citation_validity_proxy,
                     "ranking_ndcg": ranking_ndcg,
                 }
 
@@ -1994,6 +2056,7 @@ class EEGRAGBenchmark:
                     if hard_uncertainty_adjusted_utility_values
                     else 0.0
                 ),
+                "citation_validity_proxy": statistics.mean(citation_validity_values),
                 "ranking_ndcg": statistics.mean(ndcg_values),
                 "ranking_ndcg_ci_lower": ndcg_ci["ci_lower"],
                 "ranking_ndcg_ci_upper": ndcg_ci["ci_upper"],
@@ -2009,6 +2072,14 @@ class EEGRAGBenchmark:
                 "calibration_drift": drift_summary,
                 "per_archetype": per_archetype,
             }
+
+        if "weighted" in strategy_scores and "concept_aware" in strategy_scores:
+            strategy_scores["concept_aware"]["temporal_forgetting_validation"] = (
+                self._validate_temporal_forgetting_safety(
+                    before=strategy_scores["weighted"],
+                    after=strategy_scores["concept_aware"],
+                )
+            )
 
         return strategy_scores
 
