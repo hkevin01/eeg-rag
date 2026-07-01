@@ -208,6 +208,33 @@ class TestContextAggregator:
         assert result.agent_contributions['web'] == 1
 
     @pytest.mark.asyncio
+    async def test_structured_concept_coverage(self):
+        """Test structured concept-group coverage diagnostics."""
+        aggregator = ContextAggregator(relevance_threshold=0.0, entity_min_frequency=1)
+
+        agent_results = {
+            'local': {
+                'data': [
+                    {
+                        'pmid': '333',
+                        'title': 'EEG biomarkers for epilepsy',
+                        'abstract': 'Alpha power biomarkers in epilepsy monitoring',
+                        'relevance_score': 0.9,
+                    }
+                ]
+            }
+        }
+
+        result = await aggregator.aggregate(
+            'EEG biomarkers and methods for epilepsy',
+            agent_results,
+        )
+
+        stats = result.statistics
+        assert stats['query_concept_coverage_score'] < 1.0
+        assert any('method' in item for item in stats['missing_query_concept_groups'])
+
+    @pytest.mark.asyncio
     async def test_deduplication_by_pmid(self):
         """Test citation deduplication by PMID"""
         aggregator = ContextAggregator(

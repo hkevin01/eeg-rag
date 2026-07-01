@@ -405,6 +405,7 @@ class ContextAggregator:
         self.stats['total_entities_extracted'] += len(entities)
 
         query_entities = self._extract_query_entities(query)
+        query_concepts = self._extract_query_concepts(query)
         covered_query_entities = sorted({
             entity for entity in query_entities
             if any(
@@ -412,6 +413,9 @@ class ContextAggregator:
                 for citation in final_citations
             )
         })
+        covered_query_concepts, missing_query_concepts, concept_coverage_score = (
+            self._coverage_from_concepts(query_concepts, final_citations)
+        )
         missing_query_entities = [
             entity for entity in query_entities if entity not in covered_query_entities
         ]
@@ -442,6 +446,10 @@ class ContextAggregator:
             'covered_query_entities': covered_query_entities,
             'missing_query_entities': missing_query_entities,
             'query_entity_coverage_score': entity_coverage_score,
+            'query_concept_groups': query_concepts,
+            'covered_query_concept_groups': covered_query_concepts,
+            'missing_query_concept_groups': missing_query_concepts,
+            'query_concept_coverage_score': concept_coverage_score,
             **diversity_diagnostics,
         }
 
@@ -696,6 +704,47 @@ class ContextAggregator:
                         matches.add(value)
         return sorted(matches)
 
+    def _extract_query_concepts(self, query: str) -> Dict[str, List[str]]:
+        """Extract structured concept groups from the query."""
+        query_lower = query.lower()
+        concept_groups: Dict[str, List[str]] = {}
+        for entity_type, patterns in self.entity_patterns.items():
+            matches: Set[str] = set()
+            for pattern in patterns:
+                for match in re.finditer(pattern, query_lower, flags=re.IGNORECASE):
+                    value = match.group(0).strip().lower()
+                    if value:
+                        matches.add(value)
+            if matches:
+                concept_groups[entity_type] = sorted(matches)
+        return concept_groups
+
+    def _coverage_from_concepts(
+        self,
+        query_concepts: Dict[str, List[str]],
+        citations: List[Citation],
+    ) -> Tuple[List[str], List[str], float]:
+        """Measure structured concept coverage from the retrieved citations."""
+        if not query_concepts:
+            return [], [], 1.0
+
+        combined_text = " ".join(
+            f"{citation.title} {citation.abstract or ''}".lower()
+            for citation in citations
+        )
+        covered: List[str] = []
+        missing: List[str] = []
+
+        for concept_group, terms in query_concepts.items():
+            if any(term in combined_text for term in terms):
+                covered.append(concept_group)
+            else:
+                label = terms[0] if terms else concept_group
+                missing.append(f"{concept_group}: {label}")
+
+        coverage = len(covered) / len(query_concepts)
+        return sorted(covered), missing, coverage
+
     # ---------------------------------------------------------------------------
     # ID           : ensemble.context_aggregator.ContextAggregator._extract_entities
     # Requirement  : `_extract_entities` shall extract entities from citations
@@ -815,7 +864,7 @@ class ContextAggregator:
             'agent_usage': dict(self.stats['agent_usage']),
             'relevance_threshold': self.relevance_threshold,
             'max_citations': self.max_citations,
-            'ranking_strategy': self.ranking_strategy
+            'ranking_strategy': self.ranking_strategy,
         }
 
     # ---------------------------------------------------------------------------

@@ -745,14 +745,28 @@ class SufficiencyEvaluator:
         redundancy_score = 0.0
         diversity_score = 1.0
         query_entity_coverage_score = coverage_score
+        query_concept_coverage_score = coverage_score
         if diagnostics:
             redundancy_score = float(diagnostics.get("redundancy_score", 0.0))
             diversity_score = float(diagnostics.get("diversity_score", 1.0))
             query_entity_coverage_score = float(
                 diagnostics.get("query_entity_coverage_score", coverage_score)
             )
-            missing = diagnostics.get("missing_query_entities", missing)
-            coverage_score = max(coverage_score, query_entity_coverage_score)
+            query_concept_coverage_score = float(
+                diagnostics.get(
+                    "query_concept_coverage_score",
+                    query_entity_coverage_score,
+                )
+            )
+            missing = diagnostics.get(
+                "missing_query_concept_groups",
+                diagnostics.get("missing_query_entities", missing),
+            )
+            coverage_score = max(
+                coverage_score,
+                query_entity_coverage_score,
+                query_concept_coverage_score,
+            )
         if (
             decision.detected_entities
             and coverage_score < self._coverage_threshold
@@ -1112,7 +1126,13 @@ class QueryReformulator:
     def _apply_narrow(current_query: str, missing: List[str]) -> str:
         """Append missing aspect terms to focus retrieval."""
         if missing:
-            return f"{current_query} {' '.join(missing[:2])}"
+            narrowed_terms: List[str] = []
+            for aspect in missing[:2]:
+                term = aspect.split(":", 1)[-1].strip() if ":" in aspect else aspect
+                if term:
+                    narrowed_terms.append(term)
+            if narrowed_terms:
+                return f"{current_query} {' '.join(narrowed_terms)}"
         return current_query
 
     # ------------------------------------------------------------------
@@ -1448,6 +1468,13 @@ class AgenticRAGOrchestrator:
                 check.explanation,
             )
 
+            adaptive_bm25, adaptive_dense = self._derive_fusion_weights(
+                check=check,
+                diagnostics=diagnostics,
+                bm25_weight=bm25_weight,
+                dense_weight=dense_weight,
+            )
+
             # Decide on reformulation for next round (if any)
             reformulation: Optional[ReformulationResult] = None
             if check.status != SufficiencyStatus.SUFFICIENT:
@@ -1496,8 +1523,16 @@ class AgenticRAGOrchestrator:
             if reformulation:
                 prior_strategies.append(reformulation.strategy)
                 current_query = reformulation.new_query
-                bm25_weight = reformulation.bm25_weight_hint
-                dense_weight = reformulation.dense_weight_hint
+                bm25_weight = (
+                    reformulation.bm25_weight_hint
+                    if reformulation.bm25_weight_hint is not None
+                    else adaptive_bm25
+                )
+                dense_weight = (
+                    reformulation.dense_weight_hint
+                    if reformulation.dense_weight_hint is not None
+                    else adaptive_dense
+                )
 
         return best_results, steps
 
@@ -1557,6 +1592,44 @@ class AgenticRAGOrchestrator:
                 reordered.append(result)
 
         return reordered, dict(aggregated.statistics)
+
+    @staticmethod
+    def _derive_fusion_weights(
+        check: SufficiencyCheck,
+        diagnostics: Dict[str, Any],
+        bm25_weight: Optional[float],
+        dense_weight: Optional[float],
+    ) -> Tuple[float, float]:
+        """Adapt BM25/dense fusion weights from aggregation diagnostics."""
+        base_bm25 = 0.5 if bm25_weight is None else bm25_weight
+        redundancy = float(diagnostics.get("redundancy_score", 0.0))
+        diversity = float(diagnostics.get("diversity_score", 1.0))
+        concept_coverage = float(
+            diagnostics.get(
+                "query_concept_coverage_score",
+                diagnostics.get("query_entity_coverage_score", 1.0),
+            )
+        )
+
+        sparse_bias = 0.0
+        if redundancy >= 0.75 or diversity <= 0.35:
+            sparse_bias += min(
+                0.25,
+                max(0.0, (redundancy - 0.75) * 0.8)
+                + max(0.0, (0.35 - diversity) * 0.5),
+            )
+        if concept_coverage < 0.8:
+            sparse_bias += 0.10
+        if check.status == SufficiencyStatus.LOW_COVERAGE:
+            sparse_bias += 0.10
+        elif check.status == SufficiencyStatus.LOW_DIVERSITY:
+            sparse_bias += 0.15
+        elif check.status == SufficiencyStatus.LOW_RELEVANCE:
+            sparse_bias -= 0.10
+
+        next_bm25 = max(0.2, min(0.8, base_bm25 + sparse_bias))
+        next_dense = 1.0 - next_bm25
+        return round(next_bm25, 3), round(next_dense, 3)
 
     # ------------------------------------------------------------------
     # Retrieval helper (runs sync retriever in executor)

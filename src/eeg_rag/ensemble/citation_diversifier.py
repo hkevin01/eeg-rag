@@ -263,7 +263,7 @@ class CitationDiversifier:
     def _extract_embedding(self, citation: Any) -> Optional[np.ndarray]:
         """Read a dense embedding vector from citation metadata when present."""
         metadata = self._metadata(citation)
-        for key in ("embedding_vector", "dense_embedding", "embedding"):
+        for key in ("embedding_vector", "centroid_sketch", "dense_embedding", "embedding"):
             value = metadata.get(key)
             if isinstance(value, list) and value:
                 return np.asarray(value, dtype=np.float32)

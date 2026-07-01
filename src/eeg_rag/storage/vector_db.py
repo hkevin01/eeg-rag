@@ -338,6 +338,8 @@ class VectorDB:
                 # Extract payload (include ALL fields - text is needed for retrieval)
                 payload = dict(doc)  # Include everything
                 payload['text_length'] = len(doc.get(text_field, ""))
+                payload['embedding_vector'] = embedding.tolist()
+                payload['centroid_sketch'] = self._build_centroid_sketch(embedding)
 
                 points.append(
                     PointStruct(
@@ -364,6 +366,21 @@ class VectorDB:
         except Exception as e:
             logger.error(f"Failed to index documents: {e}")
             return 0
+
+    @staticmethod
+    def _build_centroid_sketch(embedding: np.ndarray, sketch_size: int = 16) -> List[float]:
+        """Build a compact centroid sketch from a dense embedding."""
+        vector = np.asarray(embedding, dtype=np.float32).flatten()
+        if vector.size == 0:
+            return []
+
+        sketch_size = max(1, min(sketch_size, vector.size))
+        chunks = np.array_split(vector, sketch_size)
+        sketch = np.asarray([float(chunk.mean()) for chunk in chunks], dtype=np.float32)
+        norm = float(np.linalg.norm(sketch))
+        if norm > 0.0:
+            sketch = sketch / norm
+        return sketch.tolist()
 
     # ---------------------------------------------------------------------------
     # ID           : storage.vector_db.VectorDB.search
