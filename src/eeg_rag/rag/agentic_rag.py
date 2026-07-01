@@ -52,6 +52,7 @@ import asyncio
 import logging
 import re
 import time
+import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
@@ -1476,6 +1477,11 @@ class AgenticRAGOrchestrator:
                 bm25_weight=bm25_weight,
                 dense_weight=dense_weight,
             )
+            adaptive_bm25, adaptive_dense = self._optimize_fusion_for_expected_utility(
+                bm25_weight=adaptive_bm25,
+                dense_weight=adaptive_dense,
+                diagnostics=diagnostics,
+            )
             self._set_persistent_fusion_weights(adaptive_bm25, adaptive_dense)
 
             # Decide on reformulation for next round (if any)
@@ -1646,6 +1652,65 @@ class AgenticRAGOrchestrator:
         self._persistent_dense_weight = normalized_dense
         self._retriever.bm25_weight = normalized_bm25
         self._retriever.dense_weight = normalized_dense
+
+    @staticmethod
+    def _expected_citation_utility(
+        diagnostics: Dict[str, Any],
+        bm25_weight: float,
+    ) -> float:
+        """Estimate expected citation utility from diagnostics and sparse/dense mix."""
+        concept_coverage = float(
+            diagnostics.get(
+                "query_concept_coverage_score",
+                diagnostics.get("query_entity_coverage_score", 0.0),
+            )
+        )
+        redundancy = float(diagnostics.get("redundancy_score", 0.0))
+        diversity = float(diagnostics.get("diversity_score", 1.0))
+        centrality = float(
+            diagnostics.get(
+                "centrality_grounding_score",
+                diagnostics.get("mean_centrality_score", 0.0),
+            )
+        )
+
+        dense_weight = 1.0 - bm25_weight
+
+        # Lightweight response model for retrieval mix impact.
+        coverage_pred = max(0.0, min(1.0, concept_coverage + 0.30 * (dense_weight - 0.5)))
+        diversity_pred = max(0.0, min(1.0, diversity + 0.25 * (dense_weight - 0.5)))
+        redundancy_pred = max(0.0, min(1.0, redundancy + 0.40 * (bm25_weight - 0.5)))
+        centrality_pred = max(0.0, min(1.0, centrality + 0.20 * (dense_weight - 0.5)))
+
+        utility = (
+            0.45 * coverage_pred
+            + 0.25 * diversity_pred
+            + 0.20 * centrality_pred
+            + 0.10 * (1.0 - redundancy_pred)
+        )
+        return max(0.0, min(1.0, utility))
+
+    def _optimize_fusion_for_expected_utility(
+        self,
+        bm25_weight: float,
+        dense_weight: float,
+        diagnostics: Dict[str, Any],
+    ) -> Tuple[float, float]:
+        """Choose BM25/dense mix that maximizes expected citation utility."""
+        _ = dense_weight
+        candidate_weights = [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
+
+        best_bm25 = bm25_weight
+        best_score = self._expected_citation_utility(diagnostics, bm25_weight)
+
+        for candidate in candidate_weights:
+            score = self._expected_citation_utility(diagnostics, candidate)
+            if score > best_score:
+                best_score = score
+                best_bm25 = candidate
+
+        best_dense = round(1.0 - best_bm25, 3)
+        return round(best_bm25, 3), best_dense
 
     # ------------------------------------------------------------------
     # Retrieval helper (runs sync retriever in executor)

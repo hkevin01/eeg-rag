@@ -307,19 +307,21 @@ def render_welcome_banner():
     if "welcomed" not in st.session_state:
         st.markdown(
             """
-        <div class="edu-callout" style="margin-bottom: 2rem;">
-            <div class="edu-callout-title">
-                👋 Welcome to EEG-RAG Research Assistant
+        <section class="wcag-section">
+            <div class="edu-callout">
+                <div class="edu-callout-title">
+                    👋 Welcome to EEG-RAG Research Assistant
+                </div>
+                <div style="color: #1F2937; font-size: 0.95rem; line-height: 1.6;">
+                    This AI-powered system helps you search and synthesize information from
+                    <strong>52,000+ EEG research papers</strong>. Every response includes
+                    verified citations with PMID links.
+                    <br/><br/>
+                    <strong>Quick Start:</strong> Type your research question below, or explore
+                    the Learn tab to understand how the system works.
+                </div>
             </div>
-            <div style="color: #a0a0c0; font-size: 0.9rem; line-height: 1.6;">
-                This AI-powered system helps you search and synthesize information from
-                <strong>52,000+ EEG research papers</strong>. Every response includes
-                verified citations with PMID links.
-                <br/><br/>
-                <strong>Quick Start:</strong> Type your research question below, or explore
-                the "Learn" tab to understand how the system works.
-            </div>
-        </div>
+        </section>
         """,
             unsafe_allow_html=True,
         )
@@ -356,72 +358,58 @@ def render_system_status_bar():
     paper_count = stats.get("papers_indexed", "0")
     ai_agents = stats.get("ai_agents", "8")
 
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.markdown(
-            """
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%;
-                         animation: pulse 2s infinite;"></span>
-            <span style="color: #888; font-size: 0.8rem;">System Online</span>
-        </div>
-        <style>
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
-        </style>
-        """,
-            unsafe_allow_html=True,
-        )
-
-    with col2:
-        st.markdown(
-            f"""
-        <div style="color: #888; font-size: 0.8rem;">
-            💾 {paper_count} cached | 🌐 200M+ searchable
-        </div>
-        <div style="color: #999; font-size: 0.65rem;">
-            PubMed • Semantic Scholar • arXiv • OpenAlex • CrossRef
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-    with col3:
-        st.markdown(
-            f"""
-        <div style="color: #888; font-size: 0.8rem;">
-            🤖 {ai_agents} agents ready
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-    with col4:
-        queries = len(st.session_state.get("query_history", []))
-        st.markdown(
-            f"""
-        <div style="color: #888; font-size: 0.8rem;">
-            🔍 {queries} queries this session
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-    with col5:
-        st.markdown(
-            """
-        <div style="color: #888; font-size: 0.8rem;">
-            ⚡ Avg. response: 2.3s
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
+    queries = len(st.session_state.get("query_history", []))
     st.markdown(
-        "<hr style='margin: 0.75rem 0; border-color: #2d2d4d;'>", unsafe_allow_html=True
+        f"""
+    <section class="wcag-section">
+        <div class="wcag-card">
+            <div class="container-fluid p-0">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">● System</div>
+                            <div style="font-size:1rem; font-weight:700; color:#065F46;">Online</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">💾 Cached Papers</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1F2937;">{paper_count}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">🤖 Active Agents</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1F2937;">{ai_agents}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">🔍 Session Queries</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1F2937;">{queries}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">⚡ Avg Response</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1F2937;">2.3s</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="wcag-card" style="margin-bottom:0; background:#F5F7F9;">
+                            <div style="font-size:0.85rem; color:#4B5563;">🌐 Search Coverage</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1F2937;">200M+ records</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p style="margin-top:16px; margin-bottom:0; color:#4B5563; font-size:0.875rem; line-height:1.5;">
+                PubMed | Semantic Scholar | arXiv | OpenAlex | CrossRef
+            </p>
+        </div>
+    </section>
+    """,
+        unsafe_allow_html=True,
     )
 
 
