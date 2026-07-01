@@ -23,6 +23,7 @@ mocked so tests remain fast and network-free.
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 import types
 import pytest
@@ -732,14 +733,16 @@ class TestAgenticRAGOrchestratorMultiIteration:
         assert retriever.dense_weight != 0.5
         assert retriever.bm25_weight + retriever.dense_weight == pytest.approx(1.0)
 
-    def test_response_surface_fitting_changes_selected_fusion_weight(self):
+    def test_response_surface_fitting_changes_selected_fusion_weight(self, tmp_path):
         retriever = self._make_retriever_sequence([[]])
         generator = _make_generator("Answer.")
+        log_path = tmp_path / "isolated_fusion_outcomes.jsonl"
         orchestrator = AgenticRAGOrchestrator(
             retriever=retriever,
             generator=generator,
             max_iterations=1,
             min_docs=1,
+            fusion_outcome_log_path=log_path,
         )
 
         diagnostics = {
@@ -785,6 +788,67 @@ class TestAgenticRAGOrchestratorMultiIteration:
 
         assert learned_bm25 != pytest.approx(baseline_bm25)
         assert learned_bm25 > baseline_bm25
+        assert learned_dense == pytest.approx(1.0 - learned_bm25)
+
+    def test_response_surface_warm_starts_from_persisted_outcomes(self, tmp_path):
+        log_path = tmp_path / "fusion_outcomes.jsonl"
+        diagnostics = {
+            "query_concept_coverage_score": 0.7,
+            "diversity_score": 0.6,
+            "redundancy_score": 0.25,
+            "centrality_grounding_score": 0.55,
+        }
+
+        entries = []
+        for bm25_weight in [0.2, 0.25, 0.3, 0.35, 0.4, 0.45]:
+            entries.append(
+                {
+                    "bm25_weight": bm25_weight,
+                    "utility": 0.32,
+                    "concept": diagnostics["query_concept_coverage_score"],
+                    "diversity": diagnostics["diversity_score"],
+                    "redundancy": diagnostics["redundancy_score"],
+                    "centrality": diagnostics["centrality_grounding_score"],
+                }
+            )
+        for bm25_weight in [0.6, 0.65, 0.7, 0.75, 0.8, 0.78]:
+            entries.append(
+                {
+                    "bm25_weight": bm25_weight,
+                    "utility": 0.9,
+                    "concept": diagnostics["query_concept_coverage_score"],
+                    "diversity": diagnostics["diversity_score"],
+                    "redundancy": diagnostics["redundancy_score"],
+                    "centrality": diagnostics["centrality_grounding_score"],
+                }
+            )
+
+        log_path.write_text(
+            "\n".join(json.dumps(entry) for entry in entries) + "\n",
+            encoding="utf-8",
+        )
+
+        retriever = self._make_retriever_sequence([[]])
+        generator = _make_generator("Answer.")
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=generator,
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=log_path,
+        )
+
+        assert orchestrator._response_surface_coeffs is not None
+
+        learned_bm25, learned_dense = (
+            orchestrator._optimize_fusion_for_expected_utility(
+                bm25_weight=0.5,
+                dense_weight=0.5,
+                diagnostics=diagnostics,
+            )
+        )
+
+        assert learned_bm25 > 0.5
         assert learned_dense == pytest.approx(1.0 - learned_bm25)
 
 

@@ -49,12 +49,14 @@ response generator:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import re
 import time
 import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 from eeg_rag.ensemble.context_aggregator import ContextAggregator
@@ -1250,6 +1252,8 @@ class AgenticRAGOrchestrator:
         min_docs: int = _MIN_DOCS_DEFAULT,
         min_relevance: float = _MIN_RELEVANCE_DEFAULT,
         top_k: int = 10,
+        fusion_outcome_log_path: Optional[Path] = None,
+        max_fusion_outcomes: int = 250,
     ) -> None:
         self._retriever = retriever
         self._generator = generator
@@ -1274,11 +1278,88 @@ class AgenticRAGOrchestrator:
         self._fusion_outcome_log: List[Dict[str, float]] = []
         self._response_surface_coeffs: Optional[np.ndarray] = None
         self._response_surface_min_samples = 12
+        self._max_fusion_outcomes = max(50, int(max_fusion_outcomes))
+        self._fusion_outcome_log_path = (
+            Path("data/search_history/fusion_outcomes.jsonl")
+            if fusion_outcome_log_path is None
+            else Path(fusion_outcome_log_path)
+        )
+        self._restore_fusion_outcomes_from_log()
 
         logger.info(
             "AgenticRAGOrchestrator ready "
             f"(max_iterations={max_iterations}, top_k={top_k})"
         )
+
+    def _restore_fusion_outcomes_from_log(self) -> None:
+        """Warm-load past fusion outcomes to initialize response-surface state."""
+        if not self._fusion_outcome_log_path.exists():
+            return
+
+        try:
+            lines = self._fusion_outcome_log_path.read_text(
+                encoding="utf-8"
+            ).splitlines()
+        except OSError as exc:
+            logger.warning(
+                "Could not read fusion outcome log %s: %s",
+                self._fusion_outcome_log_path,
+                exc,
+            )
+            return
+
+        loaded: List[Dict[str, float]] = []
+        for raw_line in lines[-self._max_fusion_outcomes :]:
+            if not raw_line.strip():
+                continue
+            try:
+                payload = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+
+            entry = {
+                "bm25_weight": float(payload.get("bm25_weight", 0.5)),
+                "utility": float(payload.get("utility", 0.0)),
+                "concept": float(payload.get("concept", 0.0)),
+                "diversity": float(payload.get("diversity", 1.0)),
+                "redundancy": float(payload.get("redundancy", 0.0)),
+                "centrality": float(payload.get("centrality", 0.0)),
+            }
+            loaded.append(
+                {
+                    "bm25_weight": max(0.0, min(1.0, entry["bm25_weight"])),
+                    "utility": max(0.0, min(1.0, entry["utility"])),
+                    "concept": max(0.0, min(1.0, entry["concept"])),
+                    "diversity": max(0.0, min(1.0, entry["diversity"])),
+                    "redundancy": max(0.0, min(1.0, entry["redundancy"])),
+                    "centrality": max(0.0, min(1.0, entry["centrality"])),
+                }
+            )
+
+        self._fusion_outcome_log = loaded[-self._max_fusion_outcomes :]
+        if self._fusion_outcome_log:
+            self._fit_response_surface()
+            logger.info(
+                "Loaded %d historical fusion outcomes from %s",
+                len(self._fusion_outcome_log),
+                self._fusion_outcome_log_path,
+            )
+
+    def _persist_fusion_outcome(self, entry: Dict[str, float]) -> None:
+        """Append a single outcome observation to the persistent JSONL log."""
+        try:
+            self._fusion_outcome_log_path.parent.mkdir(parents=True, exist_ok=True)
+            with self._fusion_outcome_log_path.open(
+                "a",
+                encoding="utf-8",
+            ) as handle:
+                handle.write(json.dumps(entry, separators=(",", ":")) + "\n")
+        except OSError as exc:
+            logger.warning(
+                "Could not persist fusion outcome to %s: %s",
+                self._fusion_outcome_log_path,
+                exc,
+            )
 
     # ------------------------------------------------------------------
     # Public API
@@ -1738,28 +1819,46 @@ class AgenticRAGOrchestrator:
         utility: float,
     ) -> None:
         """Log retrieval outcomes and update learned response surface."""
-        self._fusion_outcome_log.append(
-            {
-                "bm25_weight": float(bm25_weight),
-                "utility": float(max(0.0, min(1.0, utility))),
-                "concept": float(
-                    diagnostics.get(
-                        "query_concept_coverage_score",
-                        diagnostics.get("query_entity_coverage_score", 0.0),
-                    )
-                ),
-                "diversity": float(diagnostics.get("diversity_score", 1.0)),
-                "redundancy": float(diagnostics.get("redundancy_score", 0.0)),
-                "centrality": float(
-                    diagnostics.get(
-                        "centrality_grounding_score",
-                        diagnostics.get("mean_centrality_score", 0.0),
-                    )
-                ),
-            }
-        )
-        if len(self._fusion_outcome_log) > 250:
-            self._fusion_outcome_log = self._fusion_outcome_log[-250:]
+        entry = {
+            "bm25_weight": float(max(0.0, min(1.0, bm25_weight))),
+            "utility": float(max(0.0, min(1.0, utility))),
+            "concept": float(
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        diagnostics.get(
+                            "query_concept_coverage_score",
+                            diagnostics.get("query_entity_coverage_score", 0.0),
+                        ),
+                    ),
+                )
+            ),
+            "diversity": float(
+                max(0.0, min(1.0, diagnostics.get("diversity_score", 1.0)))
+            ),
+            "redundancy": float(
+                max(0.0, min(1.0, diagnostics.get("redundancy_score", 0.0)))
+            ),
+            "centrality": float(
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        diagnostics.get(
+                            "centrality_grounding_score",
+                            diagnostics.get("mean_centrality_score", 0.0),
+                        ),
+                    ),
+                )
+            ),
+        }
+        self._fusion_outcome_log.append(entry)
+        if len(self._fusion_outcome_log) > self._max_fusion_outcomes:
+            self._fusion_outcome_log = self._fusion_outcome_log[
+                -self._max_fusion_outcomes :
+            ]
+        self._persist_fusion_outcome(entry)
         self._fit_response_surface()
 
     def _fit_response_surface(self) -> None:
