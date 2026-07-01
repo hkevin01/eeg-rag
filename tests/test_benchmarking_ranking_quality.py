@@ -6,6 +6,8 @@ import sys
 import types
 from types import SimpleNamespace
 
+import pytest
+
 
 def _install_dependency_stubs() -> None:
     """Install lightweight module stubs for optional heavy dependencies."""
@@ -24,6 +26,14 @@ def _install_dependency_stubs() -> None:
 
     setattr(sent_mod, "SentenceTransformer", _DummySentenceTransformer)
     sys.modules["sentence_transformers"] = sent_mod
+
+    sent_util_mod = types.ModuleType("sentence_transformers.util")
+
+    def _cos_sim(*args, **kwargs):
+        return 0.0
+
+    setattr(sent_util_mod, "cos_sim", _cos_sim)
+    sys.modules["sentence_transformers.util"] = sent_util_mod
 
 
 def _import_benchmark_module():
@@ -154,3 +164,23 @@ def test_export_includes_ranking_ci_and_drift_fields(tmp_path) -> None:
     assert summary["concept_aware_ranking_ndcg_ci"]["lower"] == 0.76
     assert summary["concept_aware_ranking_ndcg_ci"]["upper"] == 0.87
     assert summary["concept_aware_calibration_drift"]["status"] == "ok"
+
+
+def test_hard_archetype_uncertainty_guard_raises_on_regression() -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.hard_archetype_utility_margin = 0.02
+
+    ranking_comparison = {
+        "weighted": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.64,
+        },
+        "concept_aware": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.61,
+        },
+    }
+
+    with pytest.raises(RuntimeError):
+        benchmark._enforce_uncertainty_adjusted_utility_guard(ranking_comparison)

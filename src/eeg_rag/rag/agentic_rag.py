@@ -55,6 +55,7 @@ import logging
 import math
 import re
 import time
+import statistics
 import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
@@ -2283,6 +2284,17 @@ class AgenticRAGOrchestrator:
             "feedback_score": float(max(-1.0, min(1.0, feedback_score))),
             "click_through_rate": float(max(0.0, min(1.0, click_through_rate))),
         }
+        segment_key = self._segment_key(query_category, query_difficulty)
+        self._segment_decay_state.setdefault(
+            segment_key,
+            {
+                "half_life_multiplier": 1.0,
+                "baseline_residual_var": None,
+                "drift_strikes": 0.0,
+                "last_residual_var": None,
+                "last_relative_shift": 0.0,
+            },
+        )
         self._fusion_outcome_log.append(entry)
         if len(self._fusion_outcome_log) > self._max_fusion_outcomes:
             self._fusion_outcome_log = self._fusion_outcome_log[

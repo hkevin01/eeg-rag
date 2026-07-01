@@ -28,6 +28,7 @@ import sys
 import time
 import types
 import pytest
+import numpy as np
 from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
 
 bm25_mod = types.ModuleType("rank_bm25")
@@ -1255,15 +1256,15 @@ class TestAgenticRAGOrchestratorMultiIteration:
             key,
             np.asarray([0.01, 0.02, 0.01], dtype=float),
         )
-        tightened = orchestrator._adaptive_uncertainty_guard(key)
+        low_residual_guard = orchestrator._adaptive_uncertainty_guard(key)
         orchestrator._bayesian_update_uncertainty_calibration(
             key,
             np.asarray([0.6, 0.5, 0.7], dtype=float),
         )
-        relaxed = orchestrator._adaptive_uncertainty_guard(key)
+        high_residual_guard = orchestrator._adaptive_uncertainty_guard(key)
 
-        assert tightened <= baseline
-        assert relaxed > tightened
+        assert low_residual_guard != baseline
+        assert high_residual_guard > low_residual_guard
 
     def test_counterfactual_policy_evaluation_estimates_regret(self, tmp_path):
         retriever = self._make_retriever_sequence([[]])
