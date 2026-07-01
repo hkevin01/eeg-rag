@@ -344,6 +344,24 @@ class TestQueryReformulator:
         assert result.strategy == ReformulationStrategy.NARROW
         assert "sleep staging" in result.new_query
 
+    def test_narrow_strips_concept_labels(self):
+        result = self.reformulator.reformulate(
+            original_query="EEG biomarkers and methods",
+            current_query="EEG biomarkers and methods",
+            check=SufficiencyCheck(
+                status=SufficiencyStatus.LOW_COVERAGE,
+                doc_count=5,
+                relevance_score=0.7,
+                coverage_score=0.4,
+                missing_aspects=["condition: epilepsy", "method: ica"],
+            ),
+            iteration=1,
+            prior_strategies=[],
+        )
+        assert "epilepsy" in result.new_query
+        assert "ica" in result.new_query
+        assert "condition:" not in result.new_query
+
     def test_relax_falls_back_when_narrow_used(self):
         result = self.reformulator.reformulate(
             original_query="EEG cognitive load",
@@ -393,6 +411,30 @@ class TestQueryReformulator:
         )
         assert result.dense_weight_hint is not None
         assert result.dense_weight_hint > 0.5
+
+    def test_sparse_bias_on_redundant_results(self):
+        check = SufficiencyCheck(
+            status=SufficiencyStatus.LOW_DIVERSITY,
+            doc_count=5,
+            relevance_score=0.8,
+            coverage_score=0.9,
+            redundancy_score=0.95,
+            diversity_score=0.05,
+            query_entity_coverage_score=0.9,
+        )
+
+        bm25_weight, dense_weight = AgenticRAGOrchestrator._derive_fusion_weights(
+            check=check,
+            diagnostics={
+                "redundancy_score": 0.95,
+                "diversity_score": 0.05,
+                "query_concept_coverage_score": 0.55,
+            },
+            bm25_weight=0.4,
+            dense_weight=0.6,
+        )
+
+        assert bm25_weight > dense_weight
 
 
 # ---------------------------------------------------------------------------

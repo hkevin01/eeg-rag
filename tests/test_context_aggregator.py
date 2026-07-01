@@ -226,7 +226,7 @@ class TestContextAggregator:
         }
 
         result = await aggregator.aggregate(
-            'EEG biomarkers and methods for epilepsy',
+            'EEG biomarkers and ICA methods for epilepsy',
             agent_results,
         )
 
