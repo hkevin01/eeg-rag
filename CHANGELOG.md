@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-07-01
+- WCAG 2.2 + Bootstrap parity for Streamlit UI entry points:
+  - Updated `src/eeg_rag/web_ui/app_modular.py` to use the same responsive spacing and non-overlap layout system used by the enhanced app.
+  - Added 8px spacing tokens, responsive 1-3 column card layout, and 44px minimum touch-target sizing.
+- Lightweight visual layout regression checks:
+  - New test `tests/streamlit_ui/test_visual_layout_regression.py` validates non-overlap and no horizontal overflow at 320px, 768px, and 1280px widths.
+- Retrieval ranking benchmark upgrades:
+  - Replaced single synthetic strategy fixture with a suite of archetypes (`clinical`, `method_heavy`, `outcome_heavy`, `longitudinal`).
+  - Added macro-averaged ranking nDCG and per-archetype strategy diagnostics.
+  - Added bootstrap confidence intervals for ranking nDCG.
+  - Added regression guard that fails benchmark runs when concept-aware ranking nDCG drops below a configured floor.
+
+### Changed - 2026-07-01
+- Citation utility scoring in benchmarking now uses calibrated weights from `ground_truth_benchmarks.py` instead of fixed constants.
+- Agentic retrieval fusion now includes an expected citation utility objective to optimize BM25/dense blending before aggregation.
+
 ### Added - 2026-02-14
 - Bibliometric RAG integration module (`src/eeg_rag/bibliometrics/rag_integration.py`)
   - `BibliometricEnhancer` class for integrating visualizations into RAG results

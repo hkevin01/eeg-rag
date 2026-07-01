@@ -1,5 +1,36 @@
 # EEG-RAG Next Steps Roadmap
 
+## 2026 Refresh (Current Priority Track)
+
+### Algorithm and Evaluation Priorities
+- [x] Multi-archetype aggregation strategy benchmarking
+  - Clinical, method-heavy, outcome-heavy, and longitudinal fixtures are now included for strategy comparison.
+- [x] Ranking-quality formalization with macro nDCG
+  - Strategy evaluation now reports macro-averaged ranking nDCG and per-archetype details.
+- [x] Statistical interpretability for strategy comparisons
+  - Bootstrap confidence intervals now accompany ranking nDCG.
+- [x] Ground-truth guided utility calibration
+  - Utility weighting is calibrated from labels in `ground_truth_benchmarks.py`.
+- [x] Regression quality floor for concept-aware ranking
+  - Benchmark run fails when concept-aware ranking nDCG drops below configured threshold.
+
+### Retrieval Optimization Priorities
+- [x] Retrieval-time adaptive fusion objective
+  - BM25/dense fusion now optimizes expected citation utility before aggregation.
+- [ ] Extend adaptive objective with live online learning
+  - Learn weight response curves from observed utility gains over production traffic.
+- [ ] Add per-query uncertainty-aware fusion policy
+  - Use uncertainty estimates to adjust exploration vs exploitation in retrieval mixing.
+
+### UI Quality Priorities
+- [x] WCAG 2.2 parity across both Streamlit entry points
+  - Unified spacing, contrast, and non-overlap constraints now applied to modular and enhanced apps.
+- [x] Viewport regression checks
+  - Layout checks added at 320px, 768px, and 1280px widths.
+- [ ] Expand visual regression to all major tabs and interaction states.
+
+---
+
 **Date:** November 24, 2025  
 **Current Status:** 15/15 Core Components Complete (100%)  
 **Test Suite:** 236/236 tests passing (100%)

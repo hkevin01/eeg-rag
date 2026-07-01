@@ -29,6 +29,22 @@
 > [!TIP]
 > Get started in 5 minutes: `pip install -e . && uvicorn eeg_rag.api.main:app --reload` then visit http://localhost:8080/docs
 
+## Latest Updates (2026-07)
+
+- Accessibility and layout parity across Streamlit entry points:
+  - `app_enhanced.py` and `app_modular.py` now use consistent WCAG 2.2 spacing/contrast/non-overlap rules.
+  - Bootstrap 5 responsive grid semantics (1-3 columns by viewport) with 8px spacing tokens.
+  - Minimum 44px touch targets for interactive controls.
+- Retrieval quality evaluation now includes stronger ranking metrics:
+  - Concept-aware ranking macro nDCG across multiple query archetypes
+  - Bootstrap confidence intervals for nDCG comparability
+  - Regression guard that fails evaluation when concept-aware nDCG falls below a configured floor
+- Ground-truth guided utility calibration:
+  - Citation utility weights are now calibrated from `ground_truth_benchmarks.py` labels.
+- Retrieval-time adaptive fusion objective:
+  - Agentic fusion now optimizes BM25/dense mixture for expected citation utility before final aggregation.
+- Added lightweight visual layout regression checks at 320px, 768px, and 1280px widths.
+
 ---
 
 ## Table of Contents

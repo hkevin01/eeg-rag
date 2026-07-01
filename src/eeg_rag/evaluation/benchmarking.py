@@ -1356,6 +1356,13 @@ class EEGRAGBenchmark:
         seen_concept_groups: set,
     ) -> Tuple[float, set]:
         """Compute per-citation utility from concept coverage, centrality, novelty."""
+        if not hasattr(self, "_utility_weights"):
+            self._utility_weights = {
+                "concept": 0.50,
+                "centrality": 0.30,
+                "novelty": 0.20,
+            }
+
         title = str(getattr(citation, "title", "") or "").lower()
         abstract = str(getattr(citation, "abstract", "") or "").lower()
         citation_text = f"{title} {abstract}"
