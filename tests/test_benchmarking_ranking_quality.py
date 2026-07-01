@@ -1,16 +1,34 @@
 """Unit tests for ranking-quality formulas in benchmark aggregation strategy evaluation."""
 
 import importlib
+import json
 import sys
 import types
 from types import SimpleNamespace
 
 
-def _import_benchmark_module():
-    """Import benchmarking with lightweight stubs for unrelated heavy modules."""
+def _install_dependency_stubs() -> None:
+    """Install lightweight module stubs for optional heavy dependencies."""
     bm25_mod = types.ModuleType("rank_bm25")
     setattr(bm25_mod, "BM25Okapi", object)
     sys.modules["rank_bm25"] = bm25_mod
+
+    sent_mod = types.ModuleType("sentence_transformers")
+
+    class _DummySentenceTransformer:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_sentence_embedding_dimension(self) -> int:
+            return 384
+
+    setattr(sent_mod, "SentenceTransformer", _DummySentenceTransformer)
+    sys.modules["sentence_transformers"] = sent_mod
+
+
+def _import_benchmark_module():
+    """Import benchmarking with lightweight stubs for unrelated heavy modules."""
+    _install_dependency_stubs()
 
     orchestrator_mod = types.ModuleType(
         "src.eeg_rag.agents.orchestrator.orchestrator_agent"
@@ -89,3 +107,50 @@ def test_citation_utility_rewards_novel_concept_coverage() -> None:
     )
 
     assert first_utility > second_utility
+
+
+def test_export_includes_ranking_ci_and_drift_fields(tmp_path) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+    BenchmarkSuite = benchmarking_mod.BenchmarkSuite
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    out_path = tmp_path / "benchmark_export.json"
+
+    suite = BenchmarkSuite(
+        retrieval_results=[],
+        generation_results=[],
+        end_to_end_results=[],
+        overall_score=0.81,
+        retrieval_score=0.83,
+        generation_score=0.79,
+        avg_total_time_ms=420.0,
+        avg_citation_accuracy=0.92,
+        avg_response_quality=0.84,
+        avg_redundancy_score=0.18,
+        avg_diversity_score=0.72,
+        avg_query_entity_coverage_score=0.71,
+        avg_query_concept_coverage_score=0.74,
+        avg_centrality_grounding_score=0.69,
+        avg_grounding_quality=0.75,
+        concept_aware_grounding_score=0.77,
+        concept_aware_ranking_ndcg=0.82,
+        ranking_strategy_comparison={
+            "concept_aware": {
+                "ranking_ndcg_ci_lower": 0.76,
+                "ranking_ndcg_ci_upper": 0.87,
+                "calibration_drift": {
+                    "drift": 0.04,
+                    "status": "ok",
+                },
+            }
+        },
+    )
+
+    benchmark.export_benchmark_results(suite, out_path)
+
+    payload = json.loads(out_path.read_text())
+    summary = payload["summary"]
+    assert summary["concept_aware_ranking_ndcg_ci"]["lower"] == 0.76
+    assert summary["concept_aware_ranking_ndcg_ci"]["upper"] == 0.87
+    assert summary["concept_aware_calibration_drift"]["status"] == "ok"

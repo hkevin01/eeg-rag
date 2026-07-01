@@ -32,6 +32,23 @@ bm25_mod = types.ModuleType("rank_bm25")
 setattr(bm25_mod, "BM25Okapi", object)
 sys.modules.setdefault("rank_bm25", bm25_mod)
 
+sent_mod = types.ModuleType("sentence_transformers")
+sent_util_mod = types.ModuleType("sentence_transformers.util")
+
+
+class _DummySentenceTransformer:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def get_sentence_embedding_dimension(self) -> int:
+        return 384
+
+
+setattr(sent_mod, "SentenceTransformer", _DummySentenceTransformer)
+setattr(sent_util_mod, "cos_sim", lambda *args, **kwargs: 0.0)
+sys.modules.setdefault("sentence_transformers", sent_mod)
+sys.modules.setdefault("sentence_transformers.util", sent_util_mod)
+
 from eeg_rag.rag.agentic_rag import (
     AgenticRAGOrchestrator,
     AgenticRAGResult,
