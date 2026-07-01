@@ -1262,6 +1262,7 @@ class AgenticRAGOrchestrator:
         history_manager: Optional[HistoryManager] = None,
         exploration_alpha: float = 0.08,
         prediction_uncertainty_guard: float = 0.12,
+        objective_weights: Optional[Dict[str, float]] = None,
     ) -> None:
         self._retriever = retriever
         self._generator = generator
@@ -1297,6 +1298,22 @@ class AgenticRAGOrchestrator:
             0.02,
             float(prediction_uncertainty_guard),
         )
+        default_objective_weights = {
+            "utility": 0.60,
+            "citation_validity": 0.25,
+            "latency": 0.15,
+        }
+        self._objective_weights = dict(default_objective_weights)
+        if objective_weights:
+            self._objective_weights.update(objective_weights)
+        weight_total = max(1e-6, sum(max(0.0, float(v)) for v in self._objective_weights.values()))
+        self._objective_weights = {
+            k: max(0.0, float(v)) / weight_total
+            for k, v in self._objective_weights.items()
+        }
+        self._uncertainty_calibration_by_segment: Dict[str, Dict[str, float]] = {}
+        self._segment_decay_state: Dict[str, Dict[str, float]] = {}
+        self._counterfactual_policy_eval: Dict[str, Any] = {}
         self._history_manager = history_manager
         self._fusion_outcome_log_path = (
             Path("data/search_history/fusion_outcomes.jsonl")
@@ -1509,6 +1526,219 @@ class AgenticRAGOrchestrator:
         variance = float(features @ cov_inv @ features)
         pred_var = max(0.0, variance * max(1e-6, residual_var))
         return float(max(0.0, min(0.5, math.sqrt(pred_var))))
+
+    def _adaptive_uncertainty_guard(self, segment_key: str) -> float:
+        """Return current guard threshold for a segment from Bayesian calibration."""
+        state = self._uncertainty_calibration_by_segment.get(segment_key)
+        if not state:
+            return self._prediction_uncertainty_guard
+        return float(state.get("adaptive_guard", self._prediction_uncertainty_guard))
+
+    def _bayesian_update_uncertainty_calibration(
+        self,
+        segment_key: str,
+        residuals: np.ndarray,
+    ) -> None:
+        """Online Bayesian update for segment uncertainty and guard threshold."""
+        state = self._uncertainty_calibration_by_segment.get(segment_key)
+        if state is None:
+            state = {
+                "alpha": 2.0,
+                "beta": 0.02,
+                "adaptive_guard": self._prediction_uncertainty_guard,
+                "updates": 0.0,
+            }
+
+        alpha = float(state["alpha"])
+        beta = float(state["beta"])
+        for residual in residuals.tolist():
+            alpha += 0.5
+            beta += 0.5 * float(residual) * float(residual)
+
+        posterior_var_mean = beta / max(1e-6, alpha - 1.0)
+        posterior_std = math.sqrt(max(0.0, posterior_var_mean))
+        adaptive_guard = max(
+            0.05,
+            min(0.45, self._prediction_uncertainty_guard + (1.28 * posterior_std)),
+        )
+
+        state.update(
+            {
+                "alpha": alpha,
+                "beta": beta,
+                "adaptive_guard": adaptive_guard,
+                "updates": float(state.get("updates", 0.0) + len(residuals)),
+                "posterior_std": posterior_std,
+            }
+        )
+        self._uncertainty_calibration_by_segment[segment_key] = state
+
+    @staticmethod
+    def _pareto_front_indices(candidates: List[Dict[str, float]]) -> List[int]:
+        """Return indices for Pareto-efficient candidates across 3 objectives."""
+        efficient: List[int] = []
+        for i, cand_i in enumerate(candidates):
+            dominated = False
+            for j, cand_j in enumerate(candidates):
+                if i == j:
+                    continue
+                dominates = (
+                    cand_j["utility"] >= cand_i["utility"]
+                    and cand_j["citation_validity"] >= cand_i["citation_validity"]
+                    and cand_j["latency_ms"] <= cand_i["latency_ms"]
+                    and (
+                        cand_j["utility"] > cand_i["utility"]
+                        or cand_j["citation_validity"] > cand_i["citation_validity"]
+                        or cand_j["latency_ms"] < cand_i["latency_ms"]
+                    )
+                )
+                if dominates:
+                    dominated = True
+                    break
+            if not dominated:
+                efficient.append(i)
+        return efficient
+
+    def _pareto_weighted_score(
+        self,
+        candidate: Dict[str, float],
+        all_candidates: List[Dict[str, float]],
+    ) -> float:
+        """Compute explicit Pareto-weighted score across utility/validity/latency."""
+        util_values = [c["utility"] for c in all_candidates]
+        valid_values = [c["citation_validity"] for c in all_candidates]
+        lat_values = [c["latency_ms"] for c in all_candidates]
+
+        def _normalize(value: float, values: List[float], maximize: bool = True) -> float:
+            v_min = min(values)
+            v_max = max(values)
+            if abs(v_max - v_min) < 1e-6:
+                return 0.5
+            normalized = (value - v_min) / (v_max - v_min)
+            return normalized if maximize else (1.0 - normalized)
+
+        util_n = _normalize(candidate["utility"], util_values, maximize=True)
+        valid_n = _normalize(candidate["citation_validity"], valid_values, maximize=True)
+        lat_n = _normalize(candidate["latency_ms"], lat_values, maximize=False)
+
+        return (
+            self._objective_weights.get("utility", 0.0) * util_n
+            + self._objective_weights.get("citation_validity", 0.0) * valid_n
+            + self._objective_weights.get("latency", 0.0) * lat_n
+        )
+
+    def _expected_objectives(
+        self,
+        diagnostics: Dict[str, Any],
+        bm25_weight: float,
+        query_category: Optional[str] = None,
+        query_difficulty: Optional[str] = None,
+    ) -> Dict[str, float]:
+        """Predict multi-objective outcomes for candidate fusion weights."""
+        utility, uncertainty = self._expected_citation_utility_with_uncertainty(
+            diagnostics,
+            bm25_weight,
+            query_category=query_category,
+            query_difficulty=query_difficulty,
+        )
+
+        concept = float(
+            diagnostics.get(
+                "query_concept_coverage_score",
+                diagnostics.get("query_entity_coverage_score", 0.0),
+            )
+        )
+        redundancy = float(diagnostics.get("redundancy_score", 0.0))
+        diversity = float(diagnostics.get("diversity_score", 1.0))
+
+        citation_validity = max(
+            0.0,
+            min(
+                1.0,
+                0.45
+                + (0.30 * concept)
+                + (0.15 * diversity)
+                - (0.20 * redundancy)
+                + (0.05 * (1.0 - abs(0.55 - bm25_weight))),
+            ),
+        )
+
+        latency_ms = max(
+            25.0,
+            180.0
+            + (90.0 * (1.0 - bm25_weight))
+            + (35.0 * max(0.0, 0.7 - concept))
+            + (20.0 * max(0.0, redundancy - 0.4)),
+        )
+
+        return {
+            "utility": utility,
+            "citation_validity": citation_validity,
+            "latency_ms": latency_ms,
+            "uncertainty": uncertainty,
+        }
+
+    def _evaluate_counterfactual_policies(
+        self,
+        candidate_weights: Optional[List[float]] = None,
+    ) -> Dict[str, Any]:
+        """Replay logged outcomes and estimate regret for alternative policies."""
+        if not self._fusion_outcome_log:
+            return {
+                "overall_regret": 0.0,
+                "samples": 0,
+                "by_segment": {},
+            }
+
+        weights = candidate_weights or [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
+        regret_by_segment: Dict[str, List[float]] = {}
+
+        for entry in self._fusion_outcome_log:
+            diagnostics = {
+                "query_concept_coverage_score": entry["concept"],
+                "diversity_score": entry["diversity"],
+                "redundancy_score": entry["redundancy"],
+                "centrality_grounding_score": entry["centrality"],
+            }
+            category = str(entry.get("query_category", "general"))
+            difficulty = str(entry.get("query_difficulty", "medium"))
+            segment_key = self._segment_key(category, difficulty)
+
+            observed_policy_utility = self._expected_citation_utility(
+                diagnostics,
+                float(entry["bm25_weight"]),
+                query_category=category,
+                query_difficulty=difficulty,
+            )
+            best_alt = observed_policy_utility
+            for candidate in weights:
+                predicted = self._expected_citation_utility(
+                    diagnostics,
+                    candidate,
+                    query_category=category,
+                    query_difficulty=difficulty,
+                )
+                if predicted > best_alt:
+                    best_alt = predicted
+
+            regret = max(0.0, best_alt - observed_policy_utility)
+            regret_by_segment.setdefault(segment_key, []).append(regret)
+
+        by_segment = {
+            key: {
+                "mean_regret": float(statistics.mean(values)),
+                "p95_regret": float(np.percentile(values, 95)),
+                "samples": len(values),
+            }
+            for key, values in regret_by_segment.items()
+        }
+
+        all_regrets = [r for values in regret_by_segment.values() for r in values]
+        return {
+            "overall_regret": float(statistics.mean(all_regrets)) if all_regrets else 0.0,
+            "samples": len(all_regrets),
+            "by_segment": by_segment,
+        }
 
     def _persist_fusion_outcome(self, entry: Dict[str, float]) -> None:
         """Append a single outcome observation to the persistent JSONL log."""
@@ -2066,12 +2296,14 @@ class AgenticRAGOrchestrator:
         if len(self._fusion_outcome_log) < self._response_surface_min_samples:
             self._response_surface_coeffs = None
             self._response_surface_coeffs_by_segment = {}
+            self._response_surface_global_model = None
             return
 
         def _fit_from_entries(
             entries: List[Dict[str, Any]],
             min_samples: int,
             compact: bool = False,
+            half_life_override_sec: Optional[float] = None,
         ) -> Optional[Dict[str, Any]]:
             if len(entries) < min_samples:
                 return None
@@ -2102,7 +2334,12 @@ class AgenticRAGOrchestrator:
             ts = np.asarray(timestamps, dtype=float)
             newest = float(np.max(ts))
             ages = np.maximum(0.0, newest - ts)
-            decay_weights = np.power(0.5, ages / self._fusion_decay_half_life_sec)
+            half_life = (
+                self._fusion_decay_half_life_sec
+                if half_life_override_sec is None
+                else max(3600.0, float(half_life_override_sec))
+            )
+            decay_weights = np.power(0.5, ages / half_life)
 
             beta, cov_inv = self._solve_weighted_ridge(x, y, decay_weights)
             robust_weights = decay_weights
@@ -2119,6 +2356,7 @@ class AgenticRAGOrchestrator:
                 "coeffs": beta,
                 "cov_inv": cov_inv,
                 "residual_var": residual_var,
+                "residuals": final_residuals,
                 "sample_count": len(entries),
                 "compact": compact,
             }
@@ -2144,13 +2382,60 @@ class AgenticRAGOrchestrator:
         for key, entries in segments.items():
             if len(entries) < self._segment_response_surface_min_samples:
                 continue
+
+            decay_state = self._segment_decay_state.get(key, {
+                "half_life_multiplier": 1.0,
+                "baseline_residual_var": None,
+                "drift_strikes": 0.0,
+            })
+            segment_entries = entries
+            if float(decay_state.get("drift_strikes", 0.0)) >= 2.0:
+                keep = max(self._segment_response_surface_min_samples * 2, 20)
+                segment_entries = entries[-keep:]
+
             coeffs = _fit_from_entries(
-                entries,
+                segment_entries,
                 self._segment_response_surface_min_samples,
                 compact=True,
+                half_life_override_sec=(
+                    self._fusion_decay_half_life_sec
+                    * max(0.2, float(decay_state.get("half_life_multiplier", 1.0)))
+                ),
             )
             if coeffs is not None:
                 self._response_surface_coeffs_by_segment[key] = coeffs
+                residual_var = float(coeffs.get("residual_var", 0.0))
+                baseline = decay_state.get("baseline_residual_var")
+                if baseline is None:
+                    baseline = residual_var
+                relative_shift = (residual_var - baseline) / max(1e-6, baseline)
+                if relative_shift > 0.35:
+                    decay_state["drift_strikes"] = float(decay_state.get("drift_strikes", 0.0) + 1.0)
+                    decay_state["half_life_multiplier"] = max(
+                        0.2,
+                        float(decay_state.get("half_life_multiplier", 1.0)) * 0.7,
+                    )
+                else:
+                    decay_state["drift_strikes"] = max(
+                        0.0,
+                        float(decay_state.get("drift_strikes", 0.0)) - 1.0,
+                    )
+                    decay_state["half_life_multiplier"] = min(
+                        1.0,
+                        float(decay_state.get("half_life_multiplier", 1.0)) + 0.05,
+                    )
+                    baseline = (0.95 * float(baseline)) + (0.05 * residual_var)
+
+                decay_state["baseline_residual_var"] = float(baseline)
+                decay_state["last_residual_var"] = residual_var
+                decay_state["last_relative_shift"] = float(relative_shift)
+                self._segment_decay_state[key] = decay_state
+
+                residuals = np.asarray(coeffs.get("residuals", []), dtype=float)
+                if residuals.size > 0:
+                    self._bayesian_update_uncertainty_calibration(key, residuals)
+
+        self._counterfactual_policy_eval = self._evaluate_counterfactual_policies()
 
     def _expected_citation_utility_with_uncertainty(
         self,
@@ -2253,38 +2538,55 @@ class AgenticRAGOrchestrator:
         query_category: Optional[str] = None,
         query_difficulty: Optional[str] = None,
     ) -> Tuple[float, float]:
-        """Choose BM25/dense mix that maximizes expected citation utility."""
+        """Choose BM25/dense mix via Pareto-weighted multi-objective scoring."""
         _ = dense_weight
         candidate_weights = [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
 
-        best_bm25 = bm25_weight
-        baseline_pred, baseline_unc = self._expected_citation_utility_with_uncertainty(
-            diagnostics,
-            bm25_weight,
-            query_category=query_category,
-            query_difficulty=query_difficulty,
-        )
-        best_score = baseline_pred + (self._exploration_alpha * baseline_unc)
-        best_uncertainty = baseline_unc
-
+        candidate_metrics: List[Dict[str, float]] = []
         for candidate in candidate_weights:
-            pred, uncertainty = self._expected_citation_utility_with_uncertainty(
+            obj = self._expected_objectives(
                 diagnostics,
                 candidate,
                 query_category=query_category,
                 query_difficulty=query_difficulty,
             )
-            # Penalize large shifts under uncertainty to avoid unstable jumps.
-            confidence_penalty = uncertainty * abs(candidate - bm25_weight)
-            score = pred + (self._exploration_alpha * uncertainty) - confidence_penalty
+            candidate_metrics.append(
+                {
+                    "bm25_weight": candidate,
+                    "utility": obj["utility"],
+                    "citation_validity": obj["citation_validity"],
+                    "latency_ms": obj["latency_ms"],
+                    "uncertainty": obj["uncertainty"],
+                }
+            )
+
+        pareto_indices = set(self._pareto_front_indices(candidate_metrics))
+
+        best_bm25 = bm25_weight
+        best_score = -1e9
+        best_uncertainty = 1.0
+        for idx, metrics in enumerate(candidate_metrics):
+            pareto_score = self._pareto_weighted_score(metrics, candidate_metrics)
+            confidence_penalty = metrics["uncertainty"] * abs(
+                metrics["bm25_weight"] - bm25_weight
+            )
+            score = (
+                pareto_score
+                + (self._exploration_alpha * metrics["uncertainty"])
+                - confidence_penalty
+            )
+            if idx not in pareto_indices:
+                score -= 0.05
             if score > best_score:
                 best_score = score
-                best_bm25 = candidate
-                best_uncertainty = uncertainty
+                best_bm25 = float(metrics["bm25_weight"])
+                best_uncertainty = float(metrics["uncertainty"])
 
+        segment_key = self._segment_key(query_category, query_difficulty)
+        guard_threshold = self._adaptive_uncertainty_guard(segment_key)
         if (
             abs(best_bm25 - bm25_weight) > 0.10
-            and best_uncertainty > self._prediction_uncertainty_guard
+            and best_uncertainty > guard_threshold
         ):
             best_bm25 = bm25_weight
 
