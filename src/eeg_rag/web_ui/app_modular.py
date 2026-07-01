@@ -39,12 +39,12 @@ st.set_page_config(
         "Report a bug": "https://github.com/your-org/eeg-rag/issues",
         "About": """
         ## EEG-RAG Research Assistant v2.0
-        
+
         **Multi-Agent Retrieval-Augmented Generation for EEG Research**
-        
-        This system uses specialized AI agents to search, validate, and 
+
+        This system uses specialized AI agents to search, validate, and
         synthesize information from EEG research papers.
-        
+
         All responses include verified citations with PMID links.
         """,
     },
@@ -83,7 +83,7 @@ st.markdown(
         color: var(--text);
         overflow-x: hidden;
     }
-    
+
     .main .block-container {
         max-width: 1400px;
         padding-top: var(--space-2);
@@ -107,11 +107,11 @@ st.markdown(
     [data-testid="stSidebar"] * {
         color: var(--text) !important;
     }
-    
+
     .wcag-section {
         margin-bottom: var(--space-3);
     }
-    
+
     .wcag-card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -119,11 +119,11 @@ st.markdown(
         padding: var(--space-2);
         margin-bottom: var(--space-2);
     }
-    
+
     .wcag-stack > * + * {
         margin-top: var(--space-2);
     }
-    
+
     .researcher-tip {
         background: #FFF8E1;
         border-radius: 12px;
@@ -131,12 +131,12 @@ st.markdown(
         border-left: 4px solid #F59E0B;
         margin: var(--space-2) 0;
     }
-    
+
     .researcher-tip .tip-title,
     .researcher-tip .tip-content {
         color: var(--text);
     }
-    
+
     .edu-callout {
         background: #E3F2FD;
         border-radius: 12px;
@@ -144,13 +144,13 @@ st.markdown(
         border: 1px solid #90CAF9;
         margin: var(--space-2) 0;
     }
-    
+
     .edu-callout-title {
         color: #1E3A8A;
         font-weight: 700;
         margin-bottom: var(--space-1);
     }
-    
+
     .stButton button,
     .stButton button[kind="secondary"],
     button[data-testid="stBaseButton-secondary"],
@@ -164,12 +164,12 @@ st.markdown(
         line-height: 1.35 !important;
         font-weight: 600 !important;
     }
-    
+
     .stButton button:hover {
         background: #E5E7EB !important;
         border-color: #9CA3AF !important;
     }
-    
+
     .stTextArea textarea,
     .stTextInput input,
     [data-baseweb="textarea"],
@@ -181,52 +181,52 @@ st.markdown(
         color: var(--text) !important;
         background: #FFFFFF !important;
     }
-    
+
     .stTabs [data-baseweb="tab-list"] {
         gap: var(--space-1);
         background: #E8EEF4;
         padding: var(--space-1);
         border-radius: 12px;
     }
-    
+
     .stTabs [data-baseweb="tab"] {
         border-radius: 8px;
         padding: 10px 14px;
         min-height: 44px;
         color: #374151;
     }
-    
+
     .stTabs [aria-selected="true"] {
         background: #DBEAFE;
         color: #1E3A8A;
     }
-    
+
     .streamlit-expanderHeader {
         background: #F3F4F6;
         border-radius: 8px;
     }
-    
+
     .system-explanation {
         margin: 0.5rem 0;
     }
-    
+
     .system-explanation summary {
         cursor: pointer;
         color: #1D4ED8;
         font-size: 0.9rem;
     }
-    
+
     .system-explanation summary:hover {
         color: #1E3A8A;
     }
-    
+
     @media (max-width: 768px) {
         .main .block-container {
             padding-left: var(--space-2);
             padding-right: var(--space-2);
         }
     }
-    
+
     @media (max-width: 480px) {
         .main .block-container {
             padding-left: var(--space-1);
@@ -239,7 +239,7 @@ st.markdown(
             padding: var(--space-2);
         }
     }
-    
+
     /* Hide default Streamlit elements for cleaner look */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -312,11 +312,11 @@ def render_welcome_banner():
                 👋 Welcome to EEG-RAG Research Assistant
             </div>
             <div style="color: #a0a0c0; font-size: 0.9rem; line-height: 1.6;">
-                This AI-powered system helps you search and synthesize information from 
-                <strong>52,000+ EEG research papers</strong>. Every response includes 
+                This AI-powered system helps you search and synthesize information from
+                <strong>52,000+ EEG research papers</strong>. Every response includes
                 verified citations with PMID links.
                 <br/><br/>
-                <strong>Quick Start:</strong> Type your research question below, or explore 
+                <strong>Quick Start:</strong> Type your research question below, or explore
                 the "Learn" tab to understand how the system works.
             </div>
         </div>
@@ -362,7 +362,7 @@ def render_system_status_bar():
         st.markdown(
             """
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%; 
+            <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%;
                          animation: pulse 2s infinite;"></span>
             <span style="color: #888; font-size: 0.8rem;">System Online</span>
         </div>
@@ -453,9 +453,9 @@ def render_query_tab():
             <span class="tip-icon">💡</span>
             <span class="tip-title">Research Tip</span>
             <div class="tip-content">
-                For best results, include <strong>specific details</strong> in your query: 
-                patient population, EEG paradigm, comparison groups, or outcome measures. 
-                Example: "What is the diagnostic accuracy of interictal EEG for focal epilepsy 
+                For best results, include <strong>specific details</strong> in your query:
+                patient population, EEG paradigm, comparison groups, or outcome measures.
+                Example: "What is the diagnostic accuracy of interictal EEG for focal epilepsy
                 in adults vs children?"
             </div>
         </div>
@@ -495,8 +495,8 @@ def render_agent_pipeline_tab():
             🔄 Understanding the Agent Pipeline
         </div>
         <div style="color: #a0a0c0; font-size: 0.9rem;">
-            When you submit a query, it passes through a series of specialized AI agents. 
-            Each agent has a specific role in retrieving, validating, and synthesizing 
+            When you submit a query, it passes through a series of specialized AI agents.
+            Each agent has a specific role in retrieving, validating, and synthesizing
             information. This multi-agent approach ensures comprehensive and accurate results.
         </div>
     </div>
@@ -669,7 +669,7 @@ def render_citation_card(
     <div style="background: #1a1a2e; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem;
                 border-left: 3px solid {ver_color};">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family: monospace; background: #2d2d4d; padding: 0.25rem 0.5rem; 
+            <span style="font-family: monospace; background: #2d2d4d; padding: 0.25rem 0.5rem;
                          border-radius: 4px;">PMID: {pmid}</span>
             <span style="color: {ver_color}; font-size: 0.8rem;">{ver_badge}</span>
         </div>
@@ -752,9 +752,9 @@ def main():
     st.markdown(
         """
     <div style="margin-top: 3rem; padding: 1rem; text-align: center; color: #666; font-size: 0.8rem;">
-        EEG-RAG Research Assistant v2.0 • 
-        <a href="https://github.com/your-org/eeg-rag" style="color: #6366F1;">GitHub</a> • 
-        <a href="#" style="color: #6366F1;">Documentation</a> • 
+        EEG-RAG Research Assistant v2.0 •
+        <a href="https://github.com/your-org/eeg-rag" style="color: #6366F1;">GitHub</a> •
+        <a href="#" style="color: #6366F1;">Documentation</a> •
         <a href="#" style="color: #6366F1;">Privacy Policy</a>
     </div>
     """,
