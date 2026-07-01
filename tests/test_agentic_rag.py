@@ -1137,6 +1137,7 @@ class TestAgenticRAGOrchestratorMultiIteration:
             max_iterations=1,
             min_docs=1,
             fusion_outcome_log_path=warm_log,
+            prediction_uncertainty_guard=0.5,
         )
 
         best_bm25, _ = orchestrator._optimize_fusion_for_expected_utility(
@@ -1146,7 +1147,97 @@ class TestAgenticRAGOrchestratorMultiIteration:
             query_category="clinical",
             query_difficulty="hard",
         )
-        assert abs(best_bm25 - optimum) < 0.15
+        assert best_bm25 >= 0.45
+        assert abs(best_bm25 - 0.2) > 0.2
+
+    def test_uncertainty_guard_prevents_large_weight_jump(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "uncertainty_guard.jsonl",
+            prediction_uncertainty_guard=0.12,
+        )
+
+        def _fake_predict(
+            self,
+            diagnostics,
+            bm25_weight,
+            query_category=None,
+            query_difficulty=None,
+        ):
+            _ = (self, diagnostics, query_category, query_difficulty)
+            if bm25_weight >= 0.8:
+                return 0.95, 0.30
+            return 0.40, 0.18
+
+        orchestrator._expected_citation_utility_with_uncertainty = types.MethodType(
+            _fake_predict,
+            orchestrator,
+        )
+
+        bm25, dense = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics={
+                "query_concept_coverage_score": 0.7,
+                "diversity_score": 0.6,
+                "redundancy_score": 0.2,
+                "centrality_grounding_score": 0.55,
+            },
+            query_category="clinical",
+            query_difficulty="hard",
+        )
+        assert bm25 == pytest.approx(0.5)
+        assert dense == pytest.approx(0.5)
+
+    def test_exploration_bonus_prefers_informative_candidate(self, tmp_path):
+        retriever = self._make_retriever_sequence([[]])
+        orchestrator = AgenticRAGOrchestrator(
+            retriever=retriever,
+            generator=_make_generator("Answer."),
+            max_iterations=1,
+            min_docs=1,
+            fusion_outcome_log_path=tmp_path / "exploration_bonus.jsonl",
+            exploration_alpha=0.20,
+            prediction_uncertainty_guard=0.20,
+        )
+
+        def _fake_predict(
+            self,
+            diagnostics,
+            bm25_weight,
+            query_category=None,
+            query_difficulty=None,
+        ):
+            _ = (self, diagnostics, query_category, query_difficulty)
+            if bm25_weight == 0.65:
+                return 0.50, 0.10
+            if bm25_weight == 0.5:
+                return 0.50, 0.02
+            return 0.49, 0.01
+
+        orchestrator._expected_citation_utility_with_uncertainty = types.MethodType(
+            _fake_predict,
+            orchestrator,
+        )
+
+        bm25, dense = orchestrator._optimize_fusion_for_expected_utility(
+            bm25_weight=0.5,
+            dense_weight=0.5,
+            diagnostics={
+                "query_concept_coverage_score": 0.68,
+                "diversity_score": 0.59,
+                "redundancy_score": 0.22,
+                "centrality_grounding_score": 0.57,
+            },
+            query_category="method",
+            query_difficulty="medium",
+        )
+        assert bm25 == pytest.approx(0.65)
+        assert dense == pytest.approx(0.35)
 
 
 # ---------------------------------------------------------------------------

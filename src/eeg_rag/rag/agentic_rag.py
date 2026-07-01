@@ -52,6 +52,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import re
 import time
 import numpy as np
@@ -1259,6 +1260,8 @@ class AgenticRAGOrchestrator:
         fusion_decay_half_life_sec: float = 604800.0,
         huber_delta: float = 1.5,
         history_manager: Optional[HistoryManager] = None,
+        exploration_alpha: float = 0.08,
+        prediction_uncertainty_guard: float = 0.12,
     ) -> None:
         self._retriever = retriever
         self._generator = generator
@@ -1282,12 +1285,18 @@ class AgenticRAGOrchestrator:
         self._persistent_dense_weight = retriever.dense_weight
         self._fusion_outcome_log: List[Dict[str, float]] = []
         self._response_surface_coeffs: Optional[np.ndarray] = None
+        self._response_surface_global_model: Optional[Dict[str, Any]] = None
         self._response_surface_coeffs_by_segment: Dict[str, Dict[str, Any]] = {}
         self._response_surface_min_samples = 12
         self._segment_response_surface_min_samples = 8
         self._max_fusion_outcomes = max(50, int(max_fusion_outcomes))
         self._fusion_decay_half_life_sec = max(3600.0, float(fusion_decay_half_life_sec))
         self._huber_delta = max(0.25, float(huber_delta))
+        self._exploration_alpha = max(0.0, float(exploration_alpha))
+        self._prediction_uncertainty_guard = max(
+            0.02,
+            float(prediction_uncertainty_guard),
+        )
         self._history_manager = history_manager
         self._fusion_outcome_log_path = (
             Path("data/search_history/fusion_outcomes.jsonl")
@@ -1466,13 +1475,16 @@ class AgenticRAGOrchestrator:
         y: np.ndarray,
         weights: np.ndarray,
         ridge_lambda: float = 1e-3,
-    ) -> np.ndarray:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Solve weighted ridge regression for response-surface coefficients."""
         sqrt_w = np.sqrt(np.clip(weights, 1e-6, None))
         xw = x * sqrt_w[:, None]
         yw = y * sqrt_w
         ridge = ridge_lambda * np.eye(x.shape[1], dtype=float)
-        return np.linalg.solve(xw.T @ xw + ridge, xw.T @ yw)
+        xtwx = xw.T @ xw + ridge
+        coeffs = np.linalg.solve(xtwx, xw.T @ yw)
+        cov_inv = np.linalg.pinv(xtwx)
+        return coeffs, cov_inv
 
     @staticmethod
     def _huber_reweights(residuals: np.ndarray, delta: float) -> np.ndarray:
@@ -1482,6 +1494,21 @@ class AgenticRAGOrchestrator:
         mask = abs_residuals > delta
         weights[mask] = delta / np.maximum(abs_residuals[mask], 1e-6)
         return weights
+
+    @staticmethod
+    def _prediction_uncertainty(
+        features: np.ndarray,
+        model: Dict[str, Any],
+    ) -> float:
+        """Estimate predictive uncertainty from residual variance and covariance."""
+        cov_inv = model.get("cov_inv")
+        residual_var = float(model.get("residual_var", 0.0))
+        if cov_inv is None:
+            return max(0.05, min(0.5, residual_var))
+
+        variance = float(features @ cov_inv @ features)
+        pred_var = max(0.0, variance * max(1e-6, residual_var))
+        return float(max(0.0, min(0.5, math.sqrt(pred_var))))
 
     def _persist_fusion_outcome(self, entry: Dict[str, float]) -> None:
         """Append a single outcome observation to the persistent JSONL log."""
@@ -2045,7 +2072,7 @@ class AgenticRAGOrchestrator:
             entries: List[Dict[str, Any]],
             min_samples: int,
             compact: bool = False,
-        ) -> Optional[np.ndarray]:
+        ) -> Optional[Dict[str, Any]]:
             if len(entries) < min_samples:
                 return None
 
@@ -2077,7 +2104,7 @@ class AgenticRAGOrchestrator:
             ages = np.maximum(0.0, newest - ts)
             decay_weights = np.power(0.5, ages / self._fusion_decay_half_life_sec)
 
-            beta = self._solve_weighted_ridge(x, y, decay_weights)
+            beta, cov_inv = self._solve_weighted_ridge(x, y, decay_weights)
             robust_weights = decay_weights
             for _ in range(3):
                 residuals = y - (x @ beta)
@@ -2085,14 +2112,25 @@ class AgenticRAGOrchestrator:
                 delta = self._huber_delta * scale
                 robust_component = self._huber_reweights(residuals, delta)
                 robust_weights = decay_weights * robust_component
-                beta = self._solve_weighted_ridge(x, y, robust_weights)
+                beta, cov_inv = self._solve_weighted_ridge(x, y, robust_weights)
+            final_residuals = y - (x @ beta)
+            residual_var = float(np.average(final_residuals ** 2, weights=robust_weights))
+            return {
+                "coeffs": beta,
+                "cov_inv": cov_inv,
+                "residual_var": residual_var,
+                "sample_count": len(entries),
+                "compact": compact,
+            }
 
-            return beta
-
-        self._response_surface_coeffs = _fit_from_entries(
+        global_model = _fit_from_entries(
             self._fusion_outcome_log,
             self._response_surface_min_samples,
         )
+        self._response_surface_coeffs = (
+            None if global_model is None else global_model["coeffs"]
+        )
+        self._response_surface_global_model = global_model
 
         segments: Dict[str, List[Dict[str, Any]]] = {}
         for item in self._fusion_outcome_log:
@@ -2112,10 +2150,38 @@ class AgenticRAGOrchestrator:
                 compact=True,
             )
             if coeffs is not None:
-                self._response_surface_coeffs_by_segment[key] = {
-                    "coeffs": coeffs,
-                    "compact": True,
-                }
+                self._response_surface_coeffs_by_segment[key] = coeffs
+
+    def _expected_citation_utility_with_uncertainty(
+        self,
+        diagnostics: Dict[str, Any],
+        bm25_weight: float,
+        query_category: Optional[str] = None,
+        query_difficulty: Optional[str] = None,
+    ) -> Tuple[float, float]:
+        """Predict utility and uncertainty for confidence-aware fusion optimization."""
+        segment_key = self._segment_key(query_category, query_difficulty)
+        model = self._response_surface_coeffs_by_segment.get(segment_key)
+        if model is None:
+            model = getattr(self, "_response_surface_global_model", None)
+
+        if model is not None:
+            features = (
+                self._response_surface_features_compact(bm25_weight)
+                if model.get("compact", False)
+                else self._response_surface_features(bm25_weight, diagnostics)
+            )
+            predicted = float(features @ model["coeffs"])
+            uncertainty = self._prediction_uncertainty(features, model)
+            return max(0.0, min(1.0, predicted)), uncertainty
+
+        utility = self._expected_citation_utility(
+            diagnostics,
+            bm25_weight,
+            query_category=query_category,
+            query_difficulty=query_difficulty,
+        )
+        return utility, 0.2
 
     def _expected_citation_utility(
         self,
@@ -2192,23 +2258,35 @@ class AgenticRAGOrchestrator:
         candidate_weights = [round(w, 2) for w in np.arange(0.2, 0.81, 0.05)]
 
         best_bm25 = bm25_weight
-        best_score = self._expected_citation_utility(
+        baseline_pred, baseline_unc = self._expected_citation_utility_with_uncertainty(
             diagnostics,
             bm25_weight,
             query_category=query_category,
             query_difficulty=query_difficulty,
         )
+        best_score = baseline_pred + (self._exploration_alpha * baseline_unc)
+        best_uncertainty = baseline_unc
 
         for candidate in candidate_weights:
-            score = self._expected_citation_utility(
+            pred, uncertainty = self._expected_citation_utility_with_uncertainty(
                 diagnostics,
                 candidate,
                 query_category=query_category,
                 query_difficulty=query_difficulty,
             )
+            # Penalize large shifts under uncertainty to avoid unstable jumps.
+            confidence_penalty = uncertainty * abs(candidate - bm25_weight)
+            score = pred + (self._exploration_alpha * uncertainty) - confidence_penalty
             if score > best_score:
                 best_score = score
                 best_bm25 = candidate
+                best_uncertainty = uncertainty
+
+        if (
+            abs(best_bm25 - bm25_weight) > 0.10
+            and best_uncertainty > self._prediction_uncertainty_guard
+        ):
+            best_bm25 = bm25_weight
 
         best_dense = round(1.0 - best_bm25, 3)
         return round(best_bm25, 3), best_dense
