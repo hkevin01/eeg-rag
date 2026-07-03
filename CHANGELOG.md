@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-07-03
+- Adaptive off-policy evaluation for fusion policy safety:
+  - Added segment-aware doubly robust (DR) policy value estimation in `AgenticRAGOrchestrator` counterfactual replay.
+  - Counterfactual diagnostics now report `dr_value`, `ips_value`, `dm_value`, and `dr_model_gap` per archetype segment.
+- Online objective tradeoff learning for retrieval fusion:
+  - Added constrained per-segment objective weight learning on the simplex (utility, citation validity, latency).
+  - Learned weights are applied during Pareto scoring so optimization adapts by archetype/difficulty.
+- Uncertainty decomposition for safer exploration:
+  - Added per-segment calibration error decomposition (aleatoric vs epistemic).
+  - Added exploration gating based on decomposition so exploration is controlled separately from uncertainty guard thresholds.
+- Benchmark safety validators:
+  - Added monotonic safety response validation to enforce shrinking BM25 step radius as risk rises.
+  - Added temporal forgetting safety validation to ensure drift-reset behavior improves hard-archetype uncertainty-adjusted utility without violating citation-validity floors.
+- Test coverage for new adaptive/safety behavior:
+  - Added orchestrator tests for DR outputs, online objective learning, and uncertainty decomposition gating.
+  - Added benchmark tests for monotonic step contraction and temporal forgetting safety checks.
+
+### Changed - 2026-07-03
+- Policy risk controls now include DR-model disagreement (`dr_model_gap`) in risk scoring, reducing dependence on replay regret alone.
+- Fusion optimization now combines:
+  - segment-learned objective weights,
+  - uncertainty-decomposition exploration gating,
+  - risk-aware guard tightening and step-radius limits.
+
 ### Added - 2026-07-01
 - WCAG 2.2 + Bootstrap parity for Streamlit UI entry points:
   - Updated `src/eeg_rag/web_ui/app_modular.py` to use the same responsive spacing and non-overlap layout system used by the enhanced app.

@@ -45,6 +45,46 @@
   - Agentic fusion now optimizes BM25/dense mixture for expected citation utility before final aggregation.
 - Added lightweight visual layout regression checks at 320px, 768px, and 1280px widths.
 
+### New Adaptive Retrieval Safety and Learning (2026-07-03)
+
+- Doubly robust off-policy value estimation per archetype segment
+  - What was added:
+    - Counterfactual policy replay now computes DR (doubly robust), IPS, and DM value estimates per segment, plus a DR-model disagreement signal.
+  - Why it was added:
+    - Replay regret alone can be biased when behavior policy and target policy differ. DR reduces bias by combining model prediction with importance-weighted correction.
+  - Benefits:
+    - More reliable policy-risk estimates for hard EEG archetypes.
+    - Better stability when adapting fusion policy from logged outcomes.
+
+- Online constrained objective-weight learning (utility vs citation validity vs latency)
+  - What was added:
+    - Per-segment objective weights are now learned online using constrained optimization on a probability simplex.
+  - Why it was added:
+    - Fixed global weights underfit heterogeneous query segments (for example, clinical hard vs preprocessing easy).
+  - Benefits:
+    - Segment-aware tradeoffs improve retrieval policy alignment with real outcome patterns.
+    - Higher adaptability without breaking safety constraints.
+
+- Calibration decomposition (aleatoric vs epistemic) with exploration gating
+  - What was added:
+    - Per-segment uncertainty decomposition now separates irreducible noise (aleatoric) from model uncertainty (epistemic).
+    - Exploration is gated using this decomposition, independently of guard thresholds.
+  - Why it was added:
+    - Not all uncertainty should trigger the same action; epistemic uncertainty supports exploration, aleatoric uncertainty should suppress it.
+  - Benefits:
+    - Cleaner exploration behavior under drift.
+    - Lower risk of overreacting to noisy segments.
+
+- Benchmark safety validators for monotonic risk response and temporal forgetting
+  - What was added:
+    - Validator that enforces BM25 step-radius contraction as regret/drift risk increases.
+    - Validator that checks forgetting schedules improve hard-archetype uncertainty-adjusted utility without violating citation-validity floors.
+  - Why it was added:
+    - Adaptive systems require explicit safety contracts to prevent unstable policy jumps and quality regressions.
+  - Benefits:
+    - Measurable safety guarantees in evaluation.
+    - Stronger protection for clinical-grade citation quality under adaptive learning.
+
 ---
 
 ## Table of Contents
