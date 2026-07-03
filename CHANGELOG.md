@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<a id="changelog-2026-07-03"></a>
+
 ### Added - 2026-07-03
 - Adaptive off-policy evaluation for fusion policy safety:
   - Added segment-aware doubly robust (DR) policy value estimation in `AgenticRAGOrchestrator` counterfactual replay.

@@ -1325,6 +1325,8 @@ Open a [GitHub Issue](https://github.com/hkevin01/eeg-rag/issues) with:
 
 ## 📋 Changelog
 
+Latest adaptive retrieval updates: see [2026-07-03 changelog entry](CHANGELOG.md#changelog-2026-07-03).
+
 ### v0.4.1 — April 2026
 
 #### PyPI Packaging
