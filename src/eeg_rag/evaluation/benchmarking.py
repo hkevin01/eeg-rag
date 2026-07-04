@@ -259,6 +259,11 @@ class EEGRAGBenchmark:
         min_metadata_completeness_rate: float = 0.80,
         min_papers_per_archetype: int = 5,
         min_metadata_completeness_per_archetype: float = 0.70,
+        category_corpus_thresholds: Optional[Dict[str, Dict[str, float]]] = None,
+        min_unique_pmids_per_archetype: int = 4,
+        min_unique_pmid_ratio_per_archetype: float = 0.60,
+        min_distinct_sources_per_archetype: int = 2,
+        max_source_concentration_per_archetype: float = 0.90,
     ):
         """Initialize benchmarking suite.
 
@@ -315,6 +320,37 @@ class EEGRAGBenchmark:
         self.min_metadata_completeness_per_archetype = max(
             0.0,
             min(1.0, float(min_metadata_completeness_per_archetype)),
+        )
+        self.category_corpus_thresholds = (
+            category_corpus_thresholds
+            if category_corpus_thresholds is not None
+            else {
+                "general": {
+                    "min_total_papers": float(self.min_total_papers_per_strategy),
+                    "min_avg_papers_per_archetype": float(self.min_avg_papers_per_archetype),
+                    "min_metadata_completeness_rate": float(self.min_metadata_completeness_rate),
+                },
+                "clinical": {
+                    "min_total_papers": 140.0,
+                    "min_avg_papers_per_archetype": 10.0,
+                    "min_metadata_completeness_rate": 0.85,
+                },
+                "bci": {
+                    "min_total_papers": 120.0,
+                    "min_avg_papers_per_archetype": 9.0,
+                    "min_metadata_completeness_rate": 0.83,
+                },
+            }
+        )
+        self.min_unique_pmids_per_archetype = max(1, int(min_unique_pmids_per_archetype))
+        self.min_unique_pmid_ratio_per_archetype = max(
+            0.0,
+            min(1.0, float(min_unique_pmid_ratio_per_archetype)),
+        )
+        self.min_distinct_sources_per_archetype = max(1, int(min_distinct_sources_per_archetype))
+        self.max_source_concentration_per_archetype = max(
+            0.0,
+            min(1.0, float(max_source_concentration_per_archetype)),
         )
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
@@ -1376,6 +1412,16 @@ class EEGRAGBenchmark:
                 f"citation_validity_floor={float(temporal.get('citation_validity_floor', 0.0)):.3f}"
             )
 
+        coverage = concept.get("corpus_coverage_validation")
+        if isinstance(coverage, dict) and not bool(coverage.get("valid", True)):
+            failing_archetypes = coverage.get("failing_archetypes", [])
+            if failing_archetypes:
+                ids = [str(item.get("id", "unknown")) for item in failing_archetypes]
+                raise RuntimeError(
+                    "Concept-aware corpus quality regression for archetypes: "
+                    + ", ".join(ids)
+                )
+
     def _validate_strategy_corpus_coverage(
         self,
         strategy_name: str,
@@ -1399,8 +1445,38 @@ class EEGRAGBenchmark:
         min_metadata_completeness_per_archetype = float(
             getattr(self, "min_metadata_completeness_per_archetype", 0.70)
         )
+        min_unique_pmids_per_archetype = int(
+            getattr(self, "min_unique_pmids_per_archetype", 1)
+        )
+        min_unique_pmid_ratio_per_archetype = float(
+            getattr(self, "min_unique_pmid_ratio_per_archetype", 0.0)
+        )
+        min_distinct_sources_per_archetype = int(
+            getattr(self, "min_distinct_sources_per_archetype", 1)
+        )
+        max_source_concentration_per_archetype = float(
+            getattr(self, "max_source_concentration_per_archetype", 1.0)
+        )
+        category_corpus_thresholds = getattr(
+            self,
+            "category_corpus_thresholds",
+            {
+                "general": {
+                    "min_total_papers": float(min_total_papers_per_strategy),
+                    "min_avg_papers_per_archetype": float(min_avg_papers_per_archetype),
+                    "min_metadata_completeness_rate": float(min_metadata_completeness_rate),
+                }
+            },
+        )
 
         failing: List[str] = []
+        failing_archetypes: List[Dict[str, Any]] = []
+        missing_field_breakdown = {
+            "pmid": 0,
+            "title": 0,
+            "year": 0,
+            "doi": 0,
+        }
         if total_papers <= 0 and not per_archetype:
             return {
                 "valid": True,
@@ -1408,7 +1484,14 @@ class EEGRAGBenchmark:
                 "strategy": strategy_name,
                 "failing": [],
                 "reason": "insufficient_metrics",
+                "failing_archetypes": [],
+                "missing_field_breakdown": missing_field_breakdown,
             }
+
+        volume_ci = strategy_payload.get("paper_volume_ci", {})
+        volume_ci_lower = float(volume_ci.get("ci_lower", avg_papers))
+        metadata_ci = strategy_payload.get("metadata_completeness_ci", {})
+        metadata_ci_lower = float(metadata_ci.get("ci_lower", metadata_rate))
 
         if total_papers < min_total_papers_per_strategy:
             failing.append(
@@ -1420,25 +1503,141 @@ class EEGRAGBenchmark:
                 "avg_papers_per_archetype "
                 f"{avg_papers:.2f} < {min_avg_papers_per_archetype:.2f}"
             )
+        if volume_ci_lower < min_avg_papers_per_archetype:
+            failing.append(
+                "paper_volume_ci.lower "
+                f"{volume_ci_lower:.2f} < {min_avg_papers_per_archetype:.2f}"
+            )
         if metadata_rate < min_metadata_completeness_rate:
             failing.append(
                 "metadata_completeness_rate "
                 f"{metadata_rate:.3f} < {min_metadata_completeness_rate:.3f}"
             )
+        if metadata_ci_lower < min_metadata_completeness_rate:
+            failing.append(
+                "metadata_completeness_ci.lower "
+                f"{metadata_ci_lower:.3f} < {min_metadata_completeness_rate:.3f}"
+            )
+
+        per_category_totals: Dict[str, Dict[str, float]] = defaultdict(
+            lambda: {"total_papers": 0.0, "archetypes": 0.0, "metadata_sum": 0.0}
+        )
 
         for archetype_name, metrics in per_archetype.items():
+            category = str(metrics.get("category", "general")).lower()
             citation_count = int(metrics.get("citation_count", 0))
             completeness = float(metrics.get("metadata_completeness", 0.0))
+            unique_pmid_count = int(metrics.get("unique_pmid_count", 0))
+            unique_pmid_ratio = float(metrics.get("unique_pmid_ratio", 0.0))
+            distinct_sources = int(metrics.get("distinct_sources", 0))
+            max_source_share = float(metrics.get("max_source_share", 1.0))
+            field_missing = metrics.get("metadata_missing_field_counts", {})
+
+            for field_name in ("pmid", "title", "year", "doi"):
+                missing_field_breakdown[field_name] += int(field_missing.get(field_name, 0))
+
+            per_category_totals[category]["total_papers"] += float(citation_count)
+            per_category_totals[category]["archetypes"] += 1.0
+            per_category_totals[category]["metadata_sum"] += float(completeness)
+
+            archetype_failures: List[str] = []
             if citation_count < min_papers_per_archetype:
-                failing.append(
+                msg = (
                     f"{archetype_name}: citation_count {citation_count} "
                     f"< {min_papers_per_archetype}"
                 )
+                failing.append(msg)
+                archetype_failures.append(msg)
             if completeness < min_metadata_completeness_per_archetype:
-                failing.append(
+                msg = (
                     f"{archetype_name}: metadata_completeness {completeness:.3f} "
                     f"< {min_metadata_completeness_per_archetype:.3f}"
                 )
+                failing.append(msg)
+                archetype_failures.append(msg)
+            if unique_pmid_count < min_unique_pmids_per_archetype:
+                msg = (
+                    f"{archetype_name}: unique_pmid_count {unique_pmid_count} "
+                    f"< {min_unique_pmids_per_archetype}"
+                )
+                failing.append(msg)
+                archetype_failures.append(msg)
+            if unique_pmid_ratio < min_unique_pmid_ratio_per_archetype:
+                msg = (
+                    f"{archetype_name}: unique_pmid_ratio {unique_pmid_ratio:.3f} "
+                    f"< {min_unique_pmid_ratio_per_archetype:.3f}"
+                )
+                failing.append(msg)
+                archetype_failures.append(msg)
+            if distinct_sources < min_distinct_sources_per_archetype:
+                msg = (
+                    f"{archetype_name}: distinct_sources {distinct_sources} "
+                    f"< {min_distinct_sources_per_archetype}"
+                )
+                failing.append(msg)
+                archetype_failures.append(msg)
+            if max_source_share > max_source_concentration_per_archetype:
+                msg = (
+                    f"{archetype_name}: max_source_share {max_source_share:.3f} "
+                    f"> {max_source_concentration_per_archetype:.3f}"
+                )
+                failing.append(msg)
+                archetype_failures.append(msg)
+
+            if archetype_failures:
+                failing_archetypes.append(
+                    {
+                        "id": archetype_name,
+                        "category": category,
+                        "issues": archetype_failures,
+                        "metadata_missing_field_counts": {
+                            field_name: int(field_missing.get(field_name, 0))
+                            for field_name in ("pmid", "title", "year", "doi")
+                        },
+                        "citation_count": citation_count,
+                        "metadata_completeness": completeness,
+                        "unique_pmid_count": unique_pmid_count,
+                        "unique_pmid_ratio": unique_pmid_ratio,
+                        "distinct_sources": distinct_sources,
+                        "max_source_share": max_source_share,
+                    }
+                )
+
+        category_failures: List[str] = []
+        for category_name, totals in per_category_totals.items():
+            if category_name not in category_corpus_thresholds:
+                continue
+
+            thresholds = category_corpus_thresholds.get(category_name, {})
+            category_total = float(totals["total_papers"])
+            category_archetypes = max(1.0, float(totals["archetypes"]))
+            category_avg = category_total / category_archetypes
+            category_metadata = float(totals["metadata_sum"]) / category_archetypes
+
+            min_cat_total = float(
+                thresholds.get("min_total_papers", min_total_papers_per_strategy)
+            )
+            min_cat_avg = float(
+                thresholds.get("min_avg_papers_per_archetype", min_avg_papers_per_archetype)
+            )
+            min_cat_metadata = float(
+                thresholds.get("min_metadata_completeness_rate", min_metadata_completeness_rate)
+            )
+
+            if category_total < min_cat_total:
+                category_failures.append(
+                    f"category[{category_name}] total_papers {category_total:.0f} < {min_cat_total:.0f}"
+                )
+            if category_avg < min_cat_avg:
+                category_failures.append(
+                    f"category[{category_name}] avg_papers {category_avg:.2f} < {min_cat_avg:.2f}"
+                )
+            if category_metadata < min_cat_metadata:
+                category_failures.append(
+                    f"category[{category_name}] metadata_rate {category_metadata:.3f} < {min_cat_metadata:.3f}"
+                )
+
+        failing.extend(category_failures)
 
         return {
             "valid": len(failing) == 0,
@@ -1447,6 +1646,15 @@ class EEGRAGBenchmark:
             "total_papers_evaluated": total_papers,
             "avg_papers_per_archetype": avg_papers,
             "metadata_completeness_rate": metadata_rate,
+            "paper_volume_ci": volume_ci,
+            "metadata_completeness_ci": metadata_ci,
+            "failing_archetypes": failing_archetypes,
+            "missing_field_breakdown": missing_field_breakdown,
+            "category_thresholds": category_corpus_thresholds,
+            "min_unique_pmids_per_archetype": min_unique_pmids_per_archetype,
+            "min_unique_pmid_ratio_per_archetype": min_unique_pmid_ratio_per_archetype,
+            "min_distinct_sources_per_archetype": min_distinct_sources_per_archetype,
+            "max_source_concentration_per_archetype": max_source_concentration_per_archetype,
             "failing": failing,
         }
 
@@ -2404,30 +2612,91 @@ class EEGRAGBenchmark:
     @staticmethod
     def _citation_metadata_completeness(citations: List[Any]) -> float:
         """Estimate completeness ratio for citation metadata fields."""
+        return float(
+            EEGRAGBenchmark._citation_metadata_quality(citations).get(
+                "metadata_completeness",
+                0.0,
+            )
+        )
+
+    @staticmethod
+    def _citation_metadata_quality(citations: List[Any]) -> Dict[str, Any]:
+        """Compute metadata quality, uniqueness, and source concentration diagnostics."""
         if not citations:
-            return 0.0
+            return {
+                "metadata_completeness": 0.0,
+                "missing_field_counts": {
+                    "pmid": 0,
+                    "title": 0,
+                    "year": 0,
+                    "doi": 0,
+                },
+                "unique_pmid_count": 0,
+                "unique_pmid_ratio": 0.0,
+                "source_distribution": {},
+                "distinct_sources": 0,
+                "max_source_share": 1.0,
+            }
 
         required_fields = ("pmid", "title", "year", "doi")
+        missing_field_counts = {key: 0 for key in required_fields}
         completeness_scores: List[float] = []
+        pmids: List[str] = []
+        source_distribution: Dict[str, int] = defaultdict(int)
+
         for citation in citations:
             metadata = getattr(citation, "metadata", {}) or {}
+            pmid = getattr(citation, "pmid", None)
+            title = getattr(citation, "title", None)
             year = (
                 getattr(citation, "year", None)
                 if hasattr(citation, "year")
                 else metadata.get("year")
             )
+            doi = getattr(citation, "doi", None) or metadata.get("doi")
+
+            if pmid is None or str(pmid).strip() == "":
+                missing_field_counts["pmid"] += 1
+            else:
+                pmids.append(str(pmid).strip())
+            if title is None or str(title).strip() == "":
+                missing_field_counts["title"] += 1
+            if year is None:
+                missing_field_counts["year"] += 1
+            if doi is None or str(doi).strip() == "":
+                missing_field_counts["doi"] += 1
+
             score = 0.0
-            if getattr(citation, "pmid", None):
-                score += 1.0
-            if getattr(citation, "title", None):
-                score += 1.0
-            if year is not None:
-                score += 1.0
-            if getattr(citation, "doi", None) or metadata.get("doi"):
-                score += 1.0
+            score += 1.0 if pmid is not None and str(pmid).strip() != "" else 0.0
+            score += 1.0 if title is not None and str(title).strip() != "" else 0.0
+            score += 1.0 if year is not None else 0.0
+            score += 1.0 if doi is not None and str(doi).strip() != "" else 0.0
             completeness_scores.append(score / len(required_fields))
 
-        return float(statistics.mean(completeness_scores))
+            source = (
+                metadata.get("source")
+                or metadata.get("source_name")
+                or metadata.get("provider")
+                or "unknown"
+            )
+            source_distribution[str(source).lower()] += 1
+
+        total = max(1, len(citations))
+        unique_pmid_count = len(set(pmids))
+        unique_pmid_ratio = unique_pmid_count / total
+        max_source_share = (
+            max(source_distribution.values()) / total if source_distribution else 1.0
+        )
+
+        return {
+            "metadata_completeness": float(statistics.mean(completeness_scores)),
+            "missing_field_counts": {k: int(v) for k, v in missing_field_counts.items()},
+            "unique_pmid_count": int(unique_pmid_count),
+            "unique_pmid_ratio": float(unique_pmid_ratio),
+            "source_distribution": {k: int(v) for k, v in source_distribution.items()},
+            "distinct_sources": int(len(source_distribution)),
+            "max_source_share": float(max_source_share),
+        }
 
     async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
         """Compare weighted/diversified/concept-aware across archetypes with macro metrics."""
@@ -2440,6 +2709,9 @@ class EEGRAGBenchmark:
             utility_values: List[float] = []
             uncertainty_adjusted_utility_values: List[float] = []
             citation_count_values: List[float] = []
+            unique_pmid_count_values: List[float] = []
+            unique_pmid_ratio_values: List[float] = []
+            source_concentration_values: List[float] = []
             metadata_completeness_values: List[float] = []
             grounding_values: List[float] = []
             coverage_values: List[float] = []
@@ -2497,9 +2769,14 @@ class EEGRAGBenchmark:
                     utilities.append(utility)
 
                 citation_count = float(len(aggregated.citations))
-                metadata_completeness = self._citation_metadata_completeness(
-                    aggregated.citations
-                )
+                quality = self._citation_metadata_quality(aggregated.citations)
+                metadata_completeness = float(quality["metadata_completeness"])
+                unique_pmid_count = float(quality["unique_pmid_count"])
+                unique_pmid_ratio = float(quality["unique_pmid_ratio"])
+                distinct_sources = int(quality["distinct_sources"])
+                max_source_share = float(quality["max_source_share"])
+                source_distribution = dict(quality["source_distribution"])
+                metadata_missing_field_counts = dict(quality["missing_field_counts"])
 
                 ranking_ndcg = self._compute_ndcg(utilities, k=5)
                 mean_utility = statistics.mean(utilities) if utilities else 0.0
@@ -2533,6 +2810,9 @@ class EEGRAGBenchmark:
                 utility_values.append(mean_utility)
                 uncertainty_adjusted_utility_values.append(uncertainty_adjusted_utility)
                 citation_count_values.append(citation_count)
+                unique_pmid_count_values.append(unique_pmid_count)
+                unique_pmid_ratio_values.append(unique_pmid_ratio)
+                source_concentration_values.append(max_source_share)
                 metadata_completeness_values.append(metadata_completeness)
                 grounding_values.append(grounding_quality)
                 coverage_values.append(concept_coverage)
@@ -2556,10 +2836,20 @@ class EEGRAGBenchmark:
                     "citation_validity_proxy": citation_validity_proxy,
                     "citation_count": citation_count,
                     "metadata_completeness": metadata_completeness,
+                    "metadata_missing_field_counts": metadata_missing_field_counts,
+                    "unique_pmid_count": unique_pmid_count,
+                    "unique_pmid_ratio": unique_pmid_ratio,
+                    "distinct_sources": distinct_sources,
+                    "max_source_share": max_source_share,
+                    "source_distribution": source_distribution,
                     "ranking_ndcg": ranking_ndcg,
                 }
 
             ndcg_ci = self._bootstrap_confidence_interval(ndcg_values)
+            paper_volume_ci = self._bootstrap_confidence_interval(citation_count_values)
+            metadata_completeness_ci = self._bootstrap_confidence_interval(
+                metadata_completeness_values
+            )
             drift_summary = self._monitor_calibration_drift(
                 predicted_utilities=utility_values,
                 target_grounding=grounding_values,
@@ -2582,9 +2872,14 @@ class EEGRAGBenchmark:
                 ),
                 "total_papers_evaluated": int(sum(citation_count_values)),
                 "avg_papers_per_archetype": statistics.mean(citation_count_values),
+                "paper_volume_ci": paper_volume_ci,
                 "metadata_completeness_rate": statistics.mean(
                     metadata_completeness_values
                 ),
+                "metadata_completeness_ci": metadata_completeness_ci,
+                "unique_pmid_count_mean": statistics.mean(unique_pmid_count_values),
+                "unique_pmid_ratio_mean": statistics.mean(unique_pmid_ratio_values),
+                "max_source_share_mean": statistics.mean(source_concentration_values),
                 "hard_archetype_uncertainty_adjusted_utility": (
                     statistics.mean(hard_uncertainty_adjusted_utility_values)
                     if hard_uncertainty_adjusted_utility_values
@@ -2798,6 +3093,17 @@ class EEGRAGBenchmark:
                     'hard_archetype_utility_delta_by_category': results.ranking_strategy_comparison.get('concept_aware', {}).get('hard_archetype_utility_delta_by_category', {}),
                     'corpus_coverage_validation': {
                         strategy: payload.get('corpus_coverage_validation', {})
+                        for strategy, payload in results.ranking_strategy_comparison.items()
+                    },
+                    'failing_archetype_ids_by_strategy': {
+                        strategy: [
+                            entry.get('id')
+                            for entry in payload.get('corpus_coverage_validation', {}).get('failing_archetypes', [])
+                        ]
+                        for strategy, payload in results.ranking_strategy_comparison.items()
+                    },
+                    'missing_field_breakdown_by_strategy': {
+                        strategy: payload.get('corpus_coverage_validation', {}).get('missing_field_breakdown', {})
                         for strategy, payload in results.ranking_strategy_comparison.items()
                     },
                 },

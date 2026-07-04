@@ -1135,3 +1135,332 @@ def test_end_to_end_strategy_comparison_triggers_guard_for_sparse_corpus_and_met
     ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
     with pytest.raises(RuntimeError, match="Strategy corpus coverage regression"):
         benchmark._enforce_ranking_regression_guard(ranking)
+
+
+def test_strategy_corpus_coverage_validation_uses_category_thresholds_and_cis() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_total_papers_per_strategy = 60
+    benchmark.min_avg_papers_per_archetype = 8.0
+    benchmark.min_metadata_completeness_rate = 0.80
+    benchmark.min_papers_per_archetype = 5
+    benchmark.min_metadata_completeness_per_archetype = 0.70
+    benchmark.category_corpus_thresholds = {
+        "general": {
+            "min_total_papers": 60.0,
+            "min_avg_papers_per_archetype": 8.0,
+            "min_metadata_completeness_rate": 0.80,
+        },
+        "clinical": {
+            "min_total_papers": 100.0,
+            "min_avg_papers_per_archetype": 10.0,
+            "min_metadata_completeness_rate": 0.86,
+        },
+    }
+
+    payload = {
+        "total_papers_evaluated": 90,
+        "avg_papers_per_archetype": 9.0,
+        "paper_volume_ci": {"ci_lower": 7.5, "ci_upper": 10.2},
+        "metadata_completeness_rate": 0.85,
+        "metadata_completeness_ci": {"ci_lower": 0.77, "ci_upper": 0.90},
+        "per_archetype": {
+            "clinical_hard": {
+                "category": "clinical",
+                "citation_count": 90,
+                "metadata_completeness": 0.85,
+                "metadata_missing_field_counts": {
+                    "pmid": 0,
+                    "title": 0,
+                    "year": 5,
+                    "doi": 9,
+                },
+                "unique_pmid_count": 88,
+                "unique_pmid_ratio": 0.98,
+                "distinct_sources": 3,
+                "max_source_share": 0.52,
+            }
+        },
+    }
+
+    validation = benchmark._validate_strategy_corpus_coverage("concept_aware", payload)
+    assert validation["valid"] is False
+    assert any("paper_volume_ci.lower" in item for item in validation["failing"])
+    assert any(
+        "metadata_completeness_ci.lower" in item for item in validation["failing"]
+    )
+    assert any(
+        "category[clinical] total_papers" in item for item in validation["failing"]
+    )
+    assert any(
+        "category[clinical] metadata_rate" in item for item in validation["failing"]
+    )
+
+
+def test_strategy_corpus_coverage_validation_reports_failing_archetypes_and_missing_fields() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_total_papers_per_strategy = 1
+    benchmark.min_avg_papers_per_archetype = 1.0
+    benchmark.min_metadata_completeness_rate = 0.0
+    benchmark.min_papers_per_archetype = 2
+    benchmark.min_metadata_completeness_per_archetype = 0.5
+    benchmark.min_unique_pmids_per_archetype = 4
+    benchmark.min_unique_pmid_ratio_per_archetype = 0.7
+    benchmark.min_distinct_sources_per_archetype = 2
+    benchmark.max_source_concentration_per_archetype = 0.7
+
+    payload = {
+        "total_papers_evaluated": 12,
+        "avg_papers_per_archetype": 6.0,
+        "metadata_completeness_rate": 0.9,
+        "per_archetype": {
+            "clinical_hard": {
+                "category": "clinical",
+                "citation_count": 6,
+                "metadata_completeness": 0.90,
+                "metadata_missing_field_counts": {
+                    "pmid": 1,
+                    "title": 0,
+                    "year": 2,
+                    "doi": 3,
+                },
+                "unique_pmid_count": 2,
+                "unique_pmid_ratio": 0.33,
+                "distinct_sources": 1,
+                "max_source_share": 0.95,
+            },
+            "bci_hard": {
+                "category": "bci",
+                "citation_count": 6,
+                "metadata_completeness": 0.92,
+                "metadata_missing_field_counts": {
+                    "pmid": 0,
+                    "title": 1,
+                    "year": 1,
+                    "doi": 1,
+                },
+                "unique_pmid_count": 6,
+                "unique_pmid_ratio": 1.0,
+                "distinct_sources": 2,
+                "max_source_share": 0.55,
+            },
+        },
+    }
+
+    validation = benchmark._validate_strategy_corpus_coverage("concept_aware", payload)
+    assert validation["valid"] is False
+    assert validation["failing_archetypes"]
+    assert validation["failing_archetypes"][0]["id"] == "clinical_hard"
+    assert validation["missing_field_breakdown"]["pmid"] == 1
+    assert validation["missing_field_breakdown"]["title"] == 1
+    assert validation["missing_field_breakdown"]["year"] == 3
+    assert validation["missing_field_breakdown"]["doi"] == 4
+
+
+def test_export_includes_failing_archetype_ids_and_missing_field_breakdown(tmp_path) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+    BenchmarkSuite = benchmarking_mod.BenchmarkSuite
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    out_path = tmp_path / "benchmark_export_corpus_quality.json"
+
+    suite = BenchmarkSuite(
+        retrieval_results=[],
+        generation_results=[],
+        end_to_end_results=[],
+        overall_score=0.80,
+        retrieval_score=0.82,
+        generation_score=0.78,
+        avg_total_time_ms=400.0,
+        avg_citation_accuracy=0.90,
+        avg_response_quality=0.83,
+        avg_redundancy_score=0.19,
+        avg_diversity_score=0.70,
+        avg_query_entity_coverage_score=0.70,
+        avg_query_concept_coverage_score=0.73,
+        avg_centrality_grounding_score=0.68,
+        avg_grounding_quality=0.74,
+        concept_aware_grounding_score=0.76,
+        concept_aware_ranking_ndcg=0.81,
+        ranking_strategy_comparison={
+            "weighted": {
+                "corpus_coverage_validation": {
+                    "valid": True,
+                    "failing": [],
+                    "failing_archetypes": [],
+                    "missing_field_breakdown": {
+                        "pmid": 0,
+                        "title": 0,
+                        "year": 0,
+                        "doi": 0,
+                    },
+                }
+            },
+            "concept_aware": {
+                "ranking_ndcg_ci_lower": 0.76,
+                "ranking_ndcg_ci_upper": 0.87,
+                "calibration_drift": {"drift": 0.04, "status": "ok"},
+                "corpus_coverage_validation": {
+                    "valid": False,
+                    "failing": ["clinical_hard: unique_pmid_ratio 0.330 < 0.700"],
+                    "failing_archetypes": [
+                        {"id": "clinical_hard", "issues": ["duplicate pmids"]}
+                    ],
+                    "missing_field_breakdown": {
+                        "pmid": 2,
+                        "title": 1,
+                        "year": 4,
+                        "doi": 5,
+                    },
+                },
+                "monotonic_safety_response": {"valid": True},
+                "temporal_forgetting_validation": {"valid": True},
+                "risk_to_step_model": {"heldout_mse": 0.002},
+                "hard_archetype_utility_delta_by_category": {
+                    "clinical": {"mean": 0.04}
+                },
+            },
+        },
+    )
+
+    benchmark.export_benchmark_results(suite, out_path)
+    payload = json.loads(out_path.read_text())
+    adaptive = payload["summary"]["adaptive_safety"]
+
+    assert adaptive["failing_archetype_ids_by_strategy"]["concept_aware"] == [
+        "clinical_hard"
+    ]
+    assert adaptive["missing_field_breakdown_by_strategy"]["concept_aware"]["doi"] == 5
+
+
+def test_end_to_end_strategy_comparison_fails_on_mixed_source_skew_and_duplicate_pmids(
+    monkeypatch,
+) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.min_concept_aware_ranking_ndcg = 0.35
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.25,
+        "medium": 0.25,
+        "hard": 0.25,
+    }
+    benchmark.hard_archetype_utility_margin = -0.05
+    benchmark.hard_archetype_delta_ci_alpha = 0.05
+    benchmark.bootstrap_samples = 200
+    benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.min_total_papers_per_strategy = 1
+    benchmark.min_avg_papers_per_archetype = 1.0
+    benchmark.min_metadata_completeness_rate = 0.70
+    benchmark.min_papers_per_archetype = 1
+    benchmark.min_metadata_completeness_per_archetype = 0.70
+    benchmark.min_unique_pmids_per_archetype = 8
+    benchmark.min_unique_pmid_ratio_per_archetype = 0.65
+    benchmark.min_distinct_sources_per_archetype = 2
+    benchmark.max_source_concentration_per_archetype = 0.80
+    benchmark.category_adaptive_safety_floors = {
+        "general": {"citation_validity_floor": 0.55, "hard_utility_margin": -0.01},
+        "clinical": {"citation_validity_floor": 0.60, "hard_utility_margin": -0.01},
+    }
+    benchmark._calibration_drift_state = {
+        "baseline_mae": None,
+        "last_mae": None,
+        "last_relative_shift": 0.0,
+        "drift_detected": False,
+        "recalibration_recommended": False,
+        "checked_at": None,
+    }
+    benchmark._utility_weights = {
+        "concept": 0.50,
+        "centrality": 0.30,
+        "novelty": 0.20,
+    }
+
+    fixtures = [
+        {
+            "name": "clinical_skew_0",
+            "category": "clinical",
+            "difficulty": "hard",
+            "query": "clinical skewed source mix",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.24,
+                            "query_concept_coverage_score": 0.76,
+                        },
+                        "paper_count": 20,
+                        "dominant_source": False,
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.26,
+                            "query_concept_coverage_score": 0.74,
+                        },
+                        "paper_count": 20,
+                        "dominant_source": False,
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.20,
+                            "query_concept_coverage_score": 0.80,
+                        },
+                        "paper_count": 20,
+                        "dominant_source": True,
+                    },
+                }
+            },
+        }
+    ]
+
+    monkeypatch.setattr(
+        benchmark,
+        "_create_archetype_fixture_bank",
+        lambda: fixtures,
+    )
+
+    class _SkewedAggregator:
+        def __init__(self, relevance_threshold, max_citations, entity_min_frequency, ranking_strategy):
+            _ = (relevance_threshold, max_citations, entity_min_frequency)
+            self.ranking_strategy = ranking_strategy
+
+        def _extract_query_concepts(self, query):
+            _ = query
+            return {"concept": ["eeg"]}
+
+        async def aggregate(self, query, fixture_results):
+            _ = query
+            scenario = fixture_results["scenario"][self.ranking_strategy]
+            dominant_source = bool(scenario.get("dominant_source", False))
+            citations = []
+            for idx in range(int(scenario["paper_count"])):
+                if dominant_source:
+                    pmid = f"dup-{idx % 4}"
+                    source = "pubmed"
+                else:
+                    pmid = f"u-{idx}"
+                    source = "pubmed" if idx % 2 == 0 else "crossref"
+
+                citations.append(
+                    SimpleNamespace(
+                        pmid=pmid,
+                        title=f"EEG source-mix paper {idx}",
+                        abstract="eeg evidence",
+                        year=2021,
+                        doi=f"10.1000/mix.{idx}",
+                        metadata={
+                            "centrality_score": 0.70,
+                            "year": 2021,
+                            "doi": f"10.1000/mix.{idx}",
+                            "source": source,
+                        },
+                    )
+                )
+            return SimpleNamespace(citations=citations, statistics=scenario["stats"])
+
+    monkeypatch.setattr(benchmarking_mod, "ContextAggregator", _SkewedAggregator)
+
+    ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
+    with pytest.raises(RuntimeError, match="Strategy corpus coverage regression"):
+        benchmark._enforce_ranking_regression_guard(ranking)
