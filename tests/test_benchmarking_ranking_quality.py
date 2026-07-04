@@ -1,5 +1,6 @@
 """Unit tests for ranking-quality formulas in benchmark aggregation strategy evaluation."""
 
+import asyncio
 import importlib
 import json
 import sys
@@ -313,3 +314,404 @@ def test_ranking_guard_fails_on_temporal_forgetting_safety_regression() -> None:
 
     with pytest.raises(RuntimeError, match="Temporal forgetting safety regression"):
         benchmark._enforce_ranking_regression_guard(ranking_comparison)
+
+
+def test_hard_archetype_utility_guard_uses_confidence_interval_lower_bound() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.hard_archetype_utility_margin = 0.02
+
+    ranking_comparison = {
+        "weighted": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.62,
+        },
+        "concept_aware": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.66,
+            "hard_archetype_utility_delta_ci": {
+                "mean": 0.04,
+                "ci_lower": 0.01,
+                "ci_upper": 0.07,
+                "samples": 12,
+            },
+        },
+    }
+
+    with pytest.raises(RuntimeError, match="Confidence-bounded utility regression"):
+        benchmark._enforce_uncertainty_adjusted_utility_guard(ranking_comparison)
+
+
+def test_temporal_forgetting_validation_applies_stricter_category_floors() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.category_adaptive_safety_floors = {
+        "general": {
+            "citation_validity_floor": 0.62,
+            "hard_utility_margin": 0.0,
+        },
+        "clinical": {
+            "citation_validity_floor": 0.72,
+            "hard_utility_margin": 0.02,
+        },
+    }
+
+    before = {
+        "hard_archetype_uncertainty_adjusted_utility": 0.58,
+        "citation_validity_proxy": 0.71,
+    }
+    after = {
+        "hard_archetype_uncertainty_adjusted_utility": 0.60,
+        "citation_validity_proxy": 0.70,
+    }
+    before_per = {
+        "clinical_hard": {
+            "category": "clinical",
+            "difficulty": "hard",
+            "uncertainty_adjusted_utility": 0.58,
+            "citation_validity_proxy": 0.73,
+        }
+    }
+    after_per = {
+        "clinical_hard": {
+            "category": "clinical",
+            "difficulty": "hard",
+            "uncertainty_adjusted_utility": 0.59,
+            "citation_validity_proxy": 0.71,
+        }
+    }
+
+    validation = benchmark._validate_temporal_forgetting_safety(
+        before,
+        after,
+        before_per_archetype=before_per,
+        after_per_archetype=after_per,
+    )
+    assert validation["valid"] is False
+    assert validation["category_checks"]["clinical"]["valid"] is False
+
+
+def test_export_includes_adaptive_safety_summary_fields(tmp_path) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+    BenchmarkSuite = benchmarking_mod.BenchmarkSuite
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    out_path = tmp_path / "benchmark_export_adaptive_safety.json"
+
+    suite = BenchmarkSuite(
+        retrieval_results=[],
+        generation_results=[],
+        end_to_end_results=[],
+        overall_score=0.81,
+        retrieval_score=0.83,
+        generation_score=0.79,
+        avg_total_time_ms=420.0,
+        avg_citation_accuracy=0.92,
+        avg_response_quality=0.84,
+        avg_redundancy_score=0.18,
+        avg_diversity_score=0.72,
+        avg_query_entity_coverage_score=0.71,
+        avg_query_concept_coverage_score=0.74,
+        avg_centrality_grounding_score=0.69,
+        avg_grounding_quality=0.75,
+        concept_aware_grounding_score=0.77,
+        concept_aware_ranking_ndcg=0.82,
+        ranking_strategy_comparison={
+            "concept_aware": {
+                "ranking_ndcg_ci_lower": 0.76,
+                "ranking_ndcg_ci_upper": 0.87,
+                "calibration_drift": {
+                    "drift": 0.04,
+                    "status": "ok",
+                },
+                "hard_archetype_utility_delta_ci": {
+                    "mean": 0.03,
+                    "ci_lower": 0.01,
+                    "ci_upper": 0.05,
+                    "samples": 10,
+                },
+                "monotonic_safety_response": {"valid": True},
+                "temporal_forgetting_validation": {"valid": True},
+                "risk_to_step_model": {"heldout_mse": 0.002},
+                "hard_archetype_utility_delta_by_category": {
+                    "clinical": {"mean": 0.04}
+                },
+            }
+        },
+    )
+
+    benchmark.export_benchmark_results(suite, out_path)
+    payload = json.loads(out_path.read_text())
+    summary = payload["summary"]
+
+    assert "adaptive_safety" in summary
+    assert "concept_aware_hard_utility_delta_ci" in summary
+    assert "risk_to_step_model" in summary["adaptive_safety"]
+
+
+def test_end_to_end_strategy_comparison_triggers_guard_under_synthetic_drift(monkeypatch) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.min_concept_aware_ranking_ndcg = 0.45
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.35,
+        "medium": 0.35,
+        "hard": 0.35,
+    }
+    benchmark.hard_archetype_utility_margin = 0.0
+    benchmark.hard_archetype_delta_ci_alpha = 0.05
+    benchmark.bootstrap_samples = 200
+    benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.category_adaptive_safety_floors = {
+        "general": {"citation_validity_floor": 0.60, "hard_utility_margin": 0.0},
+        "clinical": {"citation_validity_floor": 0.72, "hard_utility_margin": 0.02},
+        "bci": {"citation_validity_floor": 0.70, "hard_utility_margin": 0.01},
+    }
+    benchmark._calibration_drift_state = {
+        "baseline_mae": None,
+        "last_mae": None,
+        "last_relative_shift": 0.0,
+        "drift_detected": False,
+        "recalibration_recommended": False,
+        "checked_at": None,
+    }
+    benchmark._utility_weights = {
+        "concept": 0.50,
+        "centrality": 0.30,
+        "novelty": 0.20,
+    }
+
+    fixtures = [
+        {
+            "name": "clinical_hard",
+            "category": "clinical",
+            "difficulty": "hard",
+            "query": "clinical hard eeg",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.20,
+                            "query_concept_coverage_score": 0.82,
+                        },
+                        "centralities": [0.82, 0.75],
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.30,
+                            "query_concept_coverage_score": 0.75,
+                        },
+                        "centralities": [0.70, 0.66],
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.55,
+                            "query_concept_coverage_score": 0.58,
+                        },
+                        "centralities": [0.52, 0.49],
+                    },
+                }
+            },
+        },
+        {
+            "name": "bci_hard",
+            "category": "bci",
+            "difficulty": "hard",
+            "query": "bci hard eeg",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.22,
+                            "query_concept_coverage_score": 0.80,
+                        },
+                        "centralities": [0.78, 0.74],
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.33,
+                            "query_concept_coverage_score": 0.73,
+                        },
+                        "centralities": [0.69, 0.65],
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.52,
+                            "query_concept_coverage_score": 0.57,
+                        },
+                        "centralities": [0.50, 0.47],
+                    },
+                }
+            },
+        },
+    ]
+
+    monkeypatch.setattr(
+        benchmark,
+        "_create_archetype_fixture_bank",
+        lambda: fixtures,
+    )
+
+    class _FakeAggregator:
+        def __init__(self, relevance_threshold, max_citations, entity_min_frequency, ranking_strategy):
+            _ = (relevance_threshold, max_citations, entity_min_frequency)
+            self.ranking_strategy = ranking_strategy
+
+        def _extract_query_concepts(self, query):
+            _ = query
+            return {"concept": ["eeg"]}
+
+        async def aggregate(self, query, fixture_results):
+            _ = query
+            scenario = fixture_results["scenario"][self.ranking_strategy]
+            centralities = scenario["centralities"]
+            citations = [
+                SimpleNamespace(
+                    title="eeg concept citation",
+                    abstract="eeg evidence",
+                    pmid=f"p{idx}",
+                    metadata={"centrality_score": value},
+                )
+                for idx, value in enumerate(centralities)
+            ]
+            return SimpleNamespace(citations=citations, statistics=scenario["stats"])
+
+    monkeypatch.setattr(benchmarking_mod, "ContextAggregator", _FakeAggregator)
+
+    ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
+    with pytest.raises(RuntimeError):
+        benchmark._enforce_ranking_regression_guard(ranking)
+
+
+def test_end_to_end_strategy_comparison_passes_under_stable_conditions(monkeypatch) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.min_concept_aware_ranking_ndcg = 0.45
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.35,
+        "medium": 0.35,
+        "hard": 0.35,
+    }
+    benchmark.hard_archetype_utility_margin = -0.05
+    benchmark.hard_archetype_delta_ci_alpha = 0.05
+    benchmark.bootstrap_samples = 200
+    benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.category_adaptive_safety_floors = {
+        "general": {"citation_validity_floor": 0.60, "hard_utility_margin": -0.01},
+        "clinical": {"citation_validity_floor": 0.66, "hard_utility_margin": -0.01},
+        "bci": {"citation_validity_floor": 0.64, "hard_utility_margin": -0.01},
+    }
+    benchmark._calibration_drift_state = {
+        "baseline_mae": None,
+        "last_mae": None,
+        "last_relative_shift": 0.0,
+        "drift_detected": False,
+        "recalibration_recommended": False,
+        "checked_at": None,
+    }
+    benchmark._utility_weights = {
+        "concept": 0.50,
+        "centrality": 0.30,
+        "novelty": 0.20,
+    }
+
+    fixtures = [
+        {
+            "name": "clinical_hard",
+            "category": "clinical",
+            "difficulty": "hard",
+            "query": "clinical hard eeg",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.24,
+                            "query_concept_coverage_score": 0.78,
+                        },
+                        "centralities": [0.76, 0.72],
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.28,
+                            "query_concept_coverage_score": 0.76,
+                        },
+                        "centralities": [0.73, 0.70],
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.18,
+                            "query_concept_coverage_score": 0.84,
+                        },
+                        "centralities": [0.85, 0.80],
+                    },
+                }
+            },
+        },
+        {
+            "name": "bci_hard",
+            "category": "bci",
+            "difficulty": "hard",
+            "query": "bci hard eeg",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.26,
+                            "query_concept_coverage_score": 0.76,
+                        },
+                        "centralities": [0.74, 0.70],
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.30,
+                            "query_concept_coverage_score": 0.73,
+                        },
+                        "centralities": [0.70, 0.67],
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.19,
+                            "query_concept_coverage_score": 0.82,
+                        },
+                        "centralities": [0.83, 0.79],
+                    },
+                }
+            },
+        },
+    ]
+
+    monkeypatch.setattr(
+        benchmark,
+        "_create_archetype_fixture_bank",
+        lambda: fixtures,
+    )
+
+    class _FakeAggregator:
+        def __init__(self, relevance_threshold, max_citations, entity_min_frequency, ranking_strategy):
+            _ = (relevance_threshold, max_citations, entity_min_frequency)
+            self.ranking_strategy = ranking_strategy
+
+        def _extract_query_concepts(self, query):
+            _ = query
+            return {"concept": ["eeg"]}
+
+        async def aggregate(self, query, fixture_results):
+            _ = query
+            scenario = fixture_results["scenario"][self.ranking_strategy]
+            centralities = scenario["centralities"]
+            citations = [
+                SimpleNamespace(
+                    title="eeg concept citation",
+                    abstract="eeg evidence",
+                    pmid=f"p{idx}",
+                    metadata={"centrality_score": value},
+                )
+                for idx, value in enumerate(centralities)
+            ]
+            return SimpleNamespace(citations=citations, statistics=scenario["stats"])
+
+    monkeypatch.setattr(benchmarking_mod, "ContextAggregator", _FakeAggregator)
+
+    ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
+    benchmark._enforce_ranking_regression_guard(ranking)
