@@ -1386,6 +1386,19 @@ class EEGRAGBenchmark:
         avg_papers = float(strategy_payload.get("avg_papers_per_archetype", 0.0))
         metadata_rate = float(strategy_payload.get("metadata_completeness_rate", 0.0))
         per_archetype = strategy_payload.get("per_archetype", {})
+        min_total_papers_per_strategy = int(
+            getattr(self, "min_total_papers_per_strategy", 100)
+        )
+        min_avg_papers_per_archetype = float(
+            getattr(self, "min_avg_papers_per_archetype", 8.0)
+        )
+        min_metadata_completeness_rate = float(
+            getattr(self, "min_metadata_completeness_rate", 0.80)
+        )
+        min_papers_per_archetype = int(getattr(self, "min_papers_per_archetype", 5))
+        min_metadata_completeness_per_archetype = float(
+            getattr(self, "min_metadata_completeness_per_archetype", 0.70)
+        )
 
         failing: List[str] = []
         if total_papers <= 0 and not per_archetype:
@@ -1397,34 +1410,34 @@ class EEGRAGBenchmark:
                 "reason": "insufficient_metrics",
             }
 
-        if total_papers < self.min_total_papers_per_strategy:
+        if total_papers < min_total_papers_per_strategy:
             failing.append(
                 "total_papers_evaluated "
-                f"{total_papers} < {self.min_total_papers_per_strategy}"
+                f"{total_papers} < {min_total_papers_per_strategy}"
             )
-        if avg_papers < self.min_avg_papers_per_archetype:
+        if avg_papers < min_avg_papers_per_archetype:
             failing.append(
                 "avg_papers_per_archetype "
-                f"{avg_papers:.2f} < {self.min_avg_papers_per_archetype:.2f}"
+                f"{avg_papers:.2f} < {min_avg_papers_per_archetype:.2f}"
             )
-        if metadata_rate < self.min_metadata_completeness_rate:
+        if metadata_rate < min_metadata_completeness_rate:
             failing.append(
                 "metadata_completeness_rate "
-                f"{metadata_rate:.3f} < {self.min_metadata_completeness_rate:.3f}"
+                f"{metadata_rate:.3f} < {min_metadata_completeness_rate:.3f}"
             )
 
         for archetype_name, metrics in per_archetype.items():
             citation_count = int(metrics.get("citation_count", 0))
             completeness = float(metrics.get("metadata_completeness", 0.0))
-            if citation_count < self.min_papers_per_archetype:
+            if citation_count < min_papers_per_archetype:
                 failing.append(
                     f"{archetype_name}: citation_count {citation_count} "
-                    f"< {self.min_papers_per_archetype}"
+                    f"< {min_papers_per_archetype}"
                 )
-            if completeness < self.min_metadata_completeness_per_archetype:
+            if completeness < min_metadata_completeness_per_archetype:
                 failing.append(
                     f"{archetype_name}: metadata_completeness {completeness:.3f} "
-                    f"< {self.min_metadata_completeness_per_archetype:.3f}"
+                    f"< {min_metadata_completeness_per_archetype:.3f}"
                 )
 
         return {

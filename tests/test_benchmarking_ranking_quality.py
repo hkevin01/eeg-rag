@@ -597,6 +597,11 @@ def test_end_to_end_strategy_comparison_passes_under_stable_conditions(monkeypat
     benchmark.hard_archetype_delta_ci_alpha = 0.05
     benchmark.bootstrap_samples = 200
     benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.min_total_papers_per_strategy = 2
+    benchmark.min_avg_papers_per_archetype = 1.0
+    benchmark.min_metadata_completeness_rate = 0.40
+    benchmark.min_papers_per_archetype = 1
+    benchmark.min_metadata_completeness_per_archetype = 0.40
     benchmark.category_adaptive_safety_floors = {
         "general": {"citation_validity_floor": 0.60, "hard_utility_margin": -0.01},
         "clinical": {"citation_validity_floor": 0.66, "hard_utility_margin": -0.01},
@@ -855,6 +860,278 @@ def test_end_to_end_strategy_comparison_large_body_and_metadata_completeness(
         assert strategy_metrics["total_papers_evaluated"] >= 300
         assert strategy_metrics["avg_papers_per_archetype"] >= 25
         assert strategy_metrics["metadata_completeness_rate"] >= 0.99
+        assert strategy_metrics["corpus_coverage_validation"]["valid"] is True
         for archetype_metrics in strategy_metrics["per_archetype"].values():
             assert archetype_metrics["citation_count"] >= 25
             assert archetype_metrics["metadata_completeness"] >= 0.99
+
+
+def test_strategy_corpus_coverage_validation_detects_sparse_body_and_metadata() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_total_papers_per_strategy = 100
+    benchmark.min_avg_papers_per_archetype = 8.0
+    benchmark.min_metadata_completeness_rate = 0.8
+    benchmark.min_papers_per_archetype = 5
+    benchmark.min_metadata_completeness_per_archetype = 0.7
+
+    payload = {
+        "total_papers_evaluated": 18,
+        "avg_papers_per_archetype": 3.0,
+        "metadata_completeness_rate": 0.55,
+        "per_archetype": {
+            "clinical_hard": {
+                "citation_count": 3,
+                "metadata_completeness": 0.5,
+            }
+        },
+    }
+    validation = benchmark._validate_strategy_corpus_coverage("concept_aware", payload)
+    assert validation["valid"] is False
+    assert len(validation["failing"]) >= 3
+
+
+def test_ranking_guard_fails_on_strategy_corpus_coverage_regression() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_concept_aware_ranking_ndcg = 0.5
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.4,
+        "medium": 0.4,
+        "hard": 0.4,
+    }
+    benchmark.hard_archetype_utility_margin = -0.1
+
+    ranking_comparison = {
+        "weighted": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.60,
+            "corpus_coverage_validation": {"valid": True, "failing": []},
+        },
+        "concept_aware": {
+            "ranking_ndcg": 0.72,
+            "hard_archetype_uncertainty_adjusted_utility": 0.66,
+            "per_archetype": {
+                "clinical_hard": {
+                    "difficulty": "hard",
+                    "ranking_ndcg": 0.70,
+                }
+            },
+            "corpus_coverage_validation": {
+                "valid": False,
+                "failing": ["total_papers_evaluated 12 < 100"],
+            },
+            "monotonic_safety_response": {"valid": True, "failing": []},
+            "temporal_forgetting_validation": {"valid": True},
+        },
+    }
+
+    with pytest.raises(RuntimeError, match="Strategy corpus coverage regression"):
+        benchmark._enforce_ranking_regression_guard(ranking_comparison)
+
+
+def test_export_includes_corpus_coverage_validation_summary(tmp_path) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+    BenchmarkSuite = benchmarking_mod.BenchmarkSuite
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    out_path = tmp_path / "benchmark_export_corpus_coverage.json"
+
+    suite = BenchmarkSuite(
+        retrieval_results=[],
+        generation_results=[],
+        end_to_end_results=[],
+        overall_score=0.81,
+        retrieval_score=0.83,
+        generation_score=0.79,
+        avg_total_time_ms=420.0,
+        avg_citation_accuracy=0.92,
+        avg_response_quality=0.84,
+        avg_redundancy_score=0.18,
+        avg_diversity_score=0.72,
+        avg_query_entity_coverage_score=0.71,
+        avg_query_concept_coverage_score=0.74,
+        avg_centrality_grounding_score=0.69,
+        avg_grounding_quality=0.75,
+        concept_aware_grounding_score=0.77,
+        concept_aware_ranking_ndcg=0.82,
+        ranking_strategy_comparison={
+            "weighted": {
+                "corpus_coverage_validation": {"valid": True, "failing": []}
+            },
+            "concept_aware": {
+                "ranking_ndcg_ci_lower": 0.76,
+                "ranking_ndcg_ci_upper": 0.87,
+                "calibration_drift": {"drift": 0.04, "status": "ok"},
+                "corpus_coverage_validation": {"valid": True, "failing": []},
+            },
+        },
+    )
+
+    benchmark.export_benchmark_results(suite, out_path)
+    payload = json.loads(out_path.read_text())
+    adaptive = payload["summary"]["adaptive_safety"]
+    assert "corpus_coverage_validation" in adaptive
+    assert "concept_aware" in adaptive["corpus_coverage_validation"]
+
+
+def test_end_to_end_strategy_comparison_triggers_guard_for_sparse_corpus_and_metadata(
+    monkeypatch,
+) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.min_concept_aware_ranking_ndcg = 0.35
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.25,
+        "medium": 0.25,
+        "hard": 0.25,
+    }
+    benchmark.hard_archetype_utility_margin = -0.05
+    benchmark.hard_archetype_delta_ci_alpha = 0.05
+    benchmark.bootstrap_samples = 200
+    benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.min_total_papers_per_strategy = 100
+    benchmark.min_avg_papers_per_archetype = 8.0
+    benchmark.min_metadata_completeness_rate = 0.8
+    benchmark.min_papers_per_archetype = 5
+    benchmark.min_metadata_completeness_per_archetype = 0.7
+    benchmark.category_adaptive_safety_floors = {
+        "general": {"citation_validity_floor": 0.55, "hard_utility_margin": -0.01},
+        "clinical": {"citation_validity_floor": 0.60, "hard_utility_margin": -0.01},
+    }
+    benchmark._calibration_drift_state = {
+        "baseline_mae": None,
+        "last_mae": None,
+        "last_relative_shift": 0.0,
+        "drift_detected": False,
+        "recalibration_recommended": False,
+        "checked_at": None,
+    }
+    benchmark._utility_weights = {
+        "concept": 0.50,
+        "centrality": 0.30,
+        "novelty": 0.20,
+    }
+
+    fixtures = [
+        {
+            "name": "clinical_sparse_0",
+            "category": "clinical",
+            "difficulty": "hard",
+            "query": "clinical sparse 0",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.22,
+                            "query_concept_coverage_score": 0.78,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": True,
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.27,
+                            "query_concept_coverage_score": 0.74,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": False,
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.20,
+                            "query_concept_coverage_score": 0.79,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": False,
+                    },
+                }
+            },
+        },
+        {
+            "name": "clinical_sparse_1",
+            "category": "clinical",
+            "difficulty": "medium",
+            "query": "clinical sparse 1",
+            "results": {
+                "scenario": {
+                    "weighted": {
+                        "stats": {
+                            "redundancy_score": 0.24,
+                            "query_concept_coverage_score": 0.76,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": True,
+                    },
+                    "diversified": {
+                        "stats": {
+                            "redundancy_score": 0.30,
+                            "query_concept_coverage_score": 0.72,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": False,
+                    },
+                    "concept_aware": {
+                        "stats": {
+                            "redundancy_score": 0.21,
+                            "query_concept_coverage_score": 0.77,
+                        },
+                        "paper_count": 3,
+                        "full_metadata": False,
+                    },
+                }
+            },
+        },
+    ]
+
+    monkeypatch.setattr(
+        benchmark,
+        "_create_archetype_fixture_bank",
+        lambda: fixtures,
+    )
+
+    class _SparseAggregator:
+        def __init__(self, relevance_threshold, max_citations, entity_min_frequency, ranking_strategy):
+            _ = (relevance_threshold, max_citations, entity_min_frequency)
+            self.ranking_strategy = ranking_strategy
+
+        def _extract_query_concepts(self, query):
+            _ = query
+            return {"concept": ["eeg"]}
+
+        async def aggregate(self, query, fixture_results):
+            _ = query
+            scenario = fixture_results["scenario"][self.ranking_strategy]
+            citations = []
+            for idx in range(int(scenario["paper_count"])):
+                if bool(scenario.get("full_metadata", False)):
+                    citations.append(
+                        SimpleNamespace(
+                            pmid=f"p{idx}",
+                            title=f"EEG paper {idx}",
+                            abstract="eeg evidence",
+                            year=2022,
+                            doi=f"10.1000/sparse.{idx}",
+                            metadata={
+                                "centrality_score": 0.72,
+                                "year": 2022,
+                                "doi": f"10.1000/sparse.{idx}",
+                            },
+                        )
+                    )
+                else:
+                    citations.append(
+                        SimpleNamespace(
+                            pmid=f"p{idx}",
+                            title=f"EEG paper {idx}",
+                            abstract="eeg evidence",
+                            metadata={"centrality_score": 0.62},
+                        )
+                    )
+            return SimpleNamespace(citations=citations, statistics=scenario["stats"])
+
+    monkeypatch.setattr(benchmarking_mod, "ContextAggregator", _SparseAggregator)
+
+    ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
+    with pytest.raises(RuntimeError, match="Strategy corpus coverage regression"):
+        benchmark._enforce_ranking_regression_guard(ranking)
