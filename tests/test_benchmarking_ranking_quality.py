@@ -236,3 +236,80 @@ def test_temporal_forgetting_validation_requires_utility_gain_and_citation_floor
     }
     failed = benchmark._validate_temporal_forgetting_safety(before, after_bad)
     assert failed["valid"] is False
+
+
+def test_ranking_guard_fails_on_monotonic_safety_regression() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_concept_aware_ranking_ndcg = 0.5
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.4,
+        "medium": 0.4,
+        "hard": 0.4,
+    }
+    benchmark.hard_archetype_utility_margin = 0.0
+
+    ranking_comparison = {
+        "weighted": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.60,
+        },
+        "concept_aware": {
+            "ranking_ndcg": 0.72,
+            "hard_archetype_uncertainty_adjusted_utility": 0.66,
+            "per_archetype": {
+                "clinical_hard": {
+                    "difficulty": "hard",
+                    "ranking_ndcg": 0.70,
+                }
+            },
+            "monotonic_safety_response": {
+                "valid": False,
+                "failing": ["clinical_hard: low=0.08, medium=0.11, high=0.07"],
+            },
+            "temporal_forgetting_validation": {
+                "valid": True,
+            },
+        },
+    }
+
+    with pytest.raises(RuntimeError, match="Monotonic safety response regression"):
+        benchmark._enforce_ranking_regression_guard(ranking_comparison)
+
+
+def test_ranking_guard_fails_on_temporal_forgetting_safety_regression() -> None:
+    benchmark = _benchmark_instance()
+    benchmark.min_concept_aware_ranking_ndcg = 0.5
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.4,
+        "medium": 0.4,
+        "hard": 0.4,
+    }
+    benchmark.hard_archetype_utility_margin = 0.0
+
+    ranking_comparison = {
+        "weighted": {
+            "hard_archetype_uncertainty_adjusted_utility": 0.60,
+        },
+        "concept_aware": {
+            "ranking_ndcg": 0.72,
+            "hard_archetype_uncertainty_adjusted_utility": 0.66,
+            "per_archetype": {
+                "clinical_hard": {
+                    "difficulty": "hard",
+                    "ranking_ndcg": 0.70,
+                }
+            },
+            "monotonic_safety_response": {
+                "valid": True,
+                "failing": [],
+            },
+            "temporal_forgetting_validation": {
+                "valid": False,
+                "hard_utility_delta": -0.01,
+                "citation_validity_delta": -0.04,
+                "citation_validity_floor": 0.62,
+            },
+        },
+    }
+
+    with pytest.raises(RuntimeError, match="Temporal forgetting safety regression"):
+        benchmark._enforce_ranking_regression_guard(ranking_comparison)

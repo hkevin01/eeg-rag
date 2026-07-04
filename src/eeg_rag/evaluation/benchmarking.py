@@ -251,6 +251,9 @@ class EEGRAGBenchmark:
         min_archetype_ndcg_by_difficulty: Optional[Dict[str, float]] = None,
         bootstrap_samples: int = 500,
         hard_archetype_utility_margin: float = 0.0,
+        hard_archetype_delta_ci_alpha: float = 0.05,
+        category_adaptive_safety_floors: Optional[Dict[str, Dict[str, float]]] = None,
+        risk_to_step_ridge_lambda: float = 0.15,
     ):
         """Initialize benchmarking suite.
 
@@ -274,6 +277,29 @@ class EEGRAGBenchmark:
         )
         self.bootstrap_samples = bootstrap_samples
         self.hard_archetype_utility_margin = hard_archetype_utility_margin
+        self.hard_archetype_delta_ci_alpha = max(
+            1e-3,
+            min(0.25, float(hard_archetype_delta_ci_alpha)),
+        )
+        self.category_adaptive_safety_floors = (
+            category_adaptive_safety_floors
+            if category_adaptive_safety_floors is not None
+            else {
+                "general": {
+                    "citation_validity_floor": 0.62,
+                    "hard_utility_margin": 0.0,
+                },
+                "clinical": {
+                    "citation_validity_floor": 0.70,
+                    "hard_utility_margin": 0.01,
+                },
+                "bci": {
+                    "citation_validity_floor": 0.68,
+                    "hard_utility_margin": 0.008,
+                },
+            }
+        )
+        self.risk_to_step_ridge_lambda = max(1e-5, float(risk_to_step_ridge_lambda))
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
         self.performance_monitor = PerformanceMonitor()
@@ -1299,6 +1325,31 @@ class EEGRAGBenchmark:
             )
 
         self._enforce_uncertainty_adjusted_utility_guard(ranking_comparison)
+        self._enforce_adaptive_safety_guards(ranking_comparison)
+
+    def _enforce_adaptive_safety_guards(
+        self,
+        ranking_comparison: Dict[str, Dict[str, float]],
+    ) -> None:
+        """Fail evaluation when adaptive safety validators indicate regression."""
+        concept = ranking_comparison.get("concept_aware", {})
+
+        monotonic = concept.get("monotonic_safety_response")
+        if isinstance(monotonic, dict) and not bool(monotonic.get("valid", True)):
+            failing = monotonic.get("failing", [])
+            raise RuntimeError(
+                "Monotonic safety response regression detected: "
+                + "; ".join(str(item) for item in failing)
+            )
+
+        temporal = concept.get("temporal_forgetting_validation")
+        if isinstance(temporal, dict) and not bool(temporal.get("valid", True)):
+            raise RuntimeError(
+                "Temporal forgetting safety regression detected: "
+                f"hard_utility_delta={float(temporal.get('hard_utility_delta', 0.0)):.3f}, "
+                f"citation_validity_delta={float(temporal.get('citation_validity_delta', 0.0)):.3f}, "
+                f"citation_validity_floor={float(temporal.get('citation_validity_floor', 0.0)):.3f}"
+            )
 
     def _enforce_uncertainty_adjusted_utility_guard(
         self,
@@ -1315,8 +1366,19 @@ class EEGRAGBenchmark:
             baseline.get("hard_archetype_uncertainty_adjusted_utility", 0.0)
         )
         delta = concept_hard - baseline_hard
+        delta_ci = concept.get("hard_archetype_utility_delta_ci", {})
+        ci_lower = float(delta_ci.get("ci_lower", delta))
+        ci_upper = float(delta_ci.get("ci_upper", delta))
+        ci_samples = int(delta_ci.get("samples", 0))
 
-        if delta < self.hard_archetype_utility_margin:
+        if ci_samples > 0 and ci_lower < self.hard_archetype_utility_margin:
+            raise RuntimeError(
+                "Confidence-bounded utility regression on hard archetypes: "
+                f"concept_aware={concept_hard:.3f}, baseline={baseline_hard:.3f}, "
+                f"delta={delta:.3f}, ci=[{ci_lower:.3f}, {ci_upper:.3f}] < "
+                f"required_margin={self.hard_archetype_utility_margin:.3f}"
+            )
+        if ci_samples <= 0 and delta < self.hard_archetype_utility_margin:
             raise RuntimeError(
                 "Uncertainty-adjusted utility regression on hard archetypes: "
                 f"concept_aware={concept_hard:.3f}, baseline={baseline_hard:.3f}, "
@@ -1349,6 +1411,8 @@ class EEGRAGBenchmark:
         before: Dict[str, float],
         after: Dict[str, float],
         citation_validity_floor: float = 0.62,
+        before_per_archetype: Optional[Dict[str, Dict[str, float]]] = None,
+        after_per_archetype: Optional[Dict[str, Dict[str, float]]] = None,
     ) -> Dict[str, Any]:
         """Check forgetting schedule improves hard utility without citation harm."""
         before_hard = float(before.get("hard_archetype_uncertainty_adjusted_utility", 0.0))
@@ -1356,21 +1420,341 @@ class EEGRAGBenchmark:
         before_valid = float(before.get("citation_validity_proxy", 0.0))
         after_valid = float(after.get("citation_validity_proxy", 0.0))
 
-        hard_improved = after_hard >= before_hard
+        floors = getattr(
+            self,
+            "category_adaptive_safety_floors",
+            {
+                "general": {
+                    "citation_validity_floor": citation_validity_floor,
+                    "hard_utility_margin": 0.0,
+                }
+            },
+        )
+        default_floor = floors.get(
+            "general",
+            {
+                "citation_validity_floor": citation_validity_floor,
+                "hard_utility_margin": 0.0,
+            },
+        )
+
+        hard_improved = after_hard >= (
+            before_hard + float(default_floor.get("hard_utility_margin", 0.0))
+        )
         citation_safe = (
-            after_valid >= citation_validity_floor
+            after_valid >= float(default_floor.get("citation_validity_floor", citation_validity_floor))
             and after_valid >= (before_valid - 0.01)
         )
 
+        category_checks: Dict[str, Dict[str, Any]] = {}
+        if before_per_archetype and after_per_archetype:
+            categories = set()
+            for payload in before_per_archetype.values():
+                if str(payload.get("difficulty", "medium")).lower() == "hard":
+                    categories.add(str(payload.get("category", "general")).lower())
+            for payload in after_per_archetype.values():
+                if str(payload.get("difficulty", "medium")).lower() == "hard":
+                    categories.add(str(payload.get("category", "general")).lower())
+
+            for category in sorted(categories):
+                before_vals = [
+                    payload
+                    for payload in before_per_archetype.values()
+                    if str(payload.get("difficulty", "medium")).lower() == "hard"
+                    and str(payload.get("category", "general")).lower() == category
+                ]
+                after_vals = [
+                    payload
+                    for payload in after_per_archetype.values()
+                    if str(payload.get("difficulty", "medium")).lower() == "hard"
+                    and str(payload.get("category", "general")).lower() == category
+                ]
+                if not before_vals or not after_vals:
+                    continue
+
+                before_cat_utility = statistics.mean(
+                    float(v.get("uncertainty_adjusted_utility", 0.0))
+                    for v in before_vals
+                )
+                after_cat_utility = statistics.mean(
+                    float(v.get("uncertainty_adjusted_utility", 0.0))
+                    for v in after_vals
+                )
+                before_cat_validity = statistics.mean(
+                    float(v.get("citation_validity_proxy", 0.0))
+                    for v in before_vals
+                )
+                after_cat_validity = statistics.mean(
+                    float(v.get("citation_validity_proxy", 0.0))
+                    for v in after_vals
+                )
+
+                category_floor = floors.get(category, default_floor)
+                required_margin = float(category_floor.get("hard_utility_margin", 0.0))
+                required_validity_floor = float(
+                    category_floor.get("citation_validity_floor", citation_validity_floor)
+                )
+
+                category_hard_improved = after_cat_utility >= (
+                    before_cat_utility + required_margin
+                )
+                category_citation_safe = (
+                    after_cat_validity >= required_validity_floor
+                    and after_cat_validity >= (before_cat_validity - 0.01)
+                )
+                category_valid = bool(category_hard_improved and category_citation_safe)
+                category_checks[category] = {
+                    "valid": category_valid,
+                    "hard_utility_delta": after_cat_utility - before_cat_utility,
+                    "citation_validity_delta": after_cat_validity - before_cat_validity,
+                    "required_hard_utility_margin": required_margin,
+                    "required_citation_validity_floor": required_validity_floor,
+                    "hard_utility_before": before_cat_utility,
+                    "hard_utility_after": after_cat_utility,
+                    "citation_validity_before": before_cat_validity,
+                    "citation_validity_after": after_cat_validity,
+                }
+
+        categories_valid = all(
+            bool(payload.get("valid", True))
+            for payload in category_checks.values()
+        )
+        overall_valid = bool(hard_improved and citation_safe and categories_valid)
+
         return {
-            "valid": bool(hard_improved and citation_safe),
+            "valid": overall_valid,
             "hard_utility_delta": after_hard - before_hard,
             "citation_validity_delta": after_valid - before_valid,
-            "citation_validity_floor": citation_validity_floor,
+            "citation_validity_floor": float(
+                default_floor.get("citation_validity_floor", citation_validity_floor)
+            ),
+            "required_hard_utility_margin": float(
+                default_floor.get("hard_utility_margin", 0.0)
+            ),
             "hard_utility_before": before_hard,
             "hard_utility_after": after_hard,
             "citation_validity_before": before_valid,
             "citation_validity_after": after_valid,
+            "category_checks": category_checks,
+            "applied_category_floors": floors,
+        }
+
+    @staticmethod
+    def _risk_score(
+        utility: float,
+        redundancy: float,
+        drift_norm: float,
+    ) -> float:
+        """Compute normalized risk score from utility, redundancy and drift."""
+        return max(
+            0.0,
+            min(
+                1.0,
+                (0.50 * (1.0 - utility))
+                + (0.30 * redundancy)
+                + (0.20 * drift_norm),
+            ),
+        )
+
+    def _learn_risk_to_step_mapping(
+        self,
+        trajectories: List[Dict[str, float]],
+    ) -> Dict[str, Any]:
+        """Learn step mapping from held-out hard-archetype trajectories."""
+        if len(trajectories) < 2:
+            return {
+                "coefficients": {
+                    "low": [0.22, -0.10],
+                    "medium_ratio": [0.80, -0.15],
+                    "high_ratio": [0.70, -0.20],
+                },
+                "heldout_mse": 0.0,
+                "train_samples": len(trajectories),
+                "heldout_samples": 0,
+                "used_fallback": True,
+            }
+
+        train = [row for idx, row in enumerate(trajectories) if idx % 3 != 0]
+        heldout = [row for idx, row in enumerate(trajectories) if idx % 3 == 0]
+        if not train:
+            train = trajectories
+            heldout = []
+
+        ridge_lambda = getattr(self, "risk_to_step_ridge_lambda", 0.15)
+
+        def _fit_linear(
+            rows: List[Dict[str, float]],
+            y_key: str,
+            default: List[float],
+        ) -> np.ndarray:
+            x = np.asarray(
+                [[1.0, float(row.get("risk_score", 0.0))] for row in rows],
+                dtype=float,
+            )
+            y = np.asarray([float(row.get(y_key, 0.0)) for row in rows], dtype=float)
+            xtx = (x.T @ x) + (ridge_lambda * np.eye(2, dtype=float))
+            try:
+                beta = np.linalg.solve(xtx, x.T @ y)
+            except np.linalg.LinAlgError:
+                beta = np.asarray(default, dtype=float)
+            return beta
+
+        low_beta = _fit_linear(train, "target_low_step", [0.22, -0.10])
+        med_beta = _fit_linear(train, "target_medium_ratio", [0.80, -0.15])
+        high_beta = _fit_linear(train, "target_high_ratio", [0.70, -0.20])
+
+        heldout_errors: List[float] = []
+        for row in heldout:
+            r = float(row.get("risk_score", 0.0))
+            pred_low = float(low_beta[0] + (low_beta[1] * r))
+            pred_med = float(med_beta[0] + (med_beta[1] * r))
+            pred_high = float(high_beta[0] + (high_beta[1] * r))
+            heldout_errors.extend(
+                [
+                    (pred_low - float(row.get("target_low_step", 0.0))) ** 2,
+                    (pred_med - float(row.get("target_medium_ratio", 0.0))) ** 2,
+                    (pred_high - float(row.get("target_high_ratio", 0.0))) ** 2,
+                ]
+            )
+
+        return {
+            "coefficients": {
+                "low": [float(low_beta[0]), float(low_beta[1])],
+                "medium_ratio": [float(med_beta[0]), float(med_beta[1])],
+                "high_ratio": [float(high_beta[0]), float(high_beta[1])],
+            },
+            "heldout_mse": float(statistics.mean(heldout_errors)) if heldout_errors else 0.0,
+            "train_samples": len(train),
+            "heldout_samples": len(heldout),
+            "used_fallback": False,
+        }
+
+    def _derive_hard_archetype_safety_profiles(
+        self,
+        per_archetype: Dict[str, Dict[str, float]],
+        drift_summary: Dict[str, Any],
+    ) -> Tuple[Dict[str, Dict[str, float]], Dict[str, Any]]:
+        """Estimate step-radius profiles for hard archetypes by risk level."""
+        drift_shift = max(0.0, float(drift_summary.get("relative_shift", 0.0)))
+        drift_norm = min(1.0, drift_shift / 0.5)
+
+        trajectories: List[Dict[str, float]] = []
+        for archetype_name, metrics in per_archetype.items():
+            difficulty = str(metrics.get("difficulty", "medium")).lower()
+            if difficulty != "hard":
+                continue
+            utility = float(metrics.get("uncertainty_adjusted_utility", 0.0))
+            redundancy = float(metrics.get("redundancy_score", 0.0))
+            citation_validity = float(metrics.get("citation_validity_proxy", 0.0))
+            risk_score = self._risk_score(utility, redundancy, drift_norm)
+
+            target_low_step = max(
+                0.06,
+                min(
+                    0.22,
+                    0.08
+                    + (0.16 * utility)
+                    + (0.06 * citation_validity)
+                    - (0.08 * drift_norm)
+                    - (0.05 * redundancy),
+                ),
+            )
+            target_medium_ratio = max(0.45, min(0.90, 0.82 - (0.18 * risk_score)))
+            target_high_ratio = max(0.35, min(0.85, 0.72 - (0.22 * risk_score)))
+            trajectories.append(
+                {
+                    "archetype": archetype_name,
+                    "risk_score": risk_score,
+                    "target_low_step": target_low_step,
+                    "target_medium_ratio": target_medium_ratio,
+                    "target_high_ratio": target_high_ratio,
+                }
+            )
+
+        model = self._learn_risk_to_step_mapping(trajectories)
+        coeffs = model.get("coefficients", {})
+        low_beta = coeffs.get("low", [0.22, -0.10])
+        med_beta = coeffs.get("medium_ratio", [0.80, -0.15])
+        high_beta = coeffs.get("high_ratio", [0.70, -0.20])
+
+        profiles: Dict[str, Dict[str, float]] = {}
+        for archetype_name, metrics in per_archetype.items():
+            difficulty = str(metrics.get("difficulty", "medium")).lower()
+            if difficulty != "hard":
+                continue
+
+            utility = float(metrics.get("uncertainty_adjusted_utility", 0.0))
+            redundancy = float(metrics.get("redundancy_score", 0.0))
+            risk_score = self._risk_score(utility, redundancy, drift_norm)
+
+            low = max(0.06, min(0.24, float(low_beta[0]) + (float(low_beta[1]) * risk_score)))
+            medium_ratio = max(
+                0.45,
+                min(0.90, float(med_beta[0]) + (float(med_beta[1]) * risk_score)),
+            )
+            high_ratio = max(
+                0.35,
+                min(0.85, float(high_beta[0]) + (float(high_beta[1]) * risk_score)),
+            )
+            medium = max(0.04, low * medium_ratio)
+            high = max(0.03, medium * high_ratio)
+            if medium > low:
+                medium = low
+            if high > medium:
+                high = medium
+
+            profiles[archetype_name] = {
+                "risk_score": risk_score,
+                "low_risk_max_step": low,
+                "medium_risk_max_step": medium,
+                "high_risk_max_step": high,
+            }
+
+        return profiles, model
+
+    def _hard_archetype_delta_summary(
+        self,
+        weighted: Dict[str, Any],
+        concept_aware: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Compute bootstrap delta intervals for hard-archetype utility uplift."""
+        weighted_per = weighted.get("per_archetype", {})
+        concept_per = concept_aware.get("per_archetype", {})
+
+        deltas: List[float] = []
+        deltas_by_category: Dict[str, List[float]] = defaultdict(list)
+        for name, concept_metrics in concept_per.items():
+            if str(concept_metrics.get("difficulty", "medium")).lower() != "hard":
+                continue
+            weighted_metrics = weighted_per.get(name)
+            if not weighted_metrics:
+                continue
+            delta = float(concept_metrics.get("uncertainty_adjusted_utility", 0.0)) - float(
+                weighted_metrics.get("uncertainty_adjusted_utility", 0.0)
+            )
+            category = str(concept_metrics.get("category", "general")).lower()
+            deltas.append(delta)
+            deltas_by_category[category].append(delta)
+
+        ci = self._bootstrap_confidence_interval(
+            deltas,
+            alpha=getattr(self, "hard_archetype_delta_ci_alpha", 0.05),
+        )
+        ci.update({"samples": len(deltas)})
+
+        by_category = {
+            category: {
+                **self._bootstrap_confidence_interval(
+                    values,
+                    alpha=getattr(self, "hard_archetype_delta_ci_alpha", 0.05),
+                ),
+                "samples": len(values),
+            }
+            for category, values in deltas_by_category.items()
+        }
+        return {
+            "overall": ci,
+            "by_category": by_category,
         }
 
     def _monitor_calibration_drift(
@@ -2042,6 +2426,13 @@ class EEGRAGBenchmark:
                 predicted_utilities=utility_values,
                 target_grounding=grounding_values,
             )
+            hard_safety_profiles, risk_to_step_model = self._derive_hard_archetype_safety_profiles(
+                per_archetype=per_archetype,
+                drift_summary=drift_summary,
+            )
+            monotonic_validation = self._validate_monotonic_safety_response(
+                hard_safety_profiles
+            )
             strategy_scores[strategy] = {
                 "query_concept_coverage_score": statistics.mean(coverage_values),
                 "redundancy_score": statistics.mean(redundancy_values),
@@ -2070,14 +2461,29 @@ class EEGRAGBenchmark:
                     for key, value in ndcg_by_difficulty.items()
                 },
                 "calibration_drift": drift_summary,
+                "hard_archetype_safety_profiles": hard_safety_profiles,
+                "risk_to_step_model": risk_to_step_model,
+                "monotonic_safety_response": monotonic_validation,
                 "per_archetype": per_archetype,
             }
 
         if "weighted" in strategy_scores and "concept_aware" in strategy_scores:
+            delta_summary = self._hard_archetype_delta_summary(
+                weighted=strategy_scores["weighted"],
+                concept_aware=strategy_scores["concept_aware"],
+            )
+            strategy_scores["concept_aware"]["hard_archetype_utility_delta_ci"] = (
+                delta_summary["overall"]
+            )
+            strategy_scores["concept_aware"]["hard_archetype_utility_delta_by_category"] = (
+                delta_summary["by_category"]
+            )
             strategy_scores["concept_aware"]["temporal_forgetting_validation"] = (
                 self._validate_temporal_forgetting_safety(
                     before=strategy_scores["weighted"],
                     after=strategy_scores["concept_aware"],
+                    before_per_archetype=strategy_scores["weighted"].get("per_archetype", {}),
+                    after_per_archetype=strategy_scores["concept_aware"].get("per_archetype", {}),
                 )
             )
 
@@ -2235,6 +2641,13 @@ class EEGRAGBenchmark:
                     'upper': results.ranking_strategy_comparison.get('concept_aware', {}).get('ranking_ndcg_ci_upper', 0.0),
                 },
                 'concept_aware_calibration_drift': results.ranking_strategy_comparison.get('concept_aware', {}).get('calibration_drift', {}),
+                'concept_aware_hard_utility_delta_ci': results.ranking_strategy_comparison.get('concept_aware', {}).get('hard_archetype_utility_delta_ci', {}),
+                'adaptive_safety': {
+                    'monotonic_safety_response': results.ranking_strategy_comparison.get('concept_aware', {}).get('monotonic_safety_response', {}),
+                    'temporal_forgetting_validation': results.ranking_strategy_comparison.get('concept_aware', {}).get('temporal_forgetting_validation', {}),
+                    'risk_to_step_model': results.ranking_strategy_comparison.get('concept_aware', {}).get('risk_to_step_model', {}),
+                    'hard_archetype_utility_delta_by_category': results.ranking_strategy_comparison.get('concept_aware', {}).get('hard_archetype_utility_delta_by_category', {}),
+                },
             },
             'detailed_results': {
                 'retrieval': [asdict(r) for r in results.retrieval_results],
