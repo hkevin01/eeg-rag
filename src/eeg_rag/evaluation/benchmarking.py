@@ -254,6 +254,11 @@ class EEGRAGBenchmark:
         hard_archetype_delta_ci_alpha: float = 0.05,
         category_adaptive_safety_floors: Optional[Dict[str, Dict[str, float]]] = None,
         risk_to_step_ridge_lambda: float = 0.15,
+        min_total_papers_per_strategy: int = 100,
+        min_avg_papers_per_archetype: float = 8.0,
+        min_metadata_completeness_rate: float = 0.80,
+        min_papers_per_archetype: int = 5,
+        min_metadata_completeness_per_archetype: float = 0.70,
     ):
         """Initialize benchmarking suite.
 
@@ -300,6 +305,17 @@ class EEGRAGBenchmark:
             }
         )
         self.risk_to_step_ridge_lambda = max(1e-5, float(risk_to_step_ridge_lambda))
+        self.min_total_papers_per_strategy = max(1, int(min_total_papers_per_strategy))
+        self.min_avg_papers_per_archetype = max(1.0, float(min_avg_papers_per_archetype))
+        self.min_metadata_completeness_rate = max(
+            0.0,
+            min(1.0, float(min_metadata_completeness_rate)),
+        )
+        self.min_papers_per_archetype = max(1, int(min_papers_per_archetype))
+        self.min_metadata_completeness_per_archetype = max(
+            0.0,
+            min(1.0, float(min_metadata_completeness_per_archetype)),
+        )
 
         self.citation_verifier = CitationVerifier(enable_medical_validation=True)
         self.performance_monitor = PerformanceMonitor()
@@ -1334,6 +1350,15 @@ class EEGRAGBenchmark:
         """Fail evaluation when adaptive safety validators indicate regression."""
         concept = ranking_comparison.get("concept_aware", {})
 
+        for strategy_name, strategy_payload in ranking_comparison.items():
+            coverage = strategy_payload.get("corpus_coverage_validation")
+            if isinstance(coverage, dict) and not bool(coverage.get("valid", True)):
+                failing = coverage.get("failing", [])
+                raise RuntimeError(
+                    f"Strategy corpus coverage regression for {strategy_name}: "
+                    + "; ".join(str(item) for item in failing)
+                )
+
         monotonic = concept.get("monotonic_safety_response")
         if isinstance(monotonic, dict) and not bool(monotonic.get("valid", True)):
             failing = monotonic.get("failing", [])
@@ -1350,6 +1375,67 @@ class EEGRAGBenchmark:
                 f"citation_validity_delta={float(temporal.get('citation_validity_delta', 0.0)):.3f}, "
                 f"citation_validity_floor={float(temporal.get('citation_validity_floor', 0.0)):.3f}"
             )
+
+    def _validate_strategy_corpus_coverage(
+        self,
+        strategy_name: str,
+        strategy_payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Validate strategy comparison uses a sufficiently large, metadata-rich corpus."""
+        total_papers = int(strategy_payload.get("total_papers_evaluated", 0))
+        avg_papers = float(strategy_payload.get("avg_papers_per_archetype", 0.0))
+        metadata_rate = float(strategy_payload.get("metadata_completeness_rate", 0.0))
+        per_archetype = strategy_payload.get("per_archetype", {})
+
+        failing: List[str] = []
+        if total_papers <= 0 and not per_archetype:
+            return {
+                "valid": True,
+                "checked": False,
+                "strategy": strategy_name,
+                "failing": [],
+                "reason": "insufficient_metrics",
+            }
+
+        if total_papers < self.min_total_papers_per_strategy:
+            failing.append(
+                "total_papers_evaluated "
+                f"{total_papers} < {self.min_total_papers_per_strategy}"
+            )
+        if avg_papers < self.min_avg_papers_per_archetype:
+            failing.append(
+                "avg_papers_per_archetype "
+                f"{avg_papers:.2f} < {self.min_avg_papers_per_archetype:.2f}"
+            )
+        if metadata_rate < self.min_metadata_completeness_rate:
+            failing.append(
+                "metadata_completeness_rate "
+                f"{metadata_rate:.3f} < {self.min_metadata_completeness_rate:.3f}"
+            )
+
+        for archetype_name, metrics in per_archetype.items():
+            citation_count = int(metrics.get("citation_count", 0))
+            completeness = float(metrics.get("metadata_completeness", 0.0))
+            if citation_count < self.min_papers_per_archetype:
+                failing.append(
+                    f"{archetype_name}: citation_count {citation_count} "
+                    f"< {self.min_papers_per_archetype}"
+                )
+            if completeness < self.min_metadata_completeness_per_archetype:
+                failing.append(
+                    f"{archetype_name}: metadata_completeness {completeness:.3f} "
+                    f"< {self.min_metadata_completeness_per_archetype:.3f}"
+                )
+
+        return {
+            "valid": len(failing) == 0,
+            "checked": True,
+            "strategy": strategy_name,
+            "total_papers_evaluated": total_papers,
+            "avg_papers_per_archetype": avg_papers,
+            "metadata_completeness_rate": metadata_rate,
+            "failing": failing,
+        }
 
     def _enforce_uncertainty_adjusted_utility_guard(
         self,
@@ -2510,6 +2596,12 @@ class EEGRAGBenchmark:
                 "monotonic_safety_response": monotonic_validation,
                 "per_archetype": per_archetype,
             }
+            strategy_scores[strategy]["corpus_coverage_validation"] = (
+                self._validate_strategy_corpus_coverage(
+                    strategy,
+                    strategy_scores[strategy],
+                )
+            )
 
         if "weighted" in strategy_scores and "concept_aware" in strategy_scores:
             delta_summary = self._hard_archetype_delta_summary(
@@ -2691,6 +2783,10 @@ class EEGRAGBenchmark:
                     'temporal_forgetting_validation': results.ranking_strategy_comparison.get('concept_aware', {}).get('temporal_forgetting_validation', {}),
                     'risk_to_step_model': results.ranking_strategy_comparison.get('concept_aware', {}).get('risk_to_step_model', {}),
                     'hard_archetype_utility_delta_by_category': results.ranking_strategy_comparison.get('concept_aware', {}).get('hard_archetype_utility_delta_by_category', {}),
+                    'corpus_coverage_validation': {
+                        strategy: payload.get('corpus_coverage_validation', {})
+                        for strategy, payload in results.ranking_strategy_comparison.items()
+                    },
                 },
             },
             'detailed_results': {
