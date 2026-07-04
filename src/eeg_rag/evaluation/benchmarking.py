@@ -2302,6 +2302,34 @@ class EEGRAGBenchmark:
             return 0.0
         return dcg / idcg
 
+    @staticmethod
+    def _citation_metadata_completeness(citations: List[Any]) -> float:
+        """Estimate completeness ratio for citation metadata fields."""
+        if not citations:
+            return 0.0
+
+        required_fields = ("pmid", "title", "year", "doi")
+        completeness_scores: List[float] = []
+        for citation in citations:
+            metadata = getattr(citation, "metadata", {}) or {}
+            year = (
+                getattr(citation, "year", None)
+                if hasattr(citation, "year")
+                else metadata.get("year")
+            )
+            score = 0.0
+            if getattr(citation, "pmid", None):
+                score += 1.0
+            if getattr(citation, "title", None):
+                score += 1.0
+            if year is not None:
+                score += 1.0
+            if getattr(citation, "doi", None) or metadata.get("doi"):
+                score += 1.0
+            completeness_scores.append(score / len(required_fields))
+
+        return float(statistics.mean(completeness_scores))
+
     async def _benchmark_aggregation_strategies(self) -> Dict[str, Dict[str, float]]:
         """Compare weighted/diversified/concept-aware across archetypes with macro metrics."""
         archetypes = self._create_archetype_fixture_bank()
@@ -2312,6 +2340,8 @@ class EEGRAGBenchmark:
             ndcg_values: List[float] = []
             utility_values: List[float] = []
             uncertainty_adjusted_utility_values: List[float] = []
+            citation_count_values: List[float] = []
+            metadata_completeness_values: List[float] = []
             grounding_values: List[float] = []
             coverage_values: List[float] = []
             redundancy_values: List[float] = []
@@ -2367,6 +2397,11 @@ class EEGRAGBenchmark:
                     )
                     utilities.append(utility)
 
+                citation_count = float(len(aggregated.citations))
+                metadata_completeness = self._citation_metadata_completeness(
+                    aggregated.citations
+                )
+
                 ranking_ndcg = self._compute_ndcg(utilities, k=5)
                 mean_utility = statistics.mean(utilities) if utilities else 0.0
                 utility_dispersion = statistics.pstdev(utilities) if len(utilities) > 1 else 0.0
@@ -2398,6 +2433,8 @@ class EEGRAGBenchmark:
                 ndcg_by_difficulty[difficulty].append(ranking_ndcg)
                 utility_values.append(mean_utility)
                 uncertainty_adjusted_utility_values.append(uncertainty_adjusted_utility)
+                citation_count_values.append(citation_count)
+                metadata_completeness_values.append(metadata_completeness)
                 grounding_values.append(grounding_quality)
                 coverage_values.append(concept_coverage)
                 redundancy_values.append(redundancy)
@@ -2418,6 +2455,8 @@ class EEGRAGBenchmark:
                     "mean_citation_utility": mean_utility,
                     "uncertainty_adjusted_utility": uncertainty_adjusted_utility,
                     "citation_validity_proxy": citation_validity_proxy,
+                    "citation_count": citation_count,
+                    "metadata_completeness": metadata_completeness,
                     "ranking_ndcg": ranking_ndcg,
                 }
 
@@ -2441,6 +2480,11 @@ class EEGRAGBenchmark:
                 "mean_citation_utility": statistics.mean(utility_values),
                 "uncertainty_adjusted_utility": statistics.mean(
                     uncertainty_adjusted_utility_values
+                ),
+                "total_papers_evaluated": int(sum(citation_count_values)),
+                "avg_papers_per_archetype": statistics.mean(citation_count_values),
+                "metadata_completeness_rate": statistics.mean(
+                    metadata_completeness_values
                 ),
                 "hard_archetype_uncertainty_adjusted_utility": (
                     statistics.mean(hard_uncertainty_adjusted_utility_values)

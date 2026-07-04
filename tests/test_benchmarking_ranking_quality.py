@@ -715,3 +715,146 @@ def test_end_to_end_strategy_comparison_passes_under_stable_conditions(monkeypat
 
     ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
     benchmark._enforce_ranking_regression_guard(ranking)
+
+
+def test_end_to_end_strategy_comparison_large_body_and_metadata_completeness(
+    monkeypatch,
+) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    benchmark.min_concept_aware_ranking_ndcg = 0.35
+    benchmark.min_archetype_ndcg_by_difficulty = {
+        "easy": 0.25,
+        "medium": 0.25,
+        "hard": 0.25,
+    }
+    benchmark.hard_archetype_utility_margin = -0.02
+    benchmark.hard_archetype_delta_ci_alpha = 0.05
+    benchmark.bootstrap_samples = 200
+    benchmark.risk_to_step_ridge_lambda = 0.15
+    benchmark.category_adaptive_safety_floors = {
+        "general": {"citation_validity_floor": 0.55, "hard_utility_margin": -0.01},
+        "clinical": {"citation_validity_floor": 0.60, "hard_utility_margin": -0.01},
+        "bci": {"citation_validity_floor": 0.58, "hard_utility_margin": -0.01},
+    }
+    benchmark._calibration_drift_state = {
+        "baseline_mae": None,
+        "last_mae": None,
+        "last_relative_shift": 0.0,
+        "drift_detected": False,
+        "recalibration_recommended": False,
+        "checked_at": None,
+    }
+    benchmark._utility_weights = {
+        "concept": 0.50,
+        "centrality": 0.30,
+        "novelty": 0.20,
+    }
+
+    categories = ["clinical", "bci", "method", "outcome", "longitudinal", "erp"]
+    fixtures = []
+    for idx in range(12):
+        category = categories[idx % len(categories)]
+        fixtures.append(
+            {
+                "name": f"{category}_archetype_{idx}",
+                "category": category,
+                "difficulty": "hard" if idx % 2 == 0 else "medium",
+                "query": f"{category} eeg query {idx}",
+                "results": {
+                    "scenario": {
+                        "weighted": {
+                            "stats": {
+                                "redundancy_score": 0.22,
+                                "query_concept_coverage_score": 0.78,
+                            },
+                            "centrality_base": 0.72,
+                            "paper_count": 28,
+                        },
+                        "diversified": {
+                            "stats": {
+                                "redundancy_score": 0.26,
+                                "query_concept_coverage_score": 0.75,
+                            },
+                            "centrality_base": 0.70,
+                            "paper_count": 28,
+                        },
+                        "concept_aware": {
+                            "stats": {
+                                "redundancy_score": 0.18,
+                                "query_concept_coverage_score": 0.84,
+                            },
+                            "centrality_base": 0.80,
+                            "paper_count": 28,
+                        },
+                    }
+                },
+            }
+        )
+
+    monkeypatch.setattr(
+        benchmark,
+        "_create_archetype_fixture_bank",
+        lambda: fixtures,
+    )
+
+    class _FakeAggregator:
+        def __init__(
+            self,
+            relevance_threshold,
+            max_citations,
+            entity_min_frequency,
+            ranking_strategy,
+        ):
+            _ = (relevance_threshold, max_citations, entity_min_frequency)
+            self.ranking_strategy = ranking_strategy
+
+        def _extract_query_concepts(self, query):
+            _ = query
+            return {"clinical": ["eeg"], "method": ["artifact"]}
+
+        async def aggregate(self, query, fixture_results):
+            _ = query
+            scenario = fixture_results["scenario"][self.ranking_strategy]
+            paper_count = int(scenario["paper_count"])
+            centrality_base = float(scenario["centrality_base"])
+
+            citations = []
+            for idx in range(paper_count):
+                centrality = max(0.0, min(1.0, centrality_base - (0.01 * (idx % 5))))
+                citations.append(
+                    SimpleNamespace(
+                        pmid=f"{self.ranking_strategy}-{idx}",
+                        title=f"EEG study {idx}",
+                        abstract="eeg cohort metadata rich evidence",
+                        year=2020 + (idx % 5),
+                        doi=f"10.1000/{self.ranking_strategy}.{idx}",
+                        metadata={
+                            "centrality_score": centrality,
+                            "year": 2020 + (idx % 5),
+                            "doi": f"10.1000/{self.ranking_strategy}.{idx}",
+                            "source": "synthetic_corpus",
+                        },
+                    )
+                )
+
+            return SimpleNamespace(
+                citations=citations,
+                statistics=scenario["stats"],
+            )
+
+    monkeypatch.setattr(benchmarking_mod, "ContextAggregator", _FakeAggregator)
+
+    ranking = asyncio.run(benchmark._benchmark_aggregation_strategies())
+    benchmark._enforce_ranking_regression_guard(ranking)
+
+    for strategy in ("weighted", "diversified", "concept_aware"):
+        strategy_metrics = ranking[strategy]
+        assert strategy_metrics["total_papers_evaluated"] >= 300
+        assert strategy_metrics["avg_papers_per_archetype"] >= 25
+        assert strategy_metrics["metadata_completeness_rate"] >= 0.99
+        for archetype_metrics in strategy_metrics["per_archetype"].values():
+            assert archetype_metrics["citation_count"] >= 25
+            assert archetype_metrics["metadata_completeness"] >= 0.99
