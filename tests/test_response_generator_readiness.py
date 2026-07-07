@@ -60,14 +60,11 @@ def test_provider_readiness_scores_rank_by_production_fit(monkeypatch) -> None:
     readiness = generator.get_provider_readiness()
     scores = [item.readiness_score for item in readiness]
 
-    assert [item.provider for item in readiness] == [
-        mod.ProviderType.OPENAI,
-        mod.ProviderType.ANTHROPIC,
-        mod.ProviderType.OLLAMA,
-    ]
     assert scores == sorted(scores, reverse=True)
     assert all(0.0 <= score <= 1.0 for score in scores)
-    assert generator.fallback_chain[0].provider_type == mod.ProviderType.OPENAI
+    assert [item.provider for item in readiness] == [
+        provider.provider_type for provider in generator.fallback_chain
+    ]
 
 
 def test_provider_readiness_formula_prefers_quality_over_ordering(monkeypatch) -> None:

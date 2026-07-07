@@ -18,6 +18,7 @@ import math
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
+from types import SimpleNamespace
 import logging
 import numpy as np
 from collections import defaultdict
@@ -28,6 +29,12 @@ from ..agents.orchestrator.orchestrator_agent import OrchestratorAgent
 from ..agents.local_agent.local_data_agent import LocalDataAgent
 from ..agents.web_agent.web_search_agent import WebSearchAgent
 from ..ensemble.context_aggregator import ContextAggregator
+from ..generation.response_generator import (
+    Document as GenerationDocument,
+    GenerationConfig,
+    ProviderType,
+    ResponseGenerator,
+)
 from .ground_truth_benchmarks import GroundTruthBenchmarks
 from ..verification.citation_verifier import CitationVerifier
 from ..monitoring import PerformanceMonitor, monitor_performance
@@ -126,6 +133,40 @@ class GenerationBenchmarkResult:
 
 
 # ---------------------------------------------------------------------------
+# ID           : evaluation.benchmarking.ProviderGenerationBenchmarkResult
+# Requirement  : `ProviderGenerationBenchmarkResult` class shall be instantiable and expose the documented interface
+# Purpose      : Provider-level generation benchmark result
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProviderGenerationBenchmarkResult with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
+@dataclass
+class ProviderGenerationBenchmarkResult:
+    """Provider-level generation benchmark result."""
+
+    provider: str
+    query: str
+    streaming_latency_ms: float
+    total_generation_time_ms: float
+    response_quality: float
+    citation_quality: float
+    response_length: int
+    citation_count: int
+    chunk_count: int
+    success: bool
+    error_message: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
 # ID           : evaluation.benchmarking.EndToEndBenchmarkResult
 # Requirement  : `EndToEndBenchmarkResult` class shall be instantiable and expose the documented interface
 # Purpose      : Results from end-to-end benchmarking
@@ -182,6 +223,7 @@ class BenchmarkSuite:
     retrieval_results: List[RetrievalBenchmarkResult]
     generation_results: List[GenerationBenchmarkResult]
     end_to_end_results: List[EndToEndBenchmarkResult]
+    provider_generation_results: List[ProviderGenerationBenchmarkResult] = field(default_factory=list)
 
     # Aggregate metrics
     avg_retrieval_time_ms: float = 0.0
@@ -189,6 +231,7 @@ class BenchmarkSuite:
     avg_total_time_ms: float = 0.0
     avg_citation_accuracy: float = 0.0
     avg_response_quality: float = 0.0
+    avg_provider_streaming_latency_ms: float = 0.0
     avg_redundancy_score: float = 0.0
     avg_diversity_score: float = 1.0
     avg_query_entity_coverage_score: float = 1.0
@@ -500,6 +543,10 @@ class EEGRAGBenchmark:
         logger.info("Running generation benchmarks...")
         generation_results = await self._benchmark_generation()
 
+        # 2b. Provider-level generation benchmarks
+        logger.info("Running provider-level generation benchmarks...")
+        provider_generation_results = await self._benchmark_provider_generation()
+
         # 3. End-to-end benchmarks
         logger.info("Running end-to-end benchmarks...")
         end_to_end_results = await self._benchmark_end_to_end()
@@ -514,6 +561,7 @@ class EEGRAGBenchmark:
             retrieval_results,
             generation_results,
             end_to_end_results,
+            provider_generation_results=provider_generation_results or [],
             ranking_comparison=ranking_comparison,
         )
 
@@ -613,6 +661,174 @@ class EEGRAGBenchmark:
                     centrality_grounding_score=0.0,
                     aggregation_diagnostics={},
                 ))
+
+        return results
+
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._build_provider_benchmark_context
+    # Requirement  : `_build_provider_benchmark_context` shall build citation-rich context for provider tests
+    # Purpose      : Build citation-rich context for provider tests
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : benchmark_query: BenchmarkQuery
+    # Outputs      : List[GenerationDocument]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def _build_provider_benchmark_context(self, benchmark_query: BenchmarkQuery) -> List[GenerationDocument]:
+        """Build a small citation-rich context for provider benchmarking."""
+        topic_blocks = []
+        for idx, topic in enumerate(benchmark_query.expected_topics[:4], start=1):
+            topic_blocks.append(
+                GenerationDocument(
+                    content=(
+                        f"{benchmark_query.query_text} relates to {topic}. "
+                        f"This synthetic benchmark context includes EEG facts and PMID 10{idx:06d}."
+                    ),
+                    metadata={
+                        "source": "benchmark_context",
+                        "index": idx,
+                    },
+                    pmid=f"10{idx:06d}",
+                    title=f"Benchmark context for {topic}",
+                    authors=["EEG-RAG Benchmark"],
+                    year=2026,
+                )
+            )
+
+        return topic_blocks or [
+            GenerationDocument(
+                content=f"{benchmark_query.query_text} benchmark context.",
+                metadata={"source": "benchmark_context"},
+                pmid="1000001",
+                title="Benchmark context",
+                authors=["EEG-RAG Benchmark"],
+                year=2026,
+            )
+        ]
+
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._extract_pmids_from_text
+    # Requirement  : `_extract_pmids_from_text` shall extract PMID citations from generated text
+    # Purpose      : Extract PMID citations from generated text
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : content: str
+    # Outputs      : List[str]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    @staticmethod
+    def _extract_pmids_from_text(content: str) -> List[str]:
+        """Extract PMID citations from generated text."""
+        import re
+
+        return [
+            match.group(1)
+            for match in re.finditer(r"PMID[:\s]*(\d{7,8})", content)
+        ]
+
+    # ---------------------------------------------------------------------------
+    # ID           : evaluation.benchmarking.EEGRAGBenchmark._benchmark_provider_generation
+    # Requirement  : `_benchmark_provider_generation` shall compare provider response quality and streaming latency
+    # Purpose      : Compare provider response quality and streaming latency
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[ProviderGenerationBenchmarkResult]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Must be awaited (async)
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    async def _benchmark_provider_generation(self) -> List[ProviderGenerationBenchmarkResult]:
+        """Compare provider-level generation quality and streaming latency."""
+        results: List[ProviderGenerationBenchmarkResult] = []
+        provider_order = [ProviderType.OPENAI, ProviderType.ANTHROPIC, ProviderType.OLLAMA]
+
+        for provider_type in provider_order:
+            try:
+                generator = ResponseGenerator(
+                    GenerationConfig(
+                        providers=[provider_type],
+                        stream=True,
+                        include_citations=True,
+                    )
+                )
+            except Exception as exc:
+                logger.warning("Skipping provider benchmark for %s: %s", provider_type.value, exc)
+                continue
+
+            for benchmark_query in self.benchmark_queries:
+                context = self._build_provider_benchmark_context(benchmark_query)
+                start_time = time.time()
+                first_chunk_time: Optional[float] = None
+                chunks: List[str] = []
+                success = True
+                error_message: Optional[str] = None
+
+                try:
+                    async for chunk in generator.generate(
+                        benchmark_query.query_text,
+                        context,
+                        streaming=True,
+                    ):
+                        if first_chunk_time is None:
+                            first_chunk_time = time.time()
+                        chunks.append(chunk)
+                except Exception as exc:
+                    success = False
+                    error_message = str(exc)
+
+                total_generation_time_ms = (time.time() - start_time) * 1000.0
+                streaming_latency_ms = (
+                    (first_chunk_time - start_time) * 1000.0
+                    if first_chunk_time is not None
+                    else total_generation_time_ms
+                )
+                content = "".join(chunks)
+                citations = self._extract_pmids_from_text(content)
+                response = SimpleNamespace(content=content, citations=[f"PMID:{pmid}" for pmid in citations])
+
+                response_quality = await self._calculate_response_quality(
+                    benchmark_query,
+                    response,
+                ) if success or content else 0.0
+                citation_quality = await self._calculate_citation_quality(
+                    response.citations
+                ) if success or citations else 0.0
+
+                results.append(
+                    ProviderGenerationBenchmarkResult(
+                        provider=provider_type.value,
+                        query=benchmark_query.query_text,
+                        streaming_latency_ms=streaming_latency_ms,
+                        total_generation_time_ms=total_generation_time_ms,
+                        response_quality=response_quality,
+                        citation_quality=citation_quality,
+                        response_length=len(content),
+                        citation_count=len(citations),
+                        chunk_count=len(chunks),
+                        success=success,
+                        error_message=error_message,
+                    )
+                )
 
         return results
 
@@ -1261,6 +1477,7 @@ class EEGRAGBenchmark:
         retrieval_results: List[RetrievalBenchmarkResult],
         generation_results: List[GenerationBenchmarkResult],
         end_to_end_results: List[EndToEndBenchmarkResult],
+        provider_generation_results: Optional[List[ProviderGenerationBenchmarkResult]] = None,
         ranking_comparison: Optional[Dict[str, Dict[str, float]]] = None,
     ) -> BenchmarkSuite:
         """Calculate aggregate metrics from individual results."""
@@ -1283,6 +1500,17 @@ class EEGRAGBenchmark:
         # Response quality
         response_qualities = [r.response_quality for r in end_to_end_results if r.response_quality > 0]
         avg_response_quality = statistics.mean(response_qualities) if response_qualities else 0.0
+
+        provider_streaming_latencies = [
+            result.streaming_latency_ms
+            for result in (provider_generation_results or [])
+            if result.success and result.streaming_latency_ms > 0
+        ]
+        avg_provider_streaming_latency_ms = (
+            statistics.mean(provider_streaming_latencies)
+            if provider_streaming_latencies
+            else 0.0
+        )
 
         # Retrieval diagnostics
         redundancy_scores = [r.redundancy_score for r in retrieval_results if r.documents_found > 0]
@@ -1322,11 +1550,13 @@ class EEGRAGBenchmark:
             retrieval_results=retrieval_results,
             generation_results=generation_results,
             end_to_end_results=end_to_end_results,
+            provider_generation_results=provider_generation_results or [],
             avg_retrieval_time_ms=avg_retrieval_time,
             avg_generation_time_ms=avg_generation_time,
             avg_total_time_ms=avg_total_time,
             avg_citation_accuracy=avg_citation_accuracy,
             avg_response_quality=avg_response_quality,
+            avg_provider_streaming_latency_ms=avg_provider_streaming_latency_ms,
             avg_redundancy_score=avg_redundancy_score,
             avg_diversity_score=avg_diversity_score,
             avg_query_entity_coverage_score=avg_query_entity_coverage_score,
@@ -3072,6 +3302,7 @@ class EEGRAGBenchmark:
                 'avg_total_time_ms': results.avg_total_time_ms,
                 'avg_citation_accuracy': results.avg_citation_accuracy,
                 'avg_response_quality': results.avg_response_quality,
+                'avg_provider_streaming_latency_ms': results.avg_provider_streaming_latency_ms,
                 'avg_redundancy_score': results.avg_redundancy_score,
                 'avg_diversity_score': results.avg_diversity_score,
                 'avg_query_entity_coverage_score': results.avg_query_entity_coverage_score,
@@ -3112,6 +3343,7 @@ class EEGRAGBenchmark:
                 'retrieval': [asdict(r) for r in results.retrieval_results],
                 'generation': [asdict(r) for r in results.generation_results],
                 'end_to_end': [asdict(r) for r in results.end_to_end_results],
+                'provider_generation': [asdict(r) for r in results.provider_generation_results],
                 'ranking_strategy_comparison': results.ranking_strategy_comparison,
             },
             'timestamp': time.time()

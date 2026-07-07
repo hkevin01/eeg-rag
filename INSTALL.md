@@ -163,7 +163,7 @@ curl -o data/systematic_review/roy_et_al_2019_data_items.csv \
 Create a `.env` file in the project root:
 
 ```bash
-# Required for LLM features
+# Optional: Enables OpenAI provider in readiness ranking
 OPENAI_API_KEY=sk-your-api-key-here
 
 # Recommended for PubMed API
@@ -178,9 +178,24 @@ NEO4J_PASSWORD=your-password
 REDIS_URL=redis://localhost:6379
 ```
 
+### Generation Provider Readiness and Fallback
+
+EEG-RAG ranks generation providers from live telemetry, not static constants.
+
+- Readiness score uses observed success rate, latency, failure patterns, and provider ordering.
+- Runtime tuning is provider-specific (timeout and retry settings adjust from recent failures).
+- Providers without usable credentials or backend connectivity are excluded from active generation.
+- Ollama remains the local path when no API key is present, as long as the Ollama server is running.
+
+Operationally:
+
+- If `OPENAI_API_KEY` is set and valid, OpenAI participates in readiness ranking.
+- If `OPENAI_API_KEY` is not set, OpenAI is skipped and local backends can still serve requests.
+- Readiness and tuning details are exposed through the existing stats health endpoint.
+
 ### Getting API Keys
 
-1. **OpenAI API Key** (Required for LLM features)
+1. **OpenAI API Key** (Optional, for OpenAI provider)
    - Visit: https://platform.openai.com/api-keys
    - Create a new API key
    - Add to `.env` as `OPENAI_API_KEY`

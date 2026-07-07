@@ -5,14 +5,16 @@ Supports OpenAI, Anthropic, and Ollama with automatic failover, streaming,
 and citation integration.
 """
 
-from typing import AsyncGenerator, Dict, List, Optional, Any
+from typing import AsyncGenerator, Dict, List, Optional, Any, Deque
 from dataclasses import dataclass, field
 from enum import Enum
 import asyncio
 import logging
 import os
+import time
 from datetime import datetime
 import json
+from collections import deque
 
 try:
     import openai
@@ -220,6 +222,88 @@ class ProviderReadiness:
     ordering_score: float
 
 
+# ---------------------------------------------------------------------------
+# ID           : generation.response_generator.ProviderTelemetry
+# Requirement  : `ProviderTelemetry` class shall be instantiable and expose the documented interface
+# Purpose      : Telemetry for provider health and tuning
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProviderTelemetry with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
+@dataclass
+class ProviderTelemetry:
+    """Observed provider telemetry used for readiness and tuning."""
+
+    provider: ProviderType
+    total_requests: int = 0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    timeout_failures: int = 0
+    total_latency_ms: float = 0.0
+    recent_latencies_ms: Deque[float] = field(default_factory=lambda: deque(maxlen=32))
+    recent_failures: Deque[str] = field(default_factory=lambda: deque(maxlen=16))
+    last_error: Optional[str] = None
+    last_error_at: Optional[str] = None
+
+    @property
+    def success_rate(self) -> float:
+        """Return observed success rate."""
+        if self.total_requests <= 0:
+            return 0.0
+        return self.successful_requests / self.total_requests
+
+    @property
+    def failure_rate(self) -> float:
+        """Return observed failure rate."""
+        if self.total_requests <= 0:
+            return 0.0
+        return self.failed_requests / self.total_requests
+
+    @property
+    def average_latency_ms(self) -> float:
+        """Return average latency across observed requests."""
+        if self.total_requests <= 0:
+            return 0.0
+        return self.total_latency_ms / self.total_requests
+
+    @property
+    def p95_latency_ms(self) -> float:
+        """Return approximate p95 latency from recent samples."""
+        if not self.recent_latencies_ms:
+            return 0.0
+        samples = sorted(self.recent_latencies_ms)
+        index = max(0, min(len(samples) - 1, int(round((len(samples) - 1) * 0.95))))
+        return float(samples[index])
+
+    def record(self, latency_ms: float, success: bool, error: Optional[BaseException] = None) -> None:
+        """Record an observed generation outcome."""
+        self.total_requests += 1
+        self.total_latency_ms += max(0.0, float(latency_ms))
+        self.recent_latencies_ms.append(max(0.0, float(latency_ms)))
+
+        if success:
+            self.successful_requests += 1
+            self.recent_failures.clear()
+            return
+
+        self.failed_requests += 1
+        error_name = error.__class__.__name__ if error else "GenerationError"
+        self.recent_failures.append(error_name)
+        self.last_error = f"{error_name}: {error}" if error else error_name
+        self.last_error_at = datetime.utcnow().isoformat()
+        if "timeout" in error_name.lower():
+            self.timeout_failures += 1
+
+
 _PROVIDER_QUALITY_SCORES: Dict[ProviderType, float] = {
     ProviderType.OPENAI: 1.00,
     ProviderType.ANTHROPIC: 0.93,
@@ -301,7 +385,9 @@ class BaseProvider:
         self,
         query: str,
         context: List[Document],
-        streaming: bool = True
+        streaming: bool = True,
+        timeout_seconds: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate response with optional streaming."""
         raise NotImplementedError
@@ -473,39 +559,56 @@ class OpenAIProvider(BaseProvider):
         self,
         query: str,
         context: List[Document],
-        streaming: bool = True
+        streaming: bool = True,
+        timeout_seconds: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate response using OpenAI."""
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
+            effective_timeout = timeout_seconds or self.config.timeout_seconds
+            effective_retries = max(1, retry_attempts or self.config.retry_attempts)
 
             messages = [
                 {"role": "system", "content": self._default_system_prompt()},
                 {"role": "user", "content": prompt}
             ]
 
-            if streaming:
-                stream = await self.client.chat.completions.create(
-                    model=self.config.openai_model,
-                    messages=messages,
-                    temperature=self.config.temperature,
-                    max_tokens=self.config.max_tokens,
-                    stream=True
-                )
+            for attempt in range(effective_retries):
+                try:
+                    if streaming:
+                        stream = await asyncio.wait_for(
+                            self.client.chat.completions.create(
+                                model=self.config.openai_model,
+                                messages=messages,
+                                temperature=self.config.temperature,
+                                max_tokens=self.config.max_tokens,
+                                stream=True
+                            ),
+                            timeout=effective_timeout,
+                        )
 
-                async for chunk in stream:
-                    if chunk.choices[0].delta.content:
-                        yield chunk.choices[0].delta.content
-            else:
-                response = await self.client.chat.completions.create(
-                    model=self.config.openai_model,
-                    messages=messages,
-                    temperature=self.config.temperature,
-                    max_tokens=self.config.max_tokens,
-                    stream=False
-                )
-                yield response.choices[0].message.content
+                        async for chunk in stream:
+                            if chunk.choices[0].delta.content:
+                                yield chunk.choices[0].delta.content
+                    else:
+                        response = await asyncio.wait_for(
+                            self.client.chat.completions.create(
+                                model=self.config.openai_model,
+                                messages=messages,
+                                temperature=self.config.temperature,
+                                max_tokens=self.config.max_tokens,
+                                stream=False
+                            ),
+                            timeout=effective_timeout,
+                        )
+                        yield response.choices[0].message.content
+                    return
+                except Exception:
+                    if attempt >= effective_retries - 1:
+                        raise
+                    await asyncio.sleep(0)
 
         except Exception as e:
             logger.error(f"OpenAI generation failed: {e}")
@@ -583,32 +686,45 @@ class AnthropicProvider(BaseProvider):
         self,
         query: str,
         context: List[Document],
-        streaming: bool = True
+        streaming: bool = True,
+        timeout_seconds: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate response using Anthropic Claude."""
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
+            effective_timeout = timeout_seconds or self.config.timeout_seconds
+            effective_retries = max(1, retry_attempts or self.config.retry_attempts)
 
-            if streaming:
-                async with self.client.messages.stream(
-                    model=self.config.anthropic_model,
-                    max_tokens=self.config.max_tokens,
-                    temperature=self.config.temperature,
-                    system=self._default_system_prompt(),
-                    messages=[{"role": "user", "content": prompt}]
-                ) as stream:
-                    async for text in stream.text_stream:
-                        yield text
-            else:
-                message = await self.client.messages.create(
-                    model=self.config.anthropic_model,
-                    max_tokens=self.config.max_tokens,
-                    temperature=self.config.temperature,
-                    system=self._default_system_prompt(),
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                yield message.content[0].text
+            for attempt in range(effective_retries):
+                try:
+                    if streaming:
+                        async with asyncio.timeout(effective_timeout):
+                            async with self.client.messages.stream(
+                                model=self.config.anthropic_model,
+                                max_tokens=self.config.max_tokens,
+                                temperature=self.config.temperature,
+                                system=self._default_system_prompt(),
+                                messages=[{"role": "user", "content": prompt}]
+                            ) as stream:
+                                async for text in stream.text_stream:
+                                    yield text
+                    else:
+                        async with asyncio.timeout(effective_timeout):
+                            message = await self.client.messages.create(
+                                model=self.config.anthropic_model,
+                                max_tokens=self.config.max_tokens,
+                                temperature=self.config.temperature,
+                                system=self._default_system_prompt(),
+                                messages=[{"role": "user", "content": prompt}]
+                            )
+                        yield message.content[0].text
+                    return
+                except Exception:
+                    if attempt >= effective_retries - 1:
+                        raise
+                    await asyncio.sleep(0)
 
         except Exception as e:
             logger.error(f"Anthropic generation failed: {e}")
@@ -682,14 +798,18 @@ class OllamaProvider(BaseProvider):
         self,
         query: str,
         context: List[Document],
-        streaming: bool = True
+        streaming: bool = True,
+        timeout_seconds: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate response using Ollama."""
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
+            effective_timeout = timeout_seconds or self.config.timeout_seconds
+            effective_retries = max(1, retry_attempts or self.config.retry_attempts)
 
-            async with httpx.AsyncClient(timeout=self.config.timeout_seconds) as client:
+            async with httpx.AsyncClient(timeout=effective_timeout) as client:
                 data = {
                     "model": self.config.ollama_model,
                     "prompt": prompt,
@@ -700,25 +820,32 @@ class OllamaProvider(BaseProvider):
                     }
                 }
 
-                if streaming:
-                    async with client.stream(
-                        "POST",
-                        f"{self.base_url}/api/generate",
-                        json=data
-                    ) as response:
-                        response.raise_for_status()
-                        async for line in response.aiter_lines():
-                            if line:
-                                chunk = json.loads(line)
-                                if "response" in chunk:
-                                    yield chunk["response"]
-                else:
-                    response = await client.post(
-                        f"{self.base_url}/api/generate",
-                        json=data
-                    )
-                    response.raise_for_status()
-                    yield response.json()["response"]
+                for attempt in range(effective_retries):
+                    try:
+                        if streaming:
+                            async with client.stream(
+                                "POST",
+                                f"{self.base_url}/api/generate",
+                                json=data
+                            ) as response:
+                                response.raise_for_status()
+                                async for line in response.aiter_lines():
+                                    if line:
+                                        chunk = json.loads(line)
+                                        if "response" in chunk:
+                                            yield chunk["response"]
+                        else:
+                            response = await client.post(
+                                f"{self.base_url}/api/generate",
+                                json=data
+                            )
+                            response.raise_for_status()
+                            yield response.json()["response"]
+                        return
+                    except Exception:
+                        if attempt >= effective_retries - 1:
+                            raise
+                        await asyncio.sleep(0)
 
         except Exception as e:
             logger.error(f"Ollama generation failed: {e}")
@@ -784,6 +911,10 @@ class ResponseGenerator:
     # ---------------------------------------------------------------------------
     def __init__(self, config: Optional[GenerationConfig] = None):
         self.config = config or GenerationConfig()
+        self.provider_telemetry: Dict[ProviderType, ProviderTelemetry] = {
+            provider_type: ProviderTelemetry(provider=provider_type)
+            for provider_type in self.config.providers
+        }
         self.providers = self._init_providers()
         self.fallback_chain = self._build_fallback_chain()
         logger.info(f"ResponseGenerator initialized with {len(self.providers)} providers")
@@ -811,19 +942,33 @@ class ResponseGenerator:
         config_rank: int,
         total_providers: int,
     ) -> ProviderReadiness:
-        """Rank provider readiness using a deterministic weighted formula."""
-        quality_score = float(_PROVIDER_QUALITY_SCORES.get(provider_type, 0.85))
-        latency_score = float(_PROVIDER_LATENCY_SCORES.get(provider_type, 0.85))
-        privacy_score = float(_PROVIDER_PRIVACY_SCORES.get(provider_type, 0.85))
+        """Rank provider readiness using observed telemetry and fallback priors."""
+        telemetry = self.provider_telemetry.get(provider_type)
+        average_latency_ms = telemetry.average_latency_ms if telemetry else 0.0
+        success_rate = telemetry.success_rate if telemetry else 0.0
+        failure_rate = telemetry.failure_rate if telemetry else 0.0
+        p95_latency_ms = telemetry.p95_latency_ms if telemetry else 0.0
+
+        if telemetry and telemetry.total_requests > 0:
+            quality_score = max(0.0, min(1.0, success_rate))
+            latency_basis = p95_latency_ms if p95_latency_ms > 0.0 else average_latency_ms
+            latency_score = max(0.0, 1.0 - min(1.0, latency_basis / 4000.0))
+            privacy_score = 1.0 if provider_type == ProviderType.OLLAMA else 0.75
+        else:
+            quality_score = 0.5
+            latency_score = 0.5
+            privacy_score = 1.0 if provider_type == ProviderType.OLLAMA else 0.75
+
         ordering_score = 1.0 if total_providers <= 1 else 1.0 - (
             config_rank / max(1, total_providers - 1)
         )
         readiness_score = (
-            0.74 * quality_score
-            + 0.08 * latency_score
+            0.58 * quality_score
+            + 0.26 * latency_score
             + 0.10 * privacy_score
-            + 0.08 * ordering_score
+            + 0.06 * ordering_score
         )
+        readiness_score -= min(0.15, failure_rate * 0.15)
         readiness_score = max(0.0, min(1.0, readiness_score))
         return ProviderReadiness(
             provider=provider_type,
@@ -874,6 +1019,131 @@ class ResponseGenerator:
             )
         )
         return readiness
+
+    # ---------------------------------------------------------------------------
+    # ID           : generation.response_generator.ResponseGenerator._derive_runtime_settings
+    # Requirement  : `_derive_runtime_settings` shall compute timeout and retry settings from telemetry
+    # Purpose      : Derive provider-specific runtime settings
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : provider_type: ProviderType
+    # Outputs      : Dict[str, int]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def _derive_runtime_settings(self, provider_type: ProviderType) -> Dict[str, int]:
+        """Derive per-provider timeout and retry settings from observed failures."""
+        telemetry = self.provider_telemetry.get(provider_type)
+        base_timeout = max(5, int(getattr(self.config, "timeout_seconds", 30)))
+        base_retries = max(1, int(getattr(self.config, "retry_attempts", 3)))
+
+        if not telemetry or telemetry.total_requests <= 0:
+            return {
+                "timeout_seconds": base_timeout,
+                "retry_attempts": base_retries,
+            }
+
+        failure_rate = telemetry.failure_rate
+        timeout_pressure = min(1.5, (telemetry.p95_latency_ms / max(1.0, base_timeout * 1000.0)))
+        timeout_seconds = int(
+            round(base_timeout * (1.0 + (0.35 * failure_rate) + (0.25 * timeout_pressure)))
+        )
+        timeout_seconds = max(5, min(120, timeout_seconds))
+
+        retry_attempts = int(
+            round(base_retries + (failure_rate * 2.0) + (1.0 if telemetry.timeout_failures > 0 else 0.0))
+        )
+        retry_attempts = max(1, min(5, retry_attempts))
+
+        return {
+            "timeout_seconds": timeout_seconds,
+            "retry_attempts": retry_attempts,
+        }
+
+    # ---------------------------------------------------------------------------
+    # ID           : generation.response_generator.ResponseGenerator._record_provider_outcome
+    # Requirement  : `_record_provider_outcome` shall persist provider telemetry after generation
+    # Purpose      : Persist provider telemetry after generation
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : provider_type: ProviderType; latency_ms: float; success: bool; error: Optional[BaseException]
+    # Outputs      : None
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def _record_provider_outcome(
+        self,
+        provider_type: ProviderType,
+        latency_ms: float,
+        success: bool,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        """Record telemetry for a provider generation attempt."""
+        telemetry = self.provider_telemetry.setdefault(
+            provider_type,
+            ProviderTelemetry(provider=provider_type),
+        )
+        telemetry.record(latency_ms=latency_ms, success=success, error=error)
+
+    # ---------------------------------------------------------------------------
+    # ID           : generation.response_generator.ResponseGenerator.get_generation_readiness_report
+    # Requirement  : `get_generation_readiness_report` shall expose provider telemetry and tuning
+    # Purpose      : Expose provider telemetry and tuning
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : Dict[str, Any]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def get_generation_readiness_report(self) -> Dict[str, Any]:
+        """Return provider readiness, telemetry, and runtime tuning settings."""
+        report = []
+        for item in self.get_provider_readiness():
+            runtime = self._derive_runtime_settings(item.provider)
+            telemetry = self.provider_telemetry.get(item.provider)
+            report.append(
+                {
+                    "provider": item.provider.value,
+                    "readiness_score": item.readiness_score,
+                    "success_rate": telemetry.success_rate if telemetry else 0.0,
+                    "average_latency_ms": telemetry.average_latency_ms if telemetry else 0.0,
+                    "p95_latency_ms": telemetry.p95_latency_ms if telemetry else 0.0,
+                    "failure_rate": telemetry.failure_rate if telemetry else 0.0,
+                    "timeout_seconds": runtime["timeout_seconds"],
+                    "retry_attempts": runtime["retry_attempts"],
+                    "total_requests": telemetry.total_requests if telemetry else 0,
+                    "successful_requests": telemetry.successful_requests if telemetry else 0,
+                    "failed_requests": telemetry.failed_requests if telemetry else 0,
+                    "timeout_failures": telemetry.timeout_failures if telemetry else 0,
+                    "last_error": telemetry.last_error if telemetry else None,
+                    "last_error_at": telemetry.last_error_at if telemetry else None,
+                }
+            )
+
+        return {
+            "status": "available" if report else "unavailable",
+            "providers": report,
+            "best_provider": report[0]["provider"] if report else None,
+        }
 
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator._init_providers
@@ -976,16 +1246,37 @@ class ResponseGenerator:
         streaming = streaming if streaming is not None else self.config.stream
 
         for i, provider in enumerate(self.fallback_chain):
+            settings = self._derive_runtime_settings(provider.provider_type)
+            start_time = time.time()
             try:
                 logger.info(f"Attempting generation with {provider.provider_type.value}")
 
-                async for chunk in provider.generate(query, context, streaming):
+                async for chunk in provider.generate(
+                    query,
+                    context,
+                    streaming,
+                    timeout_seconds=settings["timeout_seconds"],
+                    retry_attempts=settings["retry_attempts"],
+                ):
                     yield chunk
 
+                elapsed_ms = (time.time() - start_time) * 1000.0
+                self._record_provider_outcome(
+                    provider.provider_type,
+                    latency_ms=elapsed_ms,
+                    success=True,
+                )
                 logger.info(f"Generation successful with {provider.provider_type.value}")
                 return
 
             except ProviderError as e:
+                elapsed_ms = (time.time() - start_time) * 1000.0
+                self._record_provider_outcome(
+                    provider.provider_type,
+                    latency_ms=elapsed_ms,
+                    success=False,
+                    error=e,
+                )
                 logger.warning(
                     f"Provider {provider.provider_type.value} failed: {e}. "
                     f"Trying next provider ({i+1}/{len(self.fallback_chain)})"

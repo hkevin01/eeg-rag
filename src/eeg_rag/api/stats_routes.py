@@ -3,15 +3,53 @@
 FastAPI routes for statistics endpoints.
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 from datetime import datetime
 
 from eeg_rag.services.stats_service import get_stats_service, IndexStats
+from eeg_rag.generation.response_generator import GenerationConfig, ResponseGenerator
 
 
 router = APIRouter(prefix="/api/stats", tags=["statistics"])
+logger = logging.getLogger(__name__)
+
+_readiness_generator: Optional[ResponseGenerator] = None
+_readiness_init_error: Optional[str] = None
+
+
+def _get_generation_readiness_report() -> Dict[str, Any]:
+    """Return generation readiness and tuning details for health inspection."""
+    global _readiness_generator, _readiness_init_error
+
+    if _readiness_generator is None and _readiness_init_error is None:
+        try:
+            _readiness_generator = ResponseGenerator(GenerationConfig())
+        except Exception as exc:
+            _readiness_init_error = str(exc)
+            logger.warning("Generation readiness unavailable: %s", exc)
+
+    if _readiness_generator is not None:
+        try:
+            return _readiness_generator.get_generation_readiness_report()
+        except Exception as exc:
+            logger.warning("Generation readiness report failed: %s", exc)
+            return {
+                "status": "unavailable",
+                "providers": [],
+                "best_provider": None,
+                "error": str(exc),
+            }
+
+    return {
+        "status": "unavailable",
+        "providers": [],
+        "best_provider": None,
+        "error": _readiness_init_error,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +162,7 @@ class HealthResponse(BaseModel):
     total_papers: int
     issues: list
     recommendations: list
+    generation_readiness: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -356,6 +395,7 @@ async def get_health():
         total_papers=stats.total_papers,
         issues=health.get("issues", []),
         recommendations=recommendations,
+        generation_readiness=_get_generation_readiness_report(),
     )
 
 
