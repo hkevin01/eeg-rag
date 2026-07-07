@@ -114,7 +114,7 @@
 - [Development](#-development)
 - [Claim Verification](#-claim-verification)
 - [Contributing](#-contributing)
-- [Changelog](#-changelog)
+- [Release History](CHANGELOG.md#changelog-2026-07-03)
 - [License & Acknowledgements](#-license--acknowledgements)
 
 ---
@@ -1180,11 +1180,13 @@ gantt
     PubMedBERT model presets         :done,   p6u, 2026-01-20, 2d
 
     section Phase 7 — Production 🟡
-    Full LLM Integration             :active, p7a, 2026-02-01, 14d
+    Full LLM Integration             :done,   p7a, 2026-02-01, 14d
     Performance Tuning (<2s p95)     :        p7b, 2026-02-15, 14d
     Docker Production Build          :        p7c, 2026-03-01, 7d
     K8s Deployment                   :        p7d, 2026-03-08, 14d
 ```
+
+  This roadmap is the GitHub-visible source of truth for the project timeline and should stay aligned with the codebase, not with one-off planning notes. Full LLM Integration is now treated as completed because the repository already supports OpenAI, Anthropic, and Ollama-backed flows in the main synthesis and evaluation paths. The remaining Phase 7 items now represent deployment, performance, and infrastructure hardening rather than core capability delivery.
 
 ### Milestone Summary
 
