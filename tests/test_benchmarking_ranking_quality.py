@@ -167,6 +167,54 @@ def test_export_includes_ranking_ci_and_drift_fields(tmp_path) -> None:
     assert summary["concept_aware_calibration_drift"]["status"] == "ok"
 
 
+def test_export_includes_provider_generation_and_streaming_latency_summary(
+    tmp_path,
+) -> None:
+    benchmarking_mod = _import_benchmark_module()
+    EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
+    BenchmarkSuite = benchmarking_mod.BenchmarkSuite
+    ProviderGenerationBenchmarkResult = (
+        benchmarking_mod.ProviderGenerationBenchmarkResult
+    )
+
+    benchmark = EEGRAGBenchmark.__new__(EEGRAGBenchmark)
+    out_path = tmp_path / "benchmark_export_provider_generation.json"
+
+    suite = BenchmarkSuite(
+        retrieval_results=[],
+        generation_results=[],
+        end_to_end_results=[],
+        provider_generation_results=[
+            ProviderGenerationBenchmarkResult(
+                provider="openai",
+                query="Explain alpha rhythm EEG findings",
+                streaming_latency_ms=220.0,
+                total_generation_time_ms=860.0,
+                response_quality=0.84,
+                citation_quality=0.81,
+                response_length=512,
+                citation_count=4,
+                chunk_count=8,
+                success=True,
+                error_message=None,
+            )
+        ],
+        avg_provider_streaming_latency_ms=220.0,
+    )
+
+    benchmark.export_benchmark_results(suite, out_path)
+
+    payload = json.loads(out_path.read_text())
+    summary = payload["summary"]
+    details = payload["detailed_results"]
+    provider_generation = details["provider_generation"]
+
+    assert summary["avg_provider_streaming_latency_ms"] == 220.0
+    assert len(provider_generation) == 1
+    assert provider_generation[0]["provider"] == "openai"
+    assert provider_generation[0]["streaming_latency_ms"] == 220.0
+
+
 def test_hard_archetype_uncertainty_guard_raises_on_regression() -> None:
     benchmarking_mod = _import_benchmark_module()
     EEGRAGBenchmark = benchmarking_mod.EEGRAGBenchmark
