@@ -252,6 +252,8 @@ flowchart TD
     style REDIS fill:#7f1d1d,color:#fff,stroke:#ef4444
 ```
 
+  This diagram shows the main runtime path from client requests into the FastAPI service and then through orchestration to specialized retrieval and synthesis agents. It also highlights the shared storage layers that support fast search, graph traversal, and caching. Read it from top to bottom to understand how a query is routed before the final answer is returned.
+
 ### Query Lifecycle
 
 ```mermaid
@@ -275,6 +277,8 @@ sequenceDiagram
     API-->>U: 200 OK under 2s total
     Note over U,LLM: Cache hit 0.05s is 36x faster
 ```
+
+  This sequence diagram traces one end-to-end search request from the user through planning, retrieval, merging, and synthesis. It emphasizes that the system runs multiple agents in parallel before consolidating evidence into a single response. The note at the end captures why cached responses are materially faster than a full retrieval pass.
 
 ### EEG Domain Taxonomy
 
@@ -315,6 +319,8 @@ mindmap
       Citation Verification
       NER Extraction
 ```
+
+This mind map summarizes the domain coverage the system is designed to handle, from clinical EEG use cases to neuroscience and BCI workflows. It helps readers quickly see which problem families the retrieval and reasoning layers are expected to support. Use it as a topical index when deciding which agent or corpus source matters most for a question.
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 
@@ -1325,71 +1331,7 @@ Open a [GitHub Issue](https://github.com/hkevin01/eeg-rag/issues) with:
 
 ## 📋 Changelog
 
-Latest adaptive retrieval updates: see [2026-07-03 changelog entry](CHANGELOG.md#changelog-2026-07-03).
-
-### v0.4.1 — April 2026
-
-#### PyPI Packaging
-The package is now properly installable via `pip`:
-
-```bash
-pip install eeg-rag                        # core
-pip install "eeg-rag[api]"                 # + FastAPI server
-pip install "eeg-rag[knowledge-graph]"     # + Neo4j + Redis
-pip install "eeg-rag[full]"                # everything
-pip install git+https://github.com/hkevin01/eeg-rag.git  # latest from GitHub
-```
-
-Fixed issues that previously prevented installable builds:
-- `packages = ["eeg_rag"]` was replaced with `find` discovery — all 50 subpackages now bundle correctly
-- Entry point pointed to non-existent `eeg_rag.cli.query:main`; fixed to `eeg_rag.cli.main:main`
-- Added missing core dependencies: `httpx`, `rank-bm25`, `anyio`
-- Added `pytest-asyncio` to `dev` extras
-- Added `api` extra (`fastapi`, `uvicorn`, `sse-starlette`) separate from `knowledge-graph`
-- Version bumped to `0.4.1`
-
-Three CLI commands are installed automatically:
-
-| <sub>Command</sub> | <sub>Description</sub> |
-|---------|-------------|
-| <sub>`eeg-rag`</sub> | <sub>Main query interface, health check, stats</sub> |
-| <sub>`eeg-rag-history`</sub> | <sub>Browse and replay search history</sub> |
-| <sub>`eeg-rag-stats`</sub> | <sub>Detailed corpus + system stats dashboard</sub> |
-
-#### Structured Code Comments
-Injected safety-critical structured comment blocks above every class and function across all 178 source files (2,359 blocks total). Each block documents: ID, Requirement, Purpose, Rationale, Inputs, Outputs, Pre/Postconditions, Assumptions, Side Effects, Failure Modes, Error Handling, Constraints, Verification, and References.
-
-#### Diagram Fixes
-All three Mermaid diagrams in the Architecture section were broken on GitHub. Fixed:
-- `\n` escape sequences in quoted node labels → `<br/>` HTML line breaks
-- `·` middle-dot characters and `&` in node names that crashed the Mermaid parser
-- `&`-chained multi-target edges (`A --> B & C`) → individual edge lines
-- Special characters (`{`, `"`, `<`, `>`) in sequence diagram message text
-
----
-
-### v0.4.0 — April 2026
-
-#### Agentic RAG Loop
-Replaced the single-shot retrieve-then-answer pattern with a full **agentic loop** (`src/eeg_rag/rag/agentic_rag.py`).
-The orchestrator now decides *whether* to retrieve at all, reformulates the query when the first results are insufficient, can issue multiple retrieval passes across different sources, and verifies retrieved content before generating a response.
-Key pieces:
-- `RetrievalDecisionMaker` — classifies every incoming query (`RETRIEVE`, `SKIP`, `VERIFY_CLAIM`, `DECOMPOSE`) using EEG-specific regex patterns so definitional and abbreviation questions are answered from model knowledge without wasting a retrieval round-trip.
-- `SufficiencyEvaluator` — scores the retrieved document set on count, relevance, and semantic coverage; returns a `SufficiencyStatus` that drives the retry decision.
-- `QueryReformulator` — selects a non-repeating reformulation strategy (`EXPAND`, `PIVOT_DENSE`, `PIVOT_BM25`, `RELAX`, `NARROW`, `DECOMPOSE`) and rewrites the query via the existing `EEGQueryExpander`.
-- `AgenticRAGOrchestrator` — ties everything together; exposes both `run()` (returns `AgenticRAGResult`) and `stream()` (async token generator).
-
-#### RAGAS Evaluation Metrics
-Added a RAGAS-style automated evaluation framework (`src/eeg_rag/evaluation/ragas_metrics.py`) that measures four orthogonal quality axes:
-
-| <sub>Metric</sub> | <sub>What it measures</sub> |
-|---|---|
-| <sub>**Faithfulness**</sub> | <sub>Fraction of answer claims supported by retrieved context (hallucination score)</sub> |
-| <sub>**Answer Relevance**</sub> | <sub>Semantic similarity between the query and the answer</sub> |
-| <sub>**Context Precision**</sub> | <sub>Average precision of the retrieved chunk ranking</sub> |
-| <sub>**Context Recall**</sub> | <sub>Coverage of ground-truth documents or sentences</sub> |
-
-Two evaluation modes: `EMBEDDING` (offline, no API key needed) and `LLM` (GPT-4 / Claude / Ollama as judge). `AUTO` mode selects LLM when an API key is present and falls back to embedding silently. `export_for_human_eval()` produces annotation-ready `HumanEvalRecord` dicts.
+Release notes now live in [CHANGELOG.md](CHANGELOG.md). The latest adaptive retrieval updates are in the [2026-07-03 changelog entry](CHANGELOG.md#changelog-2026-07-03), and the older packaging/diagram history is kept there as well. Use that file for the authoritative release history so this README stays focused on current project state.
 
 #### Stub Code Filled
 Several previously placeholder components now have real implementations:

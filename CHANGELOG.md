@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-04-01
+- PyPI packaging and installability improvements:
+  - Replaced fixed package lists with discovery so all subpackages bundle correctly.
+  - Corrected the console entry point to `eeg_rag.cli.main:main`.
+  - Added missing core dependencies (`httpx`, `rank-bm25`, `anyio`) and `pytest-asyncio` for dev workflows.
+  - Split optional extras so `api` and `knowledge-graph` can be installed independently.
+  - Bumped the package version to `0.4.1`.
+- CLI commands installed automatically:
+  - `eeg-rag` for the main query interface, health check, and stats.
+  - `eeg-rag-history` for browsing and replaying search history.
+  - `eeg-rag-stats` for the detailed corpus and system stats dashboard.
+- Structured code comments and diagram cleanup:
+  - Added structured safety-critical comment blocks above every class and function.
+  - Fixed Mermaid diagrams in the README by replacing unsupported node characters and edge syntax.
+  - Moved the README release-history details into this changelog so the documentation stays current.
+
 <a id="changelog-2026-07-03"></a>
 
 ### Added - 2026-07-03
