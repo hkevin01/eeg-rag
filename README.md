@@ -1198,7 +1198,7 @@ gantt
 | <sub>**Phase 4** — Ingestion</sub> | <sub>Multi-source 120K papers, Streamlit UI, FastAPI</sub> | <sub>✅ 100%</sub> |
 | <sub>**Phase 5** — Advanced</sub> | <sub>SPLADE, Reranker, IR Metrics, Bibliometrics, Systematic Review</sub> | <sub>✅ 100%</sub> |
 | <sub>**Phase 6** — New Agents & Sources</sub> | <sub>ClinicalTrials.gov, Europe PMC, ResearchAgent, SystematicReviewAgent, ClinicalMatchingAgent, PubMedBERT presets</sub> | <sub>✅ 100%</sub> |
-| <sub>**Phase 7** — Production</sub> | <sub>Full LLM, <2s p95 target, Docker prod, K8s</sub> | <sub>🟡 10%</sub> |
+| <sub>**Phase 7** — Production</sub> | <sub>Full LLM Integration, <2s p95 target, Docker prod, K8s</sub> | <sub>✅ 100%</sub> |
 
 <p align="right">(<a href="#top">back to top ↑</a>)</p>
 

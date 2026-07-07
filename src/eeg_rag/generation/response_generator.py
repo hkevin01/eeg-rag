@@ -129,7 +129,7 @@ class Document:
     title: Optional[str] = None
     authors: Optional[List[str]] = None
     year: Optional[int] = None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.Document.format_citation
     # Requirement  : `format_citation` shall format document as citation
@@ -192,6 +192,54 @@ class GenerationConfig:
 
 
 # ---------------------------------------------------------------------------
+# ID           : generation.response_generator.ProviderReadiness
+# Requirement  : `ProviderReadiness` class shall be instantiable and expose the documented interface
+# Purpose      : Ranked provider readiness snapshot
+# Rationale    : Object-oriented encapsulation isolates state and enforces invariants
+# Inputs       : Constructor arguments — see __init__ signature
+# Outputs      : N/A (class definition)
+# Precond.     : All imported dependencies must be available at import time
+# Postcond.    : Instance attributes initialised as documented; invariants hold
+# Assumptions  : Python runtime ≥ 3.9; package dependencies installed
+# Side Effects : May allocate heap memory; __init__ may open connections or load models
+# Fail Modes   : ImportError if dependency missing; TypeError for invalid constructor args
+# Err Handling : Constructor raises on invalid args; see __init__ body
+# Constraints  : Thread-safety not guaranteed unless explicitly documented
+# Verification : Instantiate ProviderReadiness with valid args; assert attribute types and values
+# References   : EEG-RAG system design specification; see module docstring
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class ProviderReadiness:
+    """Ranked readiness snapshot for a provider."""
+
+    provider: ProviderType
+    readiness_score: float
+    quality_score: float
+    latency_score: float
+    privacy_score: float
+    ordering_score: float
+
+
+_PROVIDER_QUALITY_SCORES: Dict[ProviderType, float] = {
+    ProviderType.OPENAI: 1.00,
+    ProviderType.ANTHROPIC: 0.93,
+    ProviderType.OLLAMA: 0.85,
+}
+
+_PROVIDER_LATENCY_SCORES: Dict[ProviderType, float] = {
+    ProviderType.OPENAI: 0.95,
+    ProviderType.ANTHROPIC: 0.91,
+    ProviderType.OLLAMA: 0.83,
+}
+
+_PROVIDER_PRIVACY_SCORES: Dict[ProviderType, float] = {
+    ProviderType.OPENAI: 0.80,
+    ProviderType.ANTHROPIC: 0.90,
+    ProviderType.OLLAMA: 1.00,
+}
+
+
+# ---------------------------------------------------------------------------
 # ID           : generation.response_generator.BaseProvider
 # Requirement  : `BaseProvider` class shall be instantiable and expose the documented interface
 # Purpose      : Base class for LLM providers
@@ -210,11 +258,11 @@ class GenerationConfig:
 # ---------------------------------------------------------------------------
 class BaseProvider:
     """Base class for LLM providers."""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.BaseProvider.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : config: GenerationConfig
     # Outputs      : Implicitly None or see body
@@ -231,7 +279,7 @@ class BaseProvider:
     def __init__(self, config: GenerationConfig):
         self.config = config
         self.provider_type: ProviderType = None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.BaseProvider.generate
     # Requirement  : `generate` shall generate response with optional streaming
@@ -257,7 +305,7 @@ class BaseProvider:
     ) -> AsyncGenerator[str, None]:
         """Generate response with optional streaming."""
         raise NotImplementedError
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.BaseProvider._format_context
     # Requirement  : `_format_context` shall format documents into context string
@@ -284,7 +332,7 @@ class BaseProvider:
                 f"\n[Document {i}] {citation}\n{doc.content}\n"
             )
         return "\n".join(context_parts)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.BaseProvider._build_prompt
     # Requirement  : `_build_prompt` shall build prompt with query and context
@@ -322,7 +370,7 @@ Generate a comprehensive, evidence-based response that:
 5. Identifies research gaps if applicable
 
 Your response:"""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.BaseProvider._default_system_prompt
     # Requirement  : `_default_system_prompt` shall default system prompt for EEG research
@@ -342,7 +390,7 @@ Your response:"""
     # ---------------------------------------------------------------------------
     def _default_system_prompt(self) -> str:
         """Default system prompt for EEG research."""
-        return """You are an expert neuroscientist specializing in electroencephalography (EEG) research. 
+        return """You are an expert neuroscientist specializing in electroencephalography (EEG) research.
 Your role is to synthesize literature findings into clear, accurate, and well-cited responses.
 
 Guidelines:
@@ -373,11 +421,11 @@ Guidelines:
 # ---------------------------------------------------------------------------
 class OpenAIProvider(BaseProvider):
     """OpenAI GPT provider."""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.OpenAIProvider.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : config: GenerationConfig
     # Outputs      : Implicitly None or see body
@@ -396,14 +444,14 @@ class OpenAIProvider(BaseProvider):
         self.provider_type = ProviderType.OPENAI
         if not OPENAI_AVAILABLE:
             raise ProviderError("OpenAI not available - install: pip install openai")
-        
+
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ProviderError("OPENAI_API_KEY not set")
-        
+
         self.client = openai.AsyncOpenAI(api_key=api_key)
         logger.info(f"OpenAI provider initialized (model={config.openai_model})")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.OpenAIProvider.generate
     # Requirement  : `generate` shall generate response using OpenAI
@@ -431,12 +479,12 @@ class OpenAIProvider(BaseProvider):
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
-            
+
             messages = [
                 {"role": "system", "content": self._default_system_prompt()},
                 {"role": "user", "content": prompt}
             ]
-            
+
             if streaming:
                 stream = await self.client.chat.completions.create(
                     model=self.config.openai_model,
@@ -445,7 +493,7 @@ class OpenAIProvider(BaseProvider):
                     max_tokens=self.config.max_tokens,
                     stream=True
                 )
-                
+
                 async for chunk in stream:
                     if chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
@@ -458,7 +506,7 @@ class OpenAIProvider(BaseProvider):
                     stream=False
                 )
                 yield response.choices[0].message.content
-                
+
         except Exception as e:
             logger.error(f"OpenAI generation failed: {e}")
             raise ProviderError(f"OpenAI error: {e}")
@@ -483,11 +531,11 @@ class OpenAIProvider(BaseProvider):
 # ---------------------------------------------------------------------------
 class AnthropicProvider(BaseProvider):
     """Anthropic Claude provider."""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.AnthropicProvider.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : config: GenerationConfig
     # Outputs      : Implicitly None or see body
@@ -506,14 +554,14 @@ class AnthropicProvider(BaseProvider):
         self.provider_type = ProviderType.ANTHROPIC
         if not ANTHROPIC_AVAILABLE:
             raise ProviderError("Anthropic not available - install: pip install anthropic")
-        
+
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ProviderError("ANTHROPIC_API_KEY not set")
-        
+
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         logger.info(f"Anthropic provider initialized (model={config.anthropic_model})")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.AnthropicProvider.generate
     # Requirement  : `generate` shall generate response using Anthropic Claude
@@ -541,7 +589,7 @@ class AnthropicProvider(BaseProvider):
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
-            
+
             if streaming:
                 async with self.client.messages.stream(
                     model=self.config.anthropic_model,
@@ -561,7 +609,7 @@ class AnthropicProvider(BaseProvider):
                     messages=[{"role": "user", "content": prompt}]
                 )
                 yield message.content[0].text
-                
+
         except Exception as e:
             logger.error(f"Anthropic generation failed: {e}")
             raise ProviderError(f"Anthropic error: {e}")
@@ -586,11 +634,11 @@ class AnthropicProvider(BaseProvider):
 # ---------------------------------------------------------------------------
 class OllamaProvider(BaseProvider):
     """Local Ollama provider."""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.OllamaProvider.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : config: GenerationConfig
     # Outputs      : Implicitly None or see body
@@ -609,10 +657,10 @@ class OllamaProvider(BaseProvider):
         self.provider_type = ProviderType.OLLAMA
         if not OLLAMA_AVAILABLE:
             raise ProviderError("Ollama requires httpx - install: pip install httpx")
-        
+
         self.base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
         logger.info(f"Ollama provider initialized (model={config.ollama_model}, url={self.base_url})")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.OllamaProvider.generate
     # Requirement  : `generate` shall generate response using Ollama
@@ -640,7 +688,7 @@ class OllamaProvider(BaseProvider):
         try:
             context_str = self._format_context(context)
             prompt = self._build_prompt(query, context_str)
-            
+
             async with httpx.AsyncClient(timeout=self.config.timeout_seconds) as client:
                 data = {
                     "model": self.config.ollama_model,
@@ -651,7 +699,7 @@ class OllamaProvider(BaseProvider):
                         "num_predict": self.config.max_tokens
                     }
                 }
-                
+
                 if streaming:
                     async with client.stream(
                         "POST",
@@ -671,7 +719,7 @@ class OllamaProvider(BaseProvider):
                     )
                     response.raise_for_status()
                     yield response.json()["response"]
-                    
+
         except Exception as e:
             logger.error(f"Ollama generation failed: {e}")
             raise ProviderError(f"Ollama error: {e}")
@@ -697,14 +745,14 @@ class OllamaProvider(BaseProvider):
 class ResponseGenerator:
     """
     Production-grade response generator with multi-provider fallback.
-    
+
     Features:
     - Multiple LLM providers (OpenAI, Anthropic, Ollama)
     - Automatic failover chain
     - Streaming and non-streaming modes
     - Citation integration
     - Configurable retry logic
-    
+
     Example:
         config = GenerationConfig(
             providers=[ProviderType.OPENAI, ProviderType.OLLAMA],
@@ -712,15 +760,15 @@ class ResponseGenerator:
             stream=True
         )
         generator = ResponseGenerator(config)
-        
+
         async for chunk in generator.generate(query, documents):
             print(chunk, end="", flush=True)
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : config: Optional[GenerationConfig] (default=None)
     # Outputs      : Implicitly None or see body
@@ -739,7 +787,94 @@ class ResponseGenerator:
         self.providers = self._init_providers()
         self.fallback_chain = self._build_fallback_chain()
         logger.info(f"ResponseGenerator initialized with {len(self.providers)} providers")
-    
+
+    # ---------------------------------------------------------------------------
+    # ID           : generation.response_generator.ResponseGenerator._score_provider_readiness
+    # Requirement  : `_score_provider_readiness` shall rank providers using a deterministic readiness formula
+    # Purpose      : Rank provider readiness for fallback selection
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : provider_type: ProviderType; config_rank: int; total_providers: int
+    # Outputs      : ProviderReadiness
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def _score_provider_readiness(
+        self,
+        provider_type: ProviderType,
+        config_rank: int,
+        total_providers: int,
+    ) -> ProviderReadiness:
+        """Rank provider readiness using a deterministic weighted formula."""
+        quality_score = float(_PROVIDER_QUALITY_SCORES.get(provider_type, 0.85))
+        latency_score = float(_PROVIDER_LATENCY_SCORES.get(provider_type, 0.85))
+        privacy_score = float(_PROVIDER_PRIVACY_SCORES.get(provider_type, 0.85))
+        ordering_score = 1.0 if total_providers <= 1 else 1.0 - (
+            config_rank / max(1, total_providers - 1)
+        )
+        readiness_score = (
+            0.74 * quality_score
+            + 0.08 * latency_score
+            + 0.10 * privacy_score
+            + 0.08 * ordering_score
+        )
+        readiness_score = max(0.0, min(1.0, readiness_score))
+        return ProviderReadiness(
+            provider=provider_type,
+            readiness_score=readiness_score,
+            quality_score=quality_score,
+            latency_score=latency_score,
+            privacy_score=privacy_score,
+            ordering_score=ordering_score,
+        )
+
+    # ---------------------------------------------------------------------------
+    # ID           : generation.response_generator.ResponseGenerator.get_provider_readiness
+    # Requirement  : `get_provider_readiness` shall expose the ranked readiness report
+    # Purpose      : Provide a ranked readiness report for available providers
+    # Rationale    : Implements domain-specific logic per system design; see referenced specs
+    # Inputs       : None
+    # Outputs      : List[ProviderReadiness]
+    # Precond.     : Owning object properly initialised (if method); inputs within documented valid ranges
+    # Postcond.    : Return value satisfies documented output type and range
+    # Assumptions  : Python runtime ≥ 3.9; inputs are well-typed at call site
+    # Side Effects : May update instance state or perform I/O; see body
+    # Fail Modes   : Invalid inputs raise ValueError/TypeError; I/O failures raise OSError or subclass
+    # Err Handling : Validates critical inputs at boundary; propagates unexpected exceptions
+    # Constraints  : Synchronous — must not block event loop
+    # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
+    # References   : EEG-RAG system design specification; see module docstring
+    # ---------------------------------------------------------------------------
+    def get_provider_readiness(self) -> List[ProviderReadiness]:
+        """Return readiness metrics for each initialized provider, ranked high to low."""
+        total_providers = max(1, len(self.config.providers))
+        readiness = []
+
+        for config_rank, provider_type in enumerate(self.config.providers):
+            if provider_type not in self.providers:
+                continue
+            readiness.append(
+                self._score_provider_readiness(
+                    provider_type=provider_type,
+                    config_rank=config_rank,
+                    total_providers=total_providers,
+                )
+            )
+
+        readiness.sort(
+            key=lambda item: (
+                -item.readiness_score,
+                item.provider.value,
+            )
+        )
+        return readiness
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator._init_providers
     # Requirement  : `_init_providers` shall initialize available providers
@@ -760,7 +895,7 @@ class ResponseGenerator:
     def _init_providers(self) -> Dict[ProviderType, BaseProvider]:
         """Initialize available providers."""
         providers = {}
-        
+
         for provider_type in self.config.providers:
             try:
                 if provider_type == ProviderType.OPENAI:
@@ -771,12 +906,12 @@ class ResponseGenerator:
                     providers[provider_type] = OllamaProvider(self.config)
             except ProviderError as e:
                 logger.warning(f"Failed to initialize {provider_type.value}: {e}")
-        
+
         if not providers:
             raise AllProvidersFailedError("No LLM providers available")
-        
+
         return providers
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator._build_fallback_chain
     # Requirement  : `_build_fallback_chain` shall build ordered fallback chain
@@ -796,8 +931,11 @@ class ResponseGenerator:
     # ---------------------------------------------------------------------------
     def _build_fallback_chain(self) -> List[BaseProvider]:
         """Build ordered fallback chain."""
-        return [self.providers[pt] for pt in self.config.providers if pt in self.providers]
-    
+        return [
+            self.providers[item.provider]
+            for item in self.get_provider_readiness()
+        ]
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator.generate
     # Requirement  : `generate` shall generate response with automatic fallback
@@ -823,39 +961,39 @@ class ResponseGenerator:
     ) -> AsyncGenerator[str, None]:
         """
         Generate response with automatic fallback.
-        
+
         Args:
             query: User query
             context: Retrieved documents
             streaming: Enable streaming (uses config default if None)
-        
+
         Yields:
             Response chunks if streaming, full response otherwise
-        
+
         Raises:
             AllProvidersFailedError: If all providers fail
         """
         streaming = streaming if streaming is not None else self.config.stream
-        
+
         for i, provider in enumerate(self.fallback_chain):
             try:
                 logger.info(f"Attempting generation with {provider.provider_type.value}")
-                
+
                 async for chunk in provider.generate(query, context, streaming):
                     yield chunk
-                
+
                 logger.info(f"Generation successful with {provider.provider_type.value}")
                 return
-                
+
             except ProviderError as e:
                 logger.warning(
                     f"Provider {provider.provider_type.value} failed: {e}. "
                     f"Trying next provider ({i+1}/{len(self.fallback_chain)})"
                 )
                 continue
-        
+
         raise AllProvidersFailedError("All configured providers failed")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : generation.response_generator.ResponseGenerator.generate_with_citations
     # Requirement  : `generate_with_citations` shall generate response and append citation list
@@ -881,19 +1019,19 @@ class ResponseGenerator:
     ) -> AsyncGenerator[str, None]:
         """
         Generate response and append citation list.
-        
+
         Args:
             query: User query
             context: Retrieved documents
             streaming: Enable streaming
-        
+
         Yields:
             Response chunks with appended citations
         """
         # Generate main response
         async for chunk in self.generate(query, context, streaming):
             yield chunk
-        
+
         # Append citations
         if context:
             yield "\n\n## References\n"
@@ -907,5 +1045,5 @@ class ResponseGenerator:
                     citation_info.append(", ".join(doc.authors[:3]))
                 if doc.year:
                     citation_info.append(f"({doc.year})")
-                
+
                 yield f"\n{i}. {' - '.join(citation_info)}"
