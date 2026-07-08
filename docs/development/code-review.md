@@ -599,6 +599,16 @@ def log_query_safely(query: AgentQuery) -> None:
 - [ ] API documentation is complete
 - [ ] README updates are included if needed
 
+**Interaction Design (Eight Rules):**
+- [ ] Consistency: terminology, layouts, and behaviors are uniform
+- [ ] Shortcuts: frequent-user accelerators are provided where appropriate
+- [ ] Feedback: actions produce timely, informative status feedback
+- [ ] Closure: dialogs/workflows have explicit completion states
+- [ ] Error prevention: invalid actions are prevented when possible
+- [ ] Reversal: undo/cancel/retry/reset is available for risky actions
+- [ ] User control: the user can initiate, interrupt, and recover from flows
+- [ ] Memory load: the UI minimizes recall burden via visible context/defaults
+
 ### Post-Review (Author)
 
 **Resolution:**

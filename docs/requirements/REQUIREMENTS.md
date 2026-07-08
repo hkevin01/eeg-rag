@@ -312,6 +312,26 @@ The EEG-RAG system provides:
 **Verification:** Unit test, User acceptance test  
 **Source:** Usability Requirement USB-001
 
+#### REQ-USE-003: Interaction Design Standard (Eight Rules)
+**Description:** The system SHALL apply the following interaction design rules
+across web UI, API workflows, and CLI interactions:
+- Strive for consistency in labels, layouts, behaviors, and terminology
+- Enable frequent users to use shortcuts (keyboard, saved filters, reusable presets)
+- Offer informative feedback for user actions and system state changes
+- Design dialogs and multi-step flows to yield closure (clear completion outcome)
+- Offer error prevention and simple error handling
+- Permit easy reversal of actions (undo, cancel, retry, reset)
+- Support internal locus of control (user-initiated actions, predictable effects)
+- Reduce short-term memory load (visible context, progressive disclosure, defaults)
+
+**Rationale:** A consistent interaction standard improves task success,
+reduces operator error, and aligns with enterprise/government usability
+expectations for critical systems.
+**Priority:** High
+**Verification:** UX checklist in code review, exploratory usability testing,
+integration tests for key flows.
+**Source:** Enterprise/Government Interaction Design Standard (Eight Rules)
+
 ---
 
 ## 4. Data Requirements
