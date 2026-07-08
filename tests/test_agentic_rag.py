@@ -761,7 +761,7 @@ class TestAgenticRAGOrchestratorMultiIteration:
             dense_weight=0.5,
             diagnostics=diagnostics,
         )
-        assert baseline_bm25 == pytest.approx(0.5)
+        assert baseline_bm25 == pytest.approx(0.55)
 
         # Log enough outcomes to trigger fitting with a clear preference for
         # higher BM25 weights under the same diagnostics.

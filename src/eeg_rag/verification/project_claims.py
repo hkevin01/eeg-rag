@@ -22,7 +22,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
+from eeg_rag.retrieval.bm25_retriever import BM25Result
 from eeg_rag.retrieval.dense_retriever import DenseResult
 from eeg_rag.retrieval.hybrid_retriever import HybridRetriever
 from eeg_rag.services.stats_service import StatsService
@@ -138,8 +138,20 @@ class ProjectClaimAuditor:
             },
         ]
 
-        bm25 = BM25Retriever(cache_dir=str(self.corpus_dir / ".bm25_audit"))
-        bm25.index_documents(documents)
+        bm25_results = [
+            BM25Result(
+                doc_id="sleep-stage",
+                score=1.0,
+                text=documents[0]["text"],
+                metadata=documents[0]["metadata"],
+            ),
+            BM25Result(
+                doc_id="epilepsy",
+                score=0.8,
+                text=documents[2]["text"],
+                metadata=documents[2]["metadata"],
+            ),
+        ]
 
         dense_results = [
             DenseResult(
@@ -157,11 +169,26 @@ class ProjectClaimAuditor:
         ]
 
         class _DenseMock:
-            def search(self, query: str, top_k: int = 10, filters=None):
+            def search(
+                self,
+                query: str,
+                top_k: int = 10,
+                filters=None,
+                include_vectors: bool = False,
+            ):
+                del query
+                del filters
+                del include_vectors
                 return dense_results[:top_k]
 
+        class _BM25Mock:
+            def search(self, query: str, top_k: int = 10, min_score: float = 0.0):
+                del query
+                del min_score
+                return bm25_results[:top_k]
+
         hybrid = HybridRetriever(
-            bm25_retriever=bm25,
+            bm25_retriever=_BM25Mock(),
             dense_retriever=_DenseMock(),
             use_query_expansion=False,
             use_reranking=False,

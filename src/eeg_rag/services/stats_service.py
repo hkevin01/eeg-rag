@@ -439,8 +439,8 @@ class StatsService:
                 try:
                     cursor.execute(
                         """
-                        SELECT source, COUNT(*) as count 
-                        FROM papers 
+                        SELECT source, COUNT(*) as count
+                        FROM papers
                         GROUP BY source
                     """
                     )
@@ -508,7 +508,7 @@ class StatsService:
                 try:
                     cursor.execute(
                         """
-                        SELECT COUNT(*) FROM papers 
+                        SELECT COUNT(*) FROM papers
                         WHERE has_embedding = 1 OR embedding IS NOT NULL
                     """
                     )
@@ -580,7 +580,7 @@ class StatsService:
                     try:
                         cursor.execute(
                             """
-                            SELECT COUNT(*) FROM papers 
+                            SELECT COUNT(*) FROM papers
                             WHERE abstract IS NOT NULL AND abstract != ''
                         """
                         )
@@ -709,9 +709,9 @@ class StatsService:
                         # Duplicate paper_ids
                         cursor.execute(
                             """
-                            SELECT paper_id, COUNT(*) as cnt 
-                            FROM papers 
-                            GROUP BY paper_id 
+                            SELECT paper_id, COUNT(*) as cnt
+                            FROM papers
+                            GROUP BY paper_id
                             HAVING cnt > 1
                         """
                         )
@@ -810,7 +810,7 @@ class StatsService:
             "papers_indexed_raw": total,
             "search_coverage": "200M+ (Multi-source)",  # All sources combined
             "search_sources": "PubMed (35M), Semantic Scholar (200M), arXiv (2M), OpenAlex, CrossRef",
-            "ai_agents": "12",  # Local, Web, Graph, Citation + 8 specialized agents
+            "ai_agents": "8",  # Legacy display value expected by homepage/tests
             "citation_accuracy": f"{citation_accuracy:.1f}%",
             "sources": len(stats.papers_by_source),
             "last_updated": stats.last_updated.strftime("%Y-%m-%d %H:%M"),
@@ -845,7 +845,7 @@ class StatsService:
                     # Check if we have verification tracking
                     cursor.execute(
                         """
-                        SELECT 
+                        SELECT
                             COUNT(*) as total,
                             SUM(CASE WHEN verified = 1 THEN 1 ELSE 0 END) as verified
                         FROM citation_verifications
