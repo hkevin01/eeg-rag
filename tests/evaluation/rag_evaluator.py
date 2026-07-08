@@ -28,7 +28,7 @@ class EvalQuery:
     difficulty: str  # easy, medium, hard
     expected_answer_length: Optional[int] = None
     expected_key_concepts: Optional[List[str]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
@@ -42,7 +42,7 @@ class RetrievalMetrics:
     precision_at_5: float
     precision_at_10: float
     ndcg_at_10: float  # Normalized Discounted Cumulative Gain
-    
+
 
 @dataclass
 class GenerationMetrics:
@@ -64,7 +64,7 @@ class EvaluationResults:
     per_query_results: List[Dict[str, Any]]
     domain_breakdown: Dict[str, Dict[str, float]]
     difficulty_breakdown: Dict[str, Dict[str, float]]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "retrieval_metrics": asdict(self.retrieval_metrics),
@@ -77,20 +77,21 @@ class EvaluationResults:
 
 class RAGEvaluator:
     """Comprehensive RAG evaluation system"""
-    
+
     def __init__(self, rag_system, sentence_model='all-MiniLM-L6-v2'):
         self.rag = rag_system
+        self.rag_system = rag_system
         self.sentence_model = SentenceTransformer(sentence_model)
         self.benchmark_queries: List[EvalQuery] = []
-        
+
     def load_benchmark(self, path: str) -> List[EvalQuery]:
         """Load benchmark queries from JSON file"""
         with open(path, 'r') as f:
             data = json.load(f)
-            
+
         self.benchmark_queries = [EvalQuery(**q) for q in data]
         return self.benchmark_queries
-    
+
     def create_sample_benchmark(self) -> List[EvalQuery]:
         """Create a sample benchmark for testing"""
         sample_queries = [
@@ -119,12 +120,53 @@ class RAGEvaluator:
                 expected_key_concepts=["theta rhythm", "sleep stages", "oscillatory activity"]
             )
         ]
-        
+
         self.benchmark_queries = sample_queries
         return sample_queries
-    
-    async def evaluate_retrieval(self, queries: List[EvalQuery]) -> RetrievalMetrics:
-        """Evaluate retrieval performance"""
+
+    def evaluate_retrieval(self, *args, **kwargs):
+        """Evaluate retrieval performance (single-query dict or batch metrics)."""
+        if args and isinstance(args[0], str):
+            _query = args[0]
+            retrieved_docs = args[1] if len(args) > 1 else []
+            expected_pmids = args[2] if len(args) > 2 else []
+
+            retrieved_pmids = []
+            for doc in retrieved_docs:
+                if isinstance(doc, dict):
+                    pmid = doc.get("pmid") or doc.get("PMID") or doc.get("id")
+                    if pmid is not None:
+                        retrieved_pmids.append(str(pmid))
+
+            mrr_score = 0.0
+            for i, pmid in enumerate(retrieved_pmids):
+                if pmid in expected_pmids:
+                    mrr_score = 1.0 / (i + 1)
+                    break
+
+            hits_3 = len(set(retrieved_pmids[:3]) & set(expected_pmids))
+            precision_3 = hits_3 / 3 if retrieved_pmids else 0.0
+            recall_3 = hits_3 / len(expected_pmids) if expected_pmids else 0.0
+            ndcg_3 = 0.0
+            if retrieved_pmids:
+                dcg = 0.0
+                for i, pmid in enumerate(retrieved_pmids[:3]):
+                    if pmid in expected_pmids:
+                        dcg += 1.0 / np.log2(i + 2)
+                idcg = sum(1.0 / np.log2(i + 2) for i in range(min(len(expected_pmids), 3)))
+                ndcg_3 = dcg / idcg if idcg > 0 else 0.0
+
+            return {
+                "mrr": mrr_score,
+                "recall_at_3": recall_3,
+                "precision_at_3": precision_3,
+                "ndcg_at_3": ndcg_3,
+            }
+
+        queries = args[0] if args else kwargs.get("queries", [])
+        if not isinstance(queries, list):
+            return RetrievalMetrics(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
         metrics = {
             'mrr': [],
             'recall_at_5': [],
@@ -133,7 +175,7 @@ class RAGEvaluator:
             'precision_at_10': [],
             'ndcg_at_10': []
         }
-        
+
         for q in queries:
             try:
                 # Attempt to get results from the RAG system
@@ -144,7 +186,7 @@ class RAGEvaluator:
                 else:
                     # Fallback for testing
                     results = [{'pmid': pmid, 'score': 1.0 - i*0.1} for i, pmid in enumerate(q.expected_pmids[:5])]
-                
+
                 if hasattr(results[0], 'pmid'):
                     retrieved_pmids = [r.pmid for r in results]
                 elif isinstance(results[0], dict) and 'pmid' in results[0]:
@@ -152,11 +194,11 @@ class RAGEvaluator:
                 else:
                     # Fallback for different result formats
                     retrieved_pmids = [str(i) for i in range(len(results))]
-                    
+
             except Exception:
                 # Fallback for testing when components aren't available
                 retrieved_pmids = [f"test_pmid_{i}" for i in range(10)]
-            
+
             # Calculate MRR
             mrr_score = 0
             for i, pmid in enumerate(retrieved_pmids):
@@ -164,33 +206,33 @@ class RAGEvaluator:
                     mrr_score = 1 / (i + 1)
                     break
             metrics['mrr'].append(mrr_score)
-            
+
             # Calculate Recall and Precision
             hits_5 = len(set(retrieved_pmids[:5]) & set(q.expected_pmids))
             hits_10 = len(set(retrieved_pmids) & set(q.expected_pmids))
-            
+
             recall_5 = hits_5 / len(q.expected_pmids) if q.expected_pmids else 0
             recall_10 = hits_10 / len(q.expected_pmids) if q.expected_pmids else 0
-            
+
             metrics['recall_at_5'].append(recall_5)
             metrics['recall_at_10'].append(recall_10)
-            
+
             precision_5 = hits_5 / 5 if retrieved_pmids else 0
             precision_10 = hits_10 / 10 if retrieved_pmids else 0
-            
+
             metrics['precision_at_5'].append(precision_5)
             metrics['precision_at_10'].append(precision_10)
-            
+
             # Calculate NDCG@10
             dcg = 0
             for i, pmid in enumerate(retrieved_pmids[:10]):
                 if pmid in q.expected_pmids:
                     dcg += 1 / np.log2(i + 2)
-            
+
             idcg = sum(1 / np.log2(i + 2) for i in range(min(len(q.expected_pmids), 10)))
             ndcg = dcg / idcg if idcg > 0 else 0
             metrics['ndcg_at_10'].append(ndcg)
-        
+
         return RetrievalMetrics(
             mrr=statistics.mean(metrics['mrr']),
             recall_at_5=statistics.mean(metrics['recall_at_5']),
@@ -199,9 +241,35 @@ class RAGEvaluator:
             precision_at_10=statistics.mean(metrics['precision_at_10']),
             ndcg_at_10=statistics.mean(metrics['ndcg_at_10'])
         )
-    
-    async def evaluate_generation(self, queries: List[EvalQuery]) -> GenerationMetrics:
-        """Evaluate generation quality"""
+
+    def evaluate_generation(self, *args, **kwargs):
+        """Evaluate generation quality (single-query dict or batch metrics)."""
+        if args and isinstance(args[0], str):
+            query = args[0]
+            generated_answer = args[1] if len(args) > 1 else ""
+            context_docs = args[2] if len(args) > 2 else []
+            expected_concepts = args[3] if len(args) > 3 else []
+
+            context_text = " ".join(str(item) for item in context_docs)
+            relevance = self._calculate_relevance(generated_answer, query)
+            faithfulness = self._calculate_relevance(generated_answer, context_text)
+            entity_coverage = self._calculate_entity_coverage(
+                generated_answer,
+                expected_concepts,
+            )
+            citation_accuracy = 1.0 if self._extract_citations(generated_answer) else 0.0
+
+            return {
+                "faithfulness": max(0.0, min(1.0, faithfulness)),
+                "relevance": max(0.0, min(1.0, relevance)),
+                "entity_coverage": max(0.0, min(1.0, entity_coverage)),
+                "citation_accuracy": max(0.0, min(1.0, citation_accuracy)),
+            }
+
+        queries = args[0] if args else kwargs.get("queries", [])
+        if not isinstance(queries, list):
+            return GenerationMetrics(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+
         metrics = {
             'faithfulness': [],
             'relevance': [],
@@ -211,7 +279,7 @@ class RAGEvaluator:
             'answer_length_score': [],
             'coherence': []
         }
-        
+
         for q in queries:
             try:
                 # Generate answer
@@ -221,10 +289,10 @@ class RAGEvaluator:
                 else:
                     # Fallback for testing
                     answer = f"Test answer for: {q.question}. This includes interictal epileptiform discharges and seizure recurrence patterns."
-                
+
                 # Calculate all metrics
                 cited_pmids = self._extract_citations(answer)
-                
+
                 metrics['faithfulness'].append(self._calculate_faithfulness(answer, q.question))
                 metrics['relevance'].append(self._calculate_relevance(answer, q.question))
                 metrics['entity_coverage'].append(self._calculate_entity_coverage(answer, q.expected_entities))
@@ -232,7 +300,7 @@ class RAGEvaluator:
                 metrics['hallucination_rate'].append(self._calculate_hallucination_rate(answer, cited_pmids))
                 metrics['answer_length_score'].append(self._calculate_length_score(answer, q.expected_answer_length))
                 metrics['coherence'].append(self._calculate_coherence(answer))
-                
+
             except Exception:
                 # Fallback values for testing
                 metrics['faithfulness'].append(0.7)
@@ -242,7 +310,7 @@ class RAGEvaluator:
                 metrics['hallucination_rate'].append(0.2)
                 metrics['answer_length_score'].append(0.7)
                 metrics['coherence'].append(0.8)
-        
+
         return GenerationMetrics(
             faithfulness=statistics.mean(metrics['faithfulness']),
             relevance=statistics.mean(metrics['relevance']),
@@ -252,95 +320,111 @@ class RAGEvaluator:
             answer_length_score=statistics.mean(metrics['answer_length_score']),
             coherence=statistics.mean(metrics['coherence'])
         )
-    
+
     def _extract_citations(self, text: str) -> List[str]:
         """Extract PMID citations from text"""
         pmid_pattern = r'PMID:?\s*(\d{8})'
         return re.findall(pmid_pattern, text)
-    
+
     def _calculate_faithfulness(self, answer: str, question: str) -> float:
         """Calculate how well the answer is grounded in evidence"""
         hedging_phrases = ['suggests', 'indicates', 'may', 'might', 'possibly', 'likely']
         citation_count = len(self._extract_citations(answer))
-        
+
         hedging_score = sum(1 for phrase in hedging_phrases if phrase in answer.lower()) / len(hedging_phrases)
         citation_density = min(citation_count / max(len(answer.split()) / 50, 1), 1.0)
-        
+
         return (hedging_score + citation_density) / 2
-    
+
     def _calculate_relevance(self, answer: str, question: str) -> float:
         """Calculate semantic relevance between answer and question"""
         try:
             answer_emb = self.sentence_model.encode([answer])
             question_emb = self.sentence_model.encode([question])
-            
+
             similarity = cosine_similarity(answer_emb, question_emb)[0][0]
             return max(0, similarity)
         except:
             return 0.7  # Fallback
-    
+
     def _calculate_entity_coverage(self, answer: str, expected_entities: List[str]) -> float:
         """Calculate coverage of expected domain entities"""
         if not expected_entities:
             return 1.0
-        
+
         answer_lower = answer.lower()
         covered = sum(1 for entity in expected_entities if entity.lower() in answer_lower)
         return covered / len(expected_entities)
-    
+
+    def _extract_eeg_entities(self, text: str) -> List[str]:
+        """Extract EEG-domain entities from text."""
+        patterns = [
+            r"\bP\d{3}\b",
+            r"\bN\d{2,3}\b",
+            r"\b[A-Z][0-9]{1,2}\b",
+            r"\b(alpha|beta|delta|theta|gamma)\b",
+            r"\b\d+(?:\.\d+)?\s*Hz\b",
+            r"\bsleep\s+spindles?\b",
+            r"\bN[1-3]\b",
+        ]
+        entities = []
+        for pattern in patterns:
+            entities.extend(re.findall(pattern, text, flags=re.IGNORECASE))
+        return list(dict.fromkeys(str(item) for item in entities if item))
+
     def _calculate_citation_accuracy(self, cited_pmids: List[str], expected_pmids: List[str]) -> float:
         """Calculate accuracy of citations"""
         if not cited_pmids:
             return 0.0 if expected_pmids else 1.0
-        
+
         correct_citations = len(set(cited_pmids) & set(expected_pmids))
         return correct_citations / len(cited_pmids)
-    
+
     def _calculate_hallucination_rate(self, answer: str, cited_pmids: List[str]) -> float:
         """Estimate hallucination rate"""
         hallucination_indicators = ['always', 'never', 'all', 'none', 'definitely', 'certainly']
         indicator_count = sum(1 for indicator in hallucination_indicators if indicator in answer.lower())
-        
+
         citation_factor = max(len(cited_pmids), 1)
         return min(indicator_count / citation_factor, 1.0)
-    
+
     def _calculate_length_score(self, answer: str, expected_length: Optional[int]) -> float:
         """Calculate appropriateness of answer length"""
         actual_length = len(answer.split())
         expected_length = expected_length or 200
-        
+
         ratio = actual_length / expected_length
         return max(0, 1 - abs(ratio - 1))
-    
+
     def _calculate_coherence(self, answer: str) -> float:
         """Calculate internal coherence of the answer"""
         sentences = answer.split('. ')
         if len(sentences) < 2:
             return 1.0
-        
+
         try:
             embeddings = self.sentence_model.encode(sentences)
             similarities = []
-            
+
             for i in range(len(embeddings) - 1):
                 sim = cosine_similarity([embeddings[i]], [embeddings[i + 1]])[0][0]
                 similarities.append(max(0, sim))
-            
+
             return statistics.mean(similarities) if similarities else 0.8
         except:
             return 0.8  # Fallback
-    
+
     async def run_full_evaluation(self, queries: Optional[List[EvalQuery]] = None) -> EvaluationResults:
         """Run complete evaluation"""
         if queries is None:
             queries = self.benchmark_queries
-        
+
         if not queries:
             queries = self.create_sample_benchmark()
-        
-        retrieval_metrics = await self.evaluate_retrieval(queries)
-        generation_metrics = await self.evaluate_generation(queries)
-        
+
+        retrieval_metrics = self.evaluate_retrieval(queries)
+        generation_metrics = self.evaluate_generation(queries)
+
         per_query_results = []
         for q in queries:
             result = {
@@ -351,11 +435,11 @@ class RAGEvaluator:
                 'expected_entities_count': len(q.expected_entities)
             }
             per_query_results.append(result)
-        
+
         # Create domain and difficulty breakdowns
         domain_breakdown = {}
         difficulty_breakdown = {}
-        
+
         return EvaluationResults(
             retrieval_metrics=retrieval_metrics,
             generation_metrics=generation_metrics,
