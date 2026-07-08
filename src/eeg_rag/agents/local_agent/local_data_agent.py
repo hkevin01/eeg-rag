@@ -676,29 +676,31 @@ class LocalDataAgent(BaseAgent):
             logger=logger or logging.getLogger("eeg_rag.local_data_agent")
         )
 
+        config_map = config or {}
+
         # Configuration
-        self.top_k = config.get("top_k", 5) if config else 5
-        self.min_relevance_score = config.get("min_relevance_score", 0.3) if config else 0.3
+        self.top_k = config_map.get("top_k", 5)
+        self.min_relevance_score = config_map.get("min_relevance_score", 0.3)
         self.use_hybrid_retrieval = use_hybrid_retrieval and HYBRID_RETRIEVAL_AVAILABLE
         self.use_reranking = use_reranking
+
+        # Preserve legacy vector-store contract even when hybrid retrieval is enabled.
+        self.vector_store = FAISSVectorStore(
+            dimension=embedding_dimension,
+            index_type=config_map.get("index_type", "Flat"),
+            logger=self.logger,
+        )
+
+        if vector_store_path and vector_store_path.exists():
+            self.vector_store.load(vector_store_path)
+            self.logger.info(f"Loaded vector store from {vector_store_path}")
 
         # Initialize retrieval system
         if self.use_hybrid_retrieval:
             self.logger.info(f"Initializing hybrid retrieval system (BM25 + Dense + RRF, reranking={use_reranking})")
-            self._init_hybrid_retrieval(config or {})
+            self._init_hybrid_retrieval(config_map)
         else:
             self.logger.info("Initializing legacy FAISS retrieval")
-            # Initialize legacy FAISS vector store
-            self.vector_store = FAISSVectorStore(
-                dimension=embedding_dimension,
-                index_type=config.get("index_type", "Flat") if config else "Flat",
-                logger=self.logger
-            )
-
-            # Load existing index if path provided
-            if vector_store_path and vector_store_path.exists():
-                self.vector_store.load(vector_store_path)
-                self.logger.info(f"Loaded vector store from {vector_store_path}")
 
         self.logger.info(f"LocalDataAgent initialized (hybrid={self.use_hybrid_retrieval})")
 

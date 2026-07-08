@@ -22,7 +22,7 @@ Routing Strategy:
 Supported Query Types:
 - DEFINITIONAL: Basic concept definitions and explanations
 - RECENT_LITERATURE: Current research and recent findings
-- COMPARATIVE: Comparisons between methods, treatments, or concepts  
+- COMPARATIVE: Comparisons between methods, treatments, or concepts
 - METHODOLOGICAL: Procedures, protocols, and technical how-to queries
 - CLINICAL: Patient care, diagnosis, and treatment applications
 - STATISTICAL: Data analysis, metrics, and statistical interpretation
@@ -57,27 +57,27 @@ EEG_DOMAIN_KEYWORDS = {
         'eeg', 'electroencephalography', 'electroencephalogram', 'brain waves',
         'neural activity', 'cortical', 'scalp electrodes', 'neuronal firing'
     },
-    
+
     # Clinical applications
     'clinical': {
         'epilepsy', 'seizure', 'convulsions', 'ictus', 'postictal', 'interictal',
         'encephalopathy', 'coma', 'brain death', 'sleep disorders', 'insomnia',
         'narcolepsy', 'sleep apnea', 'restless legs', 'circadian rhythm'
     },
-    
+
     # Research domains
     'cognitive': {
         'attention', 'memory', 'working memory', 'cognitive load', 'executive function',
         'language', 'perception', 'consciousness', 'awareness', 'decision making'
     },
-    
+
     # Technical components
     'technical': {
         'artifact', 'filtering', 'preprocessing', 'ica', 'pca', 'bandpass',
         'notch filter', 'baseline correction', 'epoching', 'segmentation',
         'time-frequency', 'spectral analysis', 'coherence', 'connectivity'
     },
-    
+
     # BCI and applications
     'bci': {
         'brain-computer', 'brain computer', 'bci', 'neuroprosthetics',
@@ -174,7 +174,7 @@ AGENT_CAPABILITIES = {
 # ---------------------------------------------------------------------------
 class QueryType(Enum):
     """Comprehensive query classification for intelligent routing.
-    
+
     Each type maps to specific agent capabilities and processing strategies.
     The classification drives routing decisions and resource allocation.
     """
@@ -207,10 +207,10 @@ class QueryType(Enum):
 @dataclass
 class RoutingResult:
     """Comprehensive routing decision with detailed reasoning and metrics.
-    
+
     Provides complete information about the routing decision including confidence
     scores, performance predictions, and reasoning for transparency and debugging.
-    
+
     Attributes:
         query_type: Classified query type
         confidence: Classification confidence (0.0-1.0)
@@ -236,7 +236,7 @@ class RoutingResult:
     alternative_agents: List[Tuple[str, float]] = field(default_factory=list)
     routing_metadata: Dict[str, Any] = field(default_factory=dict)
     routing_timestamp: Optional[float] = None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.RoutingResult.__post_init__
     # Requirement  : `__post_init__` shall add timestamp and validate confidence score
@@ -258,11 +258,11 @@ class RoutingResult:
         """Add timestamp and validate confidence score."""
         if self.routing_timestamp is None:
             self.routing_timestamp = time.time()
-            
+
         if not 0.0 <= self.confidence <= 1.0:
             logger.warning(f"Confidence out of range: {self.confidence}")
             self.confidence = max(0.0, min(1.0, self.confidence))
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.RoutingResult.to_dict
     # Requirement  : `to_dict` shall convert to dictionary for serialization and API responses
@@ -295,7 +295,7 @@ class RoutingResult:
                 'estimated_latency': self.estimated_latency
             },
             'alternative_agents': [
-                {'agent': agent, 'score': round(score, 3)} 
+                {'agent': agent, 'score': round(score, 3)}
                 for agent, score in self.alternative_agents[:3]
             ],
             'metadata': {
@@ -324,11 +324,11 @@ class RoutingResult:
 # ---------------------------------------------------------------------------
 class QueryRouter:
     """Routes queries to appropriate agents based on content analysis"""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : None
     # Outputs      : Implicitly None or see body
@@ -359,6 +359,8 @@ class QueryRouter:
             QueryType.RECENT_LITERATURE: {
                 'patterns': [
                     r'\b(recent|latest|new|current|modern)\s+(research|studies|findings|literature)\b',
+                    r'\b(recent|latest|current)\s+(trends|findings|work|papers)\b',
+                    r'\b(research|findings|literature)\s+(on|about|in)\b',
                     r'\b(2020|2021|2022|2023|2024)\b',
                     r'\bstate\s+of\s+the\s+art\b',
                     r'\bcutting\s+edge\b',
@@ -410,7 +412,7 @@ class QueryRouter:
                 'keywords': ['statistical', 'analysis', 'correlation', 'significance', 'p-value']
             }
         }
-        
+
         # Agent routing table
         self.agent_routing = {
             QueryType.DEFINITIONAL: "local_agent",  # Fast for basic definitions
@@ -421,7 +423,7 @@ class QueryRouter:
             QueryType.STATISTICAL: "local_agent",  # Statistical methods in papers
             QueryType.UNKNOWN: "orchestrator"  # Let orchestrator decide
         }
-        
+
         # EEG-specific keywords that boost confidence
         self.eeg_keywords = {
             'eeg', 'electroencephalography', 'electroencephalogram',
@@ -434,7 +436,7 @@ class QueryRouter:
             'frequency', 'amplitude', 'power', 'spectrum',
             'epileptiform', 'spike', 'sharp', 'wave'
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter.route_query
     # Requirement  : `route_query` shall route query to appropriate agent
@@ -454,46 +456,49 @@ class QueryRouter:
     # ---------------------------------------------------------------------------
     def route_query(self, query: str, context: Dict[str, Any] = None) -> RoutingResult:
         """Route query to appropriate agent"""
+        if query is None or not str(query).strip():
+            raise ValueError("Query cannot be empty")
+
         query_lower = query.lower()
-        
+
         # Score each query type
         type_scores = {}
         matched_keywords = []
-        
+
         for query_type, config in self.query_patterns.items():
             score = self._calculate_type_score(query_lower, config)
             type_scores[query_type] = score
-            
+
             # Collect matched keywords
             for keyword in config['keywords']:
                 if keyword in query_lower:
                     matched_keywords.append(keyword)
-        
+
         # Find best match
         best_type = max(type_scores, key=type_scores.get)
         confidence = type_scores[best_type]
-        
+
         # Boost confidence if EEG-related
         eeg_boost = self._calculate_eeg_relevance(query_lower)
         confidence = min(confidence + eeg_boost * 0.2, 1.0)
-        
+
         # Determine complexity
         complexity = self._assess_complexity(query, context)
-        
+
         # Select agent
         recommended_agent = self.agent_routing.get(best_type, "orchestrator")
-        
+
         # Adjust agent based on complexity and context
         if complexity == "complex" and best_type != QueryType.RECENT_LITERATURE:
             recommended_agent = "orchestrator"  # Use orchestrator for complex queries
-        
+
         # Generate reasoning
         reasoning = self._generate_reasoning(query, best_type, confidence, complexity)
-        
+
         # Extract key terms
         keywords = self._extract_key_terms(query) + matched_keywords
         keywords = list(set(keywords))  # Remove duplicates
-        
+
         return RoutingResult(
             query_type=best_type,
             confidence=confidence,
@@ -502,7 +507,7 @@ class QueryRouter:
             keywords=keywords,
             complexity=complexity
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._calculate_type_score
     # Requirement  : `_calculate_type_score` shall calculate score for a specific query type
@@ -524,25 +529,25 @@ class QueryRouter:
         """Calculate score for a specific query type"""
         pattern_matches = 0
         total_patterns = len(config['patterns'])
-        
+
         for pattern in config['patterns']:
             if re.search(pattern, query, re.IGNORECASE):
                 pattern_matches += 1
-        
+
         # Keyword matches
         keyword_matches = 0
         total_keywords = len(config['keywords'])
-        
+
         for keyword in config['keywords']:
             if keyword in query:
                 keyword_matches += 1
-        
+
         # Combine pattern and keyword scores
-        pattern_score = pattern_matches / max(total_patterns, 1)
-        keyword_score = keyword_matches / max(total_keywords, 1)
-        
+        pattern_score = min(1.0, pattern_matches / 2.0)
+        keyword_score = min(1.0, keyword_matches / 3.0)
+
         return (pattern_score * 0.7) + (keyword_score * 0.3)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._calculate_eeg_relevance
     # Requirement  : `_calculate_eeg_relevance` shall calculate how EEG-relevant the query is
@@ -563,8 +568,8 @@ class QueryRouter:
     def _calculate_eeg_relevance(self, query: str) -> float:
         """Calculate how EEG-relevant the query is"""
         eeg_matches = sum(1 for keyword in self.eeg_keywords if keyword in query)
-        return min(eeg_matches / 10.0, 1.0)  # Normalize to 0-1
-    
+        return min(eeg_matches / 5.0, 1.0)  # Normalize to 0-1
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._assess_complexity
     # Requirement  : `_assess_complexity` shall assess query complexity
@@ -586,24 +591,24 @@ class QueryRouter:
         """Assess query complexity"""
         # Simple heuristics for complexity
         word_count = len(query.split())
-        
+
         # Check for complex indicators
         complex_indicators = [
             'multiple', 'several', 'various', 'compare', 'contrast',
             'analyze', 'evaluate', 'assess', 'relationship', 'correlation',
             'interaction', 'mechanism', 'pathway'
         ]
-        
+
         complex_count = sum(1 for indicator in complex_indicators if indicator in query.lower())
-        
+
         # Determine complexity
-        if word_count > 20 or complex_count >= 2:
+        if word_count > 18 or complex_count >= 2:
             return "complex"
-        elif word_count > 10 or complex_count >= 1:
+        elif word_count > 7 or complex_count >= 1:
             return "medium"
         else:
             return "simple"
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._generate_reasoning
     # Requirement  : `_generate_reasoning` shall generate human-readable reasoning for the routing decision
@@ -621,7 +626,7 @@ class QueryRouter:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _generate_reasoning(self, query: str, query_type: QueryType, 
+    def _generate_reasoning(self, query: str, query_type: QueryType,
                            confidence: float, complexity: str) -> str:
         """Generate human-readable reasoning for the routing decision"""
         reasoning_templates = {
@@ -633,14 +638,14 @@ class QueryRouter:
             QueryType.STATISTICAL: "Query involves statistical analysis or metrics",
             QueryType.UNKNOWN: "Query type unclear from content analysis"
         }
-        
+
         base_reasoning = reasoning_templates.get(query_type, "Unknown query type")
-        
+
         # Add confidence and complexity info
         confidence_desc = "high" if confidence > 0.7 else "medium" if confidence > 0.4 else "low"
-        
+
         return f"{base_reasoning} (confidence: {confidence_desc}, complexity: {complexity})"
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._extract_key_terms
     # Requirement  : `_extract_key_terms` shall extract key terms from the query
@@ -662,7 +667,7 @@ class QueryRouter:
         """Extract key terms from the query"""
         # Simple keyword extraction (could be improved with NLP)
         words = re.findall(r'\b\w+\b', query.lower())
-        
+
         # Filter out stop words and keep meaningful terms
         stop_words = {
             'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to',
@@ -670,14 +675,14 @@ class QueryRouter:
             'is', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had',
             'do', 'does', 'did', 'will', 'would', 'could', 'should'
         }
-        
+
         key_terms = [word for word in words if word not in stop_words and len(word) > 2]
-        
+
         # Keep only top terms (by length as a simple heuristic)
         key_terms.sort(key=len, reverse=True)
-        
+
         return key_terms[:10]  # Return top 10 key terms
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter.get_routing_stats
     # Requirement  : `get_routing_stats` shall get routing statistics and configuration
@@ -702,7 +707,7 @@ class QueryRouter:
             'agent_mapping': {qt.value: agent for qt, agent in self.agent_routing.items()},
             'eeg_keywords_count': len(self.eeg_keywords)
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter.add_custom_pattern
     # Requirement  : `add_custom_pattern` shall add custom pattern for query type detection

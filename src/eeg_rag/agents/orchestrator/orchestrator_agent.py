@@ -353,8 +353,8 @@ class OrchestratorAgent(BaseAgent):
     # ---------------------------------------------------------------------------
     def __init__(
         self,
-        memory_manager: MemoryManager,
-        agent_registry: AgentRegistry,
+        memory_manager: Optional[MemoryManager] = None,
+        agent_registry: Optional[AgentRegistry] = None,
         config: Optional[Dict[str, Any]] = None,
         logger: Optional[logging.Logger] = None
     ):
@@ -374,14 +374,26 @@ class OrchestratorAgent(BaseAgent):
             logger=logger or logging.getLogger("eeg_rag.orchestrator")
         )
 
+        config_map = config or {}
+
         # Core components
+        if memory_manager is None:
+            default_db_path = Path(
+                config_map.get(
+                    "memory_db_path",
+                    "data/memory/orchestrator_memory.db",
+                )
+            )
+            default_db_path.parent.mkdir(parents=True, exist_ok=True)
+            memory_manager = MemoryManager(db_path=default_db_path, logger=self.logger)
+
         self.memory = memory_manager
-        self.registry = agent_registry
+        self.registry = agent_registry or AgentRegistry()
         self.planner = QueryPlanner(logger=self.logger)
 
         # Configuration
-        self.max_replanning_attempts = config.get("max_replanning_attempts", 2) if config else 2
-        self.enable_adaptive_replanning = config.get("enable_adaptive_replanning", True) if config else True
+        self.max_replanning_attempts = config_map.get("max_replanning_attempts", 2)
+        self.enable_adaptive_replanning = config_map.get("enable_adaptive_replanning", True)
 
         self.logger.info("OrchestratorAgent initialized")
 
@@ -895,7 +907,7 @@ class EnhancedOrchestratorAgent(OrchestratorAgent):
     # ---------------------------------------------------------------------------
     # ID           : agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : registry: AgentRegistry; memory_manager: MemoryManager; planner: QueryPlanner; performance_monitor: Optional['PerformanceMonitor'] (default=None); enable_coordination: bool (default=True); config: Optional[Dict[str, Any]] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
