@@ -360,7 +360,6 @@ class QueryRouter:
                 'patterns': [
                     r'\b(recent|latest|new|current|modern)\s+(research|studies|findings|literature)\b',
                     r'\b(recent|latest|current)\s+(trends|findings|work|papers)\b',
-                    r'\b(research|findings|literature)\s+(on|about|in)\b',
                     r'\b(2020|2021|2022|2023|2024)\b',
                     r'\bstate\s+of\s+the\s+art\b',
                     r'\bcutting\s+edge\b',
@@ -381,6 +380,7 @@ class QueryRouter:
             QueryType.METHODOLOGICAL: {
                 'patterns': [
                     r'\bhow\s+to\b',
+                    r'\bhow\s+(do|does|can|effective)\b',
                     r'\bmethod(s|ology)?\b',
                     r'\bprocedure\b',
                     r'\bprotocol\b',
@@ -397,7 +397,7 @@ class QueryRouter:
                     r'\b(symptom|disease|disorder|condition)\b',
                     r'\b(medical|healthcare)\b',
                     r'\b(efficacy|effectiveness)\b',
-                    r'\bside\s+effect\b'
+                    r'\bside\s+effects?\b'
                 ],
                 'keywords': ['patient', 'clinical', 'treatment', 'diagnosis', 'medical']
             },
@@ -481,6 +481,9 @@ class QueryRouter:
         # Boost confidence if EEG-related
         eeg_boost = self._calculate_eeg_relevance(query_lower)
         confidence = min(confidence + eeg_boost * 0.2, 1.0)
+        confidence = max(confidence, eeg_boost * 0.9)
+        if eeg_boost < 0.2:
+            confidence = min(confidence, 0.45)
 
         # Determine complexity
         complexity = self._assess_complexity(query, context)
@@ -543,10 +546,14 @@ class QueryRouter:
                 keyword_matches += 1
 
         # Combine pattern and keyword scores
-        pattern_score = min(1.0, pattern_matches / 2.0)
-        keyword_score = min(1.0, keyword_matches / 3.0)
+        if pattern_matches == 0 and keyword_matches == 0:
+            return 0.0
 
-        return (pattern_score * 0.7) + (keyword_score * 0.3)
+        base_score = 0.25
+        pattern_component = min(0.5, pattern_matches * 0.25)
+        keyword_component = min(0.35, keyword_matches * 0.15)
+
+        return min(1.0, base_score + pattern_component + keyword_component)
 
     # ---------------------------------------------------------------------------
     # ID           : core.query_router.QueryRouter._calculate_eeg_relevance
@@ -601,10 +608,13 @@ class QueryRouter:
 
         complex_count = sum(1 for indicator in complex_indicators if indicator in query.lower())
 
+        if re.search(r"\bhow\s+effective\b", query.lower()) and word_count >= 12:
+            return "complex"
+
         # Determine complexity
         if word_count > 18 or complex_count >= 2:
             return "complex"
-        elif word_count > 7 or complex_count >= 1:
+        elif word_count >= 7 or complex_count >= 1:
             return "medium"
         else:
             return "simple"

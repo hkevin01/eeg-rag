@@ -180,9 +180,13 @@ class RAGEvaluator:
             try:
                 # Attempt to get results from the RAG system
                 if hasattr(self.rag, 'retrieve'):
-                    results = await self.rag.retrieve(q.question, top_k=10)
+                    results = self.rag.retrieve(q.question, top_k=10)
+                    if asyncio.iscoroutine(results):
+                        results = asyncio.run(results)
                 elif hasattr(self.rag, 'local_agent'):
-                    results = await self.rag.local_agent.search(q.question, top_k=10)
+                    results = self.rag.local_agent.search(q.question, top_k=10)
+                    if asyncio.iscoroutine(results):
+                        results = asyncio.run(results)
                 else:
                     # Fallback for testing
                     results = [{'pmid': pmid, 'score': 1.0 - i*0.1} for i, pmid in enumerate(q.expected_pmids[:5])]
@@ -284,7 +288,9 @@ class RAGEvaluator:
             try:
                 # Generate answer
                 if hasattr(self.rag, 'generate_answer'):
-                    answer_data = await self.rag.generate_answer(q.question)
+                    answer_data = self.rag.generate_answer(q.question)
+                    if asyncio.iscoroutine(answer_data):
+                        answer_data = asyncio.run(answer_data)
                     answer = answer_data.get('answer', '') if isinstance(answer_data, dict) else str(answer_data)
                 else:
                     # Fallback for testing
@@ -362,6 +368,7 @@ class RAGEvaluator:
             r"\bP\d{3}\b",
             r"\bN\d{2,3}\b",
             r"\b[A-Z][0-9]{1,2}\b",
+            r"\b(?:Fp|AF|F|FC|C|CP|P|PO|O|T)[z0-9]{1,2}\b",
             r"\b(alpha|beta|delta|theta|gamma)\b",
             r"\b\d+(?:\.\d+)?\s*Hz\b",
             r"\bsleep\s+spindles?\b",

@@ -34,8 +34,16 @@ try:
 except ImportError:
     HYBRID_RETRIEVAL_AVAILABLE = False
     logging.warning("Hybrid retrieval not available, using fallback mode")
+
+try:
     from eeg_rag.bibliometrics.eeg_biblionet import EEGBiblioNet
+except ImportError:
+    EEGBiblioNet = None
+
+try:
     from eeg_rag.retrieval.centrality_enricher import CentralityEnricher
+except ImportError:
+    CentralityEnricher = None
 
 # Keep FAISS for backward compatibility
 try:
@@ -844,7 +852,14 @@ class LocalDataAgent(BaseAgent):
 
             if self.use_hybrid_retrieval:
                 # Use new hybrid retrieval system
-                search_results = await self._hybrid_search(query.text)
+                try:
+                    search_results = await self._hybrid_search(query.text)
+                except Exception as hybrid_error:
+                    self.logger.warning(
+                        "Hybrid search failed; falling back to FAISS: %s",
+                        hybrid_error,
+                    )
+                    search_results = await self._faiss_search(query.text)
             else:
                 # Use legacy FAISS search
                 search_results = await self._faiss_search(query.text)
