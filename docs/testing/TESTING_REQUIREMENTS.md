@@ -195,6 +195,16 @@ def test_orchestrator_coordinates_multiple_agents():
 - Verify timeout handling
 - Verify retry logic
 
+**Marker Policy:**
+- Live network/API tests MUST be marked with both `@pytest.mark.integration` and `@pytest.mark.external`.
+- Deterministic integration tests (no internet dependency) MUST use `@pytest.mark.integration` only.
+- Offline/unit tests MUST NOT require `external` resources.
+
+**Execution Profiles:**
+- `offline`: `pytest -m "not integration and not external"`
+- `integration`: `pytest -m "integration and not external"`
+- `external`: `pytest -m "external"`
+
 **Rationale:** External APIs are unreliable; tests must work without network access.
 
 ---

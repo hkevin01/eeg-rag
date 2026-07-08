@@ -1245,19 +1245,27 @@ pip install -r requirements-dev.txt
 ```bash
 # All offline tests (fast, no network)
 source .venv/bin/activate
-python -m pytest tests/ -m "not integration and not slow" -v
+python -m pytest tests/ -m "not integration and not external and not slow" -v
 
 # With coverage report
 python -m pytest tests/ --cov=eeg_rag --cov-report=html
 
-# Integration tests (requires network)
-python -m pytest tests/ -m integration -v
+# Integration tests (no external internet dependencies)
+python -m pytest tests/ -m "integration and not external" -v
+
+# External tests (internet/live services; best-effort)
+python -m pytest tests/ -m external -v
 
 # New validation suite only
 python -m pytest tests/test_search_validation.py \
                  tests/test_paper_authenticity.py \
                  tests/test_source_health.py -v
 ```
+
+Test profile policy:
+- `offline`: deterministic default for local dev and required CI gates; excludes `integration` and `external`.
+- `integration`: component/system integration that does not require third-party internet services.
+- `external`: live network/service checks (PubMed/Semantic Scholar/etc.), allowed to skip on rate limits or transient availability.
 
 Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to stop the test runner at any time.
 
