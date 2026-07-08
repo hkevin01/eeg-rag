@@ -89,7 +89,7 @@ COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 
 # Copy application code
-COPY --chown=eegrag:eegrag src/ src/
+COPY src/ src/
 COPY --chown=eegrag:eegrag data/ data/
 COPY --chown=eegrag:eegrag scripts/ scripts/
 COPY --chown=eegrag:eegrag pyproject.toml ./

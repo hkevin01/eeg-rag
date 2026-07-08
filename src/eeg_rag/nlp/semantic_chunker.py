@@ -29,7 +29,7 @@ Performance Characteristics:
 
 Medical Optimizations:
 - Citation integrity: References never split across chunks
-- Clinical measurements: Units and values kept together  
+- Clinical measurements: Units and values kept together
 - Study methodology: Methods sections chunked as coherent units
 - Results preservation: Statistical results with context maintained
 - EEG terminology: Technical terms with definitions co-located
@@ -66,7 +66,7 @@ MEDICAL_PATTERNS = {
         'author_year': re.compile(r'\([A-Za-z\s,]+\s+\d{4}\)'),
         'et_al': re.compile(r'\b[A-Za-z]+\s+et\s+al\.?\s*\([0-9]{4}\)')
     },
-    
+
     # Clinical measurements that must stay together
     'measurements': {
         'eeg_frequency': re.compile(r'\b\d+(?:\.\d+)?\s*Hz\b'),
@@ -76,7 +76,7 @@ MEDICAL_PATTERNS = {
         'statistical': re.compile(r'\bp\s*[<>=]\s*\d+(?:\.\d+)?\b'),
         'sample_size': re.compile(r'\bn\s*=\s*\d+\b')
     },
-    
+
     # EEG-specific terminology clusters
     'eeg_terms': {
         'bands': re.compile(r'\b(delta|theta|alpha|beta|gamma)\s*(?:band|rhythm|activity|waves?)\b', re.IGNORECASE),
@@ -84,7 +84,7 @@ MEDICAL_PATTERNS = {
         'montages': re.compile(r'\b(?:bipolar|referential|average|common)\s*(?:montage|reference)\b', re.IGNORECASE),
         'artifacts': re.compile(r'\b(?:eye\s*movement|blink|muscle|cardiac|60\s*Hz|line\s*noise)\s*artifact\b', re.IGNORECASE)
     },
-    
+
     # Study structure indicators
     'study_sections': {
         'methods': re.compile(r'\b(?:methods?|methodology|procedure|protocol|experimental\s+design)\b', re.IGNORECASE),
@@ -143,7 +143,7 @@ CHUNK_SIZE_GUIDELINES = {
 # ---------------------------------------------------------------------------
 class ChunkingStrategy(Enum):
     """Available chunking strategies with specific use cases.
-    
+
     Each strategy is optimized for different types of content and retrieval needs:
     - FIXED: Baseline approach, consistent chunk sizes
     - SENTENCE: Preserves sentence boundaries for readability
@@ -180,10 +180,10 @@ class ChunkingStrategy(Enum):
 @dataclass
 class ChunkResult:
     """Comprehensive chunking result with detailed metadata.
-    
+
     Provides complete information about the chunking process including
     quality metrics, boundary reasoning, and optimization details.
-    
+
     Attributes:
         chunks: List of text chunks with preserved semantic boundaries
         metadata: Detailed information about each chunk
@@ -200,7 +200,7 @@ class ChunkResult:
     processing_stats: Dict[str, Any] = field(default_factory=dict)
     boundary_analysis: Dict[str, Any] = field(default_factory=dict)
     medical_preservation: Dict[str, Any] = field(default_factory=dict)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.ChunkResult.__post_init__
     # Requirement  : `__post_init__` shall validate chunk result and compute derived metrics
@@ -222,10 +222,10 @@ class ChunkResult:
         """Validate chunk result and compute derived metrics."""
         if len(self.chunks) != len(self.metadata):
             raise ValueError("Chunks and metadata lists must have same length")
-            
+
         # Compute derived quality metrics
         self._compute_quality_metrics()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.ChunkResult._compute_quality_metrics
     # Requirement  : `_compute_quality_metrics` shall compute quality metrics for the chunking result
@@ -247,9 +247,9 @@ class ChunkResult:
         """Compute quality metrics for the chunking result."""
         if not self.chunks:
             return
-            
+
         chunk_sizes = [len(chunk) for chunk in self.chunks]
-        
+
         self.quality_metrics.update({
             'total_chunks': len(self.chunks),
             'avg_chunk_size': sum(chunk_sizes) / len(chunk_sizes),
@@ -260,7 +260,7 @@ class ChunkResult:
             'empty_chunks': sum(1 for chunk in self.chunks if not chunk.strip()),
             'coverage_ratio': sum(len(chunk) for chunk in self.chunks) / max(sum(chunk_sizes), 1)
         })
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.ChunkResult.get_chunk_by_index
     # Requirement  : `get_chunk_by_index` shall get chunk and its metadata by index
@@ -283,7 +283,7 @@ class ChunkResult:
         if 0 <= index < len(self.chunks):
             return self.chunks[index], self.metadata[index]
         return None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.ChunkResult.find_chunks_containing
     # Requirement  : `find_chunks_containing` shall find all chunks containing specific text
@@ -308,7 +308,7 @@ class ChunkResult:
             if text.lower() in chunk.lower():
                 results.append((i, chunk, self.metadata[i]))
         return results
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.ChunkResult.to_dict
     # Requirement  : `to_dict` shall convert to dictionary for serialization
@@ -366,10 +366,10 @@ class ChunkResult:
 # ---------------------------------------------------------------------------
 class SemanticChunker:
     """Production-grade semantic chunking system with medical domain optimization.
-    
+
     Implements multiple chunking strategies with intelligent boundary detection,
     medical content preservation, and EEG-specific optimizations for research literature.
-    
+
     Features:
     - Multi-strategy chunking with automatic selection
     - Medical text awareness (citations, measurements, terminology)
@@ -377,14 +377,14 @@ class SemanticChunker:
     - Performance optimization with caching and batch processing
     - Comprehensive quality metrics and boundary analysis
     - EEG domain-specific patterns and optimizations
-    
+
     Performance:
     - Handles documents up to 1M+ characters efficiently
     - Sub-second chunking for typical research papers
     - Memory-efficient processing with streaming support
     - 90%+ semantic coherence preservation rate
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.__init__
     # Requirement  : `__init__` shall initialize semantic chunker with configuration
@@ -402,13 +402,13 @@ class SemanticChunker:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def __init__(self, 
+    def __init__(self,
                  model_name: str = "all-MiniLM-L6-v2",
                  enable_medical_optimization: bool = True,
                  enable_caching: bool = True,
                  max_cache_size: int = 1000):
         """Initialize semantic chunker with configuration.
-        
+
         Args:
             model_name: Sentence transformer model for semantic analysis
             enable_medical_optimization: Whether to apply medical text optimizations
@@ -419,35 +419,35 @@ class SemanticChunker:
         self.enable_medical_optimization = enable_medical_optimization
         self.enable_caching = enable_caching
         self.max_cache_size = max_cache_size
-        
+
         # Initialize NLP models if available
         self.sentence_model = None
         self.spacy_model = None
-        
+
         if ADVANCED_NLP_AVAILABLE:
             try:
                 self.sentence_model = SentenceTransformer(model_name)
                 logger.info(f"Initialized sentence transformer: {model_name}")
             except Exception as e:
                 logger.warning(f"Failed to initialize sentence transformer: {e}")
-                
+
             try:
                 # Try to load small English model for sentence segmentation
                 self.spacy_model = spacy.load("en_core_web_sm")
                 logger.info("Initialized spaCy model for sentence segmentation")
             except OSError:
                 logger.warning("spaCy model not available. Using regex-based sentence segmentation")
-        
+
         # Initialize caching
         self.embedding_cache = {} if enable_caching else None
         self.cache_hits = 0
         self.cache_misses = 0
-        
+
         # Performance tracking
         self.processing_stats = defaultdict(float)
-        
+
         logger.info("SemanticChunker initialized with medical optimizations")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.chunk_text
     # Requirement  : `chunk_text` shall chunk text using specified strategy with comprehensive analysis
@@ -473,7 +473,7 @@ class SemanticChunker:
                    preserve_sentences: bool = True,
                    min_chunk_size: int = 100) -> ChunkResult:
         """Chunk text using specified strategy with comprehensive analysis.
-        
+
         Args:
             text: Input text to chunk
             strategy: Chunking strategy to use
@@ -481,51 +481,51 @@ class SemanticChunker:
             overlap_size: Overlap between consecutive chunks
             preserve_sentences: Whether to preserve sentence boundaries
             min_chunk_size: Minimum acceptable chunk size
-            
+
         Returns:
             ChunkResult with chunks, metadata, and quality metrics
-            
+
         Raises:
             ValueError: If input text is empty or invalid parameters
         """
         if not text or not text.strip():
             raise ValueError("Input text cannot be empty")
-            
+
         if target_chunk_size <= min_chunk_size:
             raise ValueError("Target chunk size must be greater than minimum chunk size")
-        
+
         start_time = time.time()
-        
+
         try:
             # Preprocess text for analysis
             cleaned_text = self._preprocess_text(text)
-            
+
             # Detect content type and adjust parameters
             content_analysis = self._analyze_content_type(cleaned_text)
             adjusted_params = self._adjust_chunking_parameters(
-                content_analysis, target_chunk_size, strategy
+                content_analysis, target_chunk_size, strategy, min_chunk_size
             )
-            
+
             # Select strategy if adaptive
             if strategy == ChunkingStrategy.ADAPTIVE:
                 strategy = self._select_optimal_strategy(content_analysis, cleaned_text)
-            
+
             # Apply chunking strategy
             chunks, metadata = self._apply_chunking_strategy(
                 cleaned_text, strategy, adjusted_params, preserve_sentences, min_chunk_size
             )
-            
+
             # Validate and optimize chunks
             chunks, metadata = self._post_process_chunks(
                 chunks, metadata, content_analysis, adjusted_params
             )
-            
+
             # Compute boundary analysis
             boundary_analysis = self._analyze_boundaries(chunks, cleaned_text)
-            
+
             # Compute medical preservation metrics
             medical_preservation = self._analyze_medical_preservation(chunks, text)
-            
+
             # Create result with comprehensive metadata
             result = ChunkResult(
                 chunks=chunks,
@@ -545,16 +545,16 @@ class SemanticChunker:
                     'cache_misses': self.cache_misses
                 }
             )
-            
+
             logger.info(f"Chunked text: {len(chunks)} chunks using {strategy.value} strategy "
                        f"(avg size: {result.quality_metrics.get('avg_chunk_size', 0):.0f})")
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error chunking text: {str(e)}")
             raise
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._preprocess_text
     # Requirement  : `_preprocess_text` shall preprocess text for chunking analysis
@@ -575,28 +575,28 @@ class SemanticChunker:
     def _preprocess_text(self, text: str) -> str:
         """Preprocess text for chunking analysis."""
         start_time = time.time()
-        
+
         # Basic text normalization
         # Remove excessive whitespace
         text = re.sub(r'\s+', ' ', text)
-        
+
         # Normalize line endings
         text = text.replace('\r\n', '\n').replace('\r', '\n')
-        
+
         # Fix common encoding issues
         text = text.replace("'", "'").replace(""", '"').replace(""", '"')
-        
+
         # Preserve important medical punctuation
         # Ensure spaces around citations
         text = re.sub(r'(\[[0-9]+\])', r' \1 ', text)
-        
+
         # Ensure spaces around parenthetical citations
         text = re.sub(r'(\([A-Za-z\s,]+\s+\d{4}\))', r' \1 ', text)
-        
+
         self.processing_stats['preprocessing'] = time.time() - start_time
-        
+
         return text.strip()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._analyze_content_type
     # Requirement  : `_analyze_content_type` shall analyze text to determine content type and characteristics
@@ -626,20 +626,20 @@ class SemanticChunker:
             'section_headers': 0,
             'primary_type': 'general'
         }
-        
+
         # Count medical patterns
         for pattern_category, patterns in MEDICAL_PATTERNS.items():
             category_count = 0
             for pattern in patterns.values():
                 category_count += len(pattern.findall(text))
             analysis[pattern_category.rstrip('s')] = category_count
-        
+
         # Detect section structure
         for strength, patterns in SECTION_BOUNDARIES.items():
             for pattern in patterns:
                 matches = len(re.findall(pattern, text, re.MULTILINE))
                 analysis['section_headers'] += matches
-        
+
         # Determine primary content type
         if analysis['citations'] > 5 or analysis['measurements'] > 10:
             analysis['primary_type'] = 'research_paper'
@@ -649,9 +649,9 @@ class SemanticChunker:
             analysis['primary_type'] = 'eeg_focused'
         elif analysis['paragraphs'] > 10:
             analysis['primary_type'] = 'article'
-        
+
         return analysis
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._select_optimal_strategy
     # Requirement  : `_select_optimal_strategy` shall select optimal chunking strategy based on content analysis
@@ -674,7 +674,7 @@ class SemanticChunker:
         primary_type = content_analysis['primary_type']
         length = content_analysis['length']
         structure = content_analysis['section_headers']
-        
+
         # Decision tree for strategy selection
         if primary_type == 'research_paper' and self.enable_medical_optimization:
             return ChunkingStrategy.MEDICAL
@@ -686,7 +686,7 @@ class SemanticChunker:
             return ChunkingStrategy.SENTENCE
         else:
             return ChunkingStrategy.FIXED
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._adjust_chunking_parameters
     # Requirement  : `_adjust_chunking_parameters` shall adjust chunking parameters based on content analysis
@@ -704,16 +704,17 @@ class SemanticChunker:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _adjust_chunking_parameters(self, 
-                                   content_analysis: Dict[str, Any], 
-                                   target_size: int, 
-                                   strategy: ChunkingStrategy) -> Dict[str, int]:
+    def _adjust_chunking_parameters(self,
+                                   content_analysis: Dict[str, Any],
+                                   target_size: int,
+                                   strategy: ChunkingStrategy,
+                                   min_chunk_size: int = 100) -> Dict[str, int]:
         """Adjust chunking parameters based on content analysis."""
         content_type = content_analysis['primary_type']
-        
+
         # Get guidelines for content type
         guidelines = CHUNK_SIZE_GUIDELINES.get(content_type, CHUNK_SIZE_GUIDELINES['default'])
-        
+
         # Adjust target size based on content
         if strategy == ChunkingStrategy.MEDICAL:
             # Larger chunks for medical content to preserve context
@@ -721,14 +722,14 @@ class SemanticChunker:
         elif content_analysis['citations'] > 10:
             # Larger chunks for citation-heavy text
             target_size = int(target_size * 1.2)
-        
+
         return {
             'target_size': target_size,
-            'min_size': max(guidelines['min'], 50),
+            'min_size': max(1, min(min_chunk_size, target_size - 1)),
             'max_size': min(guidelines['max'], target_size * 2),
             'overlap': max(50, target_size // 10)
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._apply_chunking_strategy
     # Requirement  : `_apply_chunking_strategy` shall apply the selected chunking strategy
@@ -746,7 +747,7 @@ class SemanticChunker:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _apply_chunking_strategy(self, text: str, strategy: ChunkingStrategy, 
+    def _apply_chunking_strategy(self, text: str, strategy: ChunkingStrategy,
                                 params: Dict[str, int], preserve_sentences: bool,
                                 min_chunk_size: int) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Apply the selected chunking strategy."""
@@ -761,7 +762,7 @@ class SemanticChunker:
         else:
             # Fallback to fixed chunking
             return self.chunk_by_fixed_size(text, params)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_fixed_size
     # Requirement  : `chunk_by_fixed_size` shall fixed-size chunking with overlap
@@ -785,14 +786,14 @@ class SemanticChunker:
         metadata = []
         target_size = params['target_size']
         overlap = params['overlap']
-        
+
         pos = 0
         chunk_index = 0
-        
+
         while pos < len(text):
             end_pos = min(pos + target_size, len(text))
             chunk = text[pos:end_pos]
-            
+
             chunks.append(chunk)
             metadata.append({
                 'chunk_index': chunk_index,
@@ -803,12 +804,12 @@ class SemanticChunker:
                 'overlap_start': pos > 0,
                 'overlap_end': end_pos < len(text)
             })
-            
+
             pos = max(pos + target_size - overlap, pos + 1)
             chunk_index += 1
-        
+
         return chunks, metadata
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_sentences
     # Requirement  : `chunk_by_sentences` shall sentence-boundary aware chunking
@@ -826,18 +827,18 @@ class SemanticChunker:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def chunk_by_sentences(self, text: str, params: Dict[str, int], 
+    def chunk_by_sentences(self, text: str, params: Dict[str, int],
                           preserve_boundaries: bool = True) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Sentence-boundary aware chunking."""
         # Simple sentence splitting using regex
         sentences = re.split(r'(?<=[.!?])\s+', text)
         chunks = []
         metadata = []
-        
+
         current_chunk = ""
         chunk_index = 0
         target_size = params['target_size']
-        
+
         for sentence in sentences:
             if len(current_chunk) + len(sentence) <= target_size:
                 current_chunk += sentence + " "
@@ -852,7 +853,7 @@ class SemanticChunker:
                     })
                     chunk_index += 1
                 current_chunk = sentence + " "
-        
+
         # Add final chunk
         if current_chunk.strip():
             chunks.append(current_chunk.strip())
@@ -862,9 +863,9 @@ class SemanticChunker:
                 'sentence_count': len(re.split(r'[.!?]+', current_chunk)),
                 'size': len(current_chunk)
             })
-        
+
         return chunks, metadata
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.chunk_by_paragraphs
     # Requirement  : `chunk_by_paragraphs` shall paragraph-level chunking
@@ -887,11 +888,11 @@ class SemanticChunker:
         paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
         chunks = []
         metadata = []
-        
+
         current_chunk = ""
         chunk_index = 0
         target_size = params['target_size']
-        
+
         for para in paragraphs:
             if len(current_chunk) + len(para) <= target_size:
                 current_chunk += para + "\n\n"
@@ -906,7 +907,7 @@ class SemanticChunker:
                     })
                     chunk_index += 1
                 current_chunk = para + "\n\n"
-        
+
         # Add final chunk
         if current_chunk.strip():
             chunks.append(current_chunk.strip())
@@ -916,9 +917,9 @@ class SemanticChunker:
                 'paragraph_count': len(current_chunk.split('\n\n')),
                 'size': len(current_chunk)
             })
-        
+
         return chunks, metadata
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker.chunk_medical_text_internal
     # Requirement  : `chunk_medical_text_internal` shall medical-optimized chunking with preservation rules
@@ -940,25 +941,25 @@ class SemanticChunker:
         """Medical-optimized chunking with preservation rules."""
         # Start with sentence-based chunking
         chunks, metadata = self.chunk_by_sentences(text, params)
-        
+
         # Apply medical preservation rules
         preserved_chunks = []
         preserved_metadata = []
-        
+
         for chunk, meta in zip(chunks, metadata):
             # Check for medical patterns that shouldn't be split
             has_citation = any(pattern.search(chunk) for pattern in MEDICAL_PATTERNS['citations'].values())
             has_measurement = any(pattern.search(chunk) for pattern in MEDICAL_PATTERNS['measurements'].values())
-            
+
             meta['has_citations'] = has_citation
             meta['has_measurements'] = has_measurement
             meta['strategy'] = 'medical'
-            
+
             preserved_chunks.append(chunk)
             preserved_metadata.append(meta)
-        
+
         return preserved_chunks, preserved_metadata
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._post_process_chunks
     # Requirement  : `_post_process_chunks` shall post-process chunks for quality and optimization
@@ -976,22 +977,25 @@ class SemanticChunker:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _post_process_chunks(self, chunks: List[str], metadata: List[Dict[str, Any]], 
+    def _post_process_chunks(self, chunks: List[str], metadata: List[Dict[str, Any]],
                            content_analysis: Dict[str, Any], params: Dict[str, int]) -> Tuple[List[str], List[Dict[str, Any]]]:
         """Post-process chunks for quality and optimization."""
         min_size = params['min_size']
-        
+
         # Filter out very small chunks
         filtered_chunks = []
         filtered_metadata = []
-        
+
         for chunk, meta in zip(chunks, metadata):
             if len(chunk.strip()) >= min_size:
                 filtered_chunks.append(chunk)
                 filtered_metadata.append(meta)
-        
+
+        if not filtered_chunks:
+            return chunks, metadata
+
         return filtered_chunks, filtered_metadata
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._analyze_boundaries
     # Requirement  : `_analyze_boundaries` shall analyze chunk boundaries for quality assessment
@@ -1016,7 +1020,7 @@ class SemanticChunker:
             'boundary_types': ['fixed'] * (len(chunks) - 1),  # Simplified
             'quality_score': 0.8  # Placeholder
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : nlp.semantic_chunker.SemanticChunker._analyze_medical_preservation
     # Requirement  : `_analyze_medical_preservation` shall analyze medical content preservation
@@ -1061,14 +1065,28 @@ class SemanticChunker:
 # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
 # References   : EEG-RAG system design specification; see module docstring
 # ---------------------------------------------------------------------------
-def chunk_medical_text(text: str, 
-                      target_size: int = 400, 
+def chunk_medical_text(text: str,
+                      target_size: int = 400,
                       preserve_citations: bool = True) -> ChunkResult:
     """Convenience function for medical text chunking."""
     chunker = SemanticChunker(enable_medical_optimization=True)
     return chunker.chunk_text(
-        text, 
+        text,
         strategy=ChunkingStrategy.MEDICAL,
         target_chunk_size=target_size,
         min_chunk_size=max(50, target_size // 4)  # Dynamic min size
+    )
+
+
+def chunk_eeg_paper(text: str,
+                    target_size: int = 400,
+                    min_chunk_size: int = 100) -> ChunkResult:
+    """Convenience function for EEG-paper chunking."""
+    chunker = SemanticChunker(enable_medical_optimization=True)
+    safe_min_size = max(1, min(min_chunk_size, target_size - 1))
+    return chunker.chunk_text(
+        text,
+        strategy=ChunkingStrategy.ADAPTIVE,
+        target_chunk_size=target_size,
+        min_chunk_size=safe_min_size,
     )

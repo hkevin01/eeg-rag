@@ -19,14 +19,20 @@ from datetime import datetime, timedelta
 import logging
 from pathlib import Path
 import json
-from collections import defaultdict, deque
+from collections import Counter as CollectionsCounter, defaultdict, deque
 
 try:
-    from prometheus_client import Counter, Histogram, Gauge, start_http_server, CollectorRegistry
+    from prometheus_client import (
+        Counter as PromCounter,
+        Histogram as PromHistogram,
+        Gauge as PromGauge,
+        start_http_server,
+        CollectorRegistry,
+    )
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
-    Counter = Histogram = Gauge = None
+    PromCounter = PromHistogram = PromGauge = None
 
 try:
     import sentry_sdk
@@ -141,7 +147,7 @@ class HealthStatus:
 # ---------------------------------------------------------------------------
 class ProductionMonitor:
     """Production monitoring system for EEG-RAG."""
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.__init__
     # Requirement  : `__init__` shall initialize production monitor
@@ -167,7 +173,7 @@ class ProductionMonitor:
         sentry_dsn: Optional[str] = None
     ):
         """Initialize production monitor.
-        
+
         Args:
             metrics_retention_hours: How long to keep metrics in memory.
             health_check_interval: Interval between health checks in seconds.
@@ -176,42 +182,50 @@ class ProductionMonitor:
         """
         self.retention_hours = metrics_retention_hours
         self.health_check_interval = health_check_interval
-        
+
         # Metrics storage
         self.system_metrics: deque = deque(maxlen=metrics_retention_hours * 120)  # 30s intervals
         self.app_metrics: deque = deque(maxlen=metrics_retention_hours * 120)
         self.health_history: deque = deque(maxlen=metrics_retention_hours * 120)
-        
+
         # Request tracking
         self.request_times: deque = deque(maxlen=1000)
-        self.error_count = Counter()
+        self.error_count = CollectionsCounter()
         self.request_count = 0
         self.last_request_time = time.time()
-        
+
+        # Compatibility aliases expected by integration tests.
+        self.metrics_store = {
+            "system": self.system_metrics,
+            "application": self.app_metrics,
+            "health": self.health_history,
+        }
+        self.alert_manager = {"active_alerts": []}
+
         # Cache metrics
         self.cache_hits = 0
         self.cache_misses = 0
-        
+
         # Query metrics
         self.query_success = 0
         self.query_failures = 0
-        
+
         # Health check registry
         self.health_checks = {}
-        
+
         # Initialize Prometheus if available
         self.prometheus_registry = None
         if PROMETHEUS_AVAILABLE and prometheus_port:
             self._setup_prometheus(prometheus_port)
-        
+
         # Initialize Sentry if available
         if SENTRY_AVAILABLE and sentry_dsn:
             self._setup_sentry(sentry_dsn)
-        
+
         # Monitoring task
         self._monitoring_task = None
         self._running = False
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._setup_prometheus
     # Requirement  : `_setup_prometheus` shall setup Prometheus metrics collection
@@ -233,26 +247,26 @@ class ProductionMonitor:
         """Setup Prometheus metrics collection."""
         try:
             self.prometheus_registry = CollectorRegistry()
-            
+
             # System metrics
-            self.prometheus_cpu = Gauge('eeg_rag_cpu_percent', 'CPU usage percentage', registry=self.prometheus_registry)
-            self.prometheus_memory = Gauge('eeg_rag_memory_percent', 'Memory usage percentage', registry=self.prometheus_registry)
-            self.prometheus_disk = Gauge('eeg_rag_disk_percent', 'Disk usage percentage', registry=self.prometheus_registry)
-            
+            self.prometheus_cpu = PromGauge('eeg_rag_cpu_percent', 'CPU usage percentage', registry=self.prometheus_registry)
+            self.prometheus_memory = PromGauge('eeg_rag_memory_percent', 'Memory usage percentage', registry=self.prometheus_registry)
+            self.prometheus_disk = PromGauge('eeg_rag_disk_percent', 'Disk usage percentage', registry=self.prometheus_registry)
+
             # Application metrics
-            self.prometheus_requests = Counter('eeg_rag_requests_total', 'Total requests', registry=self.prometheus_registry)
-            self.prometheus_errors = Counter('eeg_rag_errors_total', 'Total errors', ['error_type'], registry=self.prometheus_registry)
-            self.prometheus_response_time = Histogram('eeg_rag_response_time_seconds', 'Response time', registry=self.prometheus_registry)
-            self.prometheus_cache_hits = Counter('eeg_rag_cache_hits_total', 'Cache hits', registry=self.prometheus_registry)
-            self.prometheus_cache_misses = Counter('eeg_rag_cache_misses_total', 'Cache misses', registry=self.prometheus_registry)
-            
+            self.prometheus_requests = PromCounter('eeg_rag_requests_total', 'Total requests', registry=self.prometheus_registry)
+            self.prometheus_errors = PromCounter('eeg_rag_errors_total', 'Total errors', ['error_type'], registry=self.prometheus_registry)
+            self.prometheus_response_time = PromHistogram('eeg_rag_response_time_seconds', 'Response time', registry=self.prometheus_registry)
+            self.prometheus_cache_hits = PromCounter('eeg_rag_cache_hits_total', 'Cache hits', registry=self.prometheus_registry)
+            self.prometheus_cache_misses = PromCounter('eeg_rag_cache_misses_total', 'Cache misses', registry=self.prometheus_registry)
+
             # Start metrics server
             start_http_server(port, registry=self.prometheus_registry)
             logger.info(f"Prometheus metrics server started on port {port}")
-            
+
         except Exception as e:
             logger.error(f"Failed to setup Prometheus: {str(e)}")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._setup_sentry
     # Requirement  : `_setup_sentry` shall setup Sentry error tracking
@@ -281,7 +295,7 @@ class ProductionMonitor:
             logger.info("Sentry error tracking initialized")
         except Exception as e:
             logger.error(f"Failed to setup Sentry: {str(e)}")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.start_monitoring
     # Requirement  : `start_monitoring` shall start the monitoring background task
@@ -303,11 +317,11 @@ class ProductionMonitor:
         """Start the monitoring background task."""
         if self._running:
             return
-        
+
         self._running = True
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         logger.info("Production monitoring started")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.stop_monitoring
     # Requirement  : `stop_monitoring` shall stop the monitoring background task
@@ -335,7 +349,7 @@ class ProductionMonitor:
             except asyncio.CancelledError:
                 pass
         logger.info("Production monitoring stopped")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._monitoring_loop
     # Requirement  : `_monitoring_loop` shall main monitoring loop
@@ -361,26 +375,26 @@ class ProductionMonitor:
                 system_metrics = await self._collect_system_metrics()
                 app_metrics = await self._collect_app_metrics()
                 health_status = await self._run_health_checks()
-                
+
                 # Store metrics
                 self.system_metrics.append(system_metrics)
                 self.app_metrics.append(app_metrics)
                 self.health_history.append(health_status)
-                
+
                 # Update Prometheus if available
                 if self.prometheus_registry:
                     self._update_prometheus_metrics(system_metrics, app_metrics)
-                
+
                 # Log critical issues
                 if health_status.status == 'unhealthy':
                     logger.warning(f"System unhealthy: {health_status.checks}")
-                
+
                 await asyncio.sleep(self.health_check_interval)
-                
+
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {str(e)}")
                 await asyncio.sleep(self.health_check_interval)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._collect_system_metrics
     # Requirement  : `_collect_system_metrics` shall collect system resource metrics
@@ -402,18 +416,18 @@ class ProductionMonitor:
         """Collect system resource metrics."""
         # CPU usage
         cpu_percent = psutil.cpu_percent(interval=None)
-        
+
         # Memory usage
         memory = psutil.virtual_memory()
         memory_percent = memory.percent
         memory_used_mb = memory.used / (1024 * 1024)
         memory_available_mb = memory.available / (1024 * 1024)
-        
+
         # Disk usage
         disk = psutil.disk_usage('/')
         disk_usage_percent = (disk.used / disk.total) * 100
         disk_free_gb = disk.free / (1024 * 1024 * 1024)
-        
+
         return SystemMetrics(
             cpu_percent=cpu_percent,
             memory_percent=memory_percent,
@@ -422,7 +436,7 @@ class ProductionMonitor:
             disk_usage_percent=disk_usage_percent,
             disk_free_gb=disk_free_gb
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._collect_app_metrics
     # Requirement  : `_collect_app_metrics` shall collect application metrics
@@ -443,32 +457,32 @@ class ProductionMonitor:
     async def _collect_app_metrics(self) -> ApplicationMetrics:
         """Collect application metrics."""
         current_time = time.time()
-        
+
         # Calculate requests per second
         time_window = 60  # 1 minute window
-        recent_requests = sum(1 for req_time in self.request_times 
+        recent_requests = sum(1 for req_time in self.request_times
                             if current_time - req_time < time_window)
         requests_per_second = recent_requests / time_window
-        
+
         # Calculate average response time
-        recent_response_times = [rt for rt in self.request_times 
+        recent_response_times = [rt for rt in self.request_times
                                if current_time - rt < time_window]
-        avg_response_time = (sum(recent_response_times) / len(recent_response_times) 
+        avg_response_time = (sum(recent_response_times) / len(recent_response_times)
                            if recent_response_times else 0)
-        
+
         # Calculate error rate
         total_recent_requests = len(recent_response_times)
         recent_errors = sum(count for error_type, count in self.error_count.items())
         error_rate = (recent_errors / max(total_recent_requests, 1)) * 100
-        
+
         # Calculate cache hit rate
         total_cache_requests = self.cache_hits + self.cache_misses
         cache_hit_rate = (self.cache_hits / max(total_cache_requests, 1)) * 100
-        
+
         # Calculate query success rate
         total_queries = self.query_success + self.query_failures
         query_success_rate = (self.query_success / max(total_queries, 1)) * 100
-        
+
         return ApplicationMetrics(
             active_connections=0,  # Would need web server integration
             total_requests=self.request_count,
@@ -478,7 +492,7 @@ class ProductionMonitor:
             cache_hit_rate=cache_hit_rate,
             query_success_rate=query_success_rate
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._run_health_checks
     # Requirement  : `_run_health_checks` shall run all registered health checks
@@ -501,7 +515,7 @@ class ProductionMonitor:
         checks = {}
         total_score = 0
         max_score = 0
-        
+
         for name, check_func in self.health_checks.items():
             try:
                 result = await check_func()
@@ -516,10 +530,10 @@ class ProductionMonitor:
                     'max_score': 100
                 }
                 max_score += 100
-        
+
         # Calculate overall score
         overall_score = (total_score / max(max_score, 1)) * 100
-        
+
         # Determine status
         if overall_score >= 90:
             status = 'healthy'
@@ -527,13 +541,13 @@ class ProductionMonitor:
             status = 'degraded'
         else:
             status = 'unhealthy'
-        
+
         return HealthStatus(
             status=status,
             checks=checks,
             overall_score=overall_score
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor._update_prometheus_metrics
     # Requirement  : `_update_prometheus_metrics` shall update Prometheus metrics
@@ -555,12 +569,12 @@ class ProductionMonitor:
         """Update Prometheus metrics."""
         if not self.prometheus_registry:
             return
-        
+
         # System metrics
         self.prometheus_cpu.set(system_metrics.cpu_percent)
         self.prometheus_memory.set(system_metrics.memory_percent)
         self.prometheus_disk.set(system_metrics.disk_usage_percent)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.register_health_check
     # Requirement  : `register_health_check` shall register a health check function
@@ -582,7 +596,7 @@ class ProductionMonitor:
         """Register a health check function."""
         self.health_checks[name] = check_func
         logger.info(f"Registered health check: {name}")
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_request
     # Requirement  : `record_request` shall record a request with its response time
@@ -605,12 +619,12 @@ class ProductionMonitor:
         self.request_count += 1
         self.request_times.append(response_time)
         self.last_request_time = time.time()
-        
+
         # Update Prometheus
         if self.prometheus_registry:
             self.prometheus_requests.inc()
             self.prometheus_response_time.observe(response_time)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_error
     # Requirement  : `record_error` shall record an error occurrence
@@ -631,11 +645,11 @@ class ProductionMonitor:
     def record_error(self, error_type: str):
         """Record an error occurrence."""
         self.error_count[error_type] += 1
-        
+
         # Update Prometheus
         if self.prometheus_registry:
             self.prometheus_errors.labels(error_type=error_type).inc()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_cache_hit
     # Requirement  : `record_cache_hit` shall record a cache hit
@@ -656,10 +670,10 @@ class ProductionMonitor:
     def record_cache_hit(self):
         """Record a cache hit."""
         self.cache_hits += 1
-        
+
         if self.prometheus_registry:
             self.prometheus_cache_hits.inc()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_cache_miss
     # Requirement  : `record_cache_miss` shall record a cache miss
@@ -680,10 +694,10 @@ class ProductionMonitor:
     def record_cache_miss(self):
         """Record a cache miss."""
         self.cache_misses += 1
-        
+
         if self.prometheus_registry:
             self.prometheus_cache_misses.inc()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_query_success
     # Requirement  : `record_query_success` shall record a successful query
@@ -704,7 +718,7 @@ class ProductionMonitor:
     def record_query_success(self):
         """Record a successful query."""
         self.query_success += 1
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.record_query_failure
     # Requirement  : `record_query_failure` shall record a failed query
@@ -725,7 +739,7 @@ class ProductionMonitor:
     def record_query_failure(self):
         """Record a failed query."""
         self.query_failures += 1
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.get_current_metrics
     # Requirement  : `get_current_metrics` shall get current system metrics
@@ -747,11 +761,11 @@ class ProductionMonitor:
         """Get current system metrics."""
         if not self.system_metrics or not self.app_metrics:
             return {}
-        
+
         latest_system = self.system_metrics[-1]
         latest_app = self.app_metrics[-1]
         latest_health = self.health_history[-1] if self.health_history else None
-        
+
         return {
             'system': {
                 'cpu_percent': latest_system.cpu_percent,
@@ -774,7 +788,7 @@ class ProductionMonitor:
             },
             'timestamp': datetime.now().isoformat()
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : monitoring.production_monitor.ProductionMonitor.get_metrics_summary
     # Requirement  : `get_metrics_summary` shall get metrics summary for the last N hours
@@ -795,24 +809,24 @@ class ProductionMonitor:
     def get_metrics_summary(self, hours: int = 1) -> Dict[str, Any]:
         """Get metrics summary for the last N hours."""
         cutoff_time = datetime.now() - timedelta(hours=hours)
-        
+
         # Filter recent metrics
         recent_system = [m for m in self.system_metrics if m.timestamp >= cutoff_time]
         recent_app = [m for m in self.app_metrics if m.timestamp >= cutoff_time]
         recent_health = [h for h in self.health_history if h.timestamp >= cutoff_time]
-        
+
         if not recent_system:
             return {}
-        
+
         # Calculate averages
         avg_cpu = sum(m.cpu_percent for m in recent_system) / len(recent_system)
         avg_memory = sum(m.memory_percent for m in recent_system) / len(recent_system)
         avg_response_time = sum(m.average_response_time for m in recent_app) / len(recent_app) if recent_app else 0
-        
+
         # Health score trend
         health_scores = [h.overall_score for h in recent_health]
         avg_health_score = sum(health_scores) / len(health_scores) if health_scores else 0
-        
+
         return {
             'period_hours': hours,
             'system_averages': {
@@ -825,6 +839,83 @@ class ProductionMonitor:
             'health_average_score': avg_health_score,
             'data_points': len(recent_system)
         }
+
+    async def record_query_metrics(
+        self,
+        query_id: str,
+        response_time_ms: float,
+        success: bool,
+        agent_type: str,
+    ) -> None:
+        """Record query-level metrics using async-friendly API."""
+        del query_id
+        del agent_type
+        self.record_request(response_time_ms / 1000.0)
+        if success:
+            self.record_query_success()
+        else:
+            self.record_query_failure()
+            self.record_error("query_failure")
+
+    async def get_system_health(self) -> Dict[str, Any]:
+        """Return health summary expected by CLI/tests."""
+        health = await self._run_health_checks()
+        return {
+            "healthy": health.status in {"healthy", "degraded"},
+            "status": health.status,
+            "score": health.overall_score,
+            "components": health.checks,
+            "timestamp": health.timestamp.isoformat(),
+        }
+
+    async def get_current_metrics(self) -> Dict[str, Any]:
+        """Return current metrics with query counters for compatibility."""
+        system_metrics = await self._collect_system_metrics()
+        app_metrics = await self._collect_app_metrics()
+        self.system_metrics.append(system_metrics)
+        self.app_metrics.append(app_metrics)
+
+        return {
+            "queries_processed": self.query_success + self.query_failures,
+            "queries_success": self.query_success,
+            "queries_failed": self.query_failures,
+            "response_time_seconds": app_metrics.average_response_time,
+            "cache_hit_rate": app_metrics.cache_hit_rate,
+            "system": {
+                "cpu_percent": system_metrics.cpu_percent,
+                "memory_percent": system_metrics.memory_percent,
+            },
+        }
+
+    async def get_active_alerts(self) -> List[Dict[str, Any]]:
+        """Return active alert list based on recent metrics thresholds."""
+        alerts: List[Dict[str, Any]] = []
+        if self.request_times:
+            recent_s = list(self.request_times)[-20:]
+            avg_ms = (sum(recent_s) / len(recent_s)) * 1000
+            if avg_ms > 3000:
+                alerts.append(
+                    {
+                        "type": "high_latency",
+                        "severity": "warning",
+                        "message": f"Average response latency is high: {avg_ms:.1f}ms",
+                    }
+                )
+
+        total_queries = self.query_success + self.query_failures
+        if total_queries >= 5:
+            error_rate = self.query_failures / max(total_queries, 1)
+            if error_rate > 0.2:
+                alerts.append(
+                    {
+                        "type": "high_error_rate",
+                        "severity": "critical",
+                        "message": f"Query error rate is high: {error_rate:.1%}",
+                    }
+                )
+
+        self.alert_manager["active_alerts"] = alerts
+        return alerts
 
 
 # Global monitor instance
