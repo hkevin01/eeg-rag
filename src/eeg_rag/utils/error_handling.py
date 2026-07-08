@@ -25,7 +25,7 @@ Example Usage:
     ...     ValidationError, RetrievalError, safe_execute,
     ...     ErrorCode, handle_exception
     ... )
-    >>> 
+    >>>
     >>> # Raise structured errors
     >>> if not query:
     ...     raise ValidationError(
@@ -33,13 +33,14 @@ Example Usage:
     ...         "Query cannot be empty",
     ...         context={"field": "query"}
     ...     )
-    >>> 
+    >>>
     >>> # Safe execution with fallback
     >>> result = safe_execute(risky_function, default="fallback")
 """
 
 import asyncio
 import functools
+import inspect
 import traceback
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -74,9 +75,9 @@ T = TypeVar('T')
 class ErrorCode(IntEnum):
     """
     Standardized error codes for programmatic error handling.
-    
+
     REQ-ERR-002: All errors use these standard codes for consistent handling.
-    
+
     Code Ranges:
         1000-1999: Input/Validation
         2000-2999: Retrieval/Search
@@ -88,7 +89,7 @@ class ErrorCode(IntEnum):
     """
     # Success
     SUCCESS = 0
-    
+
     # Input/Validation Errors (1000-1999)
     VALIDATION_ERROR = 1000
     EMPTY_QUERY = 1001
@@ -100,7 +101,7 @@ class ErrorCode(IntEnum):
     MALFORMED_INPUT = 1007
     UNSUPPORTED_ENCODING = 1008
     INVALID_PMID_FORMAT = 1009
-    
+
     # Retrieval/Search Errors (2000-2999)
     RETRIEVAL_ERROR = 2000
     NO_RESULTS_FOUND = 2001
@@ -109,7 +110,7 @@ class ErrorCode(IntEnum):
     SEARCH_TIMEOUT = 2004
     QUERY_EXPANSION_FAILED = 2005
     RERANKING_FAILED = 2006
-    
+
     # Citation/Verification Errors (3000-3999)
     CITATION_ERROR = 3000
     PMID_NOT_FOUND = 3001
@@ -118,7 +119,7 @@ class ErrorCode(IntEnum):
     CLAIM_NOT_SUPPORTED = 3004
     VERIFICATION_TIMEOUT = 3005
     HALLUCINATION_DETECTED = 3006
-    
+
     # Agent/Orchestration Errors (4000-4999)
     AGENT_ERROR = 4000
     AGENT_TIMEOUT = 4001
@@ -127,7 +128,7 @@ class ErrorCode(IntEnum):
     ROUTING_ERROR = 4004
     AGGREGATION_FAILED = 4005
     AGENT_RESPONSE_INVALID = 4006
-    
+
     # External API Errors (5000-5999)
     API_ERROR = 5000
     PUBMED_API_ERROR = 5001
@@ -137,7 +138,7 @@ class ErrorCode(IntEnum):
     API_TIMEOUT = 5005
     API_AUTHENTICATION_FAILED = 5006
     API_QUOTA_EXCEEDED = 5007
-    
+
     # Database/Storage Errors (6000-6999)
     DATABASE_ERROR = 6000
     CONNECTION_FAILED = 6001
@@ -147,7 +148,7 @@ class ErrorCode(IntEnum):
     DUPLICATE_RECORD = 6005
     STORAGE_FULL = 6006
     CACHE_ERROR = 6007
-    
+
     # System/Infrastructure Errors (7000-7999)
     SYSTEM_ERROR = 7000
     OUT_OF_MEMORY = 7001
@@ -180,9 +181,9 @@ class ErrorCode(IntEnum):
 class ErrorContext:
     """
     Rich context information for error tracking and debugging.
-    
+
     REQ-ERR-001: Provides detailed context for error diagnosis.
-    
+
     Attributes:
         operation: Name of the operation that failed
         component: Component/module where error occurred
@@ -199,7 +200,7 @@ class ErrorContext:
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     correlation_id: Optional[str] = None
     additional_data: Dict[str, Any] = field(default_factory=dict)
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.ErrorContext.to_dict
     # Requirement  : `to_dict` shall convert to dictionary for serialization
@@ -250,11 +251,11 @@ class ErrorContext:
 class EEGRAGError(Exception):
     """
     Base exception for all EEG-RAG errors.
-    
+
     REQ-ERR-001: All errors include descriptive messages and context.
     REQ-ERR-002: All errors include standardized error codes.
     REQ-SEC-001: Error messages are safe (no sensitive data).
-    
+
     Attributes:
         code: Standardized error code
         message: Human-readable error message
@@ -262,7 +263,7 @@ class EEGRAGError(Exception):
         recoverable: Whether the error can be recovered from
         user_message: Safe message to show to users
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.EEGRAGError.__init__
     # Requirement  : `__init__` shall initialize EEG-RAG error
@@ -291,7 +292,7 @@ class EEGRAGError(Exception):
     ):
         """
         Initialize EEG-RAG error.
-        
+
         Args:
             code: Standardized error code
             message: Detailed error message (for logging)
@@ -308,7 +309,7 @@ class EEGRAGError(Exception):
         self.user_message = user_message or self._default_user_message()
         self.cause = cause
         self.timestamp = datetime.now(timezone.utc).isoformat()
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.EEGRAGError._default_user_message
     # Requirement  : `_default_user_message` shall generate safe default user message based on error code
@@ -339,10 +340,10 @@ class EEGRAGError(Exception):
             ErrorCode.API_TIMEOUT: "The service is temporarily slow. Please try again.",
         }
         return code_messages.get(
-            self.code, 
+            self.code,
             "An error occurred. Please try again or contact support."
         )
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.EEGRAGError.to_dict
     # Requirement  : `to_dict` shall convert error to dictionary for serialization
@@ -363,7 +364,7 @@ class EEGRAGError(Exception):
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert error to dictionary for serialization.
-        
+
         Returns:
             Dictionary with error details (safe for logging/API)
         """
@@ -378,7 +379,7 @@ class EEGRAGError(Exception):
                 k: str(v)[:200] for k, v in self.context.items()
             },  # Truncate context values
         }
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.EEGRAGError.__str__
     # Requirement  : `__str__` shall human-readable error representation
@@ -399,7 +400,7 @@ class EEGRAGError(Exception):
     def __str__(self) -> str:
         """Human-readable error representation."""
         return f"[{self.code.name}] {self.message}"
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.EEGRAGError.__repr__
     # Requirement  : `__repr__` shall debug representation
@@ -449,14 +450,14 @@ class EEGRAGError(Exception):
 class ValidationError(EEGRAGError):
     """
     Input validation errors.
-    
+
     REQ-FUNC-002: Query validation with descriptive errors.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.ValidationError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.VALIDATION_ERROR); message: str (default='Validation failed'); field: Optional[str] (default=None); value: Optional[Any] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -509,14 +510,14 @@ class ValidationError(EEGRAGError):
 class RetrievalError(EEGRAGError):
     """
     Document retrieval and search errors.
-    
+
     REQ-FUNC-010: Hybrid retrieval error handling.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.RetrievalError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.RETRIEVAL_ERROR); message: str (default='Retrieval failed'); query: Optional[str] (default=None); source: Optional[str] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -566,14 +567,14 @@ class RetrievalError(EEGRAGError):
 class CitationError(EEGRAGError):
     """
     Citation verification errors.
-    
+
     REQ-FUNC-020: PMID validation and verification errors.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.CitationError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.CITATION_ERROR); message: str (default='Citation verification failed'); pmid: Optional[str] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -621,14 +622,14 @@ class CitationError(EEGRAGError):
 class AgentError(EEGRAGError):
     """
     Agent and orchestration errors.
-    
+
     REQ-FUNC-030: Multi-agent system error handling.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.AgentError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.AGENT_ERROR); message: str (default='Agent operation failed'); agent_name: Optional[str] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -676,14 +677,14 @@ class AgentError(EEGRAGError):
 class APIError(EEGRAGError):
     """
     External API errors.
-    
+
     REQ-INT-001: External API integration error handling.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.APIError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.API_ERROR); message: str (default='API request failed'); api_name: Optional[str] (default=None); status_code: Optional[int] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -735,14 +736,14 @@ class APIError(EEGRAGError):
 class DatabaseError(EEGRAGError):
     """
     Database and storage errors.
-    
+
     REQ-DAT-001: Persistence error handling.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.DatabaseError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.DATABASE_ERROR); message: str (default='Database operation failed'); operation: Optional[str] (default=None); **kwargs
     # Outputs      : Implicitly None or see body
@@ -789,14 +790,14 @@ class DatabaseError(EEGRAGError):
 class SystemError(EEGRAGError):
     """
     System and infrastructure errors.
-    
+
     REQ-REL-001: System reliability error handling.
     """
-    
+
     # ---------------------------------------------------------------------------
     # ID           : utils.error_handling.SystemError.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : code: ErrorCode (default=ErrorCode.SYSTEM_ERROR); message: str (default='System error occurred'); **kwargs
     # Outputs      : Implicitly None or see body
@@ -848,9 +849,9 @@ def handle_exception(
 ) -> Optional[EEGRAGError]:
     """
     Standardized exception handling with logging.
-    
+
     REQ-ERR-001: Consistent error handling across the application.
-    
+
     Args:
         exception: The exception to handle
         component: Component where the error occurred
@@ -858,10 +859,10 @@ def handle_exception(
         log_level: Logging level (debug, info, warning, error)
         reraise: Whether to re-raise as EEGRAGError
         default_code: Error code to use if exception is not EEGRAGError
-        
+
     Returns:
         EEGRAGError instance if not re-raising
-        
+
     Raises:
         EEGRAGError: If reraise is True
     """
@@ -880,7 +881,7 @@ def handle_exception(
             },
             cause=exception
         )
-    
+
     # Log with appropriate level
     log_func = getattr(logger, log_level.lower(), logger.error)
     log_func(
@@ -888,7 +889,7 @@ def handle_exception(
         f"[{eeg_error.code.name}] {eeg_error.message}",
         exc_info=True
     )
-    
+
     if reraise:
         raise eeg_error
     return eeg_error
@@ -921,9 +922,9 @@ def safe_execute(
 ) -> Optional[T]:
     """
     Execute a function with automatic error handling.
-    
+
     REQ-REL-002: Safe execution with fallback values.
-    
+
     Args:
         func: Function to execute
         *args: Positional arguments for the function
@@ -931,10 +932,10 @@ def safe_execute(
         on_error: Optional callback for error handling
         log_errors: Whether to log errors
         **kwargs: Keyword arguments for the function
-        
+
     Returns:
         Function result or default value on error
-        
+
     Example:
         >>> result = safe_execute(risky_function, arg1, default="fallback")
     """
@@ -978,9 +979,9 @@ async def safe_execute_async(
 ) -> Optional[T]:
     """
     Execute an async function with automatic error handling.
-    
+
     REQ-REL-002: Safe async execution with fallback values.
-    
+
     Args:
         func: Async function to execute
         *args: Positional arguments for the function
@@ -988,7 +989,7 @@ async def safe_execute_async(
         on_error: Optional callback for error handling
         log_errors: Whether to log errors
         **kwargs: Keyword arguments for the function
-        
+
     Returns:
         Function result or default value on error
     """
@@ -1030,18 +1031,18 @@ def with_error_handling(
 ) -> Callable:
     """
     Decorator for standardized error handling.
-    
+
     REQ-ERR-001: Consistent error handling decorator.
-    
+
     Args:
         error_code: Default error code for unhandled exceptions
         component: Component name for logging
         log_errors: Whether to log errors
         reraise: Whether to re-raise as EEGRAGError
-        
+
     Returns:
         Decorated function
-        
+
     Example:
         >>> @with_error_handling(ErrorCode.RETRIEVAL_ERROR, "retriever")
         ... def search(query: str) -> List[Document]:
@@ -1097,7 +1098,7 @@ def with_error_handling(
                     reraise=reraise,
                     default_code=error_code
                 )
-        
+
         # ---------------------------------------------------------------------------
         # ID           : utils.error_handling.async_wrapper
         # Requirement  : `async_wrapper` shall execute as specified
@@ -1130,11 +1131,11 @@ def with_error_handling(
                     reraise=reraise,
                     default_code=error_code
                 )
-        
-        if asyncio.iscoroutinefunction(func):
+
+        if inspect.iscoroutinefunction(func):
             return async_wrapper
         return wrapper
-    
+
     return decorator
 
 
@@ -1164,19 +1165,19 @@ def with_retry(
 ) -> Callable:
     """
     Decorator for automatic retry with exponential backoff.
-    
+
     REQ-REL-002: Error recovery with retry logic.
-    
+
     Args:
         max_attempts: Maximum number of attempts
         delay_seconds: Initial delay between retries
         backoff_multiplier: Multiplier for exponential backoff
         retryable_exceptions: Tuple of exception types to retry
         on_retry: Optional callback on each retry (exception, attempt_number)
-        
+
     Returns:
         Decorated function
-        
+
     Example:
         >>> @with_retry(max_attempts=3, delay_seconds=1.0)
         ... def fetch_data() -> dict:
@@ -1221,24 +1222,24 @@ def with_retry(
         def wrapper(*args, **kwargs):
             last_exception = None
             delay = delay_seconds
-            
+
             for attempt in range(1, max_attempts + 1):
                 try:
                     return func(*args, **kwargs)
                 except retryable_exceptions as e:
                     last_exception = e
-                    
+
                     if attempt < max_attempts:
                         logger.warning(
                             f"Retry {attempt}/{max_attempts} for {func.__name__}: {e}"
                         )
                         if on_retry:
                             on_retry(e, attempt)
-                        
+
                         import time
                         time.sleep(delay)
                         delay *= backoff_multiplier
-            
+
             # All retries exhausted
             raise EEGRAGError(
                 code=ErrorCode.SYSTEM_ERROR,
@@ -1246,7 +1247,7 @@ def with_retry(
                 context={'last_error': str(last_exception)},
                 cause=last_exception
             )
-        
+
         # ---------------------------------------------------------------------------
         # ID           : utils.error_handling.async_wrapper
         # Requirement  : `async_wrapper` shall execute as specified
@@ -1268,23 +1269,23 @@ def with_retry(
         async def async_wrapper(*args, **kwargs):
             last_exception = None
             delay = delay_seconds
-            
+
             for attempt in range(1, max_attempts + 1):
                 try:
                     return await func(*args, **kwargs)
                 except retryable_exceptions as e:
                     last_exception = e
-                    
+
                     if attempt < max_attempts:
                         logger.warning(
                             f"Retry {attempt}/{max_attempts} for {func.__name__}: {e}"
                         )
                         if on_retry:
                             on_retry(e, attempt)
-                        
+
                         await asyncio.sleep(delay)
                         delay *= backoff_multiplier
-            
+
             # All retries exhausted
             raise EEGRAGError(
                 code=ErrorCode.SYSTEM_ERROR,
@@ -1292,11 +1293,11 @@ def with_retry(
                 context={'last_error': str(last_exception)},
                 cause=last_exception
             )
-        
-        if asyncio.iscoroutinefunction(func):
+
+        if inspect.iscoroutinefunction(func):
             return async_wrapper
         return wrapper
-    
+
     return decorator
 
 
@@ -1325,13 +1326,13 @@ def validate_not_empty(
 ) -> None:
     """
     Validate that a value is not empty.
-    
+
     REQ-FUNC-002: Input validation utility.
-    
+
     Args:
         value: Value to validate
         field_name: Name of the field for error messages
-        
+
     Raises:
         ValidationError: If value is None or empty
     """
@@ -1341,7 +1342,7 @@ def validate_not_empty(
             message=f"{field_name} is required and cannot be None",
             field=field_name
         )
-    
+
     if isinstance(value, str) and not value.strip():
         raise ValidationError(
             code=ErrorCode.EMPTY_QUERY,
@@ -1349,7 +1350,7 @@ def validate_not_empty(
             field=field_name,
             value=value
         )
-    
+
     if isinstance(value, (list, dict, set)) and len(value) == 0:
         raise ValidationError(
             code=ErrorCode.VALIDATION_ERROR,
@@ -1382,21 +1383,21 @@ def validate_type(
 ) -> None:
     """
     Validate that a value is of expected type.
-    
+
     REQ-FUNC-002: Type validation utility.
-    
+
     Args:
         value: Value to validate
         expected_type: Expected type or tuple of types
         field_name: Name of the field for error messages
-        
+
     Raises:
         ValidationError: If value is not of expected type
     """
     if not isinstance(value, expected_type):
         expected = (
-            expected_type.__name__ 
-            if isinstance(expected_type, type) 
+            expected_type.__name__
+            if isinstance(expected_type, type)
             else str(expected_type)
         )
         raise ValidationError(
@@ -1432,15 +1433,15 @@ def validate_range(
 ) -> None:
     """
     Validate that a numeric value is within range.
-    
+
     REQ-FUNC-002: Range validation utility.
-    
+
     Args:
         value: Value to validate
         min_value: Minimum allowed value (inclusive)
         max_value: Maximum allowed value (inclusive)
         field_name: Name of the field for error messages
-        
+
     Raises:
         ValidationError: If value is out of range
     """
@@ -1452,7 +1453,7 @@ def validate_range(
             value=value,
             context={'min_value': min_value}
         )
-    
+
     if max_value is not None and value > max_value:
         raise ValidationError(
             code=ErrorCode.OUT_OF_RANGE,
@@ -1488,20 +1489,20 @@ def validate_string_length(
 ) -> None:
     """
     Validate string length constraints.
-    
+
     REQ-FUNC-002: String length validation utility.
-    
+
     Args:
         value: String to validate
         min_length: Minimum allowed length
         max_length: Maximum allowed length
         field_name: Name of the field for error messages
-        
+
     Raises:
         ValidationError: If string length is out of bounds
     """
     actual_length = len(value)
-    
+
     if actual_length < min_length:
         raise ValidationError(
             code=ErrorCode.VALIDATION_ERROR,
@@ -1509,7 +1510,7 @@ def validate_string_length(
             field=field_name,
             context={'min_length': min_length, 'actual_length': actual_length}
         )
-    
+
     if max_length is not None and actual_length > max_length:
         raise ValidationError(
             code=ErrorCode.QUERY_TOO_LONG,

@@ -289,6 +289,7 @@ class TestSearchTermMatrixOffline:
 # Integration-level tests (require network — pytest marks for CI control)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.external
 class TestPubMedSearchIntegration:
     """
     ID: TEST-SEARCH-020 — PubMed live search integration tests.
@@ -413,6 +414,7 @@ class TestPubMedSearchIntegration:
         await pubmed_agent.close()
 
 
+@pytest.mark.external
 class TestSemanticScholarIntegration:
     """
     ID: TEST-SEARCH-030 — Semantic Scholar live search integration tests.
@@ -512,6 +514,7 @@ class TestSemanticScholarIntegration:
 # Cross-Source Consistency Tests
 # ---------------------------------------------------------------------------
 
+@pytest.mark.external
 class TestCrossSourceConsistency:
     """
     ID: TEST-SEARCH-040 — Cross-source result consistency validation.

@@ -417,6 +417,7 @@ class TestMockedS2Source:
 # Live Integration Tests: Health Endpoints
 # ---------------------------------------------------------------------------
 
+@pytest.mark.external
 class TestLiveEndpointHealth:
     """
     ID: TEST-HEALTH-050 — Live HTTP health checks for all API endpoints.

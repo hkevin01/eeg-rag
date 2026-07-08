@@ -313,6 +313,7 @@ class TestAbstractAuthenticity:
 # Integration Tests: Live PubMed PMID Verification
 # ---------------------------------------------------------------------------
 
+@pytest.mark.external
 class TestKnownRealPapersIntegration:
     """
     ID: TEST-AUTH-060 — Live PubMed PMID verification for known real papers.
