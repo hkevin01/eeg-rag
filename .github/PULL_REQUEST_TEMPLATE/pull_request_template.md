@@ -39,6 +39,20 @@ Describe the tests you ran to verify your changes:
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 
+## Interaction Design Checklist (Eight Rules)
+For any user-facing change (web UI, CLI UX, API workflow/messages), confirm:
+- [ ] Consistency: labels, terminology, layouts, and behaviors are consistent with existing patterns
+- [ ] Shortcuts: frequent-user accelerators are provided where appropriate (keyboard shortcuts, presets, saved filters)
+- [ ] Informative feedback: user actions produce clear status/progress/success/failure feedback
+- [ ] Closure: dialogs and multi-step flows end with explicit completion states
+- [ ] Error prevention + simple handling: invalid actions are prevented where possible and failures are actionable
+- [ ] Reversal: cancel/undo/retry/reset paths are available for risky or high-impact actions
+- [ ] Internal locus of control: users can initiate, interrupt, and recover from workflows predictably
+- [ ] Reduced memory load: context is visible; defaults and progressive disclosure reduce recall burden
+
+If not applicable, explain why:
+- N/A rationale:
+
 ## Screenshots (if applicable)
 Add screenshots to help explain your changes.
 
