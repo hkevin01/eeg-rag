@@ -479,6 +479,9 @@ class TestLiveEndpointHealth:
             latency = (time.time() - start) * 1000
             _record_health("pubmed_esearch", "UP", latency)
 
+            if response.status_code == 429:
+                pytest.skip("PubMed API rate-limited — skipping content validation")
+
             assert response.status_code == 200
             data = response.json()
             assert "esearchresult" in data, "Missing esearchresult key in PubMed response"
