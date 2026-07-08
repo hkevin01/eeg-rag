@@ -14,6 +14,7 @@ Requirements Covered:
 """
 
 import logging
+import os
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
@@ -27,7 +28,6 @@ try:
     from eeg_rag.retrieval import (
         HybridRetriever, HybridResult,
         BM25Retriever, DenseRetriever,
-import os
         EEGQueryExpander
     )
     HYBRID_RETRIEVAL_AVAILABLE = True
