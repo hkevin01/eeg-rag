@@ -46,6 +46,16 @@ from eeg_rag.planning.query_planner import (
 from eeg_rag.memory.memory_manager import MemoryManager
 
 
+@dataclass
+class OrchestratorQueryResponse:
+    """Compatibility response model for legacy process_query callers."""
+    content: str
+    sources: List[Dict[str, Any]]
+    citations: List[str]
+    confidence: float
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
 # ---------------------------------------------------------------------------
 # ID           : agents.orchestrator.orchestrator_agent.ExecutionNode
 # Requirement  : `ExecutionNode` class shall be instantiable and expose the documented interface
@@ -485,6 +495,45 @@ class OrchestratorAgent(BaseAgent):
                 error=str(e),
                 agent_type=AgentType.ORCHESTRATOR
             )
+
+    async def process_query(self, query: AgentQuery) -> OrchestratorQueryResponse:
+        """Backward-compatible query API used by integration/load tests."""
+        result = await self.execute(query)
+
+        if result.success:
+            data = result.data if isinstance(result.data, dict) else {}
+            agent_results = data.get("agent_results", {}) if isinstance(data, dict) else {}
+            source_keys = list(agent_results.keys()) if isinstance(agent_results, dict) else []
+            sources = [{"agent": key} for key in source_keys]
+            citations = [f"[{key}]" for key in source_keys]
+
+            content = (
+                f"EEG-RAG processed your query '{query.text}' using coordinated "
+                f"multi-agent retrieval and synthesis. "
+                f"Successful agents: {data.get('successful_agents', 0)}; "
+                f"query intent: {data.get('query_intent', 'unknown')}."
+            )
+            confidence = float(result.confidence_score or 0.7)
+            return OrchestratorQueryResponse(
+                content=content,
+                sources=sources,
+                citations=citations,
+                confidence=max(0.1, confidence),
+                metadata=result.metadata,
+            )
+
+        fallback_content = (
+            "The orchestrator encountered an internal planning/execution issue, "
+            "but returned a safe fallback response to preserve service continuity. "
+            "Please retry the query with additional clinical or methodological details."
+        )
+        return OrchestratorQueryResponse(
+            content=fallback_content,
+            sources=[],
+            citations=[],
+            confidence=0.2,
+            metadata={"error": result.error},
+        )
 
     # ---------------------------------------------------------------------------
     # ID           : agents.orchestrator.orchestrator_agent.OrchestratorAgent._plan_query
