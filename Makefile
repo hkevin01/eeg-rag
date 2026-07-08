@@ -77,7 +77,16 @@ test:
 	python -m pytest tests/ -v --tb=short
 
 test-fast:
-	python -m pytest tests/ -v --tb=short -m "not slow and not integration"
+	python -m pytest tests/ -v --tb=short -m "not slow and not integration and not external"
+
+test-offline:
+	python -m pytest tests/ -v --tb=short -m "not integration and not external"
+
+test-integration:
+	python -m pytest tests/ -v --tb=short -m "integration and not external"
+
+test-external:
+	python -m pytest tests/ -v --tb=short -m "external"
 
 test-coverage:
 	python -m pytest tests/ --cov=src/eeg_rag --cov-report=html --cov-report=term
