@@ -48,5 +48,6 @@
         "debug.overrideEngine": "gpt-4o",
         "debug.useNodeRuntime": false
     },
-    "peacock.color": "#0d2545"
+    "peacock.color": "#0d2545",
+    "python.terminal.useEnvFile": true
 }

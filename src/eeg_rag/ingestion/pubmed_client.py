@@ -51,7 +51,7 @@ class PubMedArticle:
     references: list[str]  # List of cited PMIDs
     full_text_available: bool
     full_text: Optional[str] = None
-    
+
     # EEG-specific extracted metadata
     eeg_methods: list[str] = field(default_factory=list)
     frequency_bands_mentioned: list[str] = field(default_factory=list)
@@ -81,7 +81,7 @@ class PubMedArticle:
 class PubMedClient:
     """
     Async PubMed client with comprehensive data extraction.
-    
+
     Features:
     - Full metadata extraction including MeSH terms
     - Reference extraction for citation networks
@@ -89,38 +89,38 @@ class PubMedClient:
     - EEG-specific entity extraction
     - Rate limiting and retry logic
     """
-    
+
     BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     PMC_OA_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi"
-    
+
     # Comprehensive EEG search queries
     EEG_SEARCH_QUERIES = [
         # Core EEG terms
         '"electroencephalography"[MeSH] OR "EEG"[Title/Abstract]',
         '"evoked potentials"[MeSH] OR "event-related potentials"[Title/Abstract]',
         '"brain-computer interface"[MeSH] OR "BCI"[Title/Abstract]',
-        
+
         # Clinical EEG
         '"epilepsy"[MeSH] AND "electroencephalography"[MeSH]',
         '"sleep"[MeSH] AND "polysomnography"[MeSH]',
         '"consciousness disorders"[MeSH] AND "EEG"[Title/Abstract]',
-        
+
         # Cognitive neuroscience
         '"cognition"[MeSH] AND "electroencephalography"[MeSH]',
         '"memory"[MeSH] AND "EEG"[Title/Abstract]',
         '"attention"[MeSH] AND "event-related potentials"[Title/Abstract]',
-        
+
         # Specific ERPs
         '"P300"[Title/Abstract]',
         '"N400"[Title/Abstract]',
         '"mismatch negativity"[Title/Abstract]',
         '"error-related negativity"[Title/Abstract]',
-        
+
         # Oscillations and rhythms
         '"theta rhythm"[Title/Abstract] OR "theta oscillations"[Title/Abstract]',
         '"alpha rhythm"[MeSH] OR "alpha oscillations"[Title/Abstract]',
         '"gamma oscillations"[Title/Abstract]',
-        
+
         # Methods and analysis
         '"EEG signal processing"[Title/Abstract]',
         '"EEG machine learning"[Title/Abstract]',
@@ -128,7 +128,7 @@ class PubMedClient:
         '"EEG connectivity"[Title/Abstract]',
         '"EEG source localization"[Title/Abstract]',
     ]
-    
+
     # EEG entity patterns for extraction
     FREQUENCY_PATTERNS = {
         'delta': r'\bdelta\b.*?(?:rhythm|band|oscillation|wave|activity)',
@@ -137,7 +137,7 @@ class PubMedClient:
         'beta': r'\bbeta\b.*?(?:rhythm|band|oscillation|wave|activity)',
         'gamma': r'\bgamma\b.*?(?:rhythm|band|oscillation|wave|activity)',
     }
-    
+
     ERP_PATTERNS = {
         'P100': r'\bP1(?:00)?\b',
         'N100': r'\bN1(?:00)?\b',
@@ -151,7 +151,7 @@ class PubMedClient:
         'LPP': r'\b(?:LPP|late positive potential)\b',
         'CNV': r'\b(?:CNV|contingent negative variation)\b',
     }
-    
+
     CLINICAL_PATTERNS = {
         'epilepsy': r'\bepilepsy|seizure|ictal|interictal\b',
         'alzheimers': r'\balzheimer|dementia|cognitive decline\b',
@@ -191,7 +191,7 @@ class PubMedClient:
     ):
         """
         Initialize PubMed client.
-        
+
         Args:
             api_key: NCBI API key for higher rate limits
             email: Contact email (required by NCBI)
@@ -204,7 +204,7 @@ class PubMedClient:
         self.semaphore = asyncio.Semaphore(max_concurrent)
         self._last_request_time = 0.0
         self._session: Optional[aiohttp.ClientSession] = None
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ingestion.pubmed_client.PubMedClient.__aenter__
     # Requirement  : `__aenter__` shall async context manager entry
@@ -226,7 +226,7 @@ class PubMedClient:
         """Async context manager entry."""
         self._session = aiohttp.ClientSession()
         return self
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ingestion.pubmed_client.PubMedClient.__aexit__
     # Requirement  : `__aexit__` shall async context manager exit
@@ -250,7 +250,7 @@ class PubMedClient:
             await self._session.close()
             self._session = None
         return False
-    
+
     # ---------------------------------------------------------------------------
     # ID           : ingestion.pubmed_client.PubMedClient.close
     # Requirement  : `close` shall close the client session
@@ -273,7 +273,7 @@ class PubMedClient:
         if self._session:
             await self._session.close()
             self._session = None
-        
+
     # ---------------------------------------------------------------------------
     # ID           : ingestion.pubmed_client.PubMedClient._rate_limit
     # Requirement  : `_rate_limit` shall enforce rate limiting between requests
@@ -293,11 +293,9 @@ class PubMedClient:
     # ---------------------------------------------------------------------------
     async def _rate_limit(self):
         """Enforce rate limiting between requests."""
-        now = asyncio.get_event_loop().time()
-        elapsed = now - self._last_request_time
-        if elapsed < self.delay:
-            await asyncio.sleep(self.delay - elapsed)
-        self._last_request_time = asyncio.get_event_loop().time()
+        from eeg_rag.utils.ncbi import get_ncbi_limiter
+
+        await get_ncbi_limiter(self.api_key).acquire()
 
     # ---------------------------------------------------------------------------
     # ID           : ingestion.pubmed_client.PubMedClient._build_params
@@ -378,14 +376,14 @@ class PubMedClient:
     ) -> list[str]:
         """
         Search PubMed and return list of PMIDs.
-        
+
         Args:
             query: PubMed search query
             max_results: Maximum PMIDs to return
             min_date: Minimum publication date (YYYY/MM/DD)
             max_date: Maximum publication date (YYYY/MM/DD)
             sort: Sort order ('relevance' or 'date')
-            
+
         Returns:
             List of PMIDs matching the query
         """
@@ -396,13 +394,13 @@ class PubMedClient:
             sort=sort,
             retmode="json"
         )
-        
+
         if min_date:
             params["mindate"] = min_date
             params["datetype"] = "pdat"
         if max_date:
             params["maxdate"] = max_date
-            
+
         async with aiohttp.ClientSession() as session:
             result = await self._fetch(session, "esearch.fcgi", params)
             import json
@@ -435,11 +433,11 @@ class PubMedClient:
     ) -> AsyncIterator[PubMedArticle]:
         """
         Fetch full article details for list of PMIDs.
-        
+
         Args:
             pmids: List of PubMed IDs to fetch
             batch_size: Number of articles per API request
-            
+
         Yields:
             PubMedArticle objects with full metadata
         """
@@ -452,12 +450,12 @@ class PubMedClient:
                     retmode="xml",
                     rettype="full"
                 )
-                
+
                 xml_data = await self._fetch(session, "efetch.fcgi", params)
-                
+
                 for article in self._parse_articles(xml_data):
                     yield article
-                    
+
                 logger.info(f"Fetched {min(i + batch_size, len(pmids))}/{len(pmids)} articles")
 
     # ---------------------------------------------------------------------------
@@ -481,7 +479,7 @@ class PubMedClient:
         """Parse PubMed XML response into article objects."""
         articles = []
         root = ET.fromstring(xml_data)
-        
+
         for article_elem in root.findall(".//PubmedArticle"):
             try:
                 article = self._parse_single_article(article_elem)
@@ -490,7 +488,7 @@ class PubMedClient:
             except Exception as e:
                 logger.warning(f"Error parsing article: {e}")
                 continue
-                
+
         return articles
 
     # ---------------------------------------------------------------------------
@@ -517,18 +515,18 @@ class PubMedClient:
         if pmid_elem is None:
             return None
         pmid = pmid_elem.text
-        
+
         # Extract citation info
         citation = elem.find(".//MedlineCitation")
         article = citation.find(".//Article") if citation else None
-        
+
         if article is None:
             return None
-        
+
         # Title
         title_elem = article.find(".//ArticleTitle")
         title = "".join(title_elem.itertext()) if title_elem is not None else ""
-        
+
         # Abstract - handle structured abstracts
         abstract_parts = []
         abstract_elem = article.find(".//Abstract")
@@ -541,7 +539,7 @@ class PubMedClient:
                 else:
                     abstract_parts.append(content)
         abstract = " ".join(abstract_parts)
-        
+
         # Authors
         authors = []
         for author in article.findall(".//Author"):
@@ -549,10 +547,10 @@ class PubMedClient:
             forename = author.findtext("ForeName", "")
             if lastname:
                 authors.append(f"{forename} {lastname}".strip())
-        
+
         # Journal
         journal = article.findtext(".//Journal/Title", "")
-        
+
         # Publication date
         pub_date = None
         date_elem = article.find(".//PubDate")
@@ -572,21 +570,21 @@ class PubMedClient:
                     pub_date = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
                 except ValueError:
                     pub_date = datetime(int(year), 1, 1)
-        
+
         # DOI
         doi = None
         for id_elem in article.findall(".//ArticleId"):
             if id_elem.get("IdType") == "doi":
                 doi = id_elem.text
                 break
-        
+
         # PMC ID
         pmc_id = None
         for id_elem in elem.findall(".//ArticleId"):
             if id_elem.get("IdType") == "pmc":
                 pmc_id = id_elem.text
                 break
-        
+
         # MeSH terms
         mesh_terms = []
         for mesh in citation.findall(".//MeshHeading"):
@@ -596,26 +594,26 @@ class PubMedClient:
             for qualifier in mesh.findall("QualifierName"):
                 if qualifier.text:
                     mesh_terms.append(f"{descriptor}/{qualifier.text}")
-        
+
         # Keywords
         keywords = [kw.text for kw in citation.findall(".//Keyword") if kw.text]
-        
+
         # Publication types
         pub_types = [pt.text for pt in article.findall(".//PublicationType") if pt.text]
-        
+
         # Affiliations
         affiliations = []
         for aff in article.findall(".//Affiliation"):
             if aff.text:
                 affiliations.append(aff.text)
-        
+
         # References (cited PMIDs)
         references = []
         for ref in elem.findall(".//Reference"):
             for ref_id in ref.findall(".//ArticleId"):
                 if ref_id.get("IdType") == "pubmed" and ref_id.text:
                     references.append(ref_id.text)
-        
+
         # Create article object
         pub_article = PubMedArticle(
             pmid=pmid,
@@ -633,10 +631,10 @@ class PubMedClient:
             references=references,
             full_text_available=pmc_id is not None
         )
-        
+
         # Extract EEG-specific entities
         self._extract_eeg_entities(pub_article)
-        
+
         return pub_article
 
     # ---------------------------------------------------------------------------
@@ -659,27 +657,27 @@ class PubMedClient:
     def _extract_eeg_entities(self, article: PubMedArticle):
         """Extract EEG-specific entities from article text."""
         text = f"{article.title} {article.abstract}".lower()
-        
+
         # Extract frequency bands
         for band, pattern in self.FREQUENCY_PATTERNS.items():
             if re.search(pattern, text, re.IGNORECASE):
                 article.frequency_bands_mentioned.append(band)
-        
+
         # Extract ERP components
         for component, pattern in self.ERP_PATTERNS.items():
             if re.search(pattern, text, re.IGNORECASE):
                 article.erp_components.append(component)
-        
+
         # Extract clinical conditions
         for condition, pattern in self.CLINICAL_PATTERNS.items():
             if re.search(pattern, text, re.IGNORECASE):
                 article.clinical_conditions.append(condition)
-        
+
         # Extract sample size
         sample_match = re.search(r'(\d+)\s*(?:participants|subjects|patients|controls)', text)
         if sample_match:
             article.sample_size = int(sample_match.group(1))
-        
+
         # Detect electrode systems
         if re.search(r'10-20|10-10|10-5', text):
             article.electrode_systems.append('10-20 system')
@@ -708,48 +706,48 @@ class PubMedClient:
     async def fetch_full_text_pmc(self, pmc_id: str) -> Optional[str]:
         """
         Fetch full text from PubMed Central.
-        
+
         Args:
             pmc_id: PMC ID (e.g., 'PMC1234567')
-            
+
         Returns:
             Full text content or None if not available
         """
         if not pmc_id:
             return None
-            
+
         # Normalize PMC ID
         if not pmc_id.startswith("PMC"):
             pmc_id = f"PMC{pmc_id}"
-        
+
         async with aiohttp.ClientSession() as session:
             # First, get the article XML URL from OA service
             params = {"id": pmc_id, "format": "xml"}
-            
+
             try:
                 async with session.get(self.PMC_OA_URL, params=params) as response:
                     if response.status != 200:
                         return None
                     oa_xml = await response.text()
-                
+
                 # Parse OA response to get download link
                 root = ET.fromstring(oa_xml)
                 link = root.find(".//link[@format='xml']")
-                
+
                 if link is None:
                     return None
-                    
+
                 xml_url = link.get("href")
-                
+
                 # Fetch full text XML
                 async with session.get(xml_url) as response:
                     if response.status != 200:
                         return None
                     full_xml = await response.text()
-                
+
                 # Parse and extract text
                 return self._extract_text_from_pmc_xml(full_xml)
-                
+
             except Exception as e:
                 logger.warning(f"Error fetching full text for {pmc_id}: {e}")
                 return None
@@ -774,24 +772,24 @@ class PubMedClient:
     def _extract_text_from_pmc_xml(self, xml_data: str) -> str:
         """Extract readable text from PMC XML."""
         root = ET.fromstring(xml_data)
-        
+
         sections = []
-        
+
         # Extract body sections
         for sec in root.findall(".//sec"):
             title = sec.findtext("title", "")
             paragraphs = []
-            
+
             for p in sec.findall(".//p"):
                 text = "".join(p.itertext())
                 if text.strip():
                     paragraphs.append(text.strip())
-            
+
             if paragraphs:
                 section_text = f"\n\n## {title}\n\n" if title else "\n\n"
                 section_text += "\n\n".join(paragraphs)
                 sections.append(section_text)
-        
+
         return "".join(sections)
 
     # ---------------------------------------------------------------------------
@@ -819,36 +817,36 @@ class PubMedClient:
     ) -> AsyncIterator[PubMedArticle]:
         """
         Collect comprehensive EEG corpus from PubMed.
-        
+
         Args:
             years_back: Number of years of literature to collect
             max_per_query: Maximum articles per search query
             include_full_text: Whether to fetch full text from PMC
-            
+
         Yields:
             PubMedArticle objects with all available data
         """
         min_date = (datetime.now() - timedelta(days=365 * years_back)).strftime("%Y/%m/%d")
         seen_pmids = set()
-        
+
         for query in self.EEG_SEARCH_QUERIES:
             logger.info(f"Searching: {query}")
-            
+
             pmids = await self.search(
                 query=query,
                 max_results=max_per_query,
                 min_date=min_date
             )
-            
+
             # Filter out already seen PMIDs
             new_pmids = [p for p in pmids if p not in seen_pmids]
             seen_pmids.update(new_pmids)
-            
+
             async for article in self.fetch_articles(new_pmids):
                 # Optionally fetch full text
                 if include_full_text and article.pmc_id:
                     article.full_text = await self.fetch_full_text_pmc(article.pmc_id)
-                
+
                 yield article
-        
+
         logger.info(f"Total unique articles collected: {len(seen_pmids)}")

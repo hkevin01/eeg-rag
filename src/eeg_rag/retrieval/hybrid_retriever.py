@@ -54,8 +54,13 @@ from eeg_rag.retrieval.bm25_retriever import BM25Retriever, BM25Result
 from eeg_rag.retrieval.centrality_enricher import CentralityEnricher
 from eeg_rag.retrieval.dense_retriever import DenseRetriever, DenseResult
 from eeg_rag.retrieval.query_expander import EEGQueryExpander
-from eeg_rag.retrieval.reranker import CrossEncoderReranker, NoOpReranker, RerankedResult
+from eeg_rag.retrieval.reranker import (
+    CrossEncoderReranker,
+    NoOpReranker,
+    RerankedResult,
+)
 from eeg_rag.retrieval.query_analyzer import QueryAnalyzer, QueryAnalysis
+from eeg_rag.retrieval.filters import matches_filters, validate_filters
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +85,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HybridResult:
     """Result from hybrid search with both sparse and dense scores."""
+
     doc_id: str
     text: str
     metadata: Dict[str, Any]
@@ -88,6 +94,7 @@ class HybridResult:
     dense_score: float  # Raw dense score
     bm25_rank: Optional[int] = None  # Rank in BM25 results (1-indexed)
     dense_rank: Optional[int] = None  # Rank in dense results (1-indexed)
+    reranker_score: Optional[float] = None
 
 
 # ---------------------------------------------------------------------------
@@ -162,6 +169,8 @@ class HybridRetriever:
         adaptive_reranking: bool = False,
         centrality_enricher: Optional[CentralityEnricher] = None,
         include_dense_vectors: bool = False,
+        rerank_k: int = 50,
+        native_qdrant: bool = False,
     ):
         """
         Initialize hybrid retriever.
@@ -187,6 +196,10 @@ class HybridRetriever:
         self.adaptive_reranking = adaptive_reranking
         self.centrality_enricher = centrality_enricher
         self.include_dense_vectors = include_dense_vectors
+        if isinstance(rerank_k, bool) or not isinstance(rerank_k, int) or rerank_k < 1:
+            raise ValueError("rerank_k must be a positive integer")
+        self.rerank_k = rerank_k
+        self.native_qdrant = native_qdrant
 
         # Initialize query expander if enabled
         self.query_expander = EEGQueryExpander() if use_query_expansion else None
@@ -202,9 +215,13 @@ class HybridRetriever:
         if use_reranking or adaptive_reranking:
             try:
                 self.reranker = CrossEncoderReranker(model_name=reranker_model)
-                logger.info(f"  Reranking: {'adaptive' if adaptive_reranking else 'always'} ({reranker_model})")
+                logger.info(
+                    f"  Reranking: {'adaptive' if adaptive_reranking else 'always'} ({reranker_model})"
+                )
             except ImportError:
-                logger.warning("sentence-transformers not available, disabling reranking")
+                logger.warning(
+                    "sentence-transformers not available, disabling reranking"
+                )
                 self.reranker = NoOpReranker()
                 self.use_reranking = False
                 self.adaptive_reranking = False
@@ -215,7 +232,9 @@ class HybridRetriever:
         logger.info(f"  BM25 weight: {bm25_weight}")
         logger.info(f"  Dense weight: {dense_weight}")
         logger.info(f"  RRF k: {rrf_k}")
-        logger.info(f"  Query expansion: {'enabled' if use_query_expansion else 'disabled'}")
+        logger.info(
+            f"  Query expansion: {'enabled' if use_query_expansion else 'disabled'}"
+        )
 
     # ---------------------------------------------------------------------------
     # ID           : retrieval.hybrid_retriever.HybridRetriever._compute_rrf_scores
@@ -235,9 +254,7 @@ class HybridRetriever:
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
     def _compute_rrf_scores(
-        self,
-        bm25_results: List[BM25Result],
-        dense_results: List[DenseResult]
+        self, bm25_results: List[BM25Result], dense_results: List[DenseResult]
     ) -> Dict[str, Tuple[float, Dict[str, Any]]]:
         """
         Compute Reciprocal Rank Fusion scores.
@@ -254,9 +271,7 @@ class HybridRetriever:
 
         # BM25 rankings
         for rank, result in enumerate(bm25_results, 1):
-            rrf_scores[result.doc_id] += (
-                self.bm25_weight / (self.rrf_k + rank)
-            )
+            rrf_scores[result.doc_id] += self.bm25_weight / (self.rrf_k + rank)
 
             # Store metadata if not already present
             if result.doc_id not in doc_metadata:
@@ -266,14 +281,12 @@ class HybridRetriever:
                     "bm25_score": result.score,
                     "bm25_rank": rank,
                     "dense_score": 0.0,
-                    "dense_rank": None
+                    "dense_rank": None,
                 }
 
         # Dense rankings
         for rank, result in enumerate(dense_results, 1):
-            rrf_scores[result.doc_id] += (
-                self.dense_weight / (self.rrf_k + rank)
-            )
+            rrf_scores[result.doc_id] += self.dense_weight / (self.rrf_k + rank)
 
             # Store or update metadata
             if result.doc_id not in doc_metadata:
@@ -286,13 +299,15 @@ class HybridRetriever:
                     "bm25_score": 0.0,
                     "bm25_rank": None,
                     "dense_score": result.score,
-                    "dense_rank": rank
+                    "dense_rank": rank,
                 }
             else:
                 doc_metadata[result.doc_id]["dense_score"] = result.score
                 doc_metadata[result.doc_id]["dense_rank"] = rank
                 if result.embedding is not None:
-                    doc_metadata[result.doc_id]["metadata"]["embedding_vector"] = list(result.embedding)
+                    doc_metadata[result.doc_id]["metadata"]["embedding_vector"] = list(
+                        result.embedding
+                    )
 
         # Combine scores with metadata
         combined = {
@@ -337,7 +352,8 @@ class HybridRetriever:
         query: str,
         top_k: int = 10,
         retrieve_k: int = 100,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
+        rerank_k: Optional[int] = None,
     ) -> List[HybridResult]:
         """
         Search using hybrid BM25 + dense retrieval with RRF.
@@ -347,7 +363,8 @@ class HybridRetriever:
             top_k: Number of final results to return
             retrieve_k: Number of candidates to retrieve from each method
                        (should be >> top_k for effective fusion)
-            filters: Optional filters for dense retrieval
+            filters: Eligibility filters applied to both retrieval branches.
+            rerank_k: Candidate count for reranking, independently of final top_k.
 
         Returns:
             List of HybridResult objects sorted by RRF score (descending)
@@ -359,6 +376,17 @@ class HybridRetriever:
             ...     retrieve_k=100
             ... )
         """
+        for name, count in (("top_k", top_k), ("retrieve_k", retrieve_k)):
+            if isinstance(count, bool) or not isinstance(count, int) or count < 1:
+                raise ValueError(f"{name} must be a positive integer")
+        candidate_count = self.rerank_k if rerank_k is None else rerank_k
+        if (
+            isinstance(candidate_count, bool)
+            or not isinstance(candidate_count, int)
+            or candidate_count < 1
+        ):
+            raise ValueError("rerank_k must be a positive integer")
+        validate_filters(filters or {})
         logger.info(f"Hybrid search for: '{query}'")
 
         # Apply query expansion if enabled
@@ -371,37 +399,86 @@ class HybridRetriever:
         logger.info(f"  Retrieving {retrieve_k} candidates from each method")
 
         # Get results from both retrievers
-        bm25_results = self.bm25.search(search_query, top_k=retrieve_k)
-        dense_results = self.dense.search(
-            search_query,
-            top_k=retrieve_k,
-            filters=filters,
-            include_vectors=self.include_dense_vectors,
-        )
+        native_results = None
+        if self.native_qdrant:
+            native_results = self.dense.vector_db.hybrid_search(
+                search_query,
+                limit=retrieve_k,
+                retrieve_k=retrieve_k,
+                filters=filters,
+                weights=[self.bm25_weight, self.dense_weight],
+                rrf_k=self.rrf_k,
+            )
+            bm25_results, dense_results = [], []
+        else:
+            sparse_kwargs = {}
+            if filters:
+                sparse_kwargs["filter_fn"] = lambda document: matches_filters(
+                    document, filters
+                )
+            bm25_results = self.bm25.search(
+                search_query, top_k=retrieve_k, **sparse_kwargs
+            )
+            dense_results = self.dense.search(
+                search_query,
+                top_k=retrieve_k,
+                filters=filters,
+                include_vectors=self.include_dense_vectors,
+            )
+        if filters:
+            bm25_results = [
+                result
+                for result in bm25_results
+                if matches_filters({"metadata": result.metadata}, filters)
+            ]
+            dense_results = [
+                result
+                for result in dense_results
+                if matches_filters({"metadata": result.metadata}, filters)
+            ]
 
         logger.info(f"  BM25: {len(bm25_results)} results")
         logger.info(f"  Dense: {len(dense_results)} results")
 
         # Compute RRF scores
         rrf_scores = self._compute_rrf_scores(bm25_results, dense_results)
+        if native_results is not None:
+            rrf_scores = {
+                result.doc_id: (
+                    result.score,
+                    {
+                        "text": result.payload.get("text", ""),
+                        "metadata": self._prepare_metadata(
+                            result.payload.get("metadata", result.payload)
+                        ),
+                        "bm25_score": 0.0,
+                        "dense_score": 0.0,
+                        "bm25_rank": None,
+                        "dense_rank": None,
+                    },
+                )
+                for result in native_results
+                if matches_filters(result.payload, filters or {})
+            }
 
         # Create HybridResult objects
         results = []
         for doc_id, (rrf_score, meta) in rrf_scores.items():
-            results.append(HybridResult(
-                doc_id=doc_id,
-                text=meta["text"],
-                metadata=meta["metadata"],
-                rrf_score=rrf_score,
-                bm25_score=meta["bm25_score"],
-                dense_score=meta["dense_score"],
-                bm25_rank=meta["bm25_rank"],
-                dense_rank=meta["dense_rank"]
-            ))
+            results.append(
+                HybridResult(
+                    doc_id=doc_id,
+                    text=meta["text"],
+                    metadata=meta["metadata"],
+                    rrf_score=rrf_score,
+                    bm25_score=meta["bm25_score"],
+                    dense_score=meta["dense_score"],
+                    bm25_rank=meta["bm25_rank"],
+                    dense_rank=meta["dense_rank"],
+                )
+            )
 
         # Sort by RRF score and take top_k
         results.sort(key=lambda x: x.rrf_score, reverse=True)
-        results = results[:top_k]
 
         # Determine if reranking should be applied
         should_rerank_query = self.use_reranking
@@ -411,12 +488,15 @@ class HybridRetriever:
             # Analyze query to decide if reranking is needed
             query_analysis = self.query_analyzer.analyze(query)
             should_rerank_query = query_analysis.should_rerank
-            logger.info(f"  Query analysis: {query_analysis.complexity.value}, "
-                       f"rerank={should_rerank_query} (conf: {query_analysis.confidence:.2f})")
+            logger.info(
+                f"  Query analysis: {query_analysis.complexity.value}, "
+                f"rerank={should_rerank_query} (conf: {query_analysis.confidence:.2f})"
+            )
             logger.info(f"  Reasoning: {query_analysis.reasoning}")
 
         # Apply reranking if enabled
         if should_rerank_query and self.reranker:
+            results = results[: max(top_k, candidate_count)]
             logger.info(f"  Reranking {len(results)} results...")
 
             # Store original results for reference
@@ -425,12 +505,14 @@ class HybridRetriever:
             # Convert to reranker format
             candidates = []
             for r in results:
-                candidates.append({
-                    'doc_id': r.doc_id,
-                    'text': r.text,
-                    'score': r.rrf_score,
-                    'metadata': r.metadata
-                })
+                candidates.append(
+                    {
+                        "doc_id": r.doc_id,
+                        "text": r.text,
+                        "score": r.rrf_score,
+                        "metadata": r.metadata,
+                    }
+                )
 
             # Rerank
             reranked = self.reranker.rerank(query, candidates)
@@ -441,25 +523,33 @@ class HybridRetriever:
                 # Get original result to preserve BM25/Dense scores
                 original = original_results.get(rr.doc_id)
                 if original:
-                    results.append(HybridResult(
-                        doc_id=rr.doc_id,
-                        text=rr.text,
-                        metadata=rr.metadata,
-                        rrf_score=rr.final_score,  # Use reranked score as RRF
-                        bm25_score=original.bm25_score,
-                        dense_score=original.dense_score,
-                        bm25_rank=original.bm25_rank,
-                        dense_rank=original.dense_rank
-                    ))
+                    results.append(
+                        HybridResult(
+                            doc_id=rr.doc_id,
+                            text=rr.text,
+                            metadata=rr.metadata,
+                            rrf_score=original.rrf_score,
+                            bm25_score=original.bm25_score,
+                            dense_score=original.dense_score,
+                            bm25_rank=original.bm25_rank,
+                            dense_rank=original.dense_rank,
+                            reranker_score=float(rr.final_score),
+                        )
+                    )
 
             logger.info(f"  Reranking complete")
         elif self.adaptive_reranking:
             logger.info(f"  Skipping reranking for simple query")
 
+        results = results[:top_k]
         logger.info(f"✅ Hybrid search returned {len(results)} results")
         if results:
-            logger.info(f"  Top result: {results[0].doc_id} (RRF: {results[0].rrf_score:.3f})")
-            logger.info(f"    BM25 rank: {results[0].bm25_rank}, Dense rank: {results[0].dense_rank}")
+            logger.info(
+                f"  Top result: {results[0].doc_id} (RRF: {results[0].rrf_score:.3f})"
+            )
+            logger.info(
+                f"    BM25 rank: {results[0].bm25_rank}, Dense rank: {results[0].dense_rank}"
+            )
 
         return results
 
@@ -470,7 +560,9 @@ if __name__ == "__main__":
     import os
 
     # Add parent directory to path
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+    sys.path.insert(
+        0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+    )
 
     logging.basicConfig(level=logging.INFO)
 
@@ -479,23 +571,23 @@ if __name__ == "__main__":
         {
             "id": "1",
             "text": "Deep convolutional neural networks for epilepsy seizure detection from EEG signals",
-            "metadata": {"year": 2019}
+            "metadata": {"year": 2019},
         },
         {
             "id": "2",
             "text": "Sleep staging using recurrent neural networks and EEG time series",
-            "metadata": {"year": 2020}
+            "metadata": {"year": 2020},
         },
         {
             "id": "3",
             "text": "Motor imagery classification with convolutional neural networks for BCI",
-            "metadata": {"year": 2021}
+            "metadata": {"year": 2021},
         },
         {
             "id": "4",
             "text": "Epileptic seizure prediction using machine learning and EEG features",
-            "metadata": {"year": 2018}
-        }
+            "metadata": {"year": 2018},
+        },
     ]
 
     # Initialize BM25
@@ -504,14 +596,16 @@ if __name__ == "__main__":
 
     # Initialize dense (requires Qdrant running - skip if not available)
     try:
-        dense = DenseRetriever(url="http://localhost:6333", collection_name="eeg_papers")
+        dense = DenseRetriever(
+            url="http://localhost:6333", collection_name="eeg_papers"
+        )
 
         # Create hybrid retriever
         hybrid = HybridRetriever(
             bm25_retriever=bm25,
             dense_retriever=dense,
             bm25_weight=0.5,
-            dense_weight=0.5
+            dense_weight=0.5,
         )
 
         # Test search

@@ -685,6 +685,9 @@ class LocalDataAgent(BaseAgent):
         )
 
         config_map = config or {}
+        from eeg_rag.utils.async_work import BoundedWorker
+
+        self._retrieval_worker = BoundedWorker(config_map.get("retrieval_concurrency", 1))
 
         # Configuration
         self.top_k = config_map.get("top_k", 5)
@@ -792,7 +795,13 @@ class LocalDataAgent(BaseAgent):
             # Dense semantic retriever
             self.dense_retriever = DenseRetriever(
                 url=qdrant_url,
-                collection_name=qdrant_collection
+                collection_name=qdrant_collection,
+                model_name=config.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2"),
+                embedding_backend=config.get("embedding_backend", "torch"),
+                model_revision=config.get("model_revision"),
+                onnx_threads=config.get("onnx_threads"),
+                allow_legacy_index=config.get("allow_legacy_index", False),
+                api_key=config.get("qdrant_api_key"),
             )
             self.logger.info(f"Dense retriever initialized (Qdrant: {qdrant_url}/{qdrant_collection})")
 
@@ -808,6 +817,8 @@ class LocalDataAgent(BaseAgent):
                 reranker_model=config.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2"),
                 centrality_enricher=centrality_enricher,
                 include_dense_vectors=include_dense_vectors,
+                rerank_k=config.get("rerank_k", 50),
+                native_qdrant=config.get("native_qdrant", False),
             )
 
             # Store config
@@ -925,7 +936,8 @@ class LocalDataAgent(BaseAgent):
             List of SearchResult objects
         """
         # Perform hybrid search
-        hybrid_results: List[HybridResult] = self.hybrid_retriever.search(
+        hybrid_results: List[HybridResult] = await self._retrieval_worker.run(
+            self.hybrid_retriever.search,
             query=query_text,
             top_k=self.top_k,
             retrieve_k=self.retrieve_k

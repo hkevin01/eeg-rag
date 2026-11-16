@@ -23,7 +23,7 @@ from eeg_rag.agents.local_agent.local_data_agent import (
     LocalDataAgent,
     FAISSVectorStore,
     Citation,
-    SearchResult
+    SearchResult,
 )
 
 
@@ -38,7 +38,7 @@ class TestCitation(unittest.TestCase):
             title="EEG Study",
             authors=["Smith J", "Doe J"],
             journal="J Neurosci",
-            year=2024
+            year=2024,
         )
 
         self.assertEqual(citation.pmid, "12345678")
@@ -52,7 +52,7 @@ class TestCitation(unittest.TestCase):
             title="EEG Study",
             authors=["Smith J", "Doe J", "Johnson A"],
             journal="J Neurosci",
-            year=2024
+            year=2024,
         )
 
         formatted = citation.format_citation()
@@ -65,10 +65,7 @@ class TestCitation(unittest.TestCase):
     def test_citation_many_authors(self):
         """Test citation with many authors"""
         citation = Citation(
-            title="Test",
-            authors=["A", "B", "C", "D", "E"],
-            journal="Test J",
-            year=2024
+            title="Test", authors=["A", "B", "C", "D", "E"], journal="Test J", year=2024
         )
 
         formatted = citation.format_citation()
@@ -76,12 +73,7 @@ class TestCitation(unittest.TestCase):
 
     def test_citation_to_dict(self):
         """Test citation serialization"""
-        citation = Citation(
-            pmid="12345",
-            title="Test",
-            authors=["A"],
-            year=2024
-        )
+        citation = Citation(pmid="12345", title="Test", authors=["A"], year=2024)
 
         data = citation.to_dict()
 
@@ -100,7 +92,7 @@ class TestSearchResult(unittest.TestCase):
             document_id="doc1",
             content="Test content",
             citation=citation,
-            relevance_score=0.95
+            relevance_score=0.95,
         )
 
         self.assertEqual(result.document_id, "doc1")
@@ -114,7 +106,7 @@ class TestSearchResult(unittest.TestCase):
             content="Test content",
             citation=citation,
             relevance_score=0.95,
-            metadata={"source": "test"}
+            metadata={"source": "test"},
         )
 
         data = result.to_dict()
@@ -140,11 +132,11 @@ class TestFAISSVectorStore(unittest.TestCase):
 
     def test_add_documents(self):
         """Test adding documents to store"""
-        embeddings = np.random.randn(3, 128).astype('float32')
+        embeddings = np.random.randn(3, 128).astype("float32")
         documents = [
             {"content": "Doc 1", "citation": {}},
             {"content": "Doc 2", "citation": {}},
-            {"content": "Doc 3", "citation": {}}
+            {"content": "Doc 3", "citation": {}},
         ]
 
         doc_ids = self.store.add_documents(embeddings, documents)
@@ -163,11 +155,8 @@ class TestFAISSVectorStore(unittest.TestCase):
     def test_search_with_documents(self):
         """Test searching with documents"""
         # Add documents
-        embeddings = np.random.randn(5, 128).astype('float32')
-        documents = [
-            {"content": f"Doc {i}", "citation": {}}
-            for i in range(5)
-        ]
+        embeddings = np.random.randn(5, 128).astype("float32")
+        documents = [{"content": f"Doc {i}", "citation": {}} for i in range(5)]
         self.store.add_documents(embeddings, documents)
 
         # Search
@@ -183,11 +172,8 @@ class TestFAISSVectorStore(unittest.TestCase):
     def test_save_and_load(self):
         """Test persistence"""
         # Add documents
-        embeddings = np.random.randn(3, 128).astype('float32')
-        documents = [
-            {"content": f"Doc {i}", "citation": {}}
-            for i in range(3)
-        ]
+        embeddings = np.random.randn(3, 128).astype("float32")
+        documents = [{"content": f"Doc {i}", "citation": {}} for i in range(3)]
         self.store.add_documents(embeddings, documents)
 
         # Save
@@ -203,7 +189,7 @@ class TestFAISSVectorStore(unittest.TestCase):
 
     def test_statistics(self):
         """Test getting statistics"""
-        embeddings = np.random.randn(5, 128).astype('float32')
+        embeddings = np.random.randn(5, 128).astype("float32")
         documents = [{"content": f"Doc {i}", "citation": {}} for i in range(5)]
         self.store.add_documents(embeddings, documents)
 
@@ -221,7 +207,8 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
         """Set up test environment"""
         self.agent = LocalDataAgent(
             embedding_dimension=128,
-            config={"top_k": 3, "min_relevance_score": 0.1}
+            config={"top_k": 3, "min_relevance_score": 0.1},
+            use_hybrid_retrieval=False,
         )
 
         # Add some test documents
@@ -232,9 +219,9 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
                     "title": "Alpha Waves Study",
                     "authors": ["Smith J"],
                     "year": 2024,
-                    "journal": "J Neurosci"
+                    "journal": "J Neurosci",
                 },
-                "metadata": {"topic": "alpha"}
+                "metadata": {"topic": "alpha"},
             },
             {
                 "content": "P300 event-related potential component",
@@ -242,9 +229,9 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
                     "title": "P300 Study",
                     "authors": ["Doe J"],
                     "year": 2023,
-                    "journal": "Brain Res"
+                    "journal": "Brain Res",
                 },
-                "metadata": {"topic": "erp"}
+                "metadata": {"topic": "erp"},
             },
             {
                 "content": "Sleep stage classification using EEG",
@@ -252,10 +239,10 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
                     "title": "Sleep EEG",
                     "authors": ["Johnson A"],
                     "year": 2024,
-                    "journal": "Sleep Med"
+                    "journal": "Sleep Med",
                 },
-                "metadata": {"topic": "sleep"}
-            }
+                "metadata": {"topic": "sleep"},
+            },
         ]
 
         self.agent.add_documents(documents)
@@ -268,10 +255,7 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
 
     async def test_execute_search(self):
         """Test executing a search"""
-        query = AgentQuery(
-            text="alpha waves relaxation",
-            intent="factual"
-        )
+        query = AgentQuery(text="alpha waves relaxation", intent="factual")
 
         result = await self.agent.execute(query)
 
@@ -311,7 +295,7 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
         # Empty query should raise ValueError during AgentQuery creation
         with self.assertRaises(ValueError) as cm:
             AgentQuery(text="", intent="factual")
-        
+
         self.assertIn("cannot be empty", str(cm.exception))
 
     def test_add_documents(self):
@@ -324,18 +308,15 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
                 "citation": {
                     "title": "Theta Study",
                     "authors": ["New Author"],
-                    "year": 2024
-                }
+                    "year": 2024,
+                },
             }
         ]
 
         doc_ids = self.agent.add_documents(new_docs)
 
         self.assertEqual(len(doc_ids), 1)
-        self.assertEqual(
-            len(self.agent.vector_store.documents),
-            initial_count + 1
-        )
+        self.assertEqual(len(self.agent.vector_store.documents), initial_count + 1)
 
     def test_statistics(self):
         """Test getting agent statistics"""
@@ -350,14 +331,19 @@ class TestLocalDataAgent(unittest.IsolatedAsyncioTestCase):
         # Create agent with high relevance threshold
         agent = LocalDataAgent(
             embedding_dimension=128,
-            config={"top_k": 10, "min_relevance_score": 0.9}
+            config={"top_k": 10, "min_relevance_score": 0.9},
+            use_hybrid_retrieval=False,
         )
 
         # Add one document
-        agent.add_documents([{
-            "content": "Test document",
-            "citation": {"title": "Test", "authors": [], "year": 2024}
-        }])
+        agent.add_documents(
+            [
+                {
+                    "content": "Test document",
+                    "citation": {"title": "Test", "authors": [], "year": 2024},
+                }
+            ]
+        )
 
         query = AgentQuery(text="completely unrelated query", intent="factual")
         result = await agent.execute(query)

@@ -50,45 +50,85 @@ Requirements Implemented:
 
 import re
 import asyncio
+import hashlib
+import math
+import time
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple, Any
+from enum import Enum
+from typing import Optional, List, Dict, Tuple, Any, Callable
 import httpx
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 import xml.etree.ElementTree as ET
 from ..utils.logging_utils import get_logger
+from ..utils.async_work import BoundedWorker
+from ..utils.ncbi import get_ncbi_limiter
 
 logger = get_logger(__name__)
 
 # Medical literature domain constants
-PMID_PATTERN = re.compile(r'PMID[:\s]*?(\d{7,8})(?![\d])')  # Precise PMID extraction
+PMID_PATTERN = re.compile(r"PMID[:\s]*?(\d{7,8})(?![\d])")  # Precise PMID extraction
 MAX_ABSTRACT_LENGTH = 5000  # Maximum abstract length for processing
 DEFAULT_REQUEST_TIMEOUT = 30.0  # PubMed API timeout in seconds
 RETRY_ATTEMPTS = 3  # Number of retry attempts for failed requests
 RETRY_DELAY = 1.0  # Initial retry delay in seconds
 
+
+class ExistenceStatus(str, Enum):
+    """Whether PubMed authoritatively returned the requested record."""
+
+    FOUND = "found"
+    NOT_FOUND = "not_found"
+    UNKNOWN = "unknown"
+
+
+class ClaimStatus(str, Enum):
+    """Evidence decision, with unavailable checks represented explicitly."""
+
+    SUPPORTED = "supported"
+    UNSUPPORTED = "unsupported"
+    UNKNOWN = "unknown"
+
+
+class RetractionStatus(str, Enum):
+    """Retraction checks must succeed before a paper is treated as safe."""
+
+    CHECKED = "checked"
+    RETRACTED = "retracted"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class ClaimEvidence:
+    """Contradiction-aware decision and the source span used to reach it."""
+
+    status: ClaimStatus
+    score: float
+    span: Optional[str] = None
+
+
 # Hallucination risk patterns for medical content
 HALLUCINATION_PATTERNS = {
-    'absolute_claims': {
-        'pattern': r'\b(always|never|all|none|every|no|100%|0%|completely|entirely|absolutely)\s+(patients?|studies?|cases?|research|evidence)\b',
-        'description': 'Absolute claims without qualification',
-        'risk_multiplier': 2.0
+    "absolute_claims": {
+        "pattern": r"\b(always|never|all|none|every|no|100%|0%|completely|entirely|absolutely)\s+(patients?|studies?|cases?|research|evidence)\b",
+        "description": "Absolute claims without qualification",
+        "risk_multiplier": 2.0,
     },
-    'unsupported_statistics': {
-        'pattern': r'\b\d+%\s*of\s*(patients?|subjects?|cases?)(?!.*\(.*PMID)',
-        'description': 'Specific percentages without citation',
-        'risk_multiplier': 1.8
+    "unsupported_statistics": {
+        "pattern": r"\b\d+%\s*of\s*(patients?|subjects?|cases?)(?!.*\(.*PMID)",
+        "description": "Specific percentages without citation",
+        "risk_multiplier": 1.8,
     },
-    'temporal_claims': {
-        'pattern': r'\b(recent|latest|new|cutting-edge|breakthrough)\s*(research|studies?|findings?)(?!.*\(.*PMID)',
-        'description': 'Temporal claims without recent citations',
-        'risk_multiplier': 1.5
+    "temporal_claims": {
+        "pattern": r"\b(recent|latest|new|cutting-edge|breakthrough)\s*(research|studies?|findings?)(?!.*\(.*PMID)",
+        "description": "Temporal claims without recent citations",
+        "risk_multiplier": 1.5,
     },
-    'superlative_claims': {
-        'pattern': r'\b(best|most effective|optimal|superior|inferior|highest|lowest)\s*(treatment|method|approach)(?!.*\(.*PMID)',
-        'description': 'Comparative claims without evidence',
-        'risk_multiplier': 1.7
-    }
+    "superlative_claims": {
+        "pattern": r"\b(best|most effective|optimal|superior|inferior|highest|lowest)\s*(treatment|method|approach)(?!.*\(.*PMID)",
+        "description": "Comparative claims without evidence",
+        "risk_multiplier": 1.7,
+    },
 }
 
 
@@ -131,6 +171,7 @@ class VerificationResult:
         journal: Journal name if retrieved
         doi: DOI if available
     """
+
     pmid: str
     exists: bool
     title_match: float  # 0-1 similarity score
@@ -144,6 +185,12 @@ class VerificationResult:
     title: Optional[str] = None
     journal: Optional[str] = None
     doi: Optional[str] = None
+    existence_status: ExistenceStatus = ExistenceStatus.UNKNOWN
+    claim_status: ClaimStatus = ClaimStatus.UNKNOWN
+    retraction_status: RetractionStatus = RetractionStatus.UNKNOWN
+    source_chunk_id: Optional[str] = None
+    evidence_span: Optional[str] = None
+    claimed_finding: str = ""
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.VerificationResult.__post_init__
@@ -191,7 +238,7 @@ class VerificationResult:
     @staticmethod
     def _is_valid_pmid(pmid: str) -> bool:
         """Validate PMID format (7-8 digits)."""
-        return bool(re.match(r'^\d{7,8}$', pmid))
+        return isinstance(pmid, str) and bool(re.fullmatch(r"[0-9]{7,8}", pmid))
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.VerificationResult.to_dict
@@ -217,22 +264,31 @@ class VerificationResult:
         API responses, or persistent storage.
         """
         return {
-            'pmid': self.pmid,
-            'exists': self.exists,
-            'is_retracted': self.is_retracted,
-            'title_match': round(self.title_match, 3),
-            'claim_supported': self.claim_supported,
-            'claim_support_score': round(self.claim_support_score, 3),
-            'has_abstract': self.original_abstract is not None,
-            'abstract_length': len(self.original_abstract) if self.original_abstract else 0,
-            'error_message': self.error_message,
-            'verification_timestamp': self.verification_timestamp,
-            'api_response_time_ms': self.api_response_time,
-            'is_valid_format': self._is_valid_pmid(self.pmid),
-            'title': self.title,
-            'journal': self.journal,
-            'doi': self.doi,
-            'is_valid': self.exists and not self.is_retracted,
+            "pmid": self.pmid,
+            "exists": self.exists,
+            "is_retracted": self.is_retracted,
+            "title_match": round(self.title_match, 3),
+            "claim_supported": self.claim_supported,
+            "claim_support_score": round(self.claim_support_score, 3),
+            "has_abstract": self.original_abstract is not None,
+            "abstract_length": (
+                len(self.original_abstract) if self.original_abstract else 0
+            ),
+            "error_message": self.error_message,
+            "verification_timestamp": self.verification_timestamp,
+            "api_response_time_ms": self.api_response_time,
+            "is_valid_format": self._is_valid_pmid(self.pmid),
+            "title": self.title,
+            "journal": self.journal,
+            "doi": self.doi,
+            "existence_status": self.existence_status.value,
+            "claim_status": self.claim_status.value,
+            "retraction_status": self.retraction_status.value,
+            "source_chunk_id": self.source_chunk_id,
+            "evidence_span": self.evidence_span,
+            "claimed_finding": self.claimed_finding,
+            "is_valid": self.is_valid,
+            "is_verified": self.is_verified,
         }
 
     # ---------------------------------------------------------------------------
@@ -254,8 +310,23 @@ class VerificationResult:
     # ---------------------------------------------------------------------------
     @property
     def is_valid(self) -> bool:
-        """Check if citation is valid (exists and not retracted)."""
-        return self.exists and not self.is_retracted
+        """Require confirmed existence and a successful retraction check."""
+        return (
+            self.exists
+            and self.existence_status == ExistenceStatus.FOUND
+            and not self.is_retracted
+            and self.retraction_status == RetractionStatus.CHECKED
+        )
+
+    @property
+    def is_verified(self) -> bool:
+        """Require both a safe citation and supported source evidence."""
+        return (
+            self.is_valid
+            and bool(self.evidence_span)
+            and self.claim_supported
+            and (self.claim_status == ClaimStatus.SUPPORTED)
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +382,7 @@ class CitationVerifier:
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : email: Optional[str] (default=None); similarity_threshold: float (default=0.5); request_timeout: float (default=DEFAULT_REQUEST_TIMEOUT); enable_cache: bool (default=True); max_retries: int (default=RETRY_ATTEMPTS)
     # Outputs      : Implicitly None or see body
@@ -325,22 +396,49 @@ class CitationVerifier:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def __init__(self,
-                 email: Optional[str] = None,
-                 similarity_threshold: float = 0.5,
-                 request_timeout: float = DEFAULT_REQUEST_TIMEOUT,
-                 enable_cache: bool = True,
-                 max_retries: int = RETRY_ATTEMPTS):
+    def __init__(
+        self,
+        email: Optional[str] = None,
+        similarity_threshold: float = 0.5,
+        request_timeout: float = DEFAULT_REQUEST_TIMEOUT,
+        enable_cache: bool = True,
+        max_retries: int = RETRY_ATTEMPTS,
+        client: Optional[httpx.AsyncClient] = None,
+        api_key: Optional[str] = None,
+        max_concurrency: int = 4,
+        claim_evaluator: Optional[Callable[[str, str], ClaimEvidence]] = None,
+        cache_ttl: float = 21600.0,
+        load_similarity_model: bool = False,
+    ):
 
         # API configuration with validation
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.email = email or "research@eeg-rag.org"
         self.request_timeout = request_timeout
         self.max_retries = max_retries
+        if request_timeout <= 0 or max_retries < 1 or cache_ttl <= 0:
+            raise ValueError("timeout, retries, and cache_ttl must be positive")
+        if (
+            isinstance(max_concurrency, bool)
+            or not isinstance(max_concurrency, int)
+            or max_concurrency < 1
+        ):
+            raise ValueError("max_concurrency must be a positive integer")
+        self._client = client
+        self._owns_client = client is None
+        self.api_key = api_key
+        self.max_concurrency = max_concurrency
+        self.claim_evaluator = claim_evaluator
+        self._inference_worker = BoundedWorker(1)
+        self._cache_times: Dict[str, float] = {}
+        self._cache_ttl = cache_ttl
+        self._embedding_cache: Dict[str, Any] = {}
 
         # Validation parameters
         if not 0.0 <= similarity_threshold <= 1.0:
-            raise ValueError(f"Similarity threshold must be 0.0-1.0, got {similarity_threshold}")
+            raise ValueError(
+                f"Similarity threshold must be 0.0-1.0, got {similarity_threshold}"
+            )
         self.similarity_threshold = similarity_threshold
 
         # Performance optimization
@@ -349,10 +447,14 @@ class CitationVerifier:
         self._cache_hits = 0
 
         # Initialize ML model for semantic analysis
-        self.sentence_model = self._initialize_sentence_model()
+        self.sentence_model = (
+            self._initialize_sentence_model() if load_similarity_model else None
+        )
 
-        logger.info(f"CitationVerifier initialized with threshold={similarity_threshold}, "
-                   f"timeout={request_timeout}s, email={self.email}")
+        logger.info(
+            f"CitationVerifier initialized with threshold={similarity_threshold}, "
+            f"timeout={request_timeout}s, email={self.email}"
+        )
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier._initialize_sentence_model
@@ -379,13 +481,17 @@ class CitationVerifier:
         """
         try:
             # Use PubMedBERT for biomedical domain
-            model = SentenceTransformer('microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext')
+            model = SentenceTransformer(
+                "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext"
+            )
             logger.info("Biomedical sentence transformer loaded successfully")
             return model
         except Exception as e:
-            logger.warning(f"Failed to load PubMedBERT, falling back to general model: {e}")
+            logger.warning(
+                f"Failed to load PubMedBERT, falling back to general model: {e}"
+            )
             try:
-                model = SentenceTransformer('all-MiniLM-L6-v2')
+                model = SentenceTransformer("all-MiniLM-L6-v2")
                 logger.info("General sentence transformer loaded as fallback")
                 return model
             except Exception as e2:
@@ -409,7 +515,13 @@ class CitationVerifier:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    async def verify_citation(self, pmid: str, claimed_finding: str = "", check_retraction: bool = True) -> VerificationResult:
+    async def verify_citation(
+        self,
+        pmid: str,
+        claimed_finding: str = "",
+        check_retraction: bool = True,
+        source_chunk_id: Optional[str] = None,
+    ) -> VerificationResult:
         """Verify a single PMID citation with optional retraction checking.
 
         Args:
@@ -421,17 +533,35 @@ class CitationVerifier:
             VerificationResult with complete verification data
         """
         try:
-            # Fetch abstract and metadata from PubMed
+            if not VerificationResult._is_valid_pmid(pmid):
+                raise ValueError("PMID must contain 7 or 8 ASCII digits")
             paper_data = await self._fetch_paper_data(pmid)
+            return await self._verify_record(
+                pmid, claimed_finding, paper_data, check_retraction, source_chunk_id
+            )
+        except Exception as error:
+            return VerificationResult(pmid, False, 0.0, False, error_message=str(error))
 
-            if not paper_data or not paper_data.get("abstract"):
+    async def _verify_record(
+        self,
+        pmid: str,
+        claimed_finding: str,
+        paper_data: Optional[Dict[str, Any]],
+        check_retraction: bool = True,
+        source_chunk_id: Optional[str] = None,
+    ) -> VerificationResult:
+        """Build a decision from one authoritative metadata record."""
+        try:
+
+            if paper_data is None:
                 return VerificationResult(
                     pmid=pmid,
                     exists=False,
                     title_match=0.0,
                     claim_supported=False,
                     is_retracted=False,
-                    error_message="PMID not found or no abstract available"
+                    error_message="PMID not found",
+                    existence_status=ExistenceStatus.NOT_FOUND,
                 )
 
             abstract = paper_data.get("abstract", "")
@@ -440,17 +570,34 @@ class CitationVerifier:
             doi = paper_data.get("doi", "")
 
             # Check if claimed finding is supported
-            claim_supported = True
+            claim_supported = False
             claim_support_score = 0.0
-            if claimed_finding and self.sentence_model:
-                claim_supported, claim_support_score = self._check_claim_support(
-                    claimed_finding, abstract
+            claim_status = ClaimStatus.UNKNOWN
+            evidence_span = None
+            if claimed_finding and abstract and self.claim_evaluator:
+                evidence = await self._inference_worker.run(
+                    self.claim_evaluator, claimed_finding, abstract
                 )
+                if (
+                    isinstance(evidence, ClaimEvidence)
+                    and isinstance(evidence.status, ClaimStatus)
+                    and math.isfinite(evidence.score)
+                    and 0 <= evidence.score <= 1
+                    and evidence.span
+                    and evidence.span in abstract
+                ):
+                    claim_status = evidence.status
+                    claim_support_score = evidence.score
+                    claim_supported = claim_status == ClaimStatus.SUPPORTED
+                    evidence_span = evidence.span
 
             # Check retraction status
-            is_retracted = False
+            retracted = None
             if check_retraction:
-                is_retracted = await self._check_retraction_status(pmid, doi)
+                if "is_retracted" in paper_data:
+                    retracted = paper_data["is_retracted"]
+                else:
+                    retracted = await self._check_retraction_status(pmid, doi)
 
             return VerificationResult(
                 pmid=pmid,
@@ -458,11 +605,27 @@ class CitationVerifier:
                 title_match=1.0,
                 claim_supported=claim_supported,
                 claim_support_score=claim_support_score,
-                is_retracted=is_retracted,
+                is_retracted=retracted is True,
                 original_abstract=abstract,
                 title=title,
                 journal=journal,
-                doi=doi
+                doi=doi,
+                existence_status=ExistenceStatus.FOUND,
+                claim_status=claim_status,
+                retraction_status=(
+                    RetractionStatus.UNKNOWN
+                    if retracted is None
+                    else (
+                        RetractionStatus.RETRACTED
+                        if retracted
+                        else RetractionStatus.CHECKED
+                    )
+                ),
+                error_message="No abstract available" if not abstract else None,
+                source_chunk_id=source_chunk_id,
+                evidence_span=evidence_span,
+                verification_timestamp=time.time(),
+                claimed_finding=claimed_finding,
             )
 
         except Exception as e:
@@ -472,7 +635,7 @@ class CitationVerifier:
                 exists=False,
                 title_match=0.0,
                 claim_supported=False,
-                error_message=str(e)
+                error_message=str(e),
             )
 
     # ---------------------------------------------------------------------------
@@ -492,16 +655,39 @@ class CitationVerifier:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    async def verify_multiple(self, pmids: List[str], claims: List[str] = None) -> List[VerificationResult]:
+    async def verify_multiple(
+        self, pmids: List[str], claims: Optional[List[str]] = None
+    ) -> List[VerificationResult]:
         """Verify multiple citations concurrently"""
-        claims = claims or [""] * len(pmids)
+        if claims is not None and len(claims) != len(pmids):
+            raise ValueError("claims must contain one entry per PMID")
+        claims = claims if claims is not None else [""] * len(pmids)
 
-        tasks = [
-            self.verify_citation(pmid, claim)
-            for pmid, claim in zip(pmids, claims)
-        ]
-
-        return await asyncio.gather(*tasks, return_exceptions=True)
+        results: List[VerificationResult] = []
+        for start in range(0, len(pmids), 200):
+            batch = pmids[start : start + 200]
+            try:
+                records = await self._fetch_paper_batch(list(dict.fromkeys(batch)))
+            except Exception as error:
+                results.extend(
+                    VerificationResult(
+                        pmid, False, 0.0, False, error_message=str(error)
+                    )
+                    for pmid in batch
+                )
+                continue
+            for offset in range(0, len(batch), self.max_concurrency):
+                group = batch[offset : offset + self.max_concurrency]
+                decisions = await asyncio.gather(
+                    *[
+                        self._verify_record(
+                            pmid, claims[start + offset + index], records.get(pmid)
+                        )
+                        for index, pmid in enumerate(group)
+                    ]
+                )
+                results.extend(decisions)
+        return results
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier._fetch_abstract
@@ -522,34 +708,8 @@ class CitationVerifier:
     # ---------------------------------------------------------------------------
     async def _fetch_abstract(self, pmid: str) -> Optional[str]:
         """Fetch abstract from PubMed"""
-        if pmid in self.cache:
-            return self.cache[pmid]
-
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # Use efetch to get the abstract
-                url = f"{self.pubmed_base}/efetch.fcgi"
-                params = {
-                    'db': 'pubmed',
-                    'id': pmid,
-                    'retmode': 'xml',
-                    'email': self.email
-                }
-
-                response = await client.get(url, params=params)
-
-                if response.status_code == 200:
-                    abstract = self._parse_abstract_from_xml(response.text)
-                    if abstract:
-                        self.cache[pmid] = abstract
-                    return abstract
-
-                logger.warning(f"Failed to fetch PMID {pmid}: HTTP {response.status_code}")
-                return None
-
-        except Exception as e:
-            logger.error(f"Error fetching abstract for {pmid}: {e}")
-            return None
+        data = await self._fetch_paper_data(pmid)
+        return data.get("abstract") if data else None
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier._parse_abstract_from_xml
@@ -580,22 +740,16 @@ class CitationVerifier:
                 # Combine all abstract parts
                 abstract_parts = []
                 for elem in abstract_elements:
-                    if elem.text:
+                    if "".join(elem.itertext()):
                         # Include label if present
-                        label = elem.get('Label', '')
-                        text = elem.text.strip()
+                        label = elem.get("Label", "")
+                        text = "".join(elem.itertext()).strip()
                         if label:
                             abstract_parts.append(f"{label}: {text}")
                         else:
                             abstract_parts.append(text)
 
                 return " ".join(abstract_parts)
-
-            # Fallback: look for any text content
-            article = root.find(".//Article")
-            if article is not None:
-                all_text = ET.tostring(article, encoding='unicode', method='text')
-                return " ".join(all_text.split())[:1000]  # Limit length
 
             return None
 
@@ -627,21 +781,32 @@ class CitationVerifier:
             Tuple of (is_supported: bool, similarity_score: float 0-1)
         """
         if not self.sentence_model or not claim.strip() or not abstract.strip():
-            return True, 0.0  # Default to supported if we can't check
+            return False, 0.0
 
         try:
             # Encode claim and abstract
             claim_emb = self.sentence_model.encode(claim, convert_to_tensor=True)
-            abstract_emb = self.sentence_model.encode(abstract, convert_to_tensor=True)
+            model_revision = getattr(self.sentence_model, "model_card_data", None)
+            cache_key = hashlib.sha256(
+                f"{id(self.sentence_model)}:{model_revision}:{abstract}".encode()
+            ).hexdigest()
+            abstract_emb = self._embedding_cache.get(cache_key)
+            if abstract_emb is None:
+                abstract_emb = self.sentence_model.encode(
+                    abstract, convert_to_tensor=True
+                )
+                self._embedding_cache[cache_key] = abstract_emb
 
             # Calculate cosine similarity and clamp to [0, 1]
-            similarity = float(max(0.0, min(1.0, cos_sim(claim_emb, abstract_emb).item())))
+            similarity = float(
+                max(0.0, min(1.0, cos_sim(claim_emb, abstract_emb).item()))
+            )
 
-            return similarity > self.similarity_threshold, similarity
+            return False, similarity
 
         except Exception as e:
             logger.warning(f"Error checking claim support: {e}")
-            return True, 0.0  # Default to supported if error
+            return False, 0.0
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier._fetch_paper_data
@@ -672,40 +837,86 @@ class CitationVerifier:
         Returns:
             Dictionary with paper metadata or None if not found
         """
-        # Check cache first
-        cache_key = f"paper_data:{pmid}"
-        if self.cache is not None and cache_key in self.cache:
-            self._cache_hits += 1
-            logger.debug(f"Cache hit for PMID {pmid}")
-            return self.cache[cache_key]
+        return (await self._fetch_paper_batch([pmid])).get(pmid)
 
-        try:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
-                url = f"{self.pubmed_base}/efetch.fcgi"
-                params = {
-                    'db': 'pubmed',
-                    'id': pmid,
-                    'retmode': 'xml',
-                    'email': self.email
-                }
-
+    async def _get(self, url: str, **kwargs: Any) -> httpx.Response:
+        """Reuse one client and retry transient NCBI failures with bounded backoff."""
+        if self._client is None:
+            self._client = httpx.AsyncClient(timeout=self.request_timeout)
+        for attempt in range(self.max_retries):
+            if url.startswith(self.pubmed_base):
+                await get_ncbi_limiter(self.api_key).acquire()
+            try:
                 self._request_count += 1
-                response = await client.get(url, params=params)
+                response = await self._client.get(url, **kwargs)
+                if response.status_code == 429 or response.status_code >= 500:
+                    response.raise_for_status()
+                return response
+            except (httpx.TransportError, httpx.HTTPStatusError):
+                if attempt + 1 == self.max_retries:
+                    raise
+                await asyncio.sleep(min(RETRY_DELAY * 2**attempt, 10.0))
+        raise RuntimeError("Request retry budget exhausted")
 
-                if response.status_code != 200:
-                    logger.warning(f"Failed to fetch PMID {pmid}: HTTP {response.status_code}")
-                    return None
+    async def _fetch_paper_batch(self, pmids: List[str]) -> Dict[str, Dict[str, Any]]:
+        """Fetch at most 200 unique records, associating each result by PMID."""
+        if not pmids:
+            return {}
+        if any(not VerificationResult._is_valid_pmid(pmid) for pmid in pmids):
+            raise ValueError("PMIDs must contain 7 or 8 ASCII digits")
+        records = {}
+        pending = []
+        for pmid in dict.fromkeys(pmids):
+            key = f"paper_data:{pmid}"
+            if (
+                self.cache is not None
+                and key in self.cache
+                and time.monotonic() - self._cache_times.get(key, 0)
+                < min(self._cache_ttl, 300.0)
+            ):
+                records[pmid] = self.cache[key]
+                self._cache_hits += 1
+            else:
+                pending.append(pmid)
+        for start in range(0, len(pending), 200):
+            group = pending[start : start + 200]
+            params = {
+                "db": "pubmed",
+                "id": ",".join(group),
+                "retmode": "xml",
+                "email": self.email,
+                "tool": "eeg-rag",
+            }
+            if self.api_key:
+                params["api_key"] = self.api_key
+            response = await self._get(f"{self.pubmed_base}/efetch.fcgi", params=params)
+            response.raise_for_status()
+            root = ET.fromstring(response.text)
+            if root.tag != "PubmedArticleSet" or root.find(".//ERROR") is not None:
+                raise ValueError("Invalid PubMed EFetch response")
+            for article in root.findall("PubmedArticle"):
+                pmid = article.findtext("MedlineCitation/PMID", "")
+                if pmid not in group:
+                    continue
+                wrapper = ET.Element("PubmedArticleSet")
+                wrapper.append(article)
+                data = self._parse_paper_data_from_xml(
+                    ET.tostring(wrapper, encoding="unicode")
+                )
+                if data is None:
+                    raise ValueError("Malformed PubMed article")
+                records[pmid] = data
+                if self.cache is not None:
+                    key = f"paper_data:{pmid}"
+                    self.cache[key] = data
+                    self._cache_times[key] = time.monotonic()
+        return records
 
-                data = self._parse_paper_data_from_xml(response.text)
-                # Cache successful results
-                if data and self.cache is not None:
-                    self.cache[cache_key] = data
-
-                return data
-
-        except Exception as e:
-            logger.error(f"Error fetching paper data for {pmid}: {e}")
-            return None
+    async def aclose(self) -> None:
+        """Close only an owned transport; injected clients retain caller ownership."""
+        if self._owns_client and self._client is not None:
+            await self._client.aclose()
+            self._client = None
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.CitationVerifier._parse_paper_data_from_xml
@@ -743,7 +954,7 @@ class CitationVerifier:
 
             # Extract title
             title_elem = article_data.find("ArticleTitle")
-            title = title_elem.text if title_elem is not None else ""
+            title = "".join(title_elem.itertext()) if title_elem is not None else ""
 
             # Extract abstract
             abstract = ""
@@ -752,7 +963,7 @@ class CitationVerifier:
                 abstract_parts = []
                 for at in abstract_elem.findall("AbstractText"):
                     label = at.get("Label", "")
-                    text = at.text or ""
+                    text = "".join(at.itertext())
                     if label:
                         abstract_parts.append(f"{label}: {text}")
                     else:
@@ -781,6 +992,15 @@ class CitationVerifier:
                 "abstract": abstract,
                 "journal": journal,
                 "doi": doi,
+                "is_retracted": any(
+                    element.text
+                    in {"Retracted Publication", "Retraction of Publication"}
+                    for element in article.findall(".//PublicationType")
+                )
+                or any(
+                    element.get("RefType") == "RetractionIn"
+                    for element in article.findall(".//CommentsCorrections")
+                ),
             }
 
         except ET.ParseError as e:
@@ -804,7 +1024,9 @@ class CitationVerifier:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    async def _check_retraction_status(self, pmid: str, doi: Optional[str] = None) -> bool:
+    async def _check_retraction_status(
+        self, pmid: str, doi: Optional[str] = None
+    ) -> Optional[bool]:
         """Check if a paper has been retracted.
 
         Uses multiple methods:
@@ -818,59 +1040,14 @@ class CitationVerifier:
         Returns:
             True if paper is retracted, False otherwise
         """
-        # Method 1: Check PubMed for retraction notices
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                # Search for retraction notices linked to this PMID
-                url = f"{self.pubmed_base}/esearch.fcgi"
-                params = {
-                    'db': 'pubmed',
-                    'term': f'"{pmid}"[PMID] AND (retraction[pt] OR retracted publication[pt])',
-                    'retmode': 'json',
-                    'email': self.email
-                }
-
-                response = await client.get(url, params=params)
-
-                if response.status_code == 200:
-                    data = response.json()
-                    count = int(data.get("esearchresult", {}).get("count", "0"))
-                    if count > 0:
-                        logger.warning(f"Retraction notice found for PMID {pmid}")
-                        return True
-
-        except Exception as e:
-            logger.warning(f"Error checking PubMed retraction for {pmid}: {e}")
-
-        # Method 2: Check Crossref if DOI available
-        if doi:
-            try:
-                async with httpx.AsyncClient(timeout=15.0) as client:
-                    url = f"https://api.crossref.org/works/{doi}"
-                    headers = {"User-Agent": "EEG-RAG/1.0 (mailto:research@eeg-rag.org)"}
-
-                    response = await client.get(url, headers=headers)
-
-                    if response.status_code == 200:
-                        data = response.json()
-                        message = data.get("message", {})
-
-                        # Check for retraction in update-to field
-                        updates = message.get("update-to", [])
-                        for update in updates:
-                            if update.get("type") == "retraction":
-                                logger.warning(f"Crossref retraction found for DOI {doi}")
-                                return True
-
-                        # Also check the 'is-retracted' field if present
-                        if message.get("is-retracted", False):
-                            logger.warning(f"DOI {doi} marked as retracted in Crossref")
-                            return True
-
-            except Exception as e:
-                logger.debug(f"Error checking Crossref retraction for {doi}: {e}")
-
-        return False
+            data = await self._fetch_paper_data(pmid)
+            return data.get("is_retracted") if data else None
+        except Exception as error:
+            logger.warning(
+                "PubMed retraction status unavailable for %s: %s", pmid, error
+            )
+            return None
 
 
 # ---------------------------------------------------------------------------
@@ -896,7 +1073,7 @@ class HallucinationDetector:
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.HallucinationDetector.__init__
     # Requirement  : `__init__` shall execute as specified
-    # Purpose      :   init  
+    # Purpose      :   init
     # Rationale    : Implements domain-specific logic per system design; see referenced specs
     # Inputs       : verifier: CitationVerifier
     # Outputs      : Implicitly None or see body
@@ -912,13 +1089,14 @@ class HallucinationDetector:
     # ---------------------------------------------------------------------------
     def __init__(self, verifier: CitationVerifier):
         self.verifier = verifier
+        self._context_worker = BoundedWorker(1)
 
         # Patterns that might indicate hallucination
         self.hallucination_patterns = {
-            'definitive_claims': r'\b(always|never|all|none|definitely|certainly|absolutely)\b',
-            'specific_numbers': r'\b\d+%\s*of\s*(patients|subjects|cases)\b',
-            'unprovable_statistics': r'\b(most|majority|significant|substantial)\s*(studies|research|evidence)\b',
-            'temporal_claims': r'\b(recent|latest|new|cutting-edge)\s*(research|findings|studies)\b'
+            "definitive_claims": r"\b(always|never|all|none|definitely|certainly|absolutely)\b",
+            "specific_numbers": r"\b\d+%\s*of\s*(patients|subjects|cases)\b",
+            "unprovable_statistics": r"\b(most|majority|significant|substantial)\s*(studies|research|evidence)\b",
+            "temporal_claims": r"\b(recent|latest|new|cutting-edge)\s*(research|findings|studies)\b",
         }
 
     # ---------------------------------------------------------------------------
@@ -938,7 +1116,9 @@ class HallucinationDetector:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    async def check_answer(self, answer: str, context_docs: List[str] = None) -> Dict[str, Any]:
+    async def check_answer(
+        self, answer: str, context_docs: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """Comprehensive hallucination check of an answer"""
         # Extract claims and citations
         claims = self._extract_claims_with_citations(answer)
@@ -946,14 +1126,19 @@ class HallucinationDetector:
 
         # Verify citations
         citation_results = []
-        if cited_pmids:
-            citation_results = await self.verifier.verify_multiple(cited_pmids)
+        pairs = [(claim, pmid) for claim, pmids in claims for pmid in pmids]
+        if pairs:
+            citation_results = await self.verifier.verify_multiple(
+                [pmid for claim, pmid in pairs], [claim for claim, pmid in pairs]
+            )
 
         # Check for hallucination patterns
         pattern_flags = self._check_hallucination_patterns(answer)
 
         # Check claim support against context
-        context_support = self._check_context_support(claims, context_docs or [])
+        context_support = await self._context_worker.run(
+            self._check_context_support, claims, context_docs or []
+        )
 
         # Calculate overall scores
         citation_accuracy = self._calculate_citation_accuracy(citation_results)
@@ -962,22 +1147,49 @@ class HallucinationDetector:
 
         # Overall hallucination score (0 = no hallucination, 1 = high hallucination risk)
         hallucination_score = (
-            (1 - citation_accuracy) * 0.4 +
-            pattern_risk_score * 0.3 +
-            (unsupported_claims / max(len(claims), 1)) * 0.3
+            (1 - citation_accuracy) * 0.4
+            + pattern_risk_score * 0.3
+            + (unsupported_claims / max(len(claims), 1)) * 0.3
         )
 
         return {
-            'hallucination_score': min(hallucination_score, 1.0),
-            'citation_accuracy': citation_accuracy,
-            'verified_citations': len([r for r in citation_results if isinstance(r, VerificationResult) and r.exists]),
-            'invalid_citations': len([r for r in citation_results if isinstance(r, VerificationResult) and not r.exists]),
-            'unsupported_claims': unsupported_claims,
-            'pattern_flags': pattern_flags,
-            'context_support': context_support,
-            'total_claims': len(claims),
-            'total_citations': len(cited_pmids),
-            'citation_results': [r.to_dict() if isinstance(r, VerificationResult) else str(r) for r in citation_results]
+            "hallucination_score": min(hallucination_score, 1.0),
+            "citation_accuracy": citation_accuracy,
+            "verified_citations": len(
+                {
+                    r.pmid
+                    for r in citation_results
+                    if isinstance(r, VerificationResult) and r.is_verified
+                }
+            ),
+            "invalid_citations": len(
+                {
+                    r.pmid
+                    for r in citation_results
+                    if isinstance(r, VerificationResult)
+                    and r.existence_status == ExistenceStatus.NOT_FOUND
+                }
+            ),
+            "unknown_citations": len(
+                {
+                    r.pmid
+                    for r in citation_results
+                    if isinstance(r, VerificationResult)
+                    and (
+                        r.existence_status == ExistenceStatus.UNKNOWN
+                        or r.retraction_status == RetractionStatus.UNKNOWN
+                    )
+                }
+            ),
+            "unsupported_claims": unsupported_claims,
+            "pattern_flags": pattern_flags,
+            "context_support": context_support,
+            "total_claims": len(claims),
+            "total_citations": len(cited_pmids),
+            "citation_results": [
+                r.to_dict() if isinstance(r, VerificationResult) else str(r)
+                for r in citation_results
+            ],
         }
 
     # ---------------------------------------------------------------------------
@@ -1000,7 +1212,7 @@ class HallucinationDetector:
     def _extract_claims_with_citations(self, text: str) -> List[Tuple[str, List[str]]]:
         """Extract claims and their associated citations"""
         # Split into sentences
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         claims = []
 
         for sentence in sentences:
@@ -1012,8 +1224,9 @@ class HallucinationDetector:
             pmids = self._extract_pmids(sentence)
 
             # Clean sentence of citations for claim extraction
-            clean_sentence = re.sub(r'\(PMID:?\s*\d+\)', '', sentence)
-            clean_sentence = re.sub(r'PMID:?\s*\d+', '', clean_sentence).strip()
+            clean_sentence = re.sub(
+                r"[\[(]?PMID[:\s]*[0-9]{7,8}[\])]?", "", sentence
+            ).strip()
 
             if clean_sentence:
                 claims.append((clean_sentence, pmids))
@@ -1039,8 +1252,7 @@ class HallucinationDetector:
     # ---------------------------------------------------------------------------
     def _extract_pmids(self, text: str) -> List[str]:
         """Extract PMID numbers from text"""
-        pmid_pattern = r'PMID:?\s*(\d{8})'
-        return re.findall(pmid_pattern, text)
+        return list(dict.fromkeys(PMID_PATTERN.findall(text)))
 
     # ---------------------------------------------------------------------------
     # ID           : verification.citation_verifier.HallucinationDetector._check_hallucination_patterns
@@ -1089,7 +1301,9 @@ class HallucinationDetector:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _check_context_support(self, claims: List[Tuple[str, List[str]]], context_docs: List[str]) -> float:
+    def _check_context_support(
+        self, claims: List[Tuple[str, List[str]]], context_docs: List[str]
+    ) -> float:
         """Check how well claims are supported by provided context"""
         if not claims or not context_docs or not self.verifier.sentence_model:
             return 0.5  # Neutral if we can't check
@@ -1097,13 +1311,17 @@ class HallucinationDetector:
         try:
             # Combine all context
             full_context = " ".join(context_docs)
-            context_emb = self.verifier.sentence_model.encode(full_context, convert_to_tensor=True)
+            context_emb = self.verifier.sentence_model.encode(
+                full_context, convert_to_tensor=True
+            )
 
             supported_claims = 0
             total_claims = len(claims)
 
             for claim, _ in claims:
-                claim_emb = self.verifier.sentence_model.encode(claim, convert_to_tensor=True)
+                claim_emb = self.verifier.sentence_model.encode(
+                    claim, convert_to_tensor=True
+                )
                 similarity = cos_sim(claim_emb, context_emb).item()
 
                 if similarity > self.verifier.similarity_threshold:
@@ -1137,7 +1355,9 @@ class HallucinationDetector:
         if not results:
             return 1.0
 
-        valid_count = sum(1 for r in results if isinstance(r, VerificationResult) and r.exists)
+        valid_count = sum(
+            1 for r in results if isinstance(r, VerificationResult) and r.is_valid
+        )
         return valid_count / len(results)
 
     # ---------------------------------------------------------------------------
@@ -1157,16 +1377,13 @@ class HallucinationDetector:
     # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
     # References   : EEG-RAG system design specification; see module docstring
     # ---------------------------------------------------------------------------
-    def _count_unsupported_claims(self, claims: List[Tuple[str, List[str]]],
-                                 citation_results: List[VerificationResult]) -> int:
+    def _count_unsupported_claims(
+        self,
+        claims: List[Tuple[str, List[str]]],
+        citation_results: List[VerificationResult],
+    ) -> int:
         """Count claims that are not supported by their citations"""
         unsupported = 0
-
-        # Create a map of PMID to verification result
-        pmid_to_result = {}
-        for result in citation_results:
-            if isinstance(result, VerificationResult):
-                pmid_to_result[result.pmid] = result
 
         for claim, pmids in claims:
             if not pmids:  # Claim without citation
@@ -1174,13 +1391,13 @@ class HallucinationDetector:
                 continue
 
             # Check if any citation supports the claim
-            supported = False
-            for pmid in pmids:
-                if pmid in pmid_to_result:
-                    result = pmid_to_result[pmid]
-                    if result.exists and result.claim_supported:
-                        supported = True
-                        break
+            supported = any(
+                isinstance(result, VerificationResult)
+                and result.pmid in pmids
+                and result.claimed_finding == claim
+                and result.is_verified
+                for result in citation_results
+            )
 
             if not supported:
                 unsupported += 1
@@ -1206,12 +1423,17 @@ class HallucinationDetector:
 # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
 # References   : EEG-RAG system design specification; see module docstring
 # ---------------------------------------------------------------------------
-async def verify_answer_citations(answer: str, email: str = None) -> Dict[str, Any]:
+async def verify_answer_citations(
+    answer: str, email: Optional[str] = None
+) -> Dict[str, Any]:
     """Quick function to verify all citations in an answer"""
     verifier = CitationVerifier(email=email)
     detector = HallucinationDetector(verifier)
 
-    return await detector.check_answer(answer)
+    try:
+        return await detector.check_answer(answer)
+    finally:
+        await verifier.aclose()
 
 
 # ---------------------------------------------------------------------------
@@ -1231,9 +1453,15 @@ async def verify_answer_citations(answer: str, email: str = None) -> Dict[str, A
 # Verification : Unit test with representative, boundary, and invalid inputs; assert return satisfies postcondition
 # References   : EEG-RAG system design specification; see module docstring
 # ---------------------------------------------------------------------------
-async def quick_citation_check(pmids: List[str], email: str = None) -> List[bool]:
+async def quick_citation_check(
+    pmids: List[str], email: Optional[str] = None
+) -> List[bool]:
     """Quick check if PMIDs exist"""
     verifier = CitationVerifier(email=email)
-    results = await verifier.verify_multiple(pmids)
-
-    return [r.exists if isinstance(r, VerificationResult) else False for r in results]
+    try:
+        results = await verifier.verify_multiple(pmids)
+        return [
+            r.exists if isinstance(r, VerificationResult) else False for r in results
+        ]
+    finally:
+        await verifier.aclose()

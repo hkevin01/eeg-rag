@@ -331,13 +331,9 @@ class PubMedAgent(BaseAgent):
     # ---------------------------------------------------------------------------
     async def _rate_limit(self) -> None:
         """Enforce rate limiting."""
-        async with self._request_lock:
-            import time
-            now = time.time()
-            elapsed = now - self._last_request_time
-            if elapsed < self.min_request_interval:
-                await asyncio.sleep(self.min_request_interval - elapsed)
-            self._last_request_time = time.time()
+        from eeg_rag.utils.ncbi import get_ncbi_limiter
+
+        await get_ncbi_limiter(self.api_key).acquire()
 
     # ---------------------------------------------------------------------------
     # ID           : agents.pubmed_agent.pubmed_agent.PubMedAgent._build_params

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DenseResult:
     """Result from dense (semantic) search."""
+
     doc_id: str
     score: float
     text: str
@@ -113,6 +114,11 @@ class DenseRetriever:
         collection_name: str = "eeg_papers",
         model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
         model_preset: Optional[str] = None,
+        embedding_backend: str = "torch",
+        model_revision: Optional[str] = None,
+        onnx_threads: Optional[int] = None,
+        allow_legacy_index: bool = False,
+        api_key: Optional[str] = None,
     ):
         """
         Initialize dense retriever.
@@ -154,7 +160,12 @@ class DenseRetriever:
         self.vector_db = VectorDB(
             qdrant_url=url,
             collection_name=collection_name,
-            embedding_model=model_name
+            embedding_model=model_name,
+            embedding_backend=embedding_backend,
+            model_revision=model_revision,
+            onnx_threads=onnx_threads,
+            allow_legacy_index=allow_legacy_index,
+            api_key=api_key,
         )
 
         logger.info("Initialized DenseRetriever")
@@ -213,18 +224,22 @@ class DenseRetriever:
         # Convert to DenseResult
         results = []
         for sr in search_results:
-            results.append(DenseResult(
-                doc_id=sr.doc_id,
-                score=sr.score,
-                text=sr.payload.get("text", ""),
-                metadata=sr.payload.get("metadata", {}),
-                chunk_id=sr.chunk_id,
-                embedding=sr.vector,
-            ))
+            results.append(
+                DenseResult(
+                    doc_id=sr.doc_id,
+                    score=sr.score,
+                    text=sr.payload.get("text", ""),
+                    metadata=sr.payload.get("metadata", sr.payload),
+                    chunk_id=sr.chunk_id,
+                    embedding=sr.vector,
+                )
+            )
 
         logger.info(f"Dense search for '{query}' returned {len(results)} results")
         if results:
-            logger.info(f"  Top result: {results[0].doc_id} (score: {results[0].score:.3f})")
+            logger.info(
+                f"  Top result: {results[0].doc_id} (score: {results[0].score:.3f})"
+            )
 
         return results
 
@@ -261,8 +276,7 @@ if __name__ == "__main__":
 
     # Create retriever (assumes Qdrant is running with eeg_papers collection)
     retriever = DenseRetriever(
-        url="http://localhost:6333",
-        collection_name="eeg_papers"
+        url="http://localhost:6333", collection_name="eeg_papers"
     )
 
     # Test search
