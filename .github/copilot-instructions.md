@@ -2,6 +2,15 @@
 
 This document provides comprehensive instructions for GitHub Copilot to effectively contribute to the EEG-RAG project.
 
+## rtt Orientation
+
+Before broad exploration, search `.rtt/context.txt` for relevant files and symbols,
+then read the matching source and nearby tests. Source remains the authority for
+behavior; the index is only a structural snapshot. Follow root `AGENTS.md` for
+the regeneration workflow and `.rtt/README.md` for tool details. Run `rtt update`
+after relevant code changes. Check the index header and run `rtt compare` for
+current statistics rather than relying on counts copied into instructions.
+
 ## Project Context
 
 EEG-RAG is a production-grade RAG (Retrieval-Augmented Generation) system specifically designed for electroencephalography (EEG) research and clinical applications. The system processes scientific literature, clinical guidelines, and research data to provide accurate, cited responses to EEG-related queries.

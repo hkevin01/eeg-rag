@@ -54,6 +54,9 @@ coverage.xml
 .dmypy.json
 dmyp.json
 
+# rtt local parsing cache (keep .rtt/context.txt)
+.rtt-cache/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb
