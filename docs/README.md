@@ -11,6 +11,7 @@ docs/
 ├── architecture/          # System design and architecture
 ├── features/              # Feature documentation
 ├── development/           # Developer guides and standards
+├── releases/              # Dated version snapshots and described changes
 ├── planning/              # Project roadmap and planning
 └── archive/               # Historical completion reports
 ```
@@ -18,6 +19,10 @@ docs/
 ---
 
 ## 🚀 Quick Start
+
+EEG researchers can start with [the researcher installation guide](../INSTALL.md).
+For today's dependency upgrades, safety changes, rtt integration, and compatibility
+notes, see [version and release documentation](releases/README.md).
 
 | <sub>Document</sub> | <sub>Description</sub> |
 |----------|-------------|

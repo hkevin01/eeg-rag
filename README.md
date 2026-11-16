@@ -27,9 +27,90 @@
 > **Research/Clinical Disclaimer**: EEG-RAG is designed for research and educational purposes. All retrieved citations must be independently verified before clinical decision-making. This system is not a substitute for professional medical advice.
 
 > [!TIP]
-> Get started in 5 minutes: `pip install -e . && uvicorn eeg_rag.api.main:app --reload` then visit http://localhost:8080/docs
+> EEG researchers: install Python 3.11-3.14 (3.12 recommended), open this project folder in a terminal, and run `python scripts/install_researcher.py`. Then run `python scripts/install_researcher.py --launch` to open the browser interface. On Linux/macOS, use `python3` if `python` is unavailable. No Docker, GPU, administrator access, or environment activation is required.
 
-## Latest Updates (2026-07)
+## Latest Updates (2026-11-16, Unreleased)
+
+Today's work improves citation safety, literature retrieval, reproducibility,
+and setup. The verified researcher installation includes **Sentence Transformers
+6.3.0** and **Qdrant client 1.20.0**. These are dependency versions, not a new
+EEG-RAG release; the current package version remains **0.4.0**.
+
+| Change | What It Does for EEG-RAG |
+| --- | --- |
+| Fail-closed citation verification | Missing models, unavailable abstracts, and failed network checks remain unknown instead of certifying a finding. Existence, retraction, and claim support are separate decisions. |
+| Claim-specific evidence | Each claim/PMID pair retains its source span; one supported finding cannot certify another finding citing the same paper. Optional NLI checks distinguish entailment, contradiction, and uncertainty. |
+| Consistent retrieval filters | Year and other inclusion criteria apply to both BM25 and dense results before fusion. Missing metadata fails the inclusion predicate. |
+| Larger reranking pool | A configurable candidate pool is reranked before the final result cutoff, allowing relevant papers below the initial cutoff to be promoted. RRF and reranker scores remain separate. |
+| Bounded asynchronous work | Blocking retrieval and inference leave the event-loop thread; bounded workers and shared NCBI pacing reduce contention and uncontrolled request bursts. |
+| Batched PMID fetching | Up to 200 unique PMIDs share one metadata request, while output retains input order and claim-specific decisions. HTTP clients are reused and disabled caching is supported. |
+| Safer vector indexes | Collections record model identity, revision, dimensions, pooling, and normalization. Mismatches are rejected; incremental uploads use stable document IDs. |
+| Opt-in native Qdrant hybrid search | BM25 text search and dense-vector search can run and fuse in the same database. Compression requires an external full-precision archive for rollback. |
+| Reproducible dependencies | Package metadata is authoritative, with a generated lock and installation constraints. Runtime and package version reporting now agree. |
+| Researcher installer | CPU-first setup includes the browser interface and charts, preserves configuration, and avoids automatic large-model downloads. Advanced bibliometric engines remain optional. |
+| rtt structural index | [.rtt/context.txt](.rtt/context.txt) maps files, imports, classes, and signatures so contributors and agents can locate code with fewer exploratory source reads. It is not loaded by EEG-RAG at runtime. |
+| Upgrade evaluation harness | Held-out relevance labels support candidate-depth comparisons, Recall@50, nDCG@10, MRR@10, latency, and event-loop delay. It does not replace scientific validation. |
+
+See the [changelog](CHANGELOG.md), [dated change notes](docs/releases/2026-11-16.md),
+and [version-documentation policy](docs/releases/README.md) for details and limitations.
+
+### Sentence Transformers 6.3: Semantic Matching and Evidence
+
+Sentence Transformers is the model library that converts a query or source
+passage into an embedding: a numerical representation used to compare meaning.
+This helps retrieve an EEG paper even when it describes a concept with different
+words than the researcher used. BM25 still supplies precise term matching for
+electrode names, EEG abbreviations, and study terminology.
+
+The library also provides cross-encoders. These evaluate a query and candidate
+passage together to reorder retrieved papers. An optional natural-language
+inference cross-encoder assesses whether a source supports or contradicts a
+specific claim; cosine similarity alone is not proof that a finding is supported.
+The upgrade enables modern inference configuration and more reliable score
+handling. Torch is the tested default. ONNX backend options exist, but the current
+published ONNX exporter conflicts with Transformers 5 and is not part of the
+recommended installation. The 6.3 multi-vector/token-pooling capabilities are
+future evaluation options, not a claim that this corpus was migrated to them.
+
+### Qdrant Client 1.20: Persistent Vector Search
+
+Qdrant is a separate database server; `qdrant-client` is the Python library
+EEG-RAG uses to send vectors, metadata, filters, and queries to that server.
+Installing the client does **not** install or start a database. Dense search
+looks for passages near a query vector, while payload filters enforce inclusion
+criteria. The opt-in native mode adds BM25 over stored text and combines text and
+dense rankings through reciprocal rank fusion (RRF).
+
+The native features require a compatible **Qdrant 1.20.x server**. They were tested
+against an isolated 1.20.1 instance, including filtering, compressed writes, and
+snapshot restoration. Turbo8/Turbo16 storage can reduce vector size, but compressed
+indexes require preserved originals and corpus-specific recall checks. Existing
+collections and production aliases are not automatically migrated.
+
+### Start Without Programming Experience
+
+Download this repository as a ZIP using GitHub's **Code > Download ZIP**, extract
+it, and open a terminal in the extracted folder. Install a supported Python first.
+Then run:
+
+```sh
+python scripts/install_researcher.py
+python scripts/install_researcher.py --launch
+```
+
+The installer uses an environment outside the project, chooses CPU-only PyTorch,
+and verifies the browser dependencies. `--check` displays installed versions;
+`--plan` previews commands; `--launch --port 8502` uses another local port.
+An existing uv installation speeds setup, but ordinary Python/pip is supported.
+Internet access and several GB of disk space are needed; duration depends on the
+connection. It does not install Ollama or download a 7B model automatically.
+
+The interface opens at `http://127.0.0.1:8501`. Public literature search does not
+require a paid LLM key. Generated answers require a configured local or cloud
+provider; models, indexes, and clinical-quality acceptance are separate from
+installation. See [INSTALL.md](INSTALL.md) for setup and troubleshooting.
+
+## Previous Updates (2026-07)
 
 - Accessibility and layout parity across Streamlit entry points:
   - `app_enhanced.py` and `app_modular.py` now use consistent WCAG 2.2 spacing/contrast/non-overlap rules.

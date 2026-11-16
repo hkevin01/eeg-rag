@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-11-16
+- rtt repository integration: generated `.rtt/context.txt`, agent orientation,
+  and a local regeneration guide. The map reduces navigation context; it is not
+  an application dependency. Refresh it with `rtt update` after source changes.
+- Researcher installation: an external CPU-first environment, browser/chart
+  dependencies, setup checks, version reporting, and an activation-free launcher.
+  Ollama, large model downloads, and native bibliometric engines are optional.
+- Optional contradiction-aware NLI evaluation with exact source spans and
+  claim-specific verification decisions.
+- Shared NCBI pacing, batched exact-PMID metadata lookup, connection reuse,
+  bounded blocking workers, and cancellation-aware capacity handling.
+- Configurable Qdrant-native BM25/dense fusion, embedding provenance checks,
+  stable indexing identities, and full-precision archives for compressed writes.
+- A held-out retrieval benchmark harness and offline/live regression tests.
+- Dated dependency and migration notes in `docs/releases/2026-11-16.md`.
+
+### Changed - 2026-11-16
+- Adopted Sentence Transformers 6.3+ and Qdrant client 1.20+; verified a clean
+  researcher environment with 6.3.0 and 1.20.0 respectively.
+- Python support is now 3.11-3.14. Package metadata, `uv.lock`, and generated
+  requirements define installation compatibility; optional OpenVINO and
+  pyBiblioNet dependencies have incompatible constraints and need separate profiles.
+- Inclusion filters apply to both local BM25 and dense candidates before fusion.
+- Reranking precedes the final cutoff and preserves the original RRF score.
+- Missing verification evidence remains unknown; a retrieved PMID alone is not
+  treated as a verified finding. Retraction status must be checked successfully.
+
+### Fixed - 2026-11-16
+- Claim-support and retraction-check failures no longer silently certify claims.
+- Mismatched claim lists are rejected instead of silently dropping PMIDs.
+- Corrected cache-disabled fetching and validated returned record identity.
+- Runtime version reporting now matches package metadata (`0.4.0`); no release,
+  tag, or version bump was made today.
+- Corrected affected legacy tests to use explicit safety states and offline modes.
+
+### Validation Notes - 2026-11-16
+- Native Qdrant fusion, filtering, compression backup, and snapshot restoration
+  were exercised against isolated Qdrant 1.20.1, not a production database.
+- General upstream speed/compression claims are not measured EEG-RAG gains.
+  Clinical calibration, production-scale benchmarks, and multi-vector migration
+  remain separate acceptance gates. Published Optimum ONNX export requirements
+  currently conflict with Transformers 5; do not override them to force installation.
+
 ### Added - 2026-04-01
 - PyPI packaging and installability improvements:
   - Replaced fixed package lists with discovery so all subpackages bundle correctly.
