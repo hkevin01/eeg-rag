@@ -6,12 +6,14 @@ This guide covers all installation methods for EEG-RAG. Choose the method that b
 
 | Requirement | Minimum                     | Recommended |
 | ----------- | --------------------------- | ----------- |
-| Python      | 3.9+                        | 3.11+       |
-| RAM         | 8 GB (for Mistral)          | 16 GB       |
-| Disk Space  | 6 GB (includes Mistral)     | 15 GB       |
+| Python      | 3.11-3.14                   | 3.12        |
+| RAM         | 8 GB for local model work   | 16 GB       |
+| Disk Space  | Several GB for dependencies | Additional space for corpus/models |
 | OS          | Linux, macOS, Windows (WSL) | Linux/macOS |
 
-**Note:** EEG-RAG now includes **Mistral 7B** via Ollama for local AI responses (no API key needed).
+**Note:** A GPU and a paid LLM key are not required to install or open the browser
+interface. Generated answers require a configured provider. Ollama and its models
+are optional and are not downloaded by the recommended setup.
 
 **Optional (for advanced features):**
 - Docker & Docker Compose (for containerized deployment)
@@ -23,49 +25,60 @@ This guide covers all installation methods for EEG-RAG. Choose the method that b
 
 ## 🚀 Quick Start (Recommended)
 
-### Option 1: One-Command Setup
+### Option 1: Researcher Setup
+
+Install Python 3.12 from <https://www.python.org/downloads/>. Download this project
+as a ZIP using GitHub's **Code > Download ZIP**, extract it, and open a terminal
+in the extracted folder. Git users can instead clone the repository:
 
 ```bash
 git clone https://github.com/hkevin01/eeg-rag.git
 cd eeg-rag
-./scripts/setup.sh
+python scripts/install_researcher.py
 ```
 
-This script will:
-- ✅ Check Python version
-- ✅ Create virtual environment
-- ✅ Install dependencies
-- ✅ **Install Ollama + Mistral 7B** (local LLM)
-- ✅ Set up data directories
-- ✅ Create config file template
+Use `python3` on Linux/macOS if `python` is unavailable, or `py -3.12` on Windows.
+The script checks Python, installs CPU-only PyTorch and the researcher/browser
+dependencies in an environment outside the project, prepares data directories,
+and copies the example configuration only when no configuration exists. It uses
+uv if available, otherwise Python/pip. It needs internet access and disk space,
+but no activation command, compiler, Docker, or administrator access.
 
 **After setup:**
 ```bash
-source venv/bin/activate
-streamlit run src/eeg_rag/web_ui/app.py
+python scripts/install_researcher.py --launch
 ```
 
-### Option 2: Manual pip Install
+Open `http://127.0.0.1:8501`. To use another port:
+
+```sh
+python scripts/install_researcher.py --launch --port 8502
+```
+
+Use `--check` to see installed versions and `--plan` to preview commands. Rerun
+the same install command to retry or update the checkout; existing configuration
+is preserved. `--environment /path/outside/project` chooses a custom environment.
+Researcher setup does not start Qdrant, ingest a corpus, download embedding models,
+or configure an answer provider. The Settings page and the guides explain those
+next steps. Supply your PubMed contact email in the local configuration before
+making sustained literature requests.
+
+### Option 2: Advanced Manual Install
 
 ```bash
 # Clone repository
 git clone https://github.com/hkevin01/eeg-rag.git
 cd eeg-rag
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Linux/macOS example: keep the environment outside the project
+python3.12 -m venv "$HOME/.local/share/eeg-rag/manual"
+source "$HOME/.local/share/eeg-rag/manual/bin/activate"
 
 # Install Python dependencies
-pip install -r requirements.txt
-
-# Install Ollama for local LLM
-curl -fsSL https://ollama.com/install.sh | sh
-ollama serve &
-ollama pull mistral
+python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # Install
-pip install -e .
+python -m pip install -c requirements-researcher.txt -e ".[researcher]"
 
 # Set up directories
 mkdir -p data/raw data/processed data/embeddings logs
@@ -130,11 +143,28 @@ EEG-RAG includes a Streamlit-based web interface for easy interaction.
 make ui
 
 # Or directly
-source .venv/bin/activate  # If using venv
-streamlit run src/eeg_rag/web_ui/app.py
+python scripts/install_researcher.py --launch
 ```
 
 **Access at:** http://localhost:8501
+
+Advanced citation-network analysis uses the optional `bibliometrics` extra.
+Its native dependencies may need a compiler; they are intentionally absent from
+the default researcher installation. See [today's compatibility notes](docs/releases/2026-11-16.md).
+
+### Setup Troubleshooting
+
+- **Python not found:** install Python 3.12, reopen the terminal, and use `python3`
+   (Linux/macOS) or `py -3.12` (Windows).
+- **Unsupported Python:** select 3.11-3.14; no system Python is replaced by setup.
+- **Download failure:** check connectivity, firewall/proxy rules, and free disk
+   space, then rerun the same command. Institution-managed systems may need IT to
+   allow PyPI and the official PyTorch download domain.
+- **Missing pip/venv support:** use your platform's supported Python installation
+   or an installed uv. The script never runs administrator commands for you.
+- **Port already used:** launch with `--port 8502`.
+- **No generated answer:** installation is separate from provider configuration.
+   Configure a local or cloud LLM; keep credentials out of shared files and Git.
 
 ### Web UI Features
 
@@ -307,7 +337,7 @@ arch -x86_64 pip install -e .
 
 **Linux**
 - Works out of the box on most distributions
-- Ensure Python 3.9+ is installed
+- Ensure Python 3.11-3.14 is installed (3.12 recommended)
 
 ---
 

@@ -24,7 +24,7 @@ EEG-RAG is a production-grade RAG (Retrieval-Augmented Generation) system specif
 
 ## Quick Reference
 
-- **Primary Language**: Python 3.9+ with async/await patterns
+- **Primary Language**: Python 3.11-3.14 with async/await patterns
 - **Key Frameworks**: FastAPI, Pydantic, asyncio, FAISS, sentence-transformers
 - **Architecture**: Multi-agent RAG system with hybrid retrieval
 - **Data Sources**: PubMed, local EEG datasets, knowledge graphs

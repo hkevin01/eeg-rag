@@ -1,4 +1,4 @@
-# rtt index | generated 2026-11-16 09:57 | 281 files | 122241 tokens
+# rtt index | generated 2026-11-16 10:45 | 295 files | 124842 tokens
 # If this looks outdated, ask the user to run: rtt update
 # examples/complete_pipeline_demo.py [python]
 imports: asyncio, sys, pathlib.Path
@@ -197,6 +197,19 @@ class DatabaseIngestionManager
   def _load_jsonl_to_db(self, jsonl_path: Path) -> dict  # Load papers from JSONL file into database.
 def quick_ingest_openalex(target: int = 100000) -> dict  # Quick ingestion using OpenAlex (no API key needed, very generous limits).
 def main()
+
+# scripts/install_researcher.py [python]
+imports: argparse, hashlib, os, re, shlex, shutil, subprocess, sys, dataclasses.dataclass, pathlib.Path, typing.Optional
+class InstallPlan
+def environment_python(environment: Path) -> Path  # Locate the interpreter in a Windows or POSIX virtual environment.
+def build_install_plan(
+    root: Path,
+    environment: Path,
+    python: str,
+    uv: Optional[str] = None,
+) -> InstallPlan  # Build installation commands without executing them or altering files.
+def launch_command(root: Path, environment: Path, port: int = 8501) -> list[str]  # Build a loopback-only browser UI command using the installed interpreter.
+def main() -> None  # Install, check, or launch a checkout with visible progress and clear errors.
 
 # scripts/run_bulk_ingestion.py [python]
 imports: asyncio, argparse, logging, sys, pathlib.Path, eeg_rag.ingestion.BulkIngestionManager, eeg_rag.ingestion.BulkIngestionConfig
@@ -693,7 +706,7 @@ class EnhancedOrchestratorAgent(OrchestratorAgent)
 imports: pubmed_agent, mesh_expander, citation_crawler, query_builder
 
 # src/eeg_rag/agents/pubmed_agent/citation_crawler.py [python]
-imports: asyncio, logging, typing.Any, typing.Dict, typing.List, typing.Optional, aiohttp
+imports: asyncio, logging, typing.Any, typing.Dict, typing.List, typing.Optional, aiohttp, eeg_rag.utils.ncbi.get_ncbi_limiter
 class CitationCrawler
   def __init__(
         self,
@@ -2559,6 +2572,17 @@ class RetrievalEvaluator
         improved_metrics: RetrievalMetrics
     ) -> Dict[str, Any]  # Compare two sets of metrics and compute improvements
 
+# src/eeg_rag/evaluation/upgrade_benchmark.py [python]
+imports: argparse, asyncio, json, time, pathlib.Path, typing.Any, typing.Optional, numpy, eeg_rag.evaluation.retrieval_metrics.RetrievalEvaluator, eeg_rag.utils.async_work.BoundedWorker
+def benchmark_retrieval(
+    retriever: Any,
+    queries: list[dict[str, Any]],
+    rerank_counts: Optional[list[int]] = None,
+    repetitions: int = 3,
+    concurrency: int = 1,
+) -> list[dict[str, Any]]  # Evaluate quality and latency without tuning on the held-out relevance set.
+def main() -> None  # Benchmark an existing corpus using JSON configuration and held-out queries.
+
 # src/eeg_rag/feedback/__init__.py [python]
 imports: learning
 
@@ -4238,6 +4262,11 @@ class DenseRetriever
         collection_name: str = "eeg_papers",
         model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
         model_preset: Optional[str] = None,
+        embedding_backend: str = "torch",
+        model_revision: Optional[str] = None,
+        onnx_threads: Optional[int] = None,
+        allow_legacy_index: bool = False,
+        api_key: Optional[str] = None,
     )  # Initialize dense retriever.
   def search(
         self,
@@ -4248,8 +4277,14 @@ class DenseRetriever
     ) -> List[DenseResult]  # Search documents using semantic similarity.
   def get_collection_info(self) -> Dict[str, Any]  # Get information about the vector collection.
 
+# src/eeg_rag/retrieval/filters.py [python]
+imports: math, typing.Any, typing.Mapping
+def validate_filters(filters: Mapping[str, Any]) -> None  # Validate equality and numeric range predicates before backend execution.
+def matches_filters(document: Mapping[str, Any], filters: Mapping[str, Any]) -> bool  # Evaluate eligibility, rejecting missing values and incompatible types.
+def to_qdrant_filter(filters: Mapping[str, Any]) -> Any  # Translate the same eligibility policy into Qdrant conditions.
+
 # src/eeg_rag/retrieval/hybrid_retriever.py [python]
-imports: logging, dataclasses.dataclass, typing.List, typing.Optional, typing.Dict, typing.Any, typing.Tuple, collections.defaultdict, eeg_rag.retrieval.bm25_retriever.BM25Retriever, eeg_rag.retrieval.bm25_retriever.BM25Result, eeg_rag.retrieval.centrality_enricher.CentralityEnricher, eeg_rag.retrieval.dense_retriever.DenseRetriever, eeg_rag.retrieval.dense_retriever.DenseResult, eeg_rag.retrieval.query_expander.EEGQueryExpander, eeg_rag.retrieval.reranker.CrossEncoderReranker, eeg_rag.retrieval.reranker.NoOpReranker, eeg_rag.retrieval.reranker.RerankedResult, eeg_rag.retrieval.query_analyzer.QueryAnalyzer, eeg_rag.retrieval.query_analyzer.QueryAnalysis
+imports: logging, dataclasses.dataclass, typing.List, typing.Optional, typing.Dict, typing.Any, typing.Tuple, collections.defaultdict, eeg_rag.retrieval.bm25_retriever.BM25Retriever, eeg_rag.retrieval.bm25_retriever.BM25Result, eeg_rag.retrieval.centrality_enricher.CentralityEnricher, eeg_rag.retrieval.dense_retriever.DenseRetriever, eeg_rag.retrieval.dense_retriever.DenseResult, eeg_rag.retrieval.query_expander.EEGQueryExpander, eeg_rag.retrieval.reranker.CrossEncoderReranker, eeg_rag.retrieval.reranker.NoOpReranker, eeg_rag.retrieval.reranker.RerankedResult, eeg_rag.retrieval.query_analyzer.QueryAnalyzer, eeg_rag.retrieval.query_analyzer.QueryAnalysis, eeg_rag.retrieval.filters.matches_filters, eeg_rag.retrieval.filters.validate_filters
 class HybridResult
 class HybridRetriever
   def __init__(
@@ -4265,11 +4300,11 @@ class HybridRetriever
         adaptive_reranking: bool = False,
         centrality_enricher: Optional[CentralityEnricher] = None,
         include_dense_vectors: bool = False,
+        rerank_k: int = 50,
+        native_qdrant: bool = False,
     )  # Initialize hybrid retriever.
   def _compute_rrf_scores(
-        self,
-        bm25_results: List[BM25Result],
-        dense_results: List[DenseResult]
+        self, bm25_results: List[BM25Result], dense_results: List[DenseResult]
     ) -> Dict[str, Tuple[float, Dict[str, Any]]]  # Compute Reciprocal Rank Fusion scores.
   def _prepare_metadata(
         self,
@@ -4281,7 +4316,8 @@ class HybridRetriever
         query: str,
         top_k: int = 10,
         retrieve_k: int = 100,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
+        rerank_k: Optional[int] = None,
     ) -> List[HybridResult]  # Search using hybrid BM25 + dense retrieval with RRF.
 
 # src/eeg_rag/retrieval/query_analyzer.py [python]
@@ -4750,26 +4786,39 @@ class EEGCaseMatcher
 imports: vector_db
 
 # src/eeg_rag/storage/vector_db.py [python]
-imports: logging, typing.List, typing.Dict, typing.Any, typing.Optional, typing.Tuple, dataclasses.dataclass, numpy, sentence_transformers.SentenceTransformer
+imports: logging, hashlib, json, threading, uuid, os, pathlib.Path, typing.List, typing.Dict, typing.Any, typing.Optional, typing.Tuple, dataclasses.dataclass, numpy, sentence_transformers.SentenceTransformer, eeg_rag.retrieval.filters.to_qdrant_filter, eeg_rag.retrieval.filters.validate_filters
 class SearchResult
 class VectorDB
   def __init__(
         self,
         qdrant_url: str = "http://localhost:6333",
         collection_name: str = "eeg_papers",
-        embedding_model: str = "all-MiniLM-L6-v2"
+        embedding_model: str = "all-MiniLM-L6-v2",
+        embedding_backend: str = "torch",
+        model_revision: Optional[str] = None,
+        normalize_embeddings: bool = False,
+        model_dtype: str = "float32",
+        onnx_threads: Optional[int] = None,
+        vector_datatype: str = "float32",
+        allow_legacy_index: bool = False,
+        api_key: Optional[str] = None,
     )  # Initialize vector database.
   def client(self)  # Lazy initialization of Qdrant client.
   def create_collection(self, recreate: bool = False) -> bool  # Create Qdrant collection with proper schema.
+  def embedding_identity(self) -> Dict[str, Any]  # Return the encoding contract stored with the corpus, independent of backend.
+  def validate_collection(self) -> None  # Reject incompatible or unproven embedding spaces before reading or writing.
   def embed_texts(self, texts: List[str], batch_size: int = 32) -> np.ndarray  # Generate embeddings for texts.
   def embed_query(self, query: str) -> np.ndarray  # Generate embedding for a single query.
   def index_documents(
         self,
         documents: List[Dict[str, Any]],
         text_field: str = "text",
-        batch_size: int = 100
+        batch_size: int = 100,
+        original_vectors_path: Optional[Path] = None,
     ) -> int  # Index documents into Qdrant.
-  def _build_centroid_sketch(embedding: np.ndarray, sketch_size: int = 16) -> List[float]  # Build a compact centroid sketch from a dense embedding.
+  def _build_centroid_sketch(
+        embedding: np.ndarray, sketch_size: int = 16
+    ) -> List[float]  # Build a compact centroid sketch from a dense embedding.
   def search(
         self,
         query: str,
@@ -4778,12 +4827,29 @@ class VectorDB
         filter_conditions: Optional[Dict[str, Any]] = None,
         include_vectors: bool = False,
     ) -> List[SearchResult]  # Search for similar documents.
+  def configure_bm25(self, text_field: str = "text") -> None  # Build a scoring full-text index without replacing corpus vectors.
+  def hybrid_search(
+        self,
+        query: str,
+        limit: int = 10,
+        retrieve_k: int = 100,
+        filters: Optional[Dict[str, Any]] = None,
+        text_field: str = "text",
+        weights: Optional[List[float]] = None,
+        rrf_k: int = 60,
+    ) -> List[SearchResult]  # Fuse native BM25 and dense candidates in one Qdrant request.
   def get_collection_info(self) -> Dict[str, Any]  # Get information about the collection.
   def delete_collection(self) -> bool  # Delete the collection.
 def test_vector_db()  # Test the vector database functionality.
 
 # src/eeg_rag/utils/__init__.py [python]
 imports: deduplication, citations, quality_badges, time_utils, error_handling, memory_utils, persistence_utils, resilience_utils
+
+# src/eeg_rag/utils/async_work.py [python]
+imports: asyncio, typing.Any, typing.Callable
+class BoundedWorker
+  def __init__(self, concurrency: int = 1) -> None
+  def run(self, function: Callable[..., Any], *args: Any, **kwargs: Any) -> Any  # Offload work and retain capacity until its thread actually finishes.
 
 # src/eeg_rag/utils/citations.py [python]
 imports: typing.Dict, typing.List, typing.Optional, re, datetime.datetime
@@ -5139,6 +5205,18 @@ def record_memory_profile(profile: MemoryProfile)  # Record a memory profile glo
 def get_memory_profiles() -> List[Dict[str, Any]]  # Get all recorded memory profiles.
 def clear_memory_profiles()  # Clear all recorded memory profiles.
 
+# src/eeg_rag/utils/ncbi.py [python]
+imports: asyncio, hashlib, time, weakref, typing.Awaitable, typing.Callable, typing.Optional
+class NcbiRateLimiter
+  def __init__(
+        self,
+        requests_per_second: float = 3.0,
+        clock: Callable[[], float] = time.monotonic,
+        delay: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None
+  def acquire(self) -> None  # Reserve a rate-limited request start; cancellation consumes no slot.
+def get_ncbi_limiter(api_key: Optional[str] = None) -> NcbiRateLimiter  # Share pacing per running loop and credential without retaining raw keys.
+
 # src/eeg_rag/utils/persistence_utils.py [python]
 imports: asyncio, hashlib, json, logging, os, shutil, time, contextlib.asynccontextmanager, contextlib.contextmanager, dataclasses.dataclass, dataclasses.field, datetime.datetime, functools.wraps, pathlib.Path, typing.Any, typing.Callable, typing.Dict, typing.Generic, typing.List, typing.Optional, typing.TypeVar, typing.Union
 class PersistenceStatus
@@ -5460,40 +5538,98 @@ def check_latency_threshold(
 imports: citation_verifier, project_claims
 
 # src/eeg_rag/verification/citation_verifier.py [python]
-imports: re, asyncio, dataclasses.dataclass, typing.Optional, typing.List, typing.Dict, typing.Tuple, typing.Any, httpx, sentence_transformers.SentenceTransformer, sentence_transformers.util.cos_sim, xml, utils
+imports: re, asyncio, hashlib, math, time, dataclasses.dataclass, enum.Enum, typing.Optional, typing.List, typing.Dict, typing.Tuple, typing.Any, typing.Callable, httpx, sentence_transformers.SentenceTransformer, sentence_transformers.util.cos_sim, xml, utils
+class ExistenceStatus(str, Enum)
+class ClaimStatus(str, Enum)
+class RetractionStatus(str, Enum)
+class ClaimEvidence
 class VerificationResult
   def __post_init__(self)  # Validate PMID format and score ranges.
   def _is_valid_pmid(pmid: str) -> bool  # Validate PMID format (7-8 digits).
   def to_dict(self) -> Dict[str, Any]  # Convert to dictionary for serialization.
-  def is_valid(self) -> bool  # Check if citation is valid (exists and not retracted).
+  def is_valid(self) -> bool  # Require confirmed existence and a successful retraction check.
+  def is_verified(self) -> bool  # Require both a safe citation and supported source evidence.
 class CitationVerifier
-  def __init__(self,
-                 email: Optional[str] = None,
-                 similarity_threshold: float = 0.5,
-                 request_timeout: float = DEFAULT_REQUEST_TIMEOUT,
-                 enable_cache: bool = True,
-                 max_retries: int = RETRY_ATTEMPTS)
+  def __init__(
+        self,
+        email: Optional[str] = None,
+        similarity_threshold: float = 0.5,
+        request_timeout: float = DEFAULT_REQUEST_TIMEOUT,
+        enable_cache: bool = True,
+        max_retries: int = RETRY_ATTEMPTS,
+        client: Optional[httpx.AsyncClient] = None,
+        api_key: Optional[str] = None,
+        max_concurrency: int = 4,
+        claim_evaluator: Optional[Callable[[str, str], ClaimEvidence]] = None,
+        cache_ttl: float = 21600.0,
+        load_similarity_model: bool = False,
+    )
   def _initialize_sentence_model(self) -> Optional[SentenceTransformer]  # Initialize sentence transformer with error handling.
-  def verify_citation(self, pmid: str, claimed_finding: str = "", check_retraction: bool = True) -> VerificationResult  # Verify a single PMID citation with optional retraction checking.
-  def verify_multiple(self, pmids: List[str], claims: List[str] = None) -> List[VerificationResult]  # Verify multiple citations concurrently
+  def verify_citation(
+        self,
+        pmid: str,
+        claimed_finding: str = "",
+        check_retraction: bool = True,
+        source_chunk_id: Optional[str] = None,
+    ) -> VerificationResult  # Verify a single PMID citation with optional retraction checking.
+  def _verify_record(
+        self,
+        pmid: str,
+        claimed_finding: str,
+        paper_data: Optional[Dict[str, Any]],
+        check_retraction: bool = True,
+        source_chunk_id: Optional[str] = None,
+    ) -> VerificationResult  # Build a decision from one authoritative metadata record.
+  def verify_multiple(
+        self, pmids: List[str], claims: Optional[List[str]] = None
+    ) -> List[VerificationResult]  # Verify multiple citations concurrently
   def _fetch_abstract(self, pmid: str) -> Optional[str]  # Fetch abstract from PubMed
   def _parse_abstract_from_xml(self, xml_content: str) -> Optional[str]  # Parse abstract from PubMed XML response
   def _check_claim_support(self, claim: str, abstract: str) -> Tuple[bool, float]  # Check if claim is supported by abstract using semantic similarity.
   def _fetch_paper_data(self, pmid: str) -> Optional[Dict[str, Any]]  # Fetch complete paper data including title, journal, DOI from PubMed.
+  def _get(self, url: str, **kwargs: Any) -> httpx.Response  # Reuse one client and retry transient NCBI failures with bounded backoff.
+  def _fetch_paper_batch(self, pmids: List[str]) -> Dict[str, Dict[str, Any]]  # Fetch at most 200 unique records, associating each result by PMID.
+  def aclose(self) -> None  # Close only an owned transport; injected clients retain caller ownership.
   def _parse_paper_data_from_xml(self, xml_content: str) -> Optional[Dict[str, Any]]  # Parse complete paper data from PubMed XML response.
-  def _check_retraction_status(self, pmid: str, doi: Optional[str] = None) -> bool  # Check if a paper has been retracted.
+  def _check_retraction_status(
+        self, pmid: str, doi: Optional[str] = None
+    ) -> Optional[bool]  # Check if a paper has been retracted.
 class HallucinationDetector
   def __init__(self, verifier: CitationVerifier)
-  def check_answer(self, answer: str, context_docs: List[str] = None) -> Dict[str, Any]  # Comprehensive hallucination check of an answer
+  def check_answer(
+        self, answer: str, context_docs: Optional[List[str]] = None
+    ) -> Dict[str, Any]  # Comprehensive hallucination check of an answer
   def _extract_claims_with_citations(self, text: str) -> List[Tuple[str, List[str]]]  # Extract claims and their associated citations
   def _extract_pmids(self, text: str) -> List[str]  # Extract PMID numbers from text
   def _check_hallucination_patterns(self, text: str) -> Dict[str, float]  # Check for patterns that might indicate hallucination
-  def _check_context_support(self, claims: List[Tuple[str, List[str]]], context_docs: List[str]) -> float  # Check how well claims are supported by provided context
+  def _check_context_support(
+        self, claims: List[Tuple[str, List[str]]], context_docs: List[str]
+    ) -> float  # Check how well claims are supported by provided context
   def _calculate_citation_accuracy(self, results: List[VerificationResult]) -> float  # Calculate percentage of valid citations
-  def _count_unsupported_claims(self, claims: List[Tuple[str, List[str]]],
-                                 citation_results: List[VerificationResult]) -> int  # Count claims that are not supported by their citations
-def verify_answer_citations(answer: str, email: str = None) -> Dict[str, Any]  # Quick function to verify all citations in an answer
-def quick_citation_check(pmids: List[str], email: str = None) -> List[bool]  # Quick check if PMIDs exist
+  def _count_unsupported_claims(
+        self,
+        claims: List[Tuple[str, List[str]]],
+        citation_results: List[VerificationResult],
+    ) -> int  # Count claims that are not supported by their citations
+def verify_answer_citations(
+    answer: str, email: Optional[str] = None
+) -> Dict[str, Any]  # Quick function to verify all citations in an answer
+def quick_citation_check(
+    pmids: List[str], email: Optional[str] = None
+) -> List[bool]  # Quick check if PMIDs exist
+
+# src/eeg_rag/verification/entailment.py [python]
+imports: re, typing.Any, typing.Optional, numpy, eeg_rag.verification.citation_verifier.ClaimEvidence, eeg_rag.verification.citation_verifier.ClaimStatus
+class NLIClaimEvaluator
+  def __init__(
+        self,
+        model_name: str = "cross-encoder/nli-deberta-v3-base",
+        revision: Optional[str] = None,
+        threshold: float = 0.9,
+        backend: str = "torch",
+        model: Any = None,
+    ) -> None
+  def __call__(self, claim: str, abstract: str) -> ClaimEvidence  # Return an entailment decision and exact source span, or unknown on error.
 
 # src/eeg_rag/verification/project_claims.py [python]
 imports: json, dataclasses.dataclass, dataclasses.field, datetime.datetime, datetime.timezone, enum.Enum, pathlib.Path, typing.Any, typing.Dict, typing.List, typing.Optional, eeg_rag.retrieval.bm25_retriever.BM25Result, eeg_rag.retrieval.dense_retriever.DenseResult, eeg_rag.retrieval.hybrid_retriever.HybridRetriever, eeg_rag.services.stats_service.StatsService
@@ -6139,6 +6275,14 @@ class TestDeduplication
   def test_sorted_by_score_descending(self)
   def test_empty_input(self)
 
+# tests/test_async_work_and_evidence.py [python]
+imports: asyncio, threading, types.SimpleNamespace, numpy, pytest, eeg_rag.utils.async_work.BoundedWorker, eeg_rag.utils.ncbi.NcbiRateLimiter, eeg_rag.utils.ncbi.get_ncbi_limiter
+def test_ncbi_clients_share_one_request_budget()
+def test_cancelled_blocking_work_retains_capacity()
+def test_nli_label_mapping_preserves_contradictions(scores, status)
+def test_nli_rejects_invalid_probabilities()
+def test_local_retrieval_runs_outside_event_loop_thread()
+
 # tests/test_base_agent_boundary_conditions.py [python]
 imports: unittest, asyncio, sys, pathlib.Path, datetime.datetime, datetime.timedelta, unittest.mock.Mock, unittest.mock.patch, unittest.mock.AsyncMock, eeg_rag.agents.base_agent.AgentType, eeg_rag.agents.base_agent.AgentStatus, eeg_rag.agents.base_agent.AgentQuery, eeg_rag.agents.base_agent.AgentResult, eeg_rag.agents.base_agent.BaseAgent, eeg_rag.agents.base_agent.AgentRegistry
 class MockAgent(BaseAgent)
@@ -6419,15 +6563,36 @@ class TestEdgeCases
   def test_special_characters_in_text(self)  # Test handling special characters in keyword extraction.
   def test_unicode_handling(self, tmp_path)  # Test Unicode character handling in export.
 
+# tests/test_citation_safety.py [python]
+imports: unittest.mock.AsyncMock, unittest.mock.Mock, unittest.mock.patch, httpx, pytest, eeg_rag.verification.citation_verifier.CitationVerifier
+def verifier()
+def test_missing_model_cannot_verify_claim(verifier)
+def test_missing_abstract_is_not_missing_paper(verifier)
+def test_transport_failure_has_unknown_existence(verifier)
+def test_mismatched_claims_are_rejected_before_requests(verifier)
+def test_inference_error_does_not_support_claim(verifier)
+def test_retraction_timeout_is_unknown(verifier)
+def pubmed_xml(pmids, abstract="EEG identifies epileptiform activity.")
+def test_batch_metadata_deduplicates_and_preserves_input_order()
+def test_wrong_returned_pmid_is_not_verified()
+def test_disabled_cache_fetches_abstract_without_crashing()
+def test_claim_evidence_requires_entailment_and_source_span(verifier)
+def test_answer_claims_do_not_borrow_support_from_other_claims()
+def test_existence_without_claim_evidence_is_not_verified()
+
 # tests/test_citation_verifier.py [python]
-imports: pytest, asyncio, unittest.mock.Mock, unittest.mock.AsyncMock, unittest.mock.patch, src.eeg_rag.verification.citation_verifier.CitationVerifier, src.eeg_rag.verification.citation_verifier.HallucinationDetector, src.eeg_rag.verification.citation_verifier.VerificationResult, src.eeg_rag.verification.citation_verifier.verify_answer_citations, src.eeg_rag.verification.citation_verifier.quick_citation_check
+imports: pytest, asyncio, unittest.mock.Mock, unittest.mock.AsyncMock, unittest.mock.patch, src.eeg_rag.verification.citation_verifier.CitationVerifier, src.eeg_rag.verification.citation_verifier.HallucinationDetector, src.eeg_rag.verification.citation_verifier.VerificationResult, src.eeg_rag.verification.citation_verifier.verify_answer_citations, src.eeg_rag.verification.citation_verifier.quick_citation_check, src.eeg_rag.verification.citation_verifier.ExistenceStatus, src.eeg_rag.verification.citation_verifier.RetractionStatus, src.eeg_rag.verification.citation_verifier.ClaimStatus
 class TestCitationVerifier
   def verifier(self)
   def mock_pubmed_response(self)
   def test_init(self, verifier)  # Test verifier initialization
-  def test_verify_citation_success(self, mock_client, verifier, mock_pubmed_response)  # Test successful citation verification
+  def test_verify_citation_success(
+        self, mock_client, verifier, mock_pubmed_response
+    )  # Test successful citation verification
   def test_verify_citation_not_found(self, mock_client, verifier)  # Test citation not found
-  def test_verify_multiple_citations(self, mock_client, verifier, mock_pubmed_response)  # Test multiple citation verification
+  def test_verify_multiple_citations(
+        self, mock_client, verifier, mock_pubmed_response
+    )  # Test multiple citation verification
   def test_parse_abstract_from_xml(self, verifier, mock_pubmed_response)  # Test XML parsing
   def test_check_claim_support_no_model(self, verifier)  # Test claim support check without model
   def test_convenience_functions(self)  # Test convenience functions
@@ -6437,7 +6602,9 @@ class TestHallucinationDetector
   def test_extract_pmids(self, detector)  # Test PMID extraction
   def test_extract_claims_with_citations(self, detector)  # Test claim extraction
   def test_check_hallucination_patterns(self, detector)  # Test pattern detection
-  def test_check_answer(self, mock_extract_claims, mock_extract_pmids, detector)  # Test complete answer checking
+  def test_check_answer(
+        self, mock_extract_claims, mock_extract_pmids, detector
+    )  # Test complete answer checking
   def test_calculate_citation_accuracy(self, detector)  # Test citation accuracy calculation
   def test_count_unsupported_claims(self, detector)  # Test unsupported claims counting
 class TestVerificationResult
@@ -6543,6 +6710,10 @@ class TestContextAggregator
   def test_diversity_lambda_adapts_to_query_complexity(self)  # Simple queries should favor precision more than complex queries.
   def test_get_statistics(self)  # Test getting aggregation statistics
   def test_reset_statistics(self)  # Test resetting statistics
+
+# tests/test_dependency_contract.py [python]
+imports: tomllib, pathlib.Path, packaging.requirements.Requirement, packaging.specifiers.SpecifierSet
+def test_modern_stack_is_declared_and_python_floor_is_explicit()
 
 # tests/test_enhanced_agents.py [python]
 imports: pytest, asyncio, unittest.mock.Mock, unittest.mock.AsyncMock, unittest.mock.patch, pathlib.Path, src.eeg_rag.agents.base_agent.AgentType, src.eeg_rag.agents.base_agent.AgentStatus, src.eeg_rag.agents.base_agent.AgentResult, src.eeg_rag.agents.base_agent.AgentQuery, src.eeg_rag.agents.base_agent.AgentCoordinator, src.eeg_rag.agents.base_agent.CircuitBreaker, src.eeg_rag.agents.base_agent.LoadBalancer, src.eeg_rag.agents.base_agent.RetryManager, src.eeg_rag.agents.orchestrator.orchestrator_agent.EnhancedOrchestratorAgent, src.eeg_rag.agents.orchestrator.orchestrator_agent.ExecutionNode, src.eeg_rag.agents.orchestrator.orchestrator_agent.ExecutionPlan, src.eeg_rag.planning.enhanced_planner.EnhancedQueryPlanner, src.eeg_rag.planning.query_planner.QueryPlan, src.eeg_rag.planning.query_planner.QueryIntent, src.eeg_rag.planning.query_planner.QueryComplexity
@@ -7393,6 +7564,16 @@ def _copy_test_corpus(tmp_path: Path) -> Path
 def test_project_claim_audit_reports_corpus_and_retrieval(tmp_path)
 def test_project_claim_audit_exposes_recommendations(tmp_path)
 
+# tests/test_qdrant_upgrade_integration.py [python]
+imports: os, uuid, unittest.mock.patch, numpy, pytest, eeg_rag.storage.vector_db.VectorDB
+class FixedEncoder
+  def get_sentence_embedding_dimension(self)
+  def encode(self, texts, **kwargs)
+def database()
+def test_native_bm25_dense_fusion_preserves_year_eligibility(database)
+def test_snapshot_restore_preserves_identity_and_documents(database)
+def test_turbo8_requires_and_preserves_full_precision_archive(database, tmp_path)
+
 # tests/test_query_router.py [python]
 imports: pytest, time, unittest.mock.Mock, unittest.mock.patch, typing.Dict, typing.List, typing.Any, src.eeg_rag.core.query_router.QueryRouter, src.eeg_rag.core.query_router.QueryType, src.eeg_rag.core.query_router.RoutingResult, src.eeg_rag.core.query_router.route_query
 class TestQueryRouterBasics
@@ -7619,6 +7800,14 @@ class TestRerankedResult
   def test_creation(self)  # Test creating RerankedResult
   def test_optional_chunk_id(self)  # Test that chunk_id is optional
 
+# tests/test_researcher_install.py [python]
+imports: pathlib.Path, pytest
+def test_cpu_install_uses_external_environment_and_constraints(tmp_path)
+def test_pip_fallback_installs_cpu_torch_before_researcher_package(tmp_path)
+def test_environment_inside_repository_is_rejected(tmp_path)
+def test_launch_command_is_local_browser_app_without_activation(tmp_path)
+def test_package_and_runtime_versions_agree()
+
 # tests/test_resilience_utils.py [python]
 imports: pytest, time, threading, datetime.datetime, unittest.mock.Mock, eeg_rag.utils.resilience_utils.CircuitState, eeg_rag.utils.resilience_utils.CircuitStats, eeg_rag.utils.resilience_utils.CircuitBreaker, eeg_rag.utils.resilience_utils.CircuitOpenError, eeg_rag.utils.resilience_utils.circuit_breaker, eeg_rag.utils.resilience_utils.get_circuit_breaker, eeg_rag.utils.resilience_utils.HealthStatus, eeg_rag.utils.resilience_utils.HealthCheckResult, eeg_rag.utils.resilience_utils.HealthChecker, eeg_rag.utils.resilience_utils.register_health_check, eeg_rag.utils.resilience_utils.check_health, eeg_rag.utils.resilience_utils.RateLimiter, eeg_rag.utils.resilience_utils.rate_limit, eeg_rag.utils.resilience_utils.RateLimitExceeded, eeg_rag.utils.resilience_utils.DegradationLevel, eeg_rag.utils.resilience_utils.GracefulDegradation, eeg_rag.utils.resilience_utils.is_feature_enabled, eeg_rag.utils.resilience_utils.feature_gate, eeg_rag.utils.resilience_utils.FeatureDisabledError
 class TestCircuitState
@@ -7729,6 +7918,19 @@ class TestIntegration
   def full_system(self)  # Set up full retrieval system with real components.
   def test_end_to_end_search(self, full_system)  # Test complete search pipeline.
   def test_query_expansion_in_pipeline(self, full_system)  # Test query expansion is applied in search.
+
+# tests/test_retrieval_safety.py [python]
+imports: types.SimpleNamespace, pytest, eeg_rag.retrieval.bm25_retriever.BM25Result, eeg_rag.retrieval.hybrid_retriever.HybridRetriever
+class SparseCandidates
+  def __init__(self, results)
+  def search(self, query, top_k=100, filter_fn=None)
+class EmptyDense
+  def search(self, query, **kwargs)
+def test_sparse_only_paper_must_satisfy_year_filter()
+def test_range_boundaries_preserve_eligible_papers()
+def test_reranker_can_promote_candidate_below_final_cutoff()
+def test_invalid_candidate_counts_are_rejected(top_k, retrieve_k)
+def test_native_mode_uses_server_fusion_without_local_sparse_snapshot()
 
 # tests/test_search_history.py [python]
 imports: pytest, tempfile, os, pathlib.Path, datetime.datetime, datetime.timedelta, asyncio, eeg_rag.db.history_models.SearchHistoryDB, eeg_rag.db.history_models.SearchResult, eeg_rag.db.history_models.SearchQuery, eeg_rag.db.history_models.SearchSession, eeg_rag.services.history_manager.HistoryManager, eeg_rag.search.search_with_history.SearchWithHistory, eeg_rag.search.search_with_history.create_search_with_history
@@ -8198,6 +8400,25 @@ class UndefinedBehaviorTestRunner
   def save_html_report(self, report: UndefinedBehaviorReport, filepath: Optional[str] = None) -> str  # Save report as HTML file
   def _generate_html_report(self, report: UndefinedBehaviorReport) -> str  # Generate HTML report content
 def main()  # Main command line interface
+
+# tests/test_upgrade_benchmark.py [python]
+imports: types.SimpleNamespace, pytest
+def test_benchmark_penalizes_missing_relevant_documents()
+def test_benchmark_rejects_unlabeled_or_duplicate_query_rows()
+
+# tests/test_vector_upgrade.py [python]
+imports: unittest.mock.patch, numpy, pytest, qdrant_client.QdrantClient, qdrant_client.models, eeg_rag.storage.vector_db.VectorDB
+class FixedEncoder
+  def get_sentence_embedding_dimension(self)
+  def encode(self, texts, **kwargs)
+def database()
+def test_backend_configuration_reaches_model_loader()
+def test_collection_records_embedding_identity(database)
+def test_mismatched_encoder_cannot_search_collection(database)
+def test_incremental_indexing_preserves_existing_papers(database)
+def test_qdrant_range_and_metadata_filters_match_local_policy(database)
+def test_invalid_filter_is_not_silently_empty_search(database)
+def test_turbo_datatype_configuration_is_explicit()
 
 # tests/test_web_agent.py [python]
 imports: asyncio, pytest, time, unittest.mock.AsyncMock, unittest.mock.Mock, unittest.mock.patch, xml, eeg_rag.agents.web_agent.web_search_agent.WebSearchAgent, eeg_rag.agents.web_agent.web_search_agent.PubMedArticle, eeg_rag.agents.web_agent.web_search_agent.SearchResult, eeg_rag.agents.web_agent.web_search_agent.RateLimiter

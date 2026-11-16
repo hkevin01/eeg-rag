@@ -597,7 +597,14 @@ print(f"{len(retracted)} retracted papers flagged")
 
 ### Installation
 
-**Via pip (recommended):**
+**Researcher setup (recommended for this checkout):**
+```sh
+python scripts/install_researcher.py
+python scripts/install_researcher.py --launch
+```
+
+**Published releases via pip (advanced):**
+Published PyPI releases may not include the unreleased changes documented above.
 ```bash
 # Core install
 pip install eeg-rag
@@ -621,8 +628,8 @@ pip install git+https://github.com/hkevin01/eeg-rag.git
 ```bash
 git clone https://github.com/hkevin01/eeg-rag.git
 cd eeg-rag
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+python3.12 -m venv "$HOME/.local/share/eeg-rag/development"
+source "$HOME/.local/share/eeg-rag/development/bin/activate"
 pip install -e ".[dev]"
 ```
 
@@ -906,7 +913,9 @@ async with EuropePMCClient(fetch_full_text=True) as client:
 
 | <sub>Technology</sub> | <sub>Purpose</sub> | <sub>Why Chosen</sub> | <sub>Alternatives Considered</sub> |
 |------------|---------|------------|------------------------|
-| <sub>**Python 3.9+**</sub> | <sub>Core runtime</sub> | <sub>Rich ML/NLP ecosystem, async support, type hints</sub> | <sub>Node.js (lacks NLP maturity)</sub> |
+| <sub>**Python 3.11-3.14**</sub> | <sub>Core runtime</sub> | <sub>Supported modern model stack and asynchronous workflows</sub> | <sub>Older Python requires a separate legacy stack</sub> |
+| <sub>**Sentence Transformers 6.3**</sub> | <sub>Embeddings, reranking, optional NLI</sub> | <sub>Meaning-based retrieval and claim-to-source evaluation</sub> | <sub>Provider embeddings or separately hosted inference</sub> |
+| <sub>**Qdrant client 1.20**</sub> | <sub>Database API for persistent vector search</sub> | <sub>Metadata filtering and opt-in server-side BM25/dense fusion</sub> | <sub>Local FAISS for standalone vector search</sub> |
 | <sub>**FastAPI**</sub> | <sub>REST API framework</sub> | <sub>Async-native, auto OpenAPI docs, SSE support</sub> | <sub>Flask (no async), Django (heavier)</sub> |
 | <sub>**FAISS**</sub> | <sub>Vector similarity search</sub> | <sub><10ms for 1M vectors, GPU support, free</sub> | <sub>Pinecone (cloud/paid), Weaviate (heavier)</sub> |
 | <sub>**PubMedBERT**</sub> | <sub>Biomedical embeddings</sub> | <sub>Pre-trained on 14M PubMed papers, 87% NER F1; selectable via `model_preset` parameter</sub> | <sub>BioBERT (older), SciBERT (general science)</sub> |
@@ -1325,7 +1334,7 @@ pip install -r requirements-dev.txt
 
 ```bash
 # All offline tests (fast, no network)
-source .venv/bin/activate
+source "$HOME/.local/share/eeg-rag/development/bin/activate"
 python -m pytest tests/ -m "not integration and not external and not slow" -v
 
 # With coverage report

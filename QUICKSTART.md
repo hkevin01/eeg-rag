@@ -1,37 +1,42 @@
 # EEG-RAG Quick Start Guide 🚀
 
-Get the EEG-RAG system running in **5 minutes**.
+Install the researcher interface without Docker, a GPU, or environment activation.
+Download time depends on your connection and the packages already cached.
 
 ---
 
 ## Prerequisites
 
-- Python 3.9+ installed
-- 4GB RAM minimum (8GB recommended)
+- Python 3.11-3.14 installed (3.12 recommended)
+- Several GB of free disk space; 8 GB RAM recommended for local model work
 - Optional: API keys for PubMed and Semantic Scholar
 
 ---
 
-## 1. Installation (2 minutes)
+## 1. Installation
 
 ```bash
 # Clone the repository (if you haven't already)
-git clone https://github.com/yourusername/eeg-rag.git
+git clone https://github.com/hkevin01/eeg-rag.git
 cd eeg-rag
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Install CPU-first packages in an environment outside the project
+python scripts/install_researcher.py
 
-# Install dependencies
-pip install -r requirements.txt
+# Open the browser interface without activation
+python scripts/install_researcher.py --launch
 ```
 
 ---
 
-## 2. Configuration (1 minute)
+Download ZIP and extraction can replace the Git commands above. Use `python3`
+on Linux/macOS or `py -3.12` on Windows when needed. For retry, version checks,
+custom ports, and advanced setup, see [INSTALL.md](INSTALL.md).
 
-Create a `.env` file in the project root:
+## 2. Configuration
+
+Setup creates `.env` from the example only when no file exists. Add your contact
+email and optional provider credentials locally; generated answers need a provider.
 
 ```bash
 # Required
@@ -55,7 +60,11 @@ CORS_ORIGINS=*
 
 ---
 
-## 3. Start the API Server (30 seconds)
+## 3. Optional API Server
+
+Researchers can stay in the browser interface. The following advanced commands
+require the interpreter from your installed environment; see [INSTALL.md](INSTALL.md)
+for manual activation when using the API directly.
 
 ```bash
 # Option 1: Quick start (development mode)
@@ -178,11 +187,11 @@ uvicorn eeg_rag.api.main:app --port 8888
 ### Import Errors
 
 ```bash
-# Make sure you're in the virtual environment
-source venv/bin/activate
+# Check the researcher environment without activation
+python scripts/install_researcher.py --check
 
-# Reinstall dependencies
-pip install -r requirements.txt --upgrade
+# Repair/update the same isolated environment
+python scripts/install_researcher.py
 ```
 
 ### ChromaDB Connection Issues

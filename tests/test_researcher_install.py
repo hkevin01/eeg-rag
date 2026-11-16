@@ -16,7 +16,11 @@ def test_cpu_install_uses_external_environment_and_constraints(tmp_path):
     assert "--constraint" in install
     assert str(root / "requirements-researcher.txt") in install
     assert f"{root}[researcher]" in install
-    assert not any("ollama" in argument or "sudo" in argument for command in plan.commands for argument in command)
+    assert not any(
+        "ollama" in argument or "sudo" in argument
+        for command in plan.commands
+        for argument in command
+    )
 
 
 def test_pip_fallback_installs_cpu_torch_before_researcher_package(tmp_path):
@@ -26,7 +30,9 @@ def test_pip_fallback_installs_cpu_torch_before_researcher_package(tmp_path):
     root.mkdir()
     (root / "requirements-researcher.txt").write_text("torch==2.15.0\n")
     plan = build_install_plan(root, tmp_path / "env", "/bin/python", uv=None)
-    assert any("https://download.pytorch.org/whl/cpu" in command for command in plan.commands)
+    assert any(
+        "https://download.pytorch.org/whl/cpu" in command for command in plan.commands
+    )
     assert "--constraint" in plan.commands[-1]
 
 
@@ -49,7 +55,10 @@ def test_launch_command_is_local_browser_app_without_activation(tmp_path):
 
 def test_package_and_runtime_versions_agree():
     import tomllib
+
     from eeg_rag.__version__ import __version__
 
-    project = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())["project"]
+    project = tomllib.loads(
+        (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text()
+    )["project"]
     assert __version__ == project["version"]
